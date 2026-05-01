@@ -147,6 +147,19 @@ export interface Subscription {
   created_at: string
 }
 
+export interface OpeningLine {
+  id: string
+  course_id: string
+  variation_name: string
+  variation_code: string
+  popularity_pct: number
+  order_index: number
+  user_color: 'white' | 'black'
+  moves_uci: string
+  move_explanations: Record<string, string>
+  created_at: string
+}
+
 export interface AssessmentResult {
   id: string
   user_id: string

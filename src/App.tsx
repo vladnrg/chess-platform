@@ -12,6 +12,7 @@ import { Dashboard } from '@/pages/Dashboard'
 import { CoursesPage } from '@/pages/Courses/CoursesPage'
 import { CourseDetail } from '@/pages/Courses/CourseDetail'
 import { LessonPage } from '@/pages/Courses/LessonPage'
+import { OpeningTrainerPage } from '@/pages/Courses/OpeningTrainerPage'
 import { PuzzlesPage } from '@/pages/PuzzlesPage'
 import { StatsPage } from '@/pages/StatsPage'
 import { ProfilePage } from '@/pages/ProfilePage'
@@ -66,6 +67,8 @@ function AppRoutes() {
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:slug" element={<CourseDetail />} />
         <Route path="/courses/:slug/lessons/:lessonId" element={<LessonPage />} />
+        <Route path="/courses/:slug/guided/:lineId" element={<OpeningTrainerPage mode="guided" />} />
+        <Route path="/courses/:slug/practice/:lineId" element={<OpeningTrainerPage mode="practice" />} />
         <Route path="/puzzles" element={<PuzzlesPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
