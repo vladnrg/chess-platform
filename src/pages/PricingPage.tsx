@@ -3,6 +3,7 @@ import { CheckCircle2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
+import { RestrictedPricing } from '@/components/auth/RestrictedPricing'
 
 const PLANS = [
   {
@@ -50,8 +51,10 @@ const PLANS = [
 ]
 
 export function PricingPage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { isPro, subscription } = useSubscription()
+
+  if (user && (profile as any)?.is_minor) return <RestrictedPricing />
 
   async function handleCheckout(priceId: string | null) {
     if (!priceId || !user) return

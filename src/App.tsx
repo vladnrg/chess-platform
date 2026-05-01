@@ -19,6 +19,9 @@ import { PricingPage } from '@/pages/PricingPage'
 import { CommunityPage } from '@/pages/CommunityPage'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { TacticsChestPage } from '@/pages/TacticsChestPage'
+import { BreakPage } from '@/pages/BreakPage'
+import { ParentalConfirmPage } from '@/pages/ParentalConfirmPage'
+import { ParentalStatsPage } from '@/pages/ParentalStatsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -50,6 +53,9 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/break" element={<BreakPage />} />
+      <Route path="/parental/confirm" element={<ParentalConfirmPage />} />
+      <Route path="/parental/stats" element={<ParentalStatsPage />} />
 
       {/* Onboarding */}
       <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />

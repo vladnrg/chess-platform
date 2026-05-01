@@ -2,6 +2,14 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Menu } from 'lucide-react'
+import { useChildSession } from '@/hooks/useChildSession'
+import { SessionTimer } from '@/components/session/SessionTimer'
+
+function ChildSessionGuard() {
+  const { minutesLeft, showWarning, dismissWarning, isMinor } = useChildSession()
+  if (!isMinor || !showWarning || minutesLeft === null) return null
+  return <SessionTimer minutesLeft={minutesLeft} onDismiss={dismissWarning} />
+}
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -43,6 +51,8 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ChildSessionGuard />
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { BookOpen, Puzzle, ChevronRight, Lock } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { LeagueWidget } from '@/components/dashboard/LeagueWidget'
@@ -15,6 +16,7 @@ import { LEVEL_LABELS } from '@/types'
 export function Dashboard() {
   const { profile } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Redirect la onboarding dacă nu a completat evaluarea
   useEffect(() => {
@@ -22,6 +24,14 @@ export function Dashboard() {
       navigate('/onboarding', { replace: true })
     }
   }, [profile, navigate])
+
+  // Toast Stripe checkout success
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      toast.success('Abonament activat! Bun venit în Pro!')
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const { data: recommendedCourses, isLoading } = useQuery({
     queryKey: ['recommended-courses', profile?.playing_style, profile?.estimated_elo],
