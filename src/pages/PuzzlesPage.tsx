@@ -75,14 +75,20 @@ export function PuzzlesPage() {
     queryKey: ['daily-puzzle'],
     queryFn: async () => {
       const lp = await fetchLichessDailyPuzzle()
-      // Reconstruct FEN at initialPly by replaying moves one by one
+      // Reconstruct FEN at initialPly using chess.js PGN parser (handles move numbers, annotations)
       const fen = (() => {
-        const g = new Chess()
-        const sanMoves = lp.game.pgn.trim().split(/\s+/)
-        for (let i = 0; i < lp.puzzle.initialPly && i < sanMoves.length; i++) {
-          try { g.move(sanMoves[i]) } catch { break }
+        try {
+          const full = new Chess()
+          full.loadPgn(lp.game.pgn)
+          const history = full.history()
+          const g = new Chess()
+          for (let i = 0; i < lp.puzzle.initialPly && i < history.length; i++) {
+            g.move(history[i])
+          }
+          return g.fen()
+        } catch {
+          return 'start'
         }
-        return g.fen()
       })()
 
       const puzzle: Puzzle = {

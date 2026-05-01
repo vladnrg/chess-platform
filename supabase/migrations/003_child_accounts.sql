@@ -10,12 +10,7 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS account_frozen boolean DEFAULT false,
   ADD COLUMN IF NOT EXISTS account_frozen_reason text; -- 'awaiting_parental_consent' | 'rejected'
 
--- Computed column: is_minor (true if birth_year set and age < 14)
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS is_minor boolean GENERATED ALWAYS AS (
-    birth_year IS NOT NULL AND
-    (EXTRACT(YEAR FROM now())::int - birth_year) < 14
-  ) STORED;
+-- is_minor is computed in application code from birth_year
 
 -- Child session tracker
 CREATE TABLE IF NOT EXISTS public.child_sessions (

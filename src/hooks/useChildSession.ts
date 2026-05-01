@@ -26,7 +26,8 @@ export function useChildSession() {
   const [showWarning, setShowWarning] = useState(false)
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const isMinor = profile && (profile as any).is_minor === true
+  const birthYear = (profile as any)?.birth_year as number | null | undefined
+  const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
 
   const loadOrCreateSession = useCallback(async () => {
     if (!user || !isMinor) return

@@ -12,10 +12,16 @@ serve(async () => {
   const appUrl = Deno.env.get('APP_URL') ?? 'http://localhost:5173'
 
   // Get all active minor accounts with parental email
+  const currentYear = new Date().getFullYear()
+  const maxBirthYear = currentYear - 1   // at least 1 year old
+  const minBirthYear = currentYear - 13  // strictly under 14
+
   const { data: minors } = await supabase
     .from('profiles')
     .select('id, username, xp, current_league, streak_days, parental_email')
-    .eq('is_minor', true)
+    .not('birth_year', 'is', null)
+    .gte('birth_year', minBirthYear)
+    .lte('birth_year', maxBirthYear)
     .eq('account_frozen', false)
     .not('parental_email', 'is', null)
 

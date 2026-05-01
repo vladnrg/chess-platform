@@ -54,7 +54,9 @@ export function PricingPage() {
   const { user, profile } = useAuth()
   const { isPro, subscription } = useSubscription()
 
-  if (user && (profile as any)?.is_minor) return <RestrictedPricing />
+  const birthYear = (profile as any)?.birth_year as number | null | undefined
+  const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
+  if (user && isMinor) return <RestrictedPricing />
 
   async function handleCheckout(priceId: string | null) {
     if (!priceId || !user) return
