@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
@@ -61,10 +62,12 @@ function initPuzzleState(fen: string, movesStr: string): PuzzleState {
 export function PuzzlesPage() {
   const { user, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
+  const [searchParams] = useSearchParams()
 
   const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(null)
   const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(null)
   const [todayCount, setTodayCount] = useState(0)
+  const [activeTheme, setActiveTheme] = useState<string | null>(searchParams.get('theme'))
 
   const FREE_LIMIT = 10
 
@@ -78,7 +81,6 @@ export function PuzzlesPage() {
           const g = new Chess(); g.loadPgn(lp.game.pgn)
           // Setare la poziția puzzle-ului
           for (let i = 0; i < lp.puzzle.initialPly; i++) {
-            const moves = g.history({ verbose: true })
             if (i > 0) { /* already loaded */ }
           }
           return g.fen()
@@ -112,9 +114,11 @@ export function PuzzlesPage() {
   })
 
   const { data: fallbackPuzzles } = useQuery({
-    queryKey: ['puzzles-pool'],
+    queryKey: ['puzzles-pool', activeTheme],
     queryFn: async () => {
-      const { data } = await supabase.from('puzzles').select('*').limit(20)
+      let q = supabase.from('puzzles').select('*').limit(30)
+      if (activeTheme) q = q.contains('themes', [activeTheme])
+      const { data } = await q
       return (data ?? []) as Puzzle[]
     },
   })
@@ -157,7 +161,8 @@ export function PuzzlesPage() {
     loadPuzzle(p)
   }
 
-  const onPieceDrop = useCallback((source: string, target: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onPieceDrop = useCallback(({ sourceSquare: source, targetSquare: target }: any) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
     if (!currentPuzzle) return false
 
@@ -212,16 +217,48 @@ export function PuzzlesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#f0f0f0]">Puzzle-uri tactice</h1>
           <p className="text-[#666] text-sm mt-0.5">
             {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
+            {activeTheme && (
+              <> · <span className="text-[#c8a84b]">{PUZZLE_THEMES[activeTheme] ?? activeTheme}</span></>
+            )}
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={loadNext} disabled={limitReached}>
-          <RefreshCw className="h-4 w-4" /> Puzzle nou
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          {activeTheme && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTheme(null)}
+            >
+              × Elimină filtru
+            </Button>
+          )}
+          <Button variant="secondary" size="sm" onClick={loadNext} disabled={limitReached}>
+            <RefreshCw className="h-4 w-4" /> Puzzle nou
+          </Button>
+        </div>
+      </div>
+
+      {/* Filtre teme */}
+      <div className="flex gap-2 flex-wrap">
+        {Object.entries(PUZZLE_THEMES).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setActiveTheme(prev => prev === key ? null : key)}
+            className={[
+              'rounded-full px-3 py-1 text-xs font-medium border transition-colors',
+              activeTheme === key
+                ? 'bg-[#c8a84b] text-black border-[#c8a84b]'
+                : 'bg-transparent text-[#666] border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-[#a0a0a0]',
+            ].join(' ')}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {limitReached && (
@@ -243,13 +280,15 @@ export function PuzzlesPage() {
             <div className="space-y-4">
               <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
                 <Chessboard
-                  position={puzzleState.game.fen()}
-                  onPieceDrop={onPieceDrop}
-                  arePiecesDraggable={puzzleState.status === 'playing' && !puzzleState.waitingOpponent}
-                  boardOrientation={puzzleState.game.turn() === 'w' ? 'white' : 'black'}
-                  customBoardStyle={{ borderRadius: 0 }}
-                  customDarkSquareStyle={{ backgroundColor: '#3d3d3d' }}
-                  customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
+                  options={{
+                    position: puzzleState.game.fen(),
+                    onPieceDrop,
+                    allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent,
+                    boardOrientation: puzzleState.game.turn() === 'w' ? 'white' : 'black',
+                    boardStyle: { borderRadius: 0 },
+                    darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                    lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                  }}
                 />
               </div>
 

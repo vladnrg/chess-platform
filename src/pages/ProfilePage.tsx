@@ -13,6 +13,8 @@ import { PLAYING_STYLE_LABELS } from '@/types'
 export function ProfilePage() {
   const { profile, fetchProfile, user } = useAuth()
   const [username, setUsername] = useState(profile?.username ?? '')
+  const [city, setCity] = useState((profile as any)?.city ?? '')
+  const [county, setCounty] = useState((profile as any)?.county ?? '')
   const leagueConfig = profile ? getLeagueConfig(profile.current_league) : null
 
   const updateMutation = useMutation({
@@ -20,7 +22,7 @@ export function ProfilePage() {
       if (!user) return
       const { error } = await supabase
         .from('profiles')
-        .update({ username })
+        .update({ username, city: city || null, county: county || null })
         .eq('id', user.id)
       if (error) throw error
       await fetchProfile(user.id)
@@ -61,6 +63,20 @@ export function ProfilePage() {
             value={username}
             onChange={e => setUsername(e.target.value)}
           />
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Oraș"
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              placeholder="ex: Cluj-Napoca"
+            />
+            <Input
+              label="Județ"
+              value={county}
+              onChange={e => setCounty(e.target.value)}
+              placeholder="ex: Cluj"
+            />
+          </div>
           <div>
             <p className="text-sm text-[#a0a0a0] mb-1">Stil de joc detectat</p>
             <p className="font-semibold text-[#c8a84b]">

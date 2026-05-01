@@ -19,7 +19,7 @@ export function CourseDetail() {
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', slug],
     queryFn: async () => {
-      const { data } = await supabase.from('courses').select('*').eq('slug', slug).single()
+      const { data } = await supabase.from('courses').select('*').eq('slug', slug!).single()
       return data as Course
     },
     enabled: !!slug,

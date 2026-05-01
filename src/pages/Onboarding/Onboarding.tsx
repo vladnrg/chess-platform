@@ -211,12 +211,13 @@ function TacticsQuestion({
       <p className="text-sm text-[#a0a0a0] mb-4">{question.hint}</p>
       <div className="mx-auto" style={{ maxWidth: 380 }}>
         <Chessboard
-          position={tacticsState.game.fen()}
-          onPieceDrop={onDrop}
-          boardStyle={{ borderRadius: 8 }}
-          customBoardStyle={{ borderRadius: 8 }}
-          customDarkSquareStyle={{ backgroundColor: '#3d3d3d' }}
-          customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
+          options={{
+            position: tacticsState.game.fen(),
+            onPieceDrop: ({ sourceSquare, targetSquare }: any) => onDrop(sourceSquare, targetSquare),
+            boardStyle: { borderRadius: 8 },
+            darkSquareStyle: { backgroundColor: '#3d3d3d' },
+            lightSquareStyle: { backgroundColor: '#f0d9b5' },
+          }}
         />
       </div>
       {tacticsState.solved === true && (

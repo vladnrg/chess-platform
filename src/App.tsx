@@ -16,6 +16,9 @@ import { PuzzlesPage } from '@/pages/PuzzlesPage'
 import { StatsPage } from '@/pages/StatsPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { PricingPage } from '@/pages/PricingPage'
+import { CommunityPage } from '@/pages/CommunityPage'
+import { CalendarPage } from '@/pages/CalendarPage'
+import { TacticsChestPage } from '@/pages/TacticsChestPage'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -60,6 +63,9 @@ function AppRoutes() {
         <Route path="/puzzles" element={<PuzzlesPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/tactics" element={<TacticsChestPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

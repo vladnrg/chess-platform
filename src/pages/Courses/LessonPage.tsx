@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
+import { FundamentalLessonPage } from './FundamentalLessonPage'
 import type { Lesson, Course } from '@/types'
 
 function parsePgn(pgn: string): string[] {
@@ -25,7 +26,6 @@ function parsePgn(pgn: string): string[] {
 export function LessonPage() {
   const { slug, lessonId } = useParams<{ slug: string; lessonId: string }>()
   const { user, fetchProfile } = useAuth()
-  const navigate = useNavigate()
   const qc = useQueryClient()
 
   const [moveIndex, setMoveIndex] = useState(0)
@@ -116,6 +116,17 @@ export function LessonPage() {
   if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
   if (!lesson) return <p className="text-[#666]">Lecția nu a fost găsită.</p>
 
+  if (lesson.lesson_type === 'rules' || lesson.lesson_type === 'notation') {
+    return (
+      <FundamentalLessonPage
+        lesson={lesson}
+        course={course!}
+        prevLesson={prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null}
+        nextLesson={nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null}
+      />
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* Breadcrumb */}
@@ -133,12 +144,13 @@ export function LessonPage() {
         <div className="space-y-4">
           <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
             <Chessboard
-              position={getCurrentFen()}
-              arePiecesDraggable={false}
-              boardWidth={undefined}
-              customBoardStyle={{ borderRadius: 0 }}
-              customDarkSquareStyle={{ backgroundColor: '#3d3d3d' }}
-              customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
+              options={{
+                position: getCurrentFen(),
+                allowDragging: false,
+                boardStyle: { borderRadius: 0 },
+                darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                lightSquareStyle: { backgroundColor: '#f0d9b5' },
+              }}
             />
           </div>
 

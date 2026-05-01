@@ -17,7 +17,7 @@ export function useWeeklyXp() {
       .eq('user_id', user.id)
       .eq('week_start', weekStart)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         setWeeklyXp(data?.xp_earned ?? 0)
         setLoading(false)
       })

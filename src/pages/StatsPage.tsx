@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar,
+  BarChart, Bar,
 } from 'recharts'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
-import { LEAGUES } from '@/types'
+
 
 const TOOLTIP_STYLE = {
   backgroundColor: '#1e1e1e',
@@ -30,10 +30,10 @@ export function StatsPage() {
         .eq('user_id', user!.id)
         .order('week_start')
         .limit(12)
-      return (data ?? []).map(row => ({
-        week: new Date(row.week_start).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }),
-        xp: row.xp_earned,
-        liga: row.league_at_week_start,
+      return (data ?? []).map((row: Record<string, unknown>) => ({
+        week: new Date(row['week_start'] as string).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }),
+        xp: row['xp_earned'] as number,
+        liga: row['league_at_week_start'] as string,
       }))
     },
     enabled: !!user,
@@ -82,7 +82,6 @@ export function StatsPage() {
 
       return (data ?? []).map((row: Record<string, unknown>) => {
         const course = row.courses as { title?: string; level?: string } | null
-        const completedIds = (row.completed_lesson_ids as string[]) ?? []
         return {
           curs: course?.title?.split(' ').slice(0, 2).join(' ') ?? 'Necunoscut',
           completat: row.xp_earned as number,
@@ -101,11 +100,6 @@ export function StatsPage() {
     ? Math.round(puzzleStats.reduce((a, s) => a + s['Rată succes'], 0) / puzzleStats.length)
     : 0
 
-  // Radar data pentru ligi (progres vizualizat ca spider)
-  const radarData = LEAGUES.map(l => ({
-    ligă: l.label,
-    xp: Math.min(100, Math.round((profile.xp / (l.maxXp ?? 10000)) * 100)),
-  }))
 
   return (
     <div className="space-y-6">

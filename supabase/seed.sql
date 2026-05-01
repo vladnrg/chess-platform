@@ -20,13 +20,13 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
   'Gambitul Regelui',
   'kings-gambit',
   'Cea mai agresivă deschidere clasică. 1.e4 e5 2.f4 — alb sacrifică un pion pentru joc rapid și atac pe centru.',
-  'beginner', "King's Gambit", 'C30', ARRAY['offensive'], true, 5, 3
+  'beginner', 'King''s Gambit', 'C30', ARRAY['offensive'], true, 5, 3
 ),
 (
   'Gambitul Damei',
   'queens-gambit',
   '1.d4 d5 2.c4 — presiune pe centru și joc pozițional. Favorita campionilor mondiali.',
-  'intermediate', "Queen's Gambit", 'D06', ARRAY['balanced','pragmatic'], true, 6, 4
+  'intermediate', 'Queen''s Gambit', 'D06', ARRAY['balanced','pragmatic'], true, 6, 4
 ),
 (
   'Deschiderea Catalană',
@@ -50,7 +50,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
   'Atacul Regelui Indian (KIA)',
   'kings-indian-attack',
   'Setup cu g3, Bg2, d3, Nf3, Nc3 — sistem flexibil pentru alb, potrivit împotriva oricărei deschideri negre.',
-  'intermediate', "King's Indian Attack", 'A07', ARRAY['offensive','balanced'], true, 5, 8
+  'intermediate', 'King''s Indian Attack', 'A07', ARRAY['offensive','balanced'], true, 5, 8
 ),
 (
   'Sistemul Colle',
@@ -88,7 +88,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
   'Apărarea Regelui Indian',
   'kings-indian-defense',
   '1.d4 Cf6 2.c4 g6 — contra-atac pe flancul regelui. Partide complicate și dinamice.',
-  'intermediate', "King's Indian Defense", 'E60', ARRAY['offensive'], true, 6, 14
+  'intermediate', 'King''s Indian Defense', 'E60', ARRAY['offensive'], true, 6, 14
 ),
 (
   'Apărarea Nimzo-Indian',
@@ -124,7 +124,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
   'Apărarea Alekhine',
   'alekhine-defense',
   '1.e4 Cf6 — hipermodernă provocatoare. Negrul invită albul să avanseze pionii centrali.',
-  'intermediate', "Alekhine's Defense", 'B02', ARRAY['offensive','balanced'], true, 5, 20
+  'intermediate', 'Alekhine''s Defense', 'B02', ARRAY['offensive','balanced'], true, 5, 20
 );
 
 -- Actualizare lesson_count (cursuri fără lecții reale — seed de bază)

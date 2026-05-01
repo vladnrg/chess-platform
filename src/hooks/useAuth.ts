@@ -6,12 +6,12 @@ export function useAuthInit() {
   const { setSession } = useAuthStore()
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data: { session } }) => {
+    void supabase.auth.getSession().then(({ data: { session } }: any) => {
       setSession(session)
       useAuthStore.setState({ initialized: true, loading: false })
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setSession(session)
       useAuthStore.setState({ initialized: true, loading: false })
     })

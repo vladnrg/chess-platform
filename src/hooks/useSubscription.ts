@@ -16,7 +16,7 @@ export function useSubscription() {
       .select('*')
       .eq('user_id', user.id)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         setSubscription(data as Subscription | null)
         setLoading(false)
       })

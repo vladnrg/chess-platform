@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Crown, LogOut, X, Flame,
+  User, Crown, LogOut, X, Flame, Sword, Calendar, Users,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig } from '@/lib/utils'
@@ -11,6 +11,9 @@ const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/courses', icon: BookOpen, label: 'Cursuri' },
   { to: '/puzzles', icon: Puzzle, label: 'Puzzle-uri' },
+  { to: '/tactics', icon: Sword, label: 'Tactici' },
+  { to: '/calendar', icon: Calendar, label: 'Calendar' },
+  { to: '/community', icon: Users, label: 'Comunitate' },
   { to: '/stats', icon: BarChart2, label: 'Statistici' },
   { to: '/profile', icon: User, label: 'Profil' },
 ]

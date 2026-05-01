@@ -12,6 +12,7 @@ import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
 const LEVELS: { value: CourseLevel | 'all'; label: string }[] = [
   { value: 'all', label: 'Toate' },
+  { value: 'fundamental', label: 'Baze' },
   { value: 'beginner', label: 'Începător' },
   { value: 'intermediate', label: 'Intermediar' },
   { value: 'advanced', label: 'Avansat' },
@@ -39,7 +40,10 @@ export function CoursesPage() {
     },
   })
 
+  const fundamentals = (courses ?? []).filter(c => c.level === 'fundamental')
+
   const filtered = (courses ?? []).filter(c => {
+    if (c.level === 'fundamental') return false  // shown separately above
     if (levelFilter !== 'all' && c.level !== levelFilter) return false
     if (styleFilter !== 'all' && !c.playing_styles.includes(styleFilter)) return false
     if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.opening_family.toLowerCase().includes(search.toLowerCase())) return false
@@ -96,7 +100,22 @@ export function CoursesPage() {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Cursuri fundamentale — banner separat */}
+      {!isLoading && fundamentals.length > 0 && levelFilter === 'all' && !search && (
+        <div className="rounded-xl border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.05)] p-4 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-[#c8a84b]">Înainte de orice altceva...</p>
+            <p className="text-xs text-[#666] mt-0.5">Aceste cursuri pun bazele. Sunt 100% gratuite.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {fundamentals.map(course => (
+              <CourseCard key={course.id} course={course} isPro={isPro} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Grid openings */}
       {isLoading ? (
         <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
       ) : (
@@ -138,7 +157,11 @@ function CourseCard({ course, isPro }: { course: Course; isPro: boolean }) {
             </div>
           )}
           <div className="absolute top-2 left-2">
-            <Badge variant={course.level === 'beginner' ? 'beginner' : course.level === 'intermediate' ? 'intermediate' : 'advanced'}>
+            <Badge variant={
+              course.level === 'fundamental' ? 'default' :
+              course.level === 'beginner' ? 'beginner' :
+              course.level === 'intermediate' ? 'intermediate' : 'advanced'
+            }>
               {LEVEL_LABELS[course.level]}
             </Badge>
           </div>

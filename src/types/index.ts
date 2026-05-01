@@ -1,6 +1,6 @@
 export type League = 'cherestea' | 'tinichea' | 'bronz' | 'argint' | 'aur' | 'smarald' | 'diamant'
 export type PlayingStyle = 'offensive' | 'balanced' | 'pragmatic' | 'defensive'
-export type CourseLevel = 'beginner' | 'intermediate' | 'advanced'
+export type CourseLevel = 'fundamental' | 'beginner' | 'intermediate' | 'advanced'
 export type SubscriptionPlan = 'monthly' | 'annual'
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing'
 
@@ -15,6 +15,29 @@ export interface Profile {
   assessment_completed: boolean
   streak_days: number
   last_active_date: string | null
+  city: string | null
+  county: string | null
+  created_at: string
+}
+
+export type TournamentType = 'platform' | 'external'
+export type TournamentCategory = 'online' | 'over_the_board' | 'workshop'
+
+export interface Tournament {
+  id: string
+  title: string
+  description: string | null
+  type: TournamentType
+  category: TournamentCategory | null
+  city: string | null
+  starts_at: string
+  ends_at: string | null
+  max_participants: number | null
+  min_league: League | null
+  is_open_to_minors: boolean
+  registration_url: string | null
+  organizer: string | null
+  is_published: boolean
   created_at: string
 }
 
@@ -35,14 +58,44 @@ export interface Course {
   progress?: UserCourseProgress
 }
 
+export type LessonType = 'pgn' | 'rules' | 'notation'
+
+export type ExerciseType = 'click_square' | 'move_piece' | 'identify_square'
+
+export interface ClickSquareExercise {
+  type: 'click_square'
+  target: string
+  fen: string
+  instruction: string
+}
+
+export interface MovePieceExerciseData {
+  type: 'move_piece'
+  fen: string
+  correct_move: string
+  instruction: string
+}
+
+export interface IdentifySquareExercise {
+  type: 'identify_square'
+  square: string
+  options: string[]
+  instruction: string
+  fen?: string
+}
+
+export type Exercise = ClickSquareExercise | MovePieceExerciseData | IdentifySquareExercise
+
 export interface Lesson {
   id: string
   course_id: string
   title: string
   order_index: number
+  lesson_type: LessonType
   pgn: string | null
   theory_html: string | null
   key_positions: KeyPosition[] | null
+  exercises: Exercise[] | null
   is_premium: boolean
   duration_minutes: number
 }
@@ -143,6 +196,7 @@ export const PLAYING_STYLE_LABELS: Record<PlayingStyle, string> = {
 }
 
 export const LEVEL_LABELS: Record<CourseLevel, string> = {
+  fundamental: 'Baze',
   beginner: 'Începător',
   intermediate: 'Intermediar',
   advanced: 'Avansat',
