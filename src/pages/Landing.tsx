@@ -4,11 +4,31 @@ import { Button } from '@/components/ui/Button'
 import { LEAGUES } from '@/types'
 
 const FEATURES = [
-  { icon: BookOpen, title: '20+ cursuri de openings', desc: 'London, Sicilian, Caro-Kann și multe altele — structurate pe nivel și stil de joc.' },
-  { icon: Puzzle, title: 'Puzzle-uri zilnice', desc: 'Tacticile reale din baza Lichess (2M+ puzzle-uri) filtrate pe tematica ta slabă.' },
-  { icon: BarChart2, title: 'Statistici vizuale', desc: 'Grafice de progres, rata de succes pe deschideri și identificarea punctelor slabe.' },
-  { icon: Trophy, title: 'Sistem de ligi', desc: 'Avansezi de la Cherestea la Diamant acumulând XP. Retrogrezi dacă ești inactiv.' },
-  { icon: Shield, title: 'Adaptat stilului tău', desc: 'Ofensiv, defensiv, pragmatic sau echilibrat — cursurile recomandate se potrivesc modului tău de joc.' },
+  {
+    icon: BookOpen,
+    title: '20+ cursuri de openings',
+    desc: 'London, Sicilian, Caro-Kann și altele — fiecare curs e construit pas cu pas, ca să nu te pierzi niciodată.',
+  },
+  {
+    icon: Puzzle,
+    title: 'Puzzle-uri zilnice',
+    desc: 'Mii de tactici reale din partide adevărate. Cu cât rezolvi mai multe, cu atât ochiul tău de jucător devine mai ascuțit.',
+  },
+  {
+    icon: BarChart2,
+    title: 'Statistici vizuale',
+    desc: 'Vezi exact la ce tactici câștigi și unde mai ai de lucru. Progresul tău, în cifre clare.',
+  },
+  {
+    icon: Trophy,
+    title: 'Sistem de ligi',
+    desc: 'Urcă de la Cherestea până la Diamant câștigând XP. Cu cât ești mai activ, cu atât urci mai repede.',
+  },
+  {
+    icon: Shield,
+    title: 'Adaptat stilului tău',
+    desc: 'Joci ofensiv? Defensiv? Pragmatic? Îți recomandăm cursurile care se potrivesc exact cum gândești pe tablă.',
+  },
 ]
 
 const PRICING = [
@@ -16,9 +36,9 @@ const PRICING = [
     name: 'Free',
     price: '0',
     period: '',
-    description: 'Perfecte pentru a începe',
-    features: ['3 cursuri complete', '10 puzzle-uri/zi', 'Evaluare nivel', 'Dashboard de bază'],
-    cta: 'Începe gratuit',
+    description: 'Ideal ca să vezi cum funcționează',
+    features: ['3 cursuri complete', '10 puzzle-uri/zi', 'Evaluare nivel', 'Dashboard personal'],
+    cta: 'Intru acum — gratis',
     href: '/register',
     highlight: false,
   },
@@ -26,9 +46,9 @@ const PRICING = [
     name: 'Pro Lunar',
     price: '9.99',
     period: '/lună',
-    description: 'Acces complet, fără limitări',
+    description: 'Tot ce ai nevoie, fără nicio limită',
     features: ['Toate cursurile (20+)', 'Puzzle-uri nelimitate', 'Statistici avansate', 'Recomandări personalizate', 'Refund după 60 zile'],
-    cta: 'Alege Pro',
+    cta: 'Vreau Pro',
     href: '/register?plan=monthly',
     highlight: true,
   },
@@ -36,15 +56,35 @@ const PRICING = [
     name: 'Pro Anual',
     price: '79.99',
     period: '/an',
-    description: '2 luni gratuite față de lunar',
-    features: ['Tot din Pro Lunar', 'Economisești ~2 luni', 'Prioritate suport', 'Refund după 60 zile'],
+    description: 'Câștigi 2 luni față de planul lunar',
+    features: ['Tot din Pro Lunar', 'Economisești ~2 luni', 'Suport prioritar', 'Refund după 60 zile'],
     cta: 'Cel mai bun preț',
     href: '/register?plan=annual',
     highlight: false,
   },
 ]
 
+const LEAGUE_GROUPS = [
+  {
+    label: 'Primele trepte',
+    leagues: ['cherestea', 'tinichea', 'bronz'],
+    emojis: { cherestea: '🪵', tinichea: '🔩', bronz: '🥉' } as Record<string, string>,
+  },
+  {
+    label: 'Zona de mijloc',
+    leagues: ['argint', 'aur', 'smarald'],
+    emojis: { argint: '🥈', aur: '🥇', smarald: '💚' } as Record<string, string>,
+  },
+  {
+    label: 'Elita',
+    leagues: ['diamant'],
+    emojis: { diamant: '💎' } as Record<string, string>,
+  },
+]
+
 export function Landing() {
+  const leagueByName = Object.fromEntries(LEAGUES.map(l => [l.name, l]))
+
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
       {/* Nav */}
@@ -61,7 +101,7 @@ export function Landing() {
               Conectare
             </Link>
             <Link to="/register">
-              <Button size="sm">Începe gratuit</Button>
+              <Button size="sm">Fă prima mutare</Button>
             </Link>
           </div>
         </div>
@@ -71,51 +111,62 @@ export function Landing() {
       <section className="px-6 py-24 text-center">
         <div className="mx-auto max-w-3xl">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.08)] px-4 py-1.5 text-sm text-[#c8a84b]">
-            <span>Gratuit să începi</span>
+            <span>Fă prima mutare</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-[#f0f0f0] leading-tight mb-6">
-            Devino un jucător mai bun,<br />
-            <span className="text-[#c8a84b]">o mutare pe rând</span>
+            Mulți doar joacă șah.<br />
+            Alții fac din șah o artă.<br />
+            <span className="text-[#c8a84b]">Arată-ți măiestria în universul celor 64 de pătrate.</span>
           </h1>
           <p className="text-lg text-[#a0a0a0] mb-10 max-w-xl mx-auto">
-            Cursuri de openings structurate, puzzle-uri adaptate nivelului tău și statistici care îți arată exact unde greșești.
+            De la prima mutare până la finalul care decide totul — avem rețeta clară pentru orice nivel ai acum.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/register">
-              <Button size="xl">Începe gratuit — fără card</Button>
+              <Button size="xl">Pornesc acum — fără card</Button>
             </Link>
             <Link to="/courses">
-              <Button size="xl" variant="secondary">Explorează cursurile</Button>
+              <Button size="xl" variant="secondary">Dă-mi un preview</Button>
             </Link>
           </div>
         </div>
       </section>
 
       {/* Ligi */}
-      <section className="px-6 py-12 bg-[#0a0a0a]">
+      <section className="px-6 py-14 bg-[#0a0a0a]">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-sm text-[#666] mb-4 uppercase tracking-widest">Sistemul de ligi</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {LEAGUES.map((league, i) => (
-              <div
-                key={league.name}
-                className="flex items-center gap-2 rounded-full px-4 py-2 border"
-                style={{
-                  borderColor: `${league.color}40`,
-                  backgroundColor: `${league.color}10`,
-                }}
-              >
-                <span className="text-lg">{'⬡'.repeat(Math.min(i + 1, 3))}</span>
-                <span className="text-sm font-semibold" style={{ color: league.color }}>
-                  {league.label}
-                </span>
+          <p className="text-sm text-[#666] mb-2 uppercase tracking-widest">Sistemul de ligi</p>
+          <p className="text-[#a0a0a0] text-sm mb-8">Toată lumea începe din același loc. Cât de sus ajungi depinde doar de tine.</p>
+
+          <div className="flex flex-col sm:flex-row items-start justify-center gap-6">
+            {LEAGUE_GROUPS.map((group) => (
+              <div key={group.label} className="flex-1 min-w-[160px]">
+                <p className="text-xs text-[#555] uppercase tracking-wider mb-3">{group.label}</p>
+                <div className="space-y-2">
+                  {group.leagues.map((name) => {
+                    const league = leagueByName[name]
+                    const emoji = (group.emojis as Record<string, string>)[name]
+                    return (
+                      <div
+                        key={name}
+                        className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 border"
+                        style={{
+                          borderColor: `${league.color}40`,
+                          backgroundColor: `${league.color}12`,
+                        }}
+                      >
+                        <span className="text-xl">{emoji}</span>
+                        <span className="text-sm font-semibold" style={{ color: league.color }}>
+                          {league.label}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-sm text-[#666]">
-            Toți utilizatorii încep din <span className="text-[#8B6914]">Cherestea</span>. Urcă prin activitate săptămânală. Retrogradezi dacă ești inactiv.
-          </p>
         </div>
       </section>
 
@@ -123,8 +174,8 @@ export function Landing() {
       <section className="px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-[#f0f0f0] mb-3">Tot ce ai nevoie să avansezi</h2>
-            <p className="text-[#a0a0a0]">Nu teorie abstractă. Practică structurată, adaptată la tine.</p>
+            <h2 className="text-3xl font-bold text-[#f0f0f0] mb-3">Tot ce ai nevoie să urci în clasament</h2>
+            <p className="text-[#a0a0a0]">Exact ce contează, pus cap la cap — ca să progresi de fiecare dată când deschizi aplicația.</p>
           </div>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
@@ -144,8 +195,8 @@ export function Landing() {
       <section id="pricing" className="px-6 py-20 bg-[#0a0a0a]">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-[#f0f0f0] mb-3">Prețuri simple și corecte</h2>
-            <p className="text-[#a0a0a0]">Refund integrat după 60 de zile dacă nu observi progres real.</p>
+            <h2 className="text-3xl font-bold text-[#f0f0f0] mb-3">Alege ritmul tău</h2>
+            <p className="text-[#a0a0a0]">Dacă după 60 de zile nu simți că ai progresat, îți dăm banii înapoi — simplu.</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {PRICING.map(plan => (
@@ -159,7 +210,7 @@ export function Landing() {
               >
                 {plan.highlight && (
                   <div className="mb-4 inline-flex w-fit rounded-full bg-[#c8a84b] px-3 py-0.5 text-xs font-bold text-black">
-                    POPULAR
+                    CEL MAI ALES
                   </div>
                 )}
                 <div className="mb-1 text-sm font-medium text-[#a0a0a0]">{plan.name}</div>
