@@ -75,16 +75,19 @@ export function PuzzlesPage() {
     queryKey: ['daily-puzzle'],
     queryFn: async () => {
       const lp = await fetchLichessDailyPuzzle()
+      // Reconstruct FEN at initialPly by replaying moves one by one
+      const fen = (() => {
+        const g = new Chess()
+        const sanMoves = lp.game.pgn.trim().split(/\s+/)
+        for (let i = 0; i < lp.puzzle.initialPly && i < sanMoves.length; i++) {
+          try { g.move(sanMoves[i]) } catch { break }
+        }
+        return g.fen()
+      })()
+
       const puzzle: Puzzle = {
         id: lp.puzzle.id,
-        fen: lp.game.pgn ? (() => {
-          const g = new Chess(); g.loadPgn(lp.game.pgn)
-          // Setare la poziția puzzle-ului
-          for (let i = 0; i < lp.puzzle.initialPly; i++) {
-            if (i > 0) { /* already loaded */ }
-          }
-          return g.fen()
-        })() : lp.puzzle.id,
+        fen,
         moves: lp.puzzle.solution.join(' '),
         rating: lp.puzzle.rating,
         themes: lp.puzzle.themes,
@@ -278,6 +281,12 @@ export function PuzzlesPage() {
             <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
           ) : puzzleState ? (
             <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-[#a0a0a0]">
+                <span>Joci cu</span>
+                <span className={`font-semibold px-2 py-0.5 rounded ${puzzleState.game.turn() === 'w' ? 'bg-[#f0f0f0] text-black' : 'bg-[#1a1a1a] border border-[#444] text-[#f0f0f0]'}`}>
+                  {puzzleState.game.turn() === 'w' ? '♔ Alb' : '♚ Negru'}
+                </span>
+              </div>
               <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
                 <Chessboard
                   options={{
@@ -347,11 +356,12 @@ export function PuzzlesPage() {
           )}
 
           <Card className="p-4">
-            <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Cum se joacă</p>
+            <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Cum funcționează</p>
             <ol className="space-y-1.5 text-sm text-[#a0a0a0]">
-              <li>1. Adversarul face prima mutare automat</li>
-              <li>2. Tu trebuie să găsești cea mai bună replică</li>
-              <li>3. Continuă până la finalul secvenței</li>
+              <li>1. Poziția vine dintr-o partidă reală — ultima mutare a fost a adversarului</li>
+              <li>2. Mută piesa cu drag & drop spre pătratul dorit</li>
+              <li>3. Dacă e corect, adversarul răspunde automat — continuă până termini secvența</li>
+              <li>4. Dacă greșești, puzzle-ul se resetează și poți încerca din nou</li>
             </ol>
           </Card>
         </div>

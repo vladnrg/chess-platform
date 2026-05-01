@@ -110,10 +110,10 @@ export function Landing() {
       {/* Hero */}
       <section className="px-6 py-24 text-center">
         <div className="mx-auto max-w-3xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.08)] px-4 py-1.5 text-sm text-[#c8a84b]">
+          <Link to="/register" className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.08)] px-4 py-1.5 text-sm text-[#c8a84b] hover:bg-[rgba(200,168,75,0.14)] transition-colors">
             <span>Fă prima mutare</span>
             <ChevronRight className="h-3.5 w-3.5" />
-          </div>
+          </Link>
           <h1 className="text-5xl md:text-6xl font-bold text-[#f0f0f0] leading-tight mb-6">
             Mulți doar joacă șah.<br />
             Alții fac din șah o artă.<br />
