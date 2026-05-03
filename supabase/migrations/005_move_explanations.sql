@@ -52,15 +52,15 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'london-system') AND variation_code = 'B';
 
--- Linia C: Benoni (vs c5) — user = white
+-- Linia C: Anti-Benoni London (vs c5) — user = white
 -- moves: d2d4 c7c5 c2c3 g8f6 g1f3 d7d5 c1f4 e7e6 e2e3 f8d6 f4d6 d8d6 f1d3 b8c6 e1g1 e8g8 b1d2 b7b6 d1e2
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'd4 — prima mutare London.',
-  '1', 'Adversarul joacă c5 imediat — atac agresiv al centrului. Varianta Benoni modernă.',
+  '1', 'Adversarul joacă c5 imediat — atac agresiv al centrului. White răspunde cu c3, Anti-Benoni London.',
   '2', 'c3 — răspunsul solid la c5! Susții d4 fără a crea slăbiciuni. Anti-Benoni London.',
   '3', 'Adversarul joacă Cf6 — continuă dezvoltarea.',
   '4', 'Cf3 — pregătești structura London clasică.',
-  '5', 'Adversarul joacă d5 — structura se transformă în Queen''s Gambit refuzat.',
+  '5', 'Adversarul joacă d5 — structura London clasică se instaurează, indiferent de ordinea mutărilor.',
   '6', 'Ff4 — planul London standard. Sistemul funcționează și după ordinea Benoni.',
   '8', 'e3 — completezi fundația centrală.',
   '9', 'Adversarul atacă nebunul cu Fd6. Forțat să răspunzi!',
@@ -101,7 +101,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'italian-game') AND variation_code = 'A';
 
--- Linia B: Two Knights (vs Nf6) — user = white
+-- Linia B: Giuoco Pianissimo (vs Cf6) — user = white (4.d3 system, ECO C50)
 -- moves: e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 c2c3 d7d6 b1d2 a7a6 b2b4 c5a7 a2a4 e8g8 e1g1 h7h6 d1e2
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'e4 — deschidere regală clasică.',
@@ -176,7 +176,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'sicilian-defense') AND variation_code = 'A';
 
--- Linia B: Scheveningen (e6) — user = black
+-- Linia B: Scheveningen — Atacul Keres (g4) — user = black (ECO B81)
 -- moves: e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 e7e6 g2g4 h7h6 g4g5 h6g5 h1g1 g5g4 d1g4 e6e5 d4f5
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'Adversarul deschide cu e4.',
@@ -222,7 +222,7 @@ WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'sicilian-defense'
 -- CARO-KANN DEFENSE (user = black, plies 1,3,5,7,9,11,13,15,17)
 -- ============================================================
 
--- Linia A: Clasică (Bf5) — user = black
+-- Linia A: Varianta Clasică (Ff5) — user = black (ECO B18)
 -- moves: e2e4 c7c6 d2d4 d7d5 b1c3 d5e4 c3e4 c8f5 e4g3 f5g6 h2h4 h7h6 g1f3 b8d7 h4h5 g6h7 f1d3 h7d3 d1d3
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'Adversarul deschide cu e4.',
@@ -247,7 +247,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'caro-kann-defense') AND variation_code = 'A';
 
--- Linia B: Varianta Avans (vs e5) — user = black
+-- Linia B: Varianta Avans — user = black (ECO B12)
 -- moves: e2e4 c7c6 d2d4 d7d5 e4e5 c8f5 g1f3 e7e6 f1e2 c6c5 e1g1 b8c6 c2c3 d8b6 g3f1 c5c4 f3e1 f5e4
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'Adversarul deschide cu e4.',
@@ -264,8 +264,10 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '11', 'Cc6 — cal activ, presiune pe d4 și e5.',
   '12', 'Adversarul joacă c3 — susține centrul.',
   '13', 'Db6 — presiune pe b2 și d4 simultan! Dama activă pe b6.',
-  '15', 'c4 — câștigai spațiu și blochezi centrul advers.',
-  '17', 'Fxe4 — capturezi pionul! Câștigai material. Tactică importantă în această linie.'
+  '14', 'Adversarul joacă Ca3! — Planul Sveshnikov. Calul vizează c2 pentru a apăra indirect b2 și d4.',
+  '15', 'c4 — câștigai spațiu și blochezi centrul advers! Pionul pe c4 e greu de eliminat.',
+  '16', 'Adversarul retrage Ce1 — eliberează câmpul f3 și pregătește reorganizarea centrală.',
+  '17', 'Fe4! — nebunul activ pe e4, presiune centrală crescândă. Contra-joc solid.'
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'caro-kann-defense') AND variation_code = 'B';
 
@@ -298,7 +300,7 @@ WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'caro-kann-defense
 -- FRENCH DEFENSE (user = black, plies 1,3,5,7,9,11,13,15,17)
 -- ============================================================
 
--- Linia A: Winawer (Bb4) — user = black
+-- Linia A: Winawer (Fb4) — user = black (ECO C18)
 -- moves: e2e4 e7e6 d2d4 d7d5 b1c3 f8b4 e4e5 c7c5 a2a3 b4c3 b2c3 g8e7 d1g4 d8c7 g4g7 h8g8 g7h7 c5d4 g1e2
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'Adversarul deschide cu e4.',
@@ -306,7 +308,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '2', 'Adversarul joacă d4 — centru puternic.',
   '3', 'd5 — atacul centrului! Scopul Francezie.',
   '4', 'Adversarul joacă Cc3 — susține e4.',
-  '5', 'Fb4! — Varianta Winawer! Fixezi calul de pe c3 și ameninți să schimbi, slăbind pawnii adversarului.',
+  '5', 'Fb4! — Varianta Winawer! Fixezi calul de pe c3 și ameninți să schimbi, slăbind pionii adversarului.',
   '6', 'Adversarul avansează e5 — închide centrul, joc pe flanc urmează.',
   '7', 'c5! — contra-joc imediat pe flancul damei. Atacă centrul advers înainte să fie prea târziu.',
   '8', 'Adversarul joacă a3 — forțează decizia cu nebunul.',
@@ -322,7 +324,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'french-defense') AND variation_code = 'A';
 
--- Linia B: Tarrasch (Nf6) — user = black
+-- Linia B: Tarrasch (Cf6) — user = black (ECO C05)
 -- moves: e2e4 e7e6 d2d4 d7d5 b1d2 g8f6 e4e5 f6d7 c2c3 c7c5 f1d3 b8c6 g1e2 c5d4 c3d4 f7f6 e5f6 d7f6 e1g1
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'Adversarul deschide cu e4.',
@@ -330,7 +332,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '2', 'Adversarul joacă d4.',
   '3', 'd5 — atacul centrului.',
   '4', 'Adversarul joacă Cd2 — Varianta Tarrasch. Mai puțin agresivă decât Cc3, menține flexibilitate.',
-  '5', 'Cf6 — atacă e4 și pregătești dezvlotarea.',
+  '5', 'Cf6 — atacă e4 și pregătești dezvoltarea.',
   '6', 'Adversarul înaintează e5 — lanț de pioni tipic Francez.',
   '7', 'Cd7 — calul se retrage, dar pregătesc c5 și eliberez pozitia.',
   '8', 'Adversarul joacă c3 — susține centrul.',
@@ -347,7 +349,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'french-defense') AND variation_code = 'B';
 
--- Linia C: Varianta Avans (c5 devreme) — user = black
+-- Linia C: Varianta Avans — c5 timpuriu — user = black (ECO C02)
 -- moves: e2e4 e7e6 d2d4 d7d5 e4e5 c7c5 c2c3 b8c6 g1f3 d8b6 a2a3 c5d4 c3d4 c6a5 b2b4 a5c4 f1c4 b6b4 b1d2
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'Adversarul deschide cu e4.',

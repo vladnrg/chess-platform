@@ -46,7 +46,7 @@ export function CoursesPage() {
     if (c.level === 'fundamental') return false  // shown separately above
     if (levelFilter !== 'all' && c.level !== levelFilter) return false
     if (styleFilter !== 'all' && !c.playing_styles.includes(styleFilter)) return false
-    if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !c.opening_family.toLowerCase().includes(search.toLowerCase())) return false
+    if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !(c.opening_family ?? '').toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
@@ -171,7 +171,11 @@ function CourseCard({ course, isPro }: { course: Course; isPro: boolean }) {
           <h3 className="font-semibold text-[#f0f0f0] mb-1 group-hover:text-[#c8a84b] transition-colors line-clamp-2 text-sm">
             {course.title}
           </h3>
-          <p className="text-xs text-[#666] mb-2">{course.eco_code} · {course.opening_family}</p>
+          {(course.eco_code || course.opening_family) && (
+            <p className="text-xs text-[#666] mb-2">
+              {[course.eco_code, course.opening_family].filter(Boolean).join(' · ')}
+            </p>
+          )}
 
           <div className="flex flex-wrap gap-1 mb-3">
             {course.playing_styles.map(style => (

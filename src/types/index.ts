@@ -47,10 +47,11 @@ export interface Course {
   slug: string
   description: string
   level: CourseLevel
-  opening_family: string
-  eco_code: string
+  opening_family: string | null
+  eco_code: string | null
   playing_styles: PlayingStyle[]
   is_premium: boolean
+  is_foundational: boolean
   thumbnail_url: string | null
   lesson_count: number
   order_index: number
