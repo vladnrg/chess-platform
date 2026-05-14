@@ -172,7 +172,7 @@ export function StatsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Statistici</h1>
+        <h1 className="text-2xl font-bold text-[#f0f0f0]">Statistici personale</h1>
         <p className="text-[#666] text-sm mt-0.5">Progresul tău în timp</p>
       </div>
 

@@ -10,8 +10,10 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
+import { cn } from '@/lib/utils'
+import { getLeagueConfig, getXpToNextLeague, getNextLeague } from '@/lib/utils'
 import type { Course } from '@/types'
-import { LEVEL_LABELS } from '@/types'
+import { LEVEL_LABELS, LEAGUES } from '@/types'
 
 export function Dashboard() {
   const { profile } = useAuth()
@@ -79,14 +81,18 @@ export function Dashboard() {
 
   if (!profile) return null
 
-  const greeting = new Date().getHours() < 12 ? 'Bună dimineața' : new Date().getHours() < 18 ? 'Bună ziua' : 'Bună seara'
+  const xpToNext = getXpToNextLeague(profile.xp, profile.current_league)
+  const nextLeague = getNextLeague(profile.current_league)
+  const nextLeagueConfig = nextLeague ? getLeagueConfig(nextLeague) : null
+  const currentLeagueConfig = getLeagueConfig(profile.current_league)
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
+        <p className="text-xs text-[#555] uppercase tracking-widest mb-1">Barlogul Șahistului</p>
         <h1 className="text-2xl font-bold text-[#f0f0f0]">
-          {greeting}, {profile.username}!
+          Salut, {profile.username}!
         </h1>
         <p className="text-[#666] text-sm mt-0.5">Continuă să înveți și să avansezi.</p>
       </div>
@@ -120,6 +126,80 @@ export function Dashboard() {
           />
         </div>
       </div>
+
+      {/* Ligile platformei */}
+      <section>
+        <h2 className="text-lg font-semibold text-[#f0f0f0] mb-4">Ligile platformei</h2>
+
+        {/* Liga curentă + mesaj avansare */}
+        <div
+          className="rounded-xl border-2 p-4 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          style={{ borderColor: currentLeagueConfig.color, backgroundColor: `${currentLeagueConfig.color}12` }}
+        >
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: currentLeagueConfig.color }} />
+              <span className="font-bold text-lg" style={{ color: currentLeagueConfig.color }}>
+                {currentLeagueConfig.label}
+              </span>
+              <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${currentLeagueConfig.color}25`, color: currentLeagueConfig.color }}>
+                Liga ta
+              </span>
+            </div>
+            {xpToNext !== null && nextLeagueConfig ? (
+              <p className="text-sm text-[#a0a0a0]">
+                Câștigă încă{' '}
+                <span className="text-[#c8a84b] font-semibold">{xpToNext} XP</span>
+                {' '}pentru a avansa în liga{' '}
+                <span className="font-semibold" style={{ color: nextLeagueConfig.color }}>{nextLeagueConfig.label}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-[#c8a84b] font-medium">Ești în liga supremă ✦</p>
+            )}
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-[#f0f0f0]">{profile.xp}</p>
+            <p className="text-xs text-[#666]">XP total</p>
+          </div>
+        </div>
+
+        {/* Lista tuturor ligilor */}
+        <div className="rounded-xl border border-[#2a2a2a] overflow-hidden">
+          {LEAGUES.map((league, idx) => {
+            const isCurrent = league.name === profile.current_league
+            const isPassed = profile.xp >= league.minXp
+            return (
+              <div
+                key={league.name}
+                className={cn(
+                  'flex items-center justify-between px-4 py-3 transition-colors',
+                  idx !== LEAGUES.length - 1 && 'border-b border-[#2a2a2a]',
+                  isCurrent ? 'bg-[#1e1e1e]' : 'bg-transparent'
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: isPassed ? league.color : '#333' }}
+                  />
+                  <span className={cn('font-medium text-sm', isCurrent ? 'text-[#f0f0f0]' : isPassed ? 'text-[#a0a0a0]' : 'text-[#444]')}>
+                    {league.label}
+                  </span>
+                  {isCurrent && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${league.color}20`, color: league.color }}>
+                      ← ești aici
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-6 text-xs text-[#555]">
+                  <span>{league.minXp} – {league.maxXp !== null ? league.maxXp : '∞'} XP</span>
+                  <span className="hidden sm:block w-20 text-right">{league.weeklyMinXp} XP/săpt.</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
 
       {/* Cursuri recomandate */}
       <section>

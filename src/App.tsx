@@ -20,6 +20,8 @@ import { PricingPage } from '@/pages/PricingPage'
 import { CommunityPage } from '@/pages/CommunityPage'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { TacticsChestPage } from '@/pages/TacticsChestPage'
+import { TacticsCategoryPage } from '@/pages/TacticsCategoryPage'
+import { RepertoirePage } from '@/pages/RepertoirePage'
 import { BreakPage } from '@/pages/BreakPage'
 import { ParentalConfirmPage } from '@/pages/ParentalConfirmPage'
 import { ParentalStatsPage } from '@/pages/ParentalStatsPage'
@@ -75,6 +77,8 @@ function AppRoutes() {
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tactics" element={<TacticsChestPage />} />
+        <Route path="/tactics/:categoryId" element={<TacticsCategoryPage />} />
+        <Route path="/repertoire" element={<RepertoirePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

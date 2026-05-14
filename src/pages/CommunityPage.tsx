@@ -27,7 +27,7 @@ export function CommunityPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Șahiștii din Regiune</h1>
+        <h1 className="text-2xl font-bold text-[#f0f0f0]">Comunitate</h1>
         <p className="text-[#666] text-sm mt-0.5">Descoperă jucători din comunitatea ta</p>
       </div>
 

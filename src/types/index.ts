@@ -17,6 +17,7 @@ export interface Profile {
   last_active_date: string | null
   city: string | null
   county: string | null
+  lichess_username: string | null
   created_at: string
 }
 

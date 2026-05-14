@@ -1,157 +1,123 @@
-export type TacticDifficulty = 'beginner' | 'intermediate' | 'advanced'
-export type TacticSection = 'basic' | 'advanced' | 'mate'
-
-export interface TacticInfo {
+export interface TacticCategory {
   id: string
-  name: string
-  lichessTheme: string
+  title: string
   description: string
-  difficulty: TacticDifficulty
-  section: TacticSection
-  fen: string
+  lichessThemes: string[]
+  isPro: boolean
+  coverFen: string
 }
 
-export const TACTICS: TacticInfo[] = [
-  // Basic
+export const TACTIC_CATEGORIES: TacticCategory[] = [
   {
     id: 'fork',
-    name: 'Furculița',
-    lichessTheme: 'fork',
+    title: 'Furculiță și atac dublu',
     description: 'O piesă atacă simultan două piese adverse. Adversarul nu le poate salva pe amândouă.',
-    difficulty: 'beginner',
-    section: 'basic',
-    // Knight on e5 attacks queen on d7 and rook on f7
-    fen: '4k3/3q1r2/8/4N3/8/8/8/4K3 w - - 0 1',
+    lichessThemes: ['fork'],
+    isPro: false,
+    coverFen: '4k3/3q1r2/8/4N3/8/8/8/4K3 w - - 0 1',
   },
   {
     id: 'pin',
-    name: 'Acul',
-    lichessTheme: 'pin',
+    title: 'Legarea absolută și relativă',
     description: 'O piesă nu poate muta fără să expună o piesă mai valoroasă din spatele ei.',
-    difficulty: 'beginner',
-    section: 'basic',
-    // Bishop on b5 pins knight on c6 to king on e8
-    fen: '4k3/8/2n5/1B6/8/8/8/4K3 w - - 0 1',
+    lichessThemes: ['pin'],
+    isPro: false,
+    coverFen: '4k3/8/2n5/1B6/8/8/8/4K3 w - - 0 1',
+  },
+  {
+    id: 'discovered',
+    title: 'Atac prin descoperire, șah prin descoperire și șah dublu',
+    description: 'O piesă mută dezvăluind atacul alteia. Poate da simultan șah de la două piese.',
+    lichessThemes: ['discoveredAttack', 'doubleCheck'],
+    isPro: false,
+    coverFen: '1q2k3/8/8/8/8/1B6/8/1R2K3 w - - 0 1',
+  },
+  {
+    id: 'attraction',
+    title: 'Atragerea / Devierea / Atracția',
+    description: 'Forțezi o piesă adversă pe un pătrat dezavantajos sau o îndepărtezi de la apărare.',
+    lichessThemes: ['attraction', 'deflection'],
+    isPro: true,
+    coverFen: '3k4/3q4/8/8/8/8/3Q4/3K4 w - - 0 1',
+  },
+  {
+    id: 'remove-defender',
+    title: 'Îndepărtarea apărătorului: capturare sau supraîncărcare',
+    description: 'Elimini sau supraîncărci piesa care apără un pătrat sau o piesă cheie.',
+    lichessThemes: ['removeDefender', 'overloading'],
+    isPro: true,
+    coverFen: '5k2/5ppp/8/8/8/5N2/5PPP/5RK1 w - - 0 1',
   },
   {
     id: 'skewer',
-    name: 'Traversarea',
-    lichessTheme: 'skewer',
-    description: 'Invers față de ac: forțezi o piesă valoroasă să mute, capturând piesa din spatele ei.',
-    difficulty: 'beginner',
-    section: 'basic',
-    // Rook on e1 skewers king on e8 (must move) revealing rook on e7
-    fen: '4k3/4r3/8/8/8/8/8/4R3 w - - 0 1',
+    title: 'Teapă și atacul cu „raze X"',
+    description: 'Forțezi o piesă valoroasă să mute, capturând piesa ascunsă în spatele ei.',
+    lichessThemes: ['skewer', 'xRayAttack'],
+    isPro: true,
+    coverFen: '4k3/4r3/8/8/8/8/8/4R3 w - - 0 1',
   },
   {
-    id: 'discoveredAttack',
-    name: 'Descoperirea',
-    lichessTheme: 'discoveredAttack',
-    description: 'O piesă mută dezvăluind atacul altei piese. Dă două amenințări simultane.',
-    difficulty: 'intermediate',
-    section: 'basic',
-    // Moving bishop on b3 reveals rook on b1 attacking queen on b7
-    fen: '1q2k3/8/8/8/8/1B6/8/1R2K3 w - - 0 1',
+    id: 'trapped',
+    title: 'Prinderea piesei',
+    description: 'O piesă adversă nu are pătrate sigure unde să se retragă. O capturezi în câteva mutări.',
+    lichessThemes: ['trappedPiece'],
+    isPro: true,
+    coverFen: '8/8/5k2/6p1/5Bp1/8/8/5K2 b - - 0 1',
   },
   {
-    id: 'doubleCheck',
-    name: 'Dubla amenințare',
-    lichessTheme: 'doubleCheck',
-    description: 'Două piese atacă simultan regele. Singura apărare este să muți regele.',
-    difficulty: 'intermediate',
-    section: 'basic',
-    // Position illustrating two attackers on the king
-    fen: '4k3/8/8/8/8/5N2/8/3BK2R w K - 0 1',
+    id: 'mate',
+    title: 'Tactici de mat',
+    description: 'Modele de mat forțat: mat în 1, 2, 3 mutări, mat sufocant, mat pe ultima linie.',
+    lichessThemes: ['mateIn1', 'mateIn2', 'mateIn3', 'smotheredMate', 'backRankMate'],
+    isPro: true,
+    coverFen: '6rk/6pp/8/8/8/8/8/4R1K1 w - - 0 1',
+  },
+  {
+    id: 'forced-draws',
+    title: 'Remize forțate',
+    description: 'Șah perpetuu, pat sau repetiție triplă — tactici pentru a salva o poziție pierdută.',
+    lichessThemes: ['perpetualCheck', 'stalemate'],
+    isPro: true,
+    coverFen: '6k1/5ppp/8/8/8/8/8/4Q1K1 w - - 0 1',
+  },
+  {
+    id: 'zwischenzug',
+    title: 'Atac intermediar (Zwischenzug)',
+    description: 'În loc să răspunzi forțat, intercalezi o mutare intermediară care schimbă calculul.',
+    lichessThemes: ['zwischenzug', 'interference'],
+    isPro: true,
+    coverFen: 'r1bqk2r/ppp2ppp/2n2n2/3pp3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 7',
   },
   {
     id: 'sacrifice',
-    name: 'Sacrificiul',
-    lichessTheme: 'sacrifice',
-    description: 'Cedezi material în mod deliberat pentru a obține un avantaj pozițional sau de atac.',
-    difficulty: 'intermediate',
-    section: 'basic',
-    // Complex middlegame position suggesting sacrifice
-    fen: 'r1bqk2r/pp2bppp/2np1n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w kq - 0 9',
-  },
-  // Advanced
-  {
-    id: 'zugzwang',
-    name: 'Zugzwang',
-    lichessTheme: 'zugzwang',
-    description: 'Orice mutare a adversarului îi înrăutățește poziția. Dacă nu ar trebui să mute, ar sta mai bine.',
-    difficulty: 'advanced',
-    section: 'advanced',
-    // Classic K+P endgame zugzwang
-    fen: '8/8/8/3k4/3P4/3K4/8/8 w - - 0 1',
+    title: 'Sacrificii',
+    description: 'Cedezi material deliberat pentru avantaj pozițional, atac sau mat.',
+    lichessThemes: ['sacrifice'],
+    isPro: true,
+    coverFen: 'r1bqk2r/pp2bppp/2np1n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w kq - 0 9',
   },
   {
-    id: 'promotion',
-    name: 'Promovarea',
-    lichessTheme: 'promotion',
-    description: 'Un pion ajunge pe ultima linie și devine damă (sau altă piesă). Adesea decisivă.',
-    difficulty: 'intermediate',
-    section: 'advanced',
-    fen: '8/1P6/8/3k4/8/8/8/3K4 w - - 0 1',
+    id: 'subscribers',
+    title: 'Tactici pentru abonați',
+    description: 'Teme avansate: eliberare, mutare liniștită, zugzwang, coerciție.',
+    lichessThemes: ['clearance', 'quietMove', 'zugzwang', 'coercion'],
+    isPro: true,
+    coverFen: '8/8/8/3k4/3P4/3K4/8/8 w - - 0 1',
   },
   {
-    id: 'perpetualCheck',
-    name: 'Perpetuu',
-    lichessTheme: 'perpetualCheck',
-    description: 'O piesă dă șah la nesfârșit — adversarul nu poate evita verificările. Rezultă remiză.',
-    difficulty: 'intermediate',
-    section: 'advanced',
-    fen: '6k1/5ppp/8/8/8/8/5PPP/5QK1 w - - 0 1',
+    id: 'hybrid',
+    title: 'Tactici hibride',
+    description: 'Combinații complexe din mijlocul jocului și finaluri cu teme tactice suprapuse.',
+    lichessThemes: ['middlegame', 'endgame', 'exposedKing'],
+    isPro: true,
+    coverFen: 'r1bqr1k1/pp3pbp/2np1np1/3Np3/2B1P3/2N1BP2/PPP3PP/R2Q1RK1 w - - 0 12',
   },
   {
-    id: 'trappedPiece',
-    name: 'Piesa prinsă',
-    lichessTheme: 'trappedPiece',
-    description: 'O piesă adversă nu are pătrate unde să mute în siguranță. Poți să o capturezi în mutările următoare.',
-    difficulty: 'intermediate',
-    section: 'advanced',
-    fen: '8/8/5k2/6p1/5Bp1/8/8/5K2 b - - 0 1',
-  },
-  // Mate in N
-  {
-    id: 'mateIn1',
-    name: 'Mat în 1',
-    lichessTheme: 'mateIn1',
-    description: 'Există o singură mutare care duce la șah-mat imediat. Găsește-o!',
-    difficulty: 'beginner',
-    section: 'mate',
-    // Rh8# position
-    fen: '4k3/8/4K3/8/8/8/8/7R w - - 0 1',
-  },
-  {
-    id: 'mateIn2',
-    name: 'Mat în 2',
-    lichessTheme: 'mateIn2',
-    description: 'Calculezi exact 2 mutări: amenințare + mat inevitabil, indiferent ce face adversarul.',
-    difficulty: 'beginner',
-    section: 'mate',
-    // Two rooks ladder mate setup
-    fen: '4k3/8/4K3/8/8/8/8/3RR3 w - - 0 1',
-  },
-  {
-    id: 'mateIn3',
-    name: 'Mat în 3',
-    lichessTheme: 'mateIn3',
-    description: 'Secvență de 3 mutări exacte care forțează matul. Necesită calcul riguros.',
-    difficulty: 'intermediate',
-    section: 'mate',
-    // Classic back rank setup
-    fen: '4k3/4p3/8/8/8/8/4P3/R3K2R w KQ - 0 1',
+    id: 'mixed-bonus',
+    title: 'Tactici mixte bonus',
+    description: 'Colecție bonus cu poziții de top selectate din partide reale de mare nivel.',
+    lichessThemes: ['crushing', 'equality', 'advantage'],
+    isPro: true,
+    coverFen: 'r2qk2r/pb1nbppp/1p2pn2/2pp4/3P4/2PBP3/PP1N1PPP/R1BQK2R w KQkq - 0 9',
   },
 ]
-
-export const TACTIC_SECTION_LABELS: Record<TacticSection, string> = {
-  basic: 'Tactici de Bază',
-  advanced: 'Tactici Avansate',
-  mate: 'Mat în N Mutări',
-}
-
-export const TACTIC_DIFFICULTY_LABELS: Record<TacticDifficulty, string> = {
-  beginner: 'Începător',
-  intermediate: 'Intermediar',
-  advanced: 'Avansat',
-}

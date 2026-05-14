@@ -53,7 +53,7 @@ export function CoursesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Cursuri de openings</h1>
+        <h1 className="text-2xl font-bold text-[#f0f0f0]">Cursuri interactive</h1>
         <p className="text-[#666] text-sm mt-0.5">{courses?.length ?? 0} cursuri disponibile</p>
       </div>
 

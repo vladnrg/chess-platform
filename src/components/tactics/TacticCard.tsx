@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { Chessboard } from 'react-chessboard'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -14,11 +13,10 @@ const DIFFICULTY_VARIANT: Record<string, Parameters<typeof Badge>[0]['variant']>
 
 interface TacticCardProps {
   tactic: TacticInfo
+  onExercise: (theme: string) => void
 }
 
-export function TacticCard({ tactic }: TacticCardProps) {
-  const navigate = useNavigate()
-
+export function TacticCard({ tactic, onExercise }: TacticCardProps) {
   return (
     <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex flex-col">
       {/* Board preview */}
@@ -47,7 +45,7 @@ export function TacticCard({ tactic }: TacticCardProps) {
           size="sm"
           variant="secondary"
           className="w-full gap-2 mt-auto"
-          onClick={() => navigate(`/puzzles?theme=${tactic.lichessTheme}`)}
+          onClick={() => onExercise(tactic.lichessTheme)}
         >
           Exersează
           <ArrowRight className="h-3.5 w-3.5" />

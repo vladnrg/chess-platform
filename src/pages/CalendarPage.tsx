@@ -33,7 +33,7 @@ export function CalendarPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Calendar Competițional</h1>
+          <h1 className="text-2xl font-bold text-[#f0f0f0]">Calendar competițional</h1>
           <p className="text-[#666] text-sm mt-0.5">Turnee și competiții — pe platformă și în comunitate</p>
         </div>
 

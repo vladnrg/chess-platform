@@ -13,8 +13,9 @@ import { PLAYING_STYLE_LABELS } from '@/types'
 export function ProfilePage() {
   const { profile, fetchProfile, user } = useAuth()
   const [username, setUsername] = useState(profile?.username ?? '')
-  const [city, setCity] = useState((profile as any)?.city ?? '')
-  const [county, setCounty] = useState((profile as any)?.county ?? '')
+  const [city, setCity] = useState(profile?.city ?? '')
+  const [county, setCounty] = useState(profile?.county ?? '')
+  const [lichessUsername, setLichessUsername] = useState(profile?.lichess_username ?? '')
   const leagueConfig = profile ? getLeagueConfig(profile.current_league) : null
 
   const updateMutation = useMutation({
@@ -22,7 +23,7 @@ export function ProfilePage() {
       if (!user) return
       const { error } = await supabase
         .from('profiles')
-        .update({ username, city: city || null, county: county || null })
+        .update({ username, city: city || null, county: county || null, lichess_username: lichessUsername || null })
         .eq('id', user.id)
       if (error) throw error
       await fetchProfile(user.id)
@@ -35,7 +36,7 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-[#f0f0f0]">Profilul meu</h1>
+      <h1 className="text-2xl font-bold text-[#f0f0f0]">Profil</h1>
 
       {/* Avatar + ligă */}
       <Card>
@@ -77,6 +78,12 @@ export function ProfilePage() {
               placeholder="ex: Cluj"
             />
           </div>
+          <Input
+            label="Username Lichess (opțional)"
+            value={lichessUsername}
+            onChange={e => setLichessUsername(e.target.value)}
+            placeholder="ex: MagnusCarlsen"
+          />
           <div>
             <p className="text-sm text-[#a0a0a0] mb-1">Stil de joc detectat</p>
             <p className="font-semibold text-[#c8a84b]">
