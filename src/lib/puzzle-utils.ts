@@ -13,10 +13,14 @@ export interface PuzzleState {
 
 export function initPuzzleState(fen: string, movesStr: string): PuzzleState {
   const g = new Chess(fen)
-  const moves = movesStr.split(' ')
+  const moves = movesStr.split(' ').filter(Boolean)
   const firstMove = moves[0]
   if (firstMove) {
-    g.move({ from: firstMove.slice(0, 2), to: firstMove.slice(2, 4), promotion: firstMove[4] ?? undefined })
+    const from = firstMove.slice(0, 2)
+    const to = firstMove.slice(2, 4)
+    const promotion = firstMove.length > 4 ? firstMove[4] : undefined
+    const result = g.move({ from, to, promotion })
+    if (!result) throw new Error(`Trigger move invalid: ${firstMove} on FEN: ${fen}`)
   }
   return {
     game: g,
@@ -151,16 +155,17 @@ export function lichessPuzzleToLocal(lp: LichessPuzzle): Puzzle {
       throw new Error(`PGN has ${verboseMoves.length} moves but initialPly=${lp.puzzle.initialPly}`)
     }
 
-    // Replay initialPly-1 moves to get FEN BEFORE the trigger
+    // Replay initialPly moves to get FEN BEFORE the trigger
+    // initialPly is 0-indexed: trigger is at verboseMoves[initialPly]
     const beforeTrigger = new Chess()
-    for (let i = 0; i < lp.puzzle.initialPly - 1; i++) {
+    for (let i = 0; i < lp.puzzle.initialPly; i++) {
       const m = verboseMoves[i]
       beforeTrigger.move({ from: m.from, to: m.to, promotion: m.promotion })
     }
     const fen = beforeTrigger.fen()
 
     // Trigger = opponent's last move that sets up the puzzle
-    const trigger = verboseMoves[lp.puzzle.initialPly - 1]
+    const trigger = verboseMoves[lp.puzzle.initialPly]
     const triggerUci = trigger.from + trigger.to + (trigger.promotion ?? '')
 
     return {
