@@ -194,8 +194,8 @@ export interface LeagueConfig {
 }
 
 export const LEAGUES: LeagueConfig[] = [
-  { name: 'cherestea', label: 'Cherestea', minXp: 0,    maxXp: 299,  weeklyMinXp: 30,  color: '#8B6914', textColor: '#fff' },
-  { name: 'tinichea',  label: 'Tinichea',  minXp: 300,  maxXp: 699,  weeklyMinXp: 50,  color: '#71797E', textColor: '#fff' },
+  { name: 'cherestea', label: 'Lemn',   minXp: 0,    maxXp: 299,  weeklyMinXp: 30,  color: '#8B6914', textColor: '#fff' },
+  { name: 'tinichea',  label: 'Oțel',   minXp: 300,  maxXp: 699,  weeklyMinXp: 50,  color: '#71797E', textColor: '#fff' },
   { name: 'bronz',     label: 'Bronz',     minXp: 700,  maxXp: 1299, weeklyMinXp: 75,  color: '#CD7F32', textColor: '#fff' },
   { name: 'argint',    label: 'Argint',    minXp: 1300, maxXp: 2199, weeklyMinXp: 100, color: '#C0C0C0', textColor: '#111' },
   { name: 'aur',       label: 'Aur',       minXp: 2200, maxXp: 3499, weeklyMinXp: 150, color: '#FFD700', textColor: '#111' },

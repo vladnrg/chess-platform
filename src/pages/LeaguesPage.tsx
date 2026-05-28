@@ -4,7 +4,8 @@ import { getLeagueConfig, getLeagueProgress, getXpToNextLeague } from '@/lib/uti
 import { cn } from '@/lib/utils'
 import { Trophy, Shield, Star, Zap } from 'lucide-react'
 
-const LEAGUE_ICONS = ['🪵', '🥫', '🥉', '🥈', '🥇', '💚', '💎']
+const LEAGUE_ICONS = ['🪵', '⚙️', '🥉', '🥈', '🥇', '✦', '◈']
+const ELITE_LEAGUES = ['smarald', 'diamant']
 
 export function LeaguesPage() {
   const { profile } = useAuth()
@@ -113,26 +114,45 @@ export function LeaguesPage() {
             const isPassed = profile
               ? LEAGUES.findIndex(l => l.name === profile.current_league) > idx
               : false
+            const isElite = ELITE_LEAGUES.includes(league.name)
 
             return (
               <div
                 key={league.name}
                 className={cn(
-                  'flex items-center gap-4 rounded-xl border p-4 transition-all',
-                  isCurrent
-                    ? 'border-opacity-40'
-                    : 'border-[#1e1e1e] bg-[#111]'
+                  'flex items-center gap-4 rounded-xl border p-4 transition-all relative overflow-hidden',
+                  isCurrent ? 'border-opacity-40' : isElite ? '' : 'border-[#1e1e1e] bg-[#111]'
                 )}
-                style={isCurrent ? {
-                  borderColor: league.color + '40',
-                  backgroundColor: league.color + '0d',
-                } : {}}
+                style={{
+                  ...(isCurrent ? {
+                    borderColor: league.color + '60',
+                    backgroundColor: league.color + '12',
+                    boxShadow: `0 0 24px ${league.color}22`,
+                  } : isElite ? {
+                    borderColor: league.color + '35',
+                    backgroundColor: league.color + '08',
+                    boxShadow: `0 0 16px ${league.color}18`,
+                  } : {}),
+                }}
               >
+                {/* Elite shimmer line */}
+                {isElite && (
+                  <div
+                    className="absolute top-0 left-0 right-0 h-px"
+                    style={{ background: `linear-gradient(90deg, transparent, ${league.color}80, transparent)` }}
+                  />
+                )}
+
                 {/* Icon */}
                 <div
-                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl text-xl"
+                  className={cn(
+                    'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl font-bold',
+                    isElite ? 'text-2xl' : 'text-xl'
+                  )}
                   style={{
-                    backgroundColor: (isCurrent || isPassed) ? league.color + '20' : '#1a1a1a',
+                    backgroundColor: (isCurrent || isPassed || isElite) ? league.color + '20' : '#1a1a1a',
+                    boxShadow: isElite ? `0 0 12px ${league.color}40` : undefined,
+                    color: league.color,
                   }}
                 >
                   {LEAGUE_ICONS[idx]}
@@ -142,8 +162,8 @@ export function LeaguesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span
-                      className="font-semibold text-sm"
-                      style={{ color: isCurrent || isPassed ? league.color : '#a0a0a0' }}
+                      className={cn('font-semibold text-sm', isElite && 'text-base')}
+                      style={{ color: isCurrent || isPassed || isElite ? league.color : '#a0a0a0' }}
                     >
                       {league.label}
                     </span>
