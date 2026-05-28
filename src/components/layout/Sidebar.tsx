@@ -8,7 +8,7 @@ import { getLeagueConfig } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Barlogul șahistului' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Bârlogul șahistului' },
   { to: '/courses', icon: BookOpen, label: 'Cursuri interactive' },
   { to: '/puzzles', icon: Puzzle, label: 'Puzzle-uri' },
   { to: '/tactics', icon: Sword, label: 'Cufărul cu tactici' },

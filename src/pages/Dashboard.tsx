@@ -90,7 +90,7 @@ export function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <p className="text-xs text-[#555] uppercase tracking-widest mb-1">Barlogul Șahistului</p>
+        <p className="text-xs text-[#555] uppercase tracking-widest mb-1">Bârlogul Șahistului</p>
         <h1 className="text-2xl font-bold text-[#f0f0f0]">
           Salut, {profile.username}!
         </h1>
