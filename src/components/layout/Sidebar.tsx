@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Crown, LogOut, X, Flame, Sword, Calendar, Users, Library,
+  User, Crown, LogOut, X, Flame, Sword, Calendar, Users, Library, Trophy,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig } from '@/lib/utils'
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { to: '/tactics', icon: Sword, label: 'Cufărul cu tactici' },
   { to: '/calendar', icon: Calendar, label: 'Calendar competițional' },
   { to: '/community', icon: Users, label: 'Comunitate' },
+  { to: '/leagues', icon: Trophy, label: 'Ligi' },
   { to: '/stats', icon: BarChart2, label: 'Statistici personale' },
   { to: '/repertoire', icon: Library, label: 'Arhivă' },
   { to: '/profile', icon: User, label: 'Profil' },

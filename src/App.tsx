@@ -22,6 +22,7 @@ import { CalendarPage } from '@/pages/CalendarPage'
 import { TacticsChestPage } from '@/pages/TacticsChestPage'
 import { TacticsCategoryPage } from '@/pages/TacticsCategoryPage'
 import { RepertoirePage } from '@/pages/RepertoirePage'
+import { LeaguesPage } from '@/pages/LeaguesPage'
 import { BreakPage } from '@/pages/BreakPage'
 import { ParentalConfirmPage } from '@/pages/ParentalConfirmPage'
 import { ParentalStatsPage } from '@/pages/ParentalStatsPage'
@@ -79,6 +80,7 @@ function AppRoutes() {
         <Route path="/tactics" element={<TacticsChestPage />} />
         <Route path="/tactics/:categoryId" element={<TacticsCategoryPage />} />
         <Route path="/repertoire" element={<RepertoirePage />} />
+        <Route path="/leagues" element={<LeaguesPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
