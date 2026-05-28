@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
@@ -137,16 +137,21 @@ export function PuzzlesPage() {
   const FREE_LIMIT = 10
   const playerElo = profile?.estimated_elo ?? 800
 
-  const { isLoading: dailyLoading } = useQuery({
+  const { data: dailyPuzzleData, isLoading: dailyLoading } = useQuery({
     queryKey: ['daily-puzzle'],
     queryFn: async () => {
       const lp = await fetchLichessDailyPuzzle()
-      const puzzle = lichessPuzzleToLocal(lp)
-      loadPuzzle(puzzle)
-      return puzzle
+      return lichessPuzzleToLocal(lp)
     },
     staleTime: Infinity,
   })
+
+  useEffect(() => {
+    if (dailyPuzzleData && !currentPuzzle) {
+      loadPuzzle(dailyPuzzleData)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dailyPuzzleData])
 
   useQuery({
     queryKey: ['today-attempts', user?.id],
