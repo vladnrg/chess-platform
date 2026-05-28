@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, RefreshCw, BookOpen, Target } from 'lucide-react'
+import { AlertTriangle, RefreshCw, BookOpen, Target, Swords } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Card, CardContent } from '@/components/ui/Card'
+import { OpeningTrainerModal } from '@/components/chess/OpeningTrainerModal'
 
 // ECO prefix → course slug mapping
 const ECO_TO_COURSE: Record<string, string> = {
@@ -69,6 +70,8 @@ export function RepertoirePage() {
 
   const [lichessInput, setLichessInput] = useState((profile as any)?.lichess_username ?? '')
   const [colorFilter, setColorFilter] = useState<'white' | 'black' | 'all'>('all')
+  const [trainerElo, setTrainerElo] = useState(1800)
+  const [trainerOpening, setTrainerOpening] = useState<{ name: string; color: 'white' | 'black' } | null>(null)
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['opening-stats', user?.id],
@@ -207,6 +210,57 @@ export function RepertoirePage() {
             </div>
           )}
 
+          {/* Training panel */}
+          {weak.length > 0 && (
+            <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Swords className="h-4 w-4 text-[#c8a84b]" />
+                <h3 className="text-sm font-semibold text-[#f0f0f0]">Antrenează-ți slăbiciunile cu Dl. En Passant</h3>
+              </div>
+
+              {/* ELO slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#666]">Nivel antrenor</span>
+                  <span className="text-sm font-bold" style={{ color: trainerElo >= 2600 ? '#f87171' : trainerElo >= 2200 ? '#c8a84b' : '#4ade80' }}>
+                    {trainerElo} ELO
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={1600} max={3000} step={100}
+                  value={trainerElo}
+                  onChange={e => setTrainerElo(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #c8a84b ${((trainerElo - 1600) / 1400) * 100}%, #2a2a2a ${((trainerElo - 1600) / 1400) * 100}%)`
+                  }}
+                />
+                <div className="flex justify-between text-xs text-[#444]">
+                  <span>1600</span><span>2000</span><span>2400</span><span>2800</span><span>3000</span>
+                </div>
+              </div>
+
+              {/* Weak openings as train buttons */}
+              <div className="space-y-2">
+                <p className="text-xs text-[#555]">Selectează o deschidere cu care să antrenezi:</p>
+                {weak.slice(0, 3).map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => setTrainerOpening({ name: s.opening_name, color: s.color })}
+                    className="w-full flex items-center justify-between rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3 text-left hover:border-[#c8a84b] hover:bg-[rgba(200,168,75,0.05)] transition-all group"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-[#f0f0f0] group-hover:text-[#c8a84b] transition-colors">{s.opening_name}</p>
+                      <p className="text-xs text-[#555] mt-0.5">Cu {s.color === 'white' ? 'Albul' : 'Negrul'} · {scorePercent(s)}% scor</p>
+                    </div>
+                    <Swords className="h-4 w-4 text-[#444] group-hover:text-[#c8a84b] transition-colors flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Filter tabs */}
           <div className="flex gap-2">
             {(['all', 'white', 'black'] as const).map(f => (
@@ -290,5 +344,14 @@ export function RepertoirePage() {
         </>
       )}
     </div>
+
+    {trainerOpening && (
+      <OpeningTrainerModal
+        openingName={trainerOpening.name}
+        playerColor={trainerOpening.color}
+        elo={trainerElo}
+        onClose={() => setTrainerOpening(null)}
+      />
+    )}
   )
 }
