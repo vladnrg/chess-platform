@@ -105,7 +105,7 @@ export function StatsPage() {
             xp: row.xp_earned as number,
           }
         })
-        .filter(c => c.xp > 0)
+        .filter((c: { curs: string; xp: number }) => c.xp > 0)
     },
     enabled: !!user,
   })
@@ -302,7 +302,7 @@ export function StatsPage() {
               </ResponsiveContainer>
             ) : openingCoverage && openingCoverage.length > 0 ? (
               <div className="space-y-2 pt-2">
-                {openingCoverage.map(o => (
+                {openingCoverage.map((o: { family: string; completare: number }) => (
                   <div key={o.family} className="flex items-center justify-between rounded-lg bg-[#111] p-2.5">
                     <span className="text-sm text-[#a0a0a0]">{o.family}</span>
                     <span className="text-sm font-semibold text-[#c8a84b]">{o.completare}%</span>
