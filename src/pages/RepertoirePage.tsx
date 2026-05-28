@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Card, CardContent } from '@/components/ui/Card'
 import { OpeningTrainerModal } from '@/components/chess/OpeningTrainerModal'
 import { GameListModal } from '@/components/chess/GameListModal'
+import { translateOpeningName } from '@/lib/chess-translations'
 
 // ECO prefix → course slug mapping
 const ECO_TO_COURSE: Record<string, string> = {
@@ -181,7 +182,7 @@ export function RepertoirePage() {
                 return (
                   <div key={s.id} className="flex items-start justify-between gap-3 bg-[#111] rounded-lg p-3">
                     <div>
-                      <p className="text-sm font-medium text-[#f0f0f0]">{s.opening_name}</p>
+                      <p className="text-sm font-medium text-[#f0f0f0]">{translateOpeningName(s.opening_name)}</p>
                       <p className="text-xs text-[#666] mt-0.5">
                         Cu {s.color === 'white' ? 'Albul' : 'Negrul'} · {scorePercent(s)}% scor · {total} partide
                       </p>
@@ -249,11 +250,11 @@ export function RepertoirePage() {
                 {weak.slice(0, 3).map(s => (
                   <button
                     key={s.id}
-                    onClick={() => setTrainerOpening({ name: s.opening_name, color: s.color })}
+                    onClick={() => setTrainerOpening({ name: translateOpeningName(s.opening_name), color: s.color })}
                     className="w-full flex items-center justify-between rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3 text-left hover:border-[#c8a84b] hover:bg-[rgba(200,168,75,0.05)] transition-all group"
                   >
                     <div>
-                      <p className="text-sm font-medium text-[#f0f0f0] group-hover:text-[#c8a84b] transition-colors">{s.opening_name}</p>
+                      <p className="text-sm font-medium text-[#f0f0f0] group-hover:text-[#c8a84b] transition-colors">{translateOpeningName(s.opening_name)}</p>
                       <p className="text-xs text-[#555] mt-0.5">Cu {s.color === 'white' ? 'Albul' : 'Negrul'} · {scorePercent(s)}% scor</p>
                     </div>
                     <Swords className="h-4 w-4 text-[#444] group-hover:text-[#c8a84b] transition-colors flex-shrink-0" />
@@ -312,7 +313,7 @@ export function RepertoirePage() {
                         <div className="flex items-center gap-2">
                           {isWeak && <AlertTriangle className="h-3 w-3 text-[#f87171] flex-shrink-0" />}
                           <div>
-                            <p className="text-[#f0f0f0] font-medium truncate max-w-[200px]">{s.opening_name}</p>
+                            <p className="text-[#f0f0f0] font-medium truncate max-w-[200px]">{translateOpeningName(s.opening_name)}</p>
                             <p className="text-[#555] text-xs">{s.eco}</p>
                           </div>
                         </div>
@@ -340,7 +341,7 @@ export function RepertoirePage() {
                       </td>
                       <td className="px-3 py-3 text-center">
                         <button
-                          onClick={() => setReviewOpening({ eco: s.eco, name: s.opening_name, color: s.color })}
+                          onClick={() => setReviewOpening({ eco: s.eco, name: translateOpeningName(s.opening_name), color: s.color })}
                           title="Revizuiește partide"
                           className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[#555] hover:text-[#c8a84b] hover:bg-[rgba(200,168,75,0.1)] transition-colors"
                         >

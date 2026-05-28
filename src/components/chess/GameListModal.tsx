@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Loader2, Trophy, Minus, TrendingDown } from 'lucide-react'
 import { GameAnalysisModal } from './GameAnalysisModal'
+import { translateOpeningName } from '@/lib/chess-translations'
 
 export interface LichessGame {
   id: string
@@ -76,7 +77,7 @@ export function GameListModal({ eco, openingName, lichessUsername, playerColor, 
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e1e1e]">
           <div>
             <h2 className="font-bold text-[#f0f0f0]">Partide recente</h2>
-            <p className="text-xs text-[#555] mt-0.5">{openingName}</p>
+            <p className="text-xs text-[#555] mt-0.5">{translateOpeningName(openingName)}</p>
           </div>
           <button onClick={onClose} className="text-[#555] hover:text-[#f0f0f0] transition-colors">
             <X className="h-5 w-5" />
@@ -94,7 +95,7 @@ export function GameListModal({ eco, openingName, lichessUsername, playerColor, 
             <p className="text-center text-sm text-[#f87171] py-8">{error}</p>
           ) : games.length === 0 ? (
             <p className="text-center text-sm text-[#555] py-8">
-              Nu am găsit partide cu {openingName} pentru @{lichessUsername}.
+              Nu am găsit partide cu {translateOpeningName(openingName)} pentru @{lichessUsername}.
             </p>
           ) : (
             games.map(game => {
