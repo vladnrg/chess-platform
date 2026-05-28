@@ -110,7 +110,7 @@ export function RepertoirePage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Arhivă</h1>
+        <h1 className="text-2xl font-bold text-[#f0f0f0]">Studiază-ți partidele</h1>
         <p className="text-[#666] text-sm mt-1 max-w-xl">
           Conectează-ți contul Lichess pentru a vedea cum performezi cu fiecare deschidere și ce trebuie să antrenezi.
         </p>

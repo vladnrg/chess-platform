@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { to: '/community', icon: Users, label: 'Comunitate' },
   { to: '/leagues', icon: Trophy, label: 'Ligi' },
   { to: '/stats', icon: BarChart2, label: 'Statistici personale' },
-  { to: '/repertoire', icon: Library, label: 'Arhivă' },
+  { to: '/repertoire', icon: Library, label: 'Studiază-ți partidele' },
   { to: '/profile', icon: User, label: 'Profil' },
 ]
 
