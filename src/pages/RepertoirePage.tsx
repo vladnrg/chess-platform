@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, RefreshCw, BookOpen, Target, Swords } from 'lucide-react'
+import { AlertTriangle, RefreshCw, BookOpen, Target, Swords, Film } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Card, CardContent } from '@/components/ui/Card'
 import { OpeningTrainerModal } from '@/components/chess/OpeningTrainerModal'
+import { GameListModal } from '@/components/chess/GameListModal'
 
 // ECO prefix → course slug mapping
 const ECO_TO_COURSE: Record<string, string> = {
@@ -72,6 +73,7 @@ export function RepertoirePage() {
   const [colorFilter, setColorFilter] = useState<'white' | 'black' | 'all'>('all')
   const [trainerElo, setTrainerElo] = useState(1800)
   const [trainerOpening, setTrainerOpening] = useState<{ name: string; color: 'white' | 'black' } | null>(null)
+  const [reviewOpening, setReviewOpening] = useState<{ eco: string; name: string; color: 'white' | 'black' } | null>(null)
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['opening-stats', user?.id],
@@ -289,6 +291,7 @@ export function RepertoirePage() {
                   <th className="text-center px-3 py-3 text-xs text-[#666] font-medium">Partide</th>
                   <th className="text-center px-3 py-3 text-xs text-[#666] font-medium hidden sm:table-cell">V / R / P</th>
                   <th className="text-center px-3 py-3 text-xs text-[#666] font-medium">Scor</th>
+                  <th className="px-3 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -335,6 +338,16 @@ export function RepertoirePage() {
                           </span>
                         </div>
                       </td>
+                      <td className="px-3 py-3 text-center">
+                        <button
+                          onClick={() => setReviewOpening({ eco: s.eco, name: s.opening_name, color: s.color })}
+                          title="Revizuiește partide"
+                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[#555] hover:text-[#c8a84b] hover:bg-[rgba(200,168,75,0.1)] transition-colors"
+                        >
+                          <Film className="h-3.5 w-3.5" />
+                          Partide
+                        </button>
+                      </td>
                     </tr>
                   )
                 })}
@@ -351,6 +364,16 @@ export function RepertoirePage() {
         playerColor={trainerOpening.color}
         elo={trainerElo}
         onClose={() => setTrainerOpening(null)}
+      />
+    )}
+
+    {reviewOpening && (
+      <GameListModal
+        eco={reviewOpening.eco}
+        openingName={reviewOpening.name}
+        lichessUsername={lichessInput.trim()}
+        playerColor={reviewOpening.color}
+        onClose={() => setReviewOpening(null)}
       />
     )}
   )
