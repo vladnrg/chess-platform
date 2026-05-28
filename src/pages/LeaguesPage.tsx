@@ -119,23 +119,26 @@ export function LeaguesPage() {
             return (
               <div
                 key={league.name}
-                className={cn(
-                  'flex items-center gap-4 rounded-xl border p-4 transition-all relative overflow-hidden',
-                  isCurrent ? 'border-opacity-40' : isElite ? '' : 'border-[#1e1e1e] bg-[#111]'
-                )}
+                className="flex items-center gap-4 rounded-xl border p-4 transition-all relative overflow-hidden"
                 style={{
-                  ...(isCurrent ? {
-                    borderColor: league.color + '60',
-                    backgroundColor: league.color + '12',
-                    boxShadow: `0 0 24px ${league.color}22`,
-                  } : isElite ? {
-                    borderColor: league.color + '35',
-                    backgroundColor: league.color + '08',
-                    boxShadow: `0 0 16px ${league.color}18`,
-                  } : {}),
+                  borderColor: isCurrent
+                    ? league.color + '60'
+                    : isElite
+                    ? league.color + '35'
+                    : league.color + '22',
+                  backgroundColor: isCurrent
+                    ? league.color + '12'
+                    : isElite
+                    ? league.color + '08'
+                    : league.color + '05',
+                  boxShadow: isCurrent
+                    ? `0 0 24px ${league.color}22`
+                    : isElite
+                    ? `0 0 16px ${league.color}18`
+                    : undefined,
                 }}
               >
-                {/* Elite shimmer line */}
+                {/* Shimmer line for elite */}
                 {isElite && (
                   <div
                     className="absolute top-0 left-0 right-0 h-px"
@@ -150,7 +153,7 @@ export function LeaguesPage() {
                     isElite ? 'text-2xl' : 'text-xl'
                   )}
                   style={{
-                    backgroundColor: (isCurrent || isPassed || isElite) ? league.color + '20' : '#1a1a1a',
+                    backgroundColor: league.color + '20',
                     boxShadow: isElite ? `0 0 12px ${league.color}40` : undefined,
                     color: league.color,
                   }}
