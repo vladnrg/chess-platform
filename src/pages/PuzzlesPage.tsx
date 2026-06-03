@@ -111,6 +111,11 @@ export function PuzzlesPage() {
   const [activeBand, setActiveBand] = useState<ELOBand>(() => getBandForElo(profile?.estimated_elo ?? 800))
   const [nextLoading, setNextLoading] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
+  const [solvedInBand, setSolvedInBand] = useState(0)
+  const [showLevelUpPrompt, setShowLevelUpPrompt] = useState(false)
+
+  const SOLVED_TO_LEVEL_UP = 10
+  const nextBand = ELO_BANDS[ELO_BANDS.findIndex(b => b.id === activeBand.id) + 1] ?? null
 
   // Board orientation — fixed for the duration of each puzzle
   const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
@@ -195,6 +200,13 @@ export function PuzzlesPage() {
         await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: xp })
         await fetchProfile(user.id)
         setTodayCount(c => c + 1)
+        setSolvedInBand(prev => {
+          const next = prev + 1
+          if (next >= SOLVED_TO_LEVEL_UP && nextBand) {
+            setShowLevelUpPrompt(true)
+          }
+          return next
+        })
       }
     },
   })
@@ -214,15 +226,17 @@ export function PuzzlesPage() {
   function loadPuzzle(puzzle: Puzzle) {
     clearWrongState()
     setCurrentPuzzle(puzzle)
-    setActiveBand(getBandForElo(puzzle.rating))
     setEvalHistory([])
     try {
       const state = initPuzzleState(puzzle.fen, puzzle.moves)
       setPuzzleState(state)
       setInitialPuzzleState(state)
       setPlayerColor(state.game.turn() === 'w' ? 'white' : 'black')
-    } catch {
-      toast.error('Eroare la încărcarea puzzle-ului.')
+    } catch (e) {
+      console.error('[loadPuzzle] initPuzzleState failed:', e, { fen: puzzle.fen, moves: puzzle.moves })
+      setCurrentPuzzle(null)
+      toast.error('Puzzle invalid — se încarcă altul...')
+      void loadNextForBand(getBandForElo(puzzle.rating))
     }
   }
 
@@ -264,6 +278,7 @@ export function PuzzlesPage() {
 
   function handleBandChange(band: ELOBand) {
     setActiveBand(band)
+    setSolvedInBand(0)
     void loadNextForBand(band)
   }
 
@@ -713,6 +728,48 @@ export function PuzzlesPage() {
           )}
         </div>
       </div>
+
+      {showLevelUpPrompt && nextBand && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => { setShowLevelUpPrompt(false); setSolvedInBand(0) }}>
+          <div
+            className="bg-[#161616] border border-[#2a2a2a] rounded-2xl p-7 max-w-sm w-full mx-4 space-y-5 text-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-4xl">🏆</div>
+            <div>
+              <p className="text-[#f0f0f0] font-black text-xl">Ți-ai arătat valoarea!</p>
+              <p className="text-[#888] text-sm mt-2 leading-relaxed">
+                Ai rezolvat {SOLVED_TO_LEVEL_UP} puzzle-uri la nivel{' '}
+                <span style={{ color: activeBand.color }}>{activeBand.label}</span>.
+                Treci la{' '}
+                <span style={{ color: nextBand.color }}>{nextBand.label}</span>?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="flex-1"
+                onClick={() => { setShowLevelUpPrompt(false); setSolvedInBand(0) }}
+              >
+                Rămân la {activeBand.label}
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 font-bold"
+                style={{ backgroundColor: nextBand.color, color: '#000', border: 'none' }}
+                onClick={() => {
+                  setShowLevelUpPrompt(false)
+                  handleBandChange(nextBand)
+                }}
+              >
+                Da, trec la {nextBand.label}!
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showHintConfirm && (
         <div
