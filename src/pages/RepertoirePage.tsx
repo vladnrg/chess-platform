@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, RefreshCw, BookOpen, Target, Swords, Film } from 'lucide-react'
+import { AlertTriangle, RefreshCw, BookOpen, Target, Swords, Film, Crosshair } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Card, CardContent } from '@/components/ui/Card'
 import { OpeningTrainerModal } from '@/components/chess/OpeningTrainerModal'
 import { GameListModal } from '@/components/chess/GameListModal'
+import { PersonalTacticsModal } from '@/components/chess/PersonalTacticsModal'
 import { translateOpeningName } from '@/lib/chess-translations'
 
 // ECO prefix → course slug mapping
@@ -72,6 +73,7 @@ export function RepertoirePage() {
 
   const [lichessInput, setLichessInput] = useState((profile as any)?.lichess_username ?? '')
   const [colorFilter, setColorFilter] = useState<'white' | 'black' | 'all'>('all')
+  const [showPersonalTactics, setShowPersonalTactics] = useState(false)
   const [trainerElo, setTrainerElo] = useState(1800)
   const [trainerOpening, setTrainerOpening] = useState<{ name: string; color: 'white' | 'black' } | null>(null)
   const [reviewOpening, setReviewOpening] = useState<{ eco: string; name: string; color: 'white' | 'black' } | null>(null)
@@ -216,9 +218,18 @@ export function RepertoirePage() {
           {/* Training panel */}
           {weak.length > 0 && (
             <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <Swords className="h-4 w-4 text-[#c8a84b]" />
-                <h3 className="text-sm font-semibold text-[#f0f0f0]">Antrenează-ți slăbiciunile cu Dl. En Passant</h3>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Swords className="h-4 w-4 text-[#c8a84b]" />
+                  <h3 className="text-sm font-semibold text-[#f0f0f0]">Antrenează-ți slăbiciunile cu Dl. En Passant</h3>
+                </div>
+                <button
+                  onClick={() => setShowPersonalTactics(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-[rgba(248,113,113,0.1)] border border-[rgba(248,113,113,0.3)] px-3 py-1.5 text-xs font-semibold text-[#f87171] hover:bg-[rgba(248,113,113,0.18)] transition-colors"
+                >
+                  <Crosshair className="h-3.5 w-3.5" />
+                  Tactici din partidele mele
+                </button>
               </div>
 
               {/* ELO slider */}
@@ -365,6 +376,13 @@ export function RepertoirePage() {
         playerColor={trainerOpening.color}
         elo={trainerElo}
         onClose={() => setTrainerOpening(null)}
+      />
+    )}
+
+    {showPersonalTactics && lichessInput.trim() && (
+      <PersonalTacticsModal
+        lichessUsername={lichessInput.trim()}
+        onClose={() => setShowPersonalTactics(false)}
       />
     )}
 
