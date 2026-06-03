@@ -1,11 +1,18 @@
 import { LEAGUES } from '@/types'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig, getLeagueProgress, getXpToNextLeague } from '@/lib/utils'
-import { cn } from '@/lib/utils'
-import { Trophy, Shield, Star, Zap } from 'lucide-react'
+import { CheckCircle2, Lock, Star, Zap, ChevronRight } from 'lucide-react'
 
 const LEAGUE_ICONS = ['🪵', '⚙️', '🥉', '🥈', '🥇', '✦', '◈']
-const ELITE_LEAGUES = ['smarald', 'diamant']
+const LEAGUE_DESCRIPTIONS = [
+  'Primii tăi pași în lumea șahului.',
+  'Înveți să gândești mai profund.',
+  'Tactica începe să devină o armă.',
+  'Strategia și finalurile capătă sens.',
+  'Jucător complet, amenință în orice fază.',
+  'Elita platformei. Rival de temut.',
+  'Vârf absolut. Puțini ajung aici.',
+]
 
 export function LeaguesPage() {
   const { profile } = useAuth()
@@ -108,101 +115,104 @@ export function LeaguesPage() {
       {/* All leagues */}
       <div>
         <h3 className="text-sm font-semibold text-[#888] uppercase tracking-wider mb-4">Toate ligile</h3>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {LEAGUES.map((league, idx) => {
             const isCurrent = profile?.current_league === league.name
             const isPassed = profile
               ? LEAGUES.findIndex(l => l.name === profile.current_league) > idx
               : false
-            const isElite = ELITE_LEAGUES.includes(league.name)
+            const isFuture = !isCurrent && !isPassed
 
             return (
               <div
                 key={league.name}
-                className="flex items-center gap-4 rounded-xl border p-4 transition-all relative overflow-hidden"
+                className="relative flex items-center gap-4 rounded-2xl overflow-hidden transition-all duration-300"
                 style={{
-                  borderColor: isCurrent
-                    ? league.color + '60'
-                    : isElite
-                    ? league.color + '35'
-                    : league.color + '22',
-                  backgroundColor: isCurrent
-                    ? league.color + '12'
-                    : isElite
-                    ? league.color + '08'
-                    : league.color + '05',
-                  boxShadow: isCurrent
-                    ? `0 0 24px ${league.color}22`
-                    : isElite
-                    ? `0 0 16px ${league.color}18`
-                    : undefined,
+                  opacity: isFuture ? 0.55 : 1,
+                  background: isCurrent
+                    ? `linear-gradient(135deg, ${league.color}18 0%, ${league.color}08 100%)`
+                    : isPassed
+                    ? `linear-gradient(135deg, ${league.color}10 0%, transparent 100%)`
+                    : '#111',
+                  border: `1px solid ${isCurrent ? league.color + '50' : isPassed ? league.color + '30' : league.color + '20'}`,
+                  boxShadow: isCurrent ? `0 0 32px ${league.color}20, inset 0 0 60px ${league.color}08` : undefined,
                 }}
               >
-                {/* Shimmer line for elite */}
-                {isElite && (
+                {/* Colored left stripe */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
+                  style={{
+                    background: isFuture
+                      ? `linear-gradient(to bottom, ${league.color}40, ${league.color}20)`
+                      : `linear-gradient(to bottom, ${league.color}, ${league.color}80)`,
+                  }}
+                />
+
+                {/* Top shimmer line for current */}
+                {isCurrent && (
                   <div
                     className="absolute top-0 left-0 right-0 h-px"
-                    style={{ background: `linear-gradient(90deg, transparent, ${league.color}80, transparent)` }}
+                    style={{ background: `linear-gradient(90deg, transparent, ${league.color}90, transparent)` }}
                   />
                 )}
 
                 {/* Icon */}
-                <div
-                  className={cn(
-                    'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl font-bold',
-                    isElite ? 'text-2xl' : 'text-xl'
-                  )}
-                  style={{
-                    backgroundColor: league.color + '20',
-                    boxShadow: isElite ? `0 0 12px ${league.color}40` : undefined,
-                    color: league.color,
-                  }}
-                >
-                  {LEAGUE_ICONS[idx]}
+                <div className="ml-5 flex-shrink-0 my-4">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
+                    style={{
+                      background: isFuture
+                        ? `radial-gradient(circle, ${league.color}15, transparent)`
+                        : `radial-gradient(circle, ${league.color}30, ${league.color}10)`,
+                      boxShadow: isCurrent ? `0 0 20px ${league.color}50` : undefined,
+                    }}
+                  >
+                    {LEAGUE_ICONS[idx]}
+                  </div>
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 py-4">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className="font-semibold text-sm"
-                      style={{ color: isCurrent || isPassed || isElite ? league.color : '#a0a0a0' }}
+                      className="font-black text-base tracking-wide"
+                      style={{
+                        color: isFuture ? league.color + '70' : league.color,
+                        textShadow: isCurrent ? `0 0 20px ${league.color}60` : undefined,
+                      }}
                     >
                       {league.label}
                     </span>
                     {isCurrent && (
                       <span
-                        className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: league.color + '20', color: league.color }}
+                        className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider"
+                        style={{ backgroundColor: league.color + '25', color: league.color, border: `1px solid ${league.color}40` }}
                       >
-                        Tu ești aici
+                        <Star className="h-2.5 w-2.5" /> Tu ești aici
+                      </span>
+                    )}
+                    {isPassed && (
+                      <span className="text-[10px] font-bold text-[#4ade80] flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Atins
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#555] mt-0.5">
-                    {league.maxXp !== null
-                      ? `${league.minXp} – ${league.maxXp} XP total`
-                      : `${league.minXp}+ XP total`}
-                    {' · '}minim {league.weeklyMinXp} XP/săptămână
+                  <p className="text-xs mt-0.5" style={{ color: isFuture ? '#444' : '#666' }}>
+                    {LEAGUE_DESCRIPTIONS[idx]}
+                  </p>
+                  <p className="text-xs mt-1.5 font-mono" style={{ color: isFuture ? '#333' : '#555' }}>
+                    {league.maxXp !== null ? `${league.minXp} – ${league.maxXp} XP` : `${league.minXp}+ XP`}
+                    <span className="mx-1.5 opacity-40">·</span>
+                    {league.weeklyMinXp} XP/săpt.
                   </p>
                 </div>
 
-                {/* Status icon */}
-                <div className="flex-shrink-0">
-                  {isPassed && (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1a1a1a]">
-                      <Shield className="h-3.5 w-3.5" style={{ color: league.color }} />
-                    </div>
-                  )}
-                  {isCurrent && (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full" style={{ backgroundColor: league.color + '20' }}>
-                      <Star className="h-3.5 w-3.5" style={{ color: league.color }} />
-                    </div>
-                  )}
-                  {!isCurrent && !isPassed && (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1a1a1a]">
-                      <Trophy className="h-3.5 w-3.5 text-[#333]" />
-                    </div>
+                {/* Right arrow / lock */}
+                <div className="mr-4 flex-shrink-0">
+                  {isFuture ? (
+                    <Lock className="h-4 w-4" style={{ color: league.color + '40' }} />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" style={{ color: league.color + '60' }} />
                   )}
                 </div>
               </div>
