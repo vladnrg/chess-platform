@@ -10,7 +10,7 @@ export function useCalendar() {
         .from('tournaments')
         .select('*, participant_count:tournament_participants(count)')
         .eq('is_published', true)
-        .gte('starts_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .gte('starts_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
         .order('starts_at', { ascending: true })
 
       if (error) throw error

@@ -165,7 +165,7 @@ export function LeaguesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span
-                      className={cn('font-semibold text-sm', isElite && 'text-base')}
+                      className="font-semibold text-sm"
                       style={{ color: isCurrent || isPassed || isElite ? league.color : '#a0a0a0' }}
                     >
                       {league.label}
