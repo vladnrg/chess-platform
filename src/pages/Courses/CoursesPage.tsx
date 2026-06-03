@@ -1,14 +1,33 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { BookOpen, Lock, Search } from 'lucide-react'
+import { BookOpen, Lock, Search, Flame, Shield, Zap, Scale } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
-import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { Progress } from '@/components/ui/Progress'
 import type { Course, CourseLevel, PlayingStyle } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
+
+// Color palette per ECO family
+function getEcoTheme(eco?: string | null, family?: string | null) {
+  const prefix = eco?.[0]?.toUpperCase()
+  switch (prefix) {
+    case 'A': return { from: '#0f1729', to: '#1a2d6b', accent: '#4a7fd4', piece: '♟' }  // Flank/English - blue
+    case 'B': return { from: '#1a0f2e', to: '#3d1260', accent: '#9b59d4', piece: '♝' }  // Semi-open - purple
+    case 'C': return { from: '#1f0a0a', to: '#6b1515', accent: '#d44a4a', piece: '♞' }  // e4 e5 - red
+    case 'D': return { from: '#0a1a0f', to: '#145c20', accent: '#4ade80', piece: '♛' }  // d4 closed - green
+    case 'E': return { from: '#1f1200', to: '#6b3d00', accent: '#c8a84b', piece: '♜' }  // Indian - amber
+    default:  return { from: '#111111', to: '#2a2219', accent: '#c8a84b', piece: '♟' }  // Fundamental
+  }
+}
+
+const STYLE_ICONS: Record<PlayingStyle, React.ReactNode> = {
+  offensive: <Flame className="h-3 w-3" />,
+  balanced: <Scale className="h-3 w-3" />,
+  pragmatic: <Zap className="h-3 w-3" />,
+  defensive: <Shield className="h-3 w-3" />,
+}
 
 const LEVELS: { value: CourseLevel | 'all'; label: string }[] = [
   { value: 'all', label: 'Toate' },
@@ -43,154 +62,237 @@ export function CoursesPage() {
   const fundamentals = (courses ?? []).filter(c => c.level === 'fundamental')
 
   const filtered = (courses ?? []).filter(c => {
-    if (c.level === 'fundamental') return false  // shown separately above
+    if (c.level === 'fundamental') return false
     if (levelFilter !== 'all' && c.level !== levelFilter) return false
     if (styleFilter !== 'all' && !c.playing_styles.includes(styleFilter)) return false
     if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !(c.opening_family ?? '').toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
+  const totalCourses = courses?.length ?? 0
+  const completedCourses = (courses ?? []).filter(c => {
+    const pct = c.lesson_count > 0 ? (c.progress?.completed_lesson_ids.length ?? 0) / c.lesson_count : 0
+    return pct === 1
+  }).length
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Cursuri interactive</h1>
-        <p className="text-[#666] text-sm mt-0.5">{courses?.length ?? 0} cursuri disponibile</p>
+    <div className="space-y-8">
+
+      {/* Hero header */}
+      <div className="relative rounded-2xl overflow-hidden border border-[#2a2a2a]"
+        style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a150a 50%, #0d0d0d 100%)' }}>
+        <div className="absolute inset-0 opacity-5 text-[200px] flex items-center justify-end pr-8 select-none pointer-events-none leading-none">
+          ♛
+        </div>
+        <div className="relative px-6 py-8">
+          <h1 className="text-3xl font-black text-[#f0f0f0] tracking-tight">Cursuri interactive</h1>
+          <p className="text-[#888] mt-2 text-sm max-w-md">
+            Stăpânește deschiderile preferate. Fiecare curs îți construiește repertoriul cu poziții reale și explicații clare.
+          </p>
+          <div className="flex gap-6 mt-5">
+            <div>
+              <p className="text-2xl font-black text-[#c8a84b]">{totalCourses}</p>
+              <p className="text-xs text-[#555]">cursuri disponibile</p>
+            </div>
+            {completedCourses > 0 && (
+              <div>
+                <p className="text-2xl font-black text-[#4ade80]">{completedCourses}</p>
+                <p className="text-xs text-[#555]">finalizate</p>
+              </div>
+            )}
+            <div>
+              <p className="text-2xl font-black text-[#f0f0f0]">{isPro ? '∞' : '3'}</p>
+              <p className="text-xs text-[#555]">acces {isPro ? 'complet' : 'gratuit'}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filtre */}
-      <div className="flex flex-wrap gap-3">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#666]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#555]" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Caută deschidere..."
-            className="h-9 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] pl-9 pr-3 text-sm text-[#f0f0f0] placeholder-[#666] focus:outline-none focus:border-[#c8a84b] w-48"
+            className="h-9 rounded-lg border border-[#2a2a2a] bg-[#111] pl-9 pr-3 text-sm text-[#f0f0f0] placeholder-[#555] focus:outline-none focus:border-[#c8a84b] w-48 transition-colors"
           />
         </div>
+        <div className="h-5 w-px bg-[#2a2a2a]" />
         <div className="flex gap-1.5 flex-wrap">
           {LEVELS.map(l => (
-            <button
-              key={l.value}
-              onClick={() => setLevelFilter(l.value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            <button key={l.value} onClick={() => setLevelFilter(l.value)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                 levelFilter === l.value
-                  ? 'bg-[#c8a84b] text-black'
-                  : 'bg-[#1a1a1a] border border-[#2a2a2a] text-[#a0a0a0] hover:border-[#3a3a3a]'
+                  ? 'bg-[#c8a84b] text-black shadow-[0_0_12px_rgba(200,168,75,0.4)]'
+                  : 'bg-[#111] border border-[#2a2a2a] text-[#666] hover:text-[#a0a0a0] hover:border-[#3a3a3a]'
               }`}
-            >
-              {l.label}
-            </button>
+            >{l.label}</button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {STYLES.map(s => (
-            <button
-              key={s.value}
-              onClick={() => setStyleFilter(s.value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            <button key={s.value} onClick={() => setStyleFilter(s.value)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                 styleFilter === s.value
-                  ? 'bg-[rgba(200,168,75,0.2)] border border-[#c8a84b] text-[#c8a84b]'
-                  : 'bg-[#1a1a1a] border border-[#2a2a2a] text-[#a0a0a0] hover:border-[#3a3a3a]'
+                  ? 'bg-[rgba(200,168,75,0.15)] border border-[#c8a84b] text-[#c8a84b]'
+                  : 'bg-[#111] border border-[#2a2a2a] text-[#666] hover:text-[#a0a0a0] hover:border-[#3a3a3a]'
               }`}
-            >
-              {s.label}
-            </button>
+            >{s.label}</button>
           ))}
         </div>
       </div>
 
-      {/* Cursuri fundamentale — banner separat */}
+      {/* Fundamentals — special wide cards */}
       {!isLoading && fundamentals.length > 0 && levelFilter === 'all' && !search && (
-        <div className="rounded-xl border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.05)] p-4 space-y-3">
-          <div>
-            <p className="text-sm font-semibold text-[#c8a84b]">Înainte de orice altceva...</p>
-            <p className="text-xs text-[#666] mt-0.5">Aceste cursuri pun bazele. Sunt 100% gratuite.</p>
+        <section>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-px flex-1 bg-[#1e1e1e]" />
+            <span className="text-xs font-bold text-[#c8a84b] uppercase tracking-widest">Înainte de orice altceva — Gratuit</span>
+            <div className="h-px flex-1 bg-[#1e1e1e]" />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {fundamentals.map(course => (
-              <CourseCard key={course.id} course={course} isPro={isPro} />
+              <CourseCard key={course.id} course={course} isPro={isPro} featured />
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Grid openings */}
+      {/* Main grid */}
       {isLoading ? (
-        <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
+        <div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map(course => (
-            <CourseCard key={course.id} course={course} isPro={isPro} />
-          ))}
-          {filtered.length === 0 && (
-            <p className="col-span-full text-center text-[#666] py-16">
-              Niciun curs nu corespunde filtrelor selectate.
-            </p>
+        <section>
+          {filtered.length === 0 ? (
+            <p className="text-center text-[#555] py-20">Niciun curs nu corespunde filtrelor selectate.</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs text-[#555]">{filtered.length} {filtered.length === 1 ? 'curs' : 'cursuri'}</span>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filtered.map(course => (
+                  <CourseCard key={course.id} course={course} isPro={isPro} />
+                ))}
+              </div>
+            </>
           )}
-        </div>
+        </section>
       )}
     </div>
   )
 }
 
-function CourseCard({ course, isPro }: { course: Course; isPro: boolean }) {
+function CourseCard({ course, isPro, featured = false }: { course: Course; isPro: boolean; featured?: boolean }) {
   const locked = course.is_premium && !isPro
   const completedLessons = course.progress?.completed_lesson_ids.length ?? 0
   const pct = course.lesson_count > 0 ? Math.round((completedLessons / course.lesson_count) * 100) : 0
+  const theme = getEcoTheme(course.eco_code, course.opening_family)
+  const thumbH = featured ? 'h-44' : 'h-40'
 
   return (
     <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-      <div className={`rounded-xl border bg-[#1a1a1a] transition-all h-full flex flex-col ${
+      <div className={`rounded-2xl border bg-[#111] transition-all duration-200 h-full flex flex-col overflow-hidden ${
         locked
-          ? 'border-[#2a2a2a] opacity-80 hover:opacity-100'
-          : 'border-[#2a2a2a] hover:border-[#3a3a3a] hover:translate-y-[-1px]'
+          ? 'border-[#222] hover:border-[#2a2a2a]'
+          : 'border-[#1e1e1e] hover:border-[#3a3a3a] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
       }`}>
+
         {/* Thumbnail */}
-        <div className="relative h-32 rounded-t-xl bg-gradient-to-br from-[#1e1e1e] to-[#2a2a2a] flex items-center justify-center overflow-hidden">
-          <span className="text-5xl opacity-30 group-hover:scale-110 transition-transform">♟</span>
-          {locked && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-              <div className="flex items-center gap-1.5 rounded-full bg-[rgba(200,168,75,0.9)] px-3 py-1 text-xs font-bold text-black">
-                <Lock className="h-3 w-3" /> Pro
-              </div>
+        <div className={`relative ${thumbH} overflow-hidden`}
+          style={{ background: `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)` }}>
+
+          {/* Chess piece background art */}
+          <div className="absolute inset-0 flex items-center justify-center"
+            style={{ fontSize: featured ? 100 : 80, opacity: 0.12, color: theme.accent, userSelect: 'none' }}>
+            {theme.piece}
+          </div>
+
+          {/* Accent glow */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/2"
+            style={{ background: `linear-gradient(to top, ${theme.accent}18, transparent)` }} />
+
+          {/* ECO badge top-left */}
+          {course.eco_code && (
+            <div className="absolute top-3 left-3">
+              <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded"
+                style={{ backgroundColor: theme.accent + '30', color: theme.accent, border: `1px solid ${theme.accent}50` }}>
+                {course.eco_code}
+              </span>
             </div>
           )}
-          <div className="absolute top-2 left-2">
-            <Badge variant={
-              course.level === 'fundamental' ? 'default' :
-              course.level === 'beginner' ? 'beginner' :
-              course.level === 'intermediate' ? 'intermediate' : 'advanced'
-            }>
-              {LEVEL_LABELS[course.level]}
-            </Badge>
+
+          {/* Level badge top-right */}
+          <div className="absolute top-3 right-3">
+            {locked ? (
+              <span className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded bg-[rgba(200,168,75,0.9)] text-black">
+                <Lock className="h-2.5 w-2.5" /> PRO
+              </span>
+            ) : course.level === 'fundamental' ? (
+              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-[#4ade80]/90 text-black">GRATUIT</span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-black/50 text-[#a0a0a0] border border-[#333]">
+                {LEVEL_LABELS[course.level]}
+              </span>
+            )}
           </div>
+
+          {/* Title overlay at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 pt-8 pb-3"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)' }}>
+            <h3 className={`font-black text-white leading-tight group-hover:text-[${theme.accent}] transition-colors ${featured ? 'text-base' : 'text-sm'}`}
+              style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
+              {course.title}
+            </h3>
+          </div>
+
+          {/* Dimmer on locked */}
+          {locked && <div className="absolute inset-0 bg-black/30" />}
         </div>
 
-        <div className="p-4 flex flex-col flex-1">
-          <h3 className="font-semibold text-[#f0f0f0] mb-1 group-hover:text-[#c8a84b] transition-colors line-clamp-2 text-sm">
-            {course.title}
-          </h3>
-          {(course.eco_code || course.opening_family) && (
-            <p className="text-xs text-[#666] mb-2">
-              {[course.eco_code, course.opening_family].filter(Boolean).join(' · ')}
-            </p>
+        {/* Card body */}
+        <div className="px-4 py-3 flex flex-col flex-1 gap-2">
+          {/* Opening family */}
+          {course.opening_family && (
+            <p className="text-xs text-[#555] truncate">{course.opening_family}</p>
           )}
 
-          <div className="flex flex-wrap gap-1 mb-3">
-            {course.playing_styles.map(style => (
-              <span key={style} className="text-xs rounded-full px-2 py-0.5 bg-[#2a2a2a] text-[#666]">
-                {PLAYING_STYLE_LABELS[style]}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-auto">
-            <div className="flex items-center justify-between text-xs text-[#666] mb-1.5">
-              <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" /> {course.lesson_count} lecții</span>
-              {completedLessons > 0 && <span className="text-[#4ade80]">{pct}% complet</span>}
+          {/* Playing styles */}
+          {course.playing_styles.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {course.playing_styles.map(style => (
+                <span key={style}
+                  className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] text-[#666]">
+                  {STYLE_ICONS[style]}
+                  {PLAYING_STYLE_LABELS[style]}
+                </span>
+              ))}
             </div>
-            {completedLessons > 0 && <Progress value={pct} className="h-1" />}
+          )}
+
+          {/* Footer */}
+          <div className="mt-auto pt-1">
+            <div className="flex items-center justify-between text-xs text-[#555] mb-1.5">
+              <span className="flex items-center gap-1">
+                <BookOpen className="h-3 w-3" />
+                {course.lesson_count} {course.lesson_count === 1 ? 'lecție' : 'lecții'}
+              </span>
+              {completedLessons > 0 && (
+                <span className={pct === 100 ? 'text-[#4ade80] font-semibold' : 'text-[#c8a84b]'}>
+                  {pct === 100 ? '✓ Complet' : `${pct}%`}
+                </span>
+              )}
+            </div>
+            {completedLessons > 0 && (
+              <div className="h-1 rounded-full bg-[#1a1a1a] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : theme.accent }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
