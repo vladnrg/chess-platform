@@ -115,6 +115,7 @@ export function RepertoirePage() {
   const weak = filtered.filter(s => scorePercent(s) < 45 && (s.wins + s.draws + s.losses) >= 5)
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -395,5 +396,6 @@ export function RepertoirePage() {
         onClose={() => setReviewOpening(null)}
       />
     )}
+    </>
   )
 }

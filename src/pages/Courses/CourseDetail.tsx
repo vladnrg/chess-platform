@@ -108,8 +108,12 @@ export function CourseDetail() {
               ))}
               {isLocked && <Badge variant="premium">Pro</Badge>}
             </div>
-            <h1 className="text-2xl font-bold text-[#f0f0f0] mb-2">{course.title}</h1>
-            <p className="text-[#a0a0a0] text-sm">{course.description}</p>
+            <h1 className="text-2xl font-bold text-[#f0f0f0] mb-3">{course.title}</h1>
+            {course.description && (
+              <p className="text-[#a0a0a0] text-sm leading-relaxed border-l-2 border-[#c8a84b] pl-3">
+                {course.description}
+              </p>
+            )}
           </div>
         </div>
 
