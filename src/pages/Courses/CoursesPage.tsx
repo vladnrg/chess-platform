@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Progress } from '@/components/ui/Progress'
 import type { Course, CourseLevel, PlayingStyle } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
+// PlayingStyle kept for card style icons
 
 // Color palette per ECO family
 function getEcoTheme(eco?: string | null, family?: string | null) {
@@ -30,25 +31,14 @@ const STYLE_ICONS: Record<PlayingStyle, React.ReactNode> = {
 }
 
 const LEVELS: { value: CourseLevel | 'all'; label: string }[] = [
-  { value: 'all', label: 'Toate' },
-  { value: 'fundamental', label: 'Baze' },
   { value: 'beginner', label: 'Începător' },
-  { value: 'intermediate', label: 'Intermediar' },
+  { value: 'intermediate', label: 'Mediu' },
   { value: 'advanced', label: 'Avansat' },
-]
-
-const STYLES: { value: PlayingStyle | 'all'; label: string }[] = [
-  { value: 'all', label: 'Toate stilurile' },
-  { value: 'offensive', label: 'Ofensiv' },
-  { value: 'balanced', label: 'Echilibrat' },
-  { value: 'pragmatic', label: 'Pragmatic' },
-  { value: 'defensive', label: 'Defensiv' },
 ]
 
 export function CoursesPage() {
   const { isPro } = useSubscription()
   const [levelFilter, setLevelFilter] = useState<CourseLevel | 'all'>('all')
-  const [styleFilter, setStyleFilter] = useState<PlayingStyle | 'all'>('all')
   const [search, setSearch] = useState('')
 
   const { data: courses, isLoading } = useQuery({
@@ -64,7 +54,6 @@ export function CoursesPage() {
   const filtered = (courses ?? []).filter(c => {
     if (c.level === 'fundamental') return false
     if (levelFilter !== 'all' && c.level !== levelFilter) return false
-    if (styleFilter !== 'all' && !c.playing_styles.includes(styleFilter)) return false
     if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !(c.opening_family ?? '').toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -120,26 +109,19 @@ export function CoursesPage() {
           />
         </div>
         <div className="h-5 w-px bg-[#2a2a2a]" />
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1.5">
           {LEVELS.map(l => (
-            <button key={l.value} onClick={() => setLevelFilter(l.value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+            <button
+              key={l.value}
+              onClick={() => setLevelFilter(levelFilter === l.value ? 'all' : l.value)}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                 levelFilter === l.value
                   ? 'bg-[#c8a84b] text-black shadow-[0_0_12px_rgba(200,168,75,0.4)]'
                   : 'bg-[#111] border border-[#2a2a2a] text-[#666] hover:text-[#a0a0a0] hover:border-[#3a3a3a]'
               }`}
-            >{l.label}</button>
-          ))}
-        </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {STYLES.map(s => (
-            <button key={s.value} onClick={() => setStyleFilter(s.value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
-                styleFilter === s.value
-                  ? 'bg-[rgba(200,168,75,0.15)] border border-[#c8a84b] text-[#c8a84b]'
-                  : 'bg-[#111] border border-[#2a2a2a] text-[#666] hover:text-[#a0a0a0] hover:border-[#3a3a3a]'
-              }`}
-            >{s.label}</button>
+            >
+              {l.label}
+            </button>
           ))}
         </div>
       </div>
