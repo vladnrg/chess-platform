@@ -186,8 +186,8 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     setShowBest(false)
   }
 
-  const onPieceDrop = useCallback(({ sourceSquare: from, targetSquare: to }: { sourceSquare: string; targetSquare: string }) => {
-    if (!current || moveResult !== null) return false
+  const onPieceDrop = useCallback(({ sourceSquare: from, targetSquare: to }: { sourceSquare: string; targetSquare: string | null }) => {
+    if (!to || !current || moveResult !== null) return false
     try {
       const g = new Chess(current.fen)
       const result = g.move({ from, to, promotion: 'q' })

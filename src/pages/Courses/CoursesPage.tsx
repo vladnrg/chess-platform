@@ -5,13 +5,11 @@ import { BookOpen, Lock, Search, Flame, Shield, Zap, Scale } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { Spinner } from '@/components/ui/Spinner'
-import { Progress } from '@/components/ui/Progress'
 import type { Course, CourseLevel, PlayingStyle } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
-// PlayingStyle kept for card style icons
 
 // Color palette per ECO family
-function getEcoTheme(eco?: string | null, family?: string | null) {
+function getEcoTheme(eco?: string | null) {
   const prefix = eco?.[0]?.toUpperCase()
   switch (prefix) {
     case 'A': return { from: '#0f1729', to: '#1a2d6b', accent: '#4a7fd4', piece: '♟' }  // Flank/English - blue
@@ -171,7 +169,7 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
   const locked = course.is_premium && !isPro
   const completedLessons = course.progress?.completed_lesson_ids.length ?? 0
   const pct = course.lesson_count > 0 ? Math.round((completedLessons / course.lesson_count) * 100) : 0
-  const theme = getEcoTheme(course.eco_code, course.opening_family)
+  const theme = getEcoTheme(course.eco_code)
   const thumbH = featured ? 'h-44' : 'h-40'
 
   return (

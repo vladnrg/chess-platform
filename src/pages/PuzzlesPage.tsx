@@ -484,6 +484,9 @@ export function PuzzlesPage() {
             {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
             {' · '}
             <span style={{ color: activeBand.color }}>{activeBand.label} ({activeBand.desc})</span>
+            {nextBand && solvedInBand > 0 && (
+              <> · <span className="text-[#888]">{solvedInBand}/{SOLVED_TO_LEVEL_UP} la nivel curent</span></>
+            )}
             {currentPuzzle && (
               <> · <span className="text-[#f0f0f0] font-medium">ELO {currentPuzzle.rating}</span></>
             )}

@@ -67,7 +67,8 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function onDrop(sourceSquare: string, targetSquare: string, piece: string) {
+  function onDrop({ sourceSquare, targetSquare, piece }: { sourceSquare: string; targetSquare: string | null; piece: string }) {
+    if (!targetSquare) return false
     if (status !== 'playing') return false
     if ((game.turn() === 'w') !== (playerColor === 'white')) return false
 
@@ -134,7 +135,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
               position: game.fen(),
               boardOrientation: playerColor,
               allowDragging: status === 'playing',
-              onPieceDrop: onDrop,
+              onPieceDrop: (args) => onDrop(args),
               squareStyles,
               darkSquareStyle: { backgroundColor: '#3d5c3a' },
               lightSquareStyle: { backgroundColor: '#c8e6c0' },
