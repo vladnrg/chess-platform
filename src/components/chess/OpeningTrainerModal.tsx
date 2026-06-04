@@ -67,14 +67,16 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function onDrop({ sourceSquare, targetSquare, piece }: { sourceSquare: string; targetSquare: string | null; piece: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function onDrop({ sourceSquare, targetSquare, piece }: { sourceSquare: string; targetSquare: string | null; piece: any }) {
     if (!targetSquare) return false
     if (status !== 'playing') return false
     if ((game.turn() === 'w') !== (playerColor === 'white')) return false
 
     try {
       const newGame = new Chess(game.fen())
-      const isPromotion = piece[1] === 'P' &&
+      const pieceStr = String(piece)
+      const isPromotion = pieceStr[1] === 'P' &&
         ((playerColor === 'white' && targetSquare[1] === '8') ||
          (playerColor === 'black' && targetSquare[1] === '1'))
       const result = newGame.move({
@@ -135,7 +137,8 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
               position: game.fen(),
               boardOrientation: playerColor,
               allowDragging: status === 'playing',
-              onPieceDrop: (args) => onDrop(args),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onPieceDrop: (args: any) => onDrop(args),
               squareStyles,
               darkSquareStyle: { backgroundColor: '#3d5c3a' },
               lightSquareStyle: { backgroundColor: '#c8e6c0' },

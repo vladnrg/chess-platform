@@ -186,7 +186,8 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     setShowBest(false)
   }
 
-  const onPieceDrop = useCallback(({ sourceSquare: from, targetSquare: to }: { sourceSquare: string; targetSquare: string | null }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onPieceDrop = useCallback(({ sourceSquare: from, targetSquare: to }: { sourceSquare: string; targetSquare: string | null; [k: string]: any }) => {
     if (!to || !current || moveResult !== null) return false
     try {
       const g = new Chess(current.fen)
