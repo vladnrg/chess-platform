@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { Chessboard } from 'react-chessboard'
 import { BookOpen, Lock, Search, Flame, Shield, Zap, Scale } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { Spinner } from '@/components/ui/Spinner'
+import { coverFenForSlug, coverOrientationForSlug } from '@/data/courseCovers'
 import type { Course, CourseLevel, PlayingStyle } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -180,19 +182,25 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
           : 'border-[#1e1e1e] hover:border-[#3a3a3a] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
       }`}>
 
-        {/* Thumbnail */}
+        {/* Thumbnail — mini-tablă cu poziția reală a deschiderii */}
         <div className={`relative ${thumbH} overflow-hidden`}
           style={{ background: `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)` }}>
 
-          {/* Chess piece background art */}
-          <div className="absolute inset-0 flex items-center justify-center"
-            style={{ fontSize: featured ? 100 : 80, opacity: 0.12, color: theme.accent, userSelect: 'none' }}>
-            {theme.piece}
+          {/* Mini chessboard cu poziția-semnătură */}
+          <div className="absolute inset-0 flex items-center justify-center p-3">
+            <div className={`h-full aspect-square rounded-md overflow-hidden shadow-lg ring-1 ring-black/30 pointer-events-none select-none transition-transform duration-200 group-hover:scale-[1.04] ${locked ? 'opacity-70' : ''}`}>
+              <Chessboard
+                options={{
+                  position: coverFenForSlug(course.slug),
+                  boardOrientation: coverOrientationForSlug(course.slug),
+                  allowDragging: false,
+                  boardStyle: { borderRadius: 0 },
+                  darkSquareStyle: { backgroundColor: '#6b7b91' },
+                  lightSquareStyle: { backgroundColor: '#dfe6ee' },
+                }}
+              />
+            </div>
           </div>
-
-          {/* Accent glow */}
-          <div className="absolute bottom-0 left-0 right-0 h-1/2"
-            style={{ background: `linear-gradient(to top, ${theme.accent}18, transparent)` }} />
 
           {/* Level badge top-right */}
           <div className="absolute top-3 right-3">
