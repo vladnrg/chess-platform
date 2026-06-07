@@ -21,7 +21,7 @@ export function useAICoach() {
       if (data?.error) throw new Error(data.error)
       setAnswer(data?.answer ?? '')
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Eroare la conectarea cu AI Coach-ul.'
+      const msg = e instanceof Error ? e.message : 'Nu am putut lua legătura cu En Passant. Mai încearcă.'
       setError(msg)
     } finally {
       setLoading(false)

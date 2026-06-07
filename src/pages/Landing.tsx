@@ -22,7 +22,7 @@ const FEATURES = [
   {
     icon: Trophy,
     title: 'Sistem de ligi',
-    desc: 'Urcă de la Cherestea până la Diamant câștigând XP. Cu cât ești mai activ, cu atât urci mai repede.',
+    desc: 'Urcă de la Inițiat până la Legendar câștigând XP. Cu cât ești mai activ, cu atât urci mai repede.',
   },
   {
     icon: Shield,

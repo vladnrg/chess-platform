@@ -259,9 +259,9 @@ export function PuzzleModal({ theme, onClose }: Props) {
                   </div>
                 )}
                 {puzzleState.status === 'wrong' && (
-                  <div className="flex items-center gap-2 rounded-lg bg-[rgba(248,113,113,0.1)] border border-[rgba(248,113,113,0.3)] p-3">
-                    <XCircle className="h-5 w-5 text-[#f87171]" />
-                    <span className="text-[#f87171] font-semibold">Greșit. Încearcă din nou.</span>
+                  <div className="flex items-center gap-2 rounded-lg bg-[rgba(251,191,36,0.1)] border border-[rgba(251,191,36,0.35)] p-3">
+                    <XCircle className="h-5 w-5 text-[#fbbf24]" />
+                    <span className="text-[#fbbf24] font-semibold">Mai gândește-te. Încearcă din nou.</span>
                     <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
                       Reia
                     </Button>
@@ -278,18 +278,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
                   <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 space-y-3">
                     <div>
                       <p className="text-xs text-[#666] uppercase tracking-wider mb-1">Rating puzzle</p>
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-bold text-[#f0f0f0]">{currentPuzzle.rating}</p>
-                        <span className={`text-xs font-medium ${
-                          currentPuzzle.rating < playerElo - 150 ? 'text-[#4ade80]' :
-                          currentPuzzle.rating > playerElo + 300 ? 'text-[#f87171]' :
-                          'text-[#c8a84b]'
-                        }`}>
-                          {currentPuzzle.rating < playerElo - 150 ? 'ușor' :
-                           currentPuzzle.rating > playerElo + 300 ? 'dificil' :
-                           'pe nivelul tău'}
-                        </span>
-                      </div>
+                      <p className="text-2xl font-bold text-[#f0f0f0]">{currentPuzzle.rating}</p>
                     </div>
                     <div>
                       <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Teme</p>

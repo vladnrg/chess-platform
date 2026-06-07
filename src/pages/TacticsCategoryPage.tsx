@@ -132,7 +132,6 @@ export function TacticsCategoryPage() {
               <ExerciseCard
                 key={ex.id}
                 puzzle={ex}
-                playerElo={playerElo}
                 onSolve={() => setActiveTheme(category.lichessThemes[0])}
               />
             ))}
@@ -173,17 +172,10 @@ export function TacticsCategoryPage() {
 
 interface ExerciseCardProps {
   puzzle: Puzzle
-  playerElo: number
   onSolve: () => void
 }
 
-function ExerciseCard({ puzzle, playerElo, onSolve }: ExerciseCardProps) {
-  const diff = puzzle.rating - playerElo
-  const diffLabel =
-    diff < -150 ? { label: 'ușor', color: 'text-[#4ade80]' } :
-    diff > 300   ? { label: 'dificil', color: 'text-[#f87171]' } :
-                   { label: 'potrivit', color: 'text-[#c8a84b]' }
-
+function ExerciseCard({ puzzle, onSolve }: ExerciseCardProps) {
   return (
     <button
       onClick={onSolve}
@@ -200,9 +192,8 @@ function ExerciseCard({ puzzle, playerElo, onSolve }: ExerciseCardProps) {
           }}
         />
       </div>
-      <div className="px-3 py-2 flex items-center justify-between">
+      <div className="px-3 py-2">
         <span className="text-sm font-semibold text-[#f0f0f0]">{puzzle.rating}</span>
-        <span className={`text-xs font-medium ${diffLabel.color}`}>{diffLabel.label}</span>
       </div>
     </button>
   )

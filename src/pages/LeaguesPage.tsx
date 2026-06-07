@@ -228,7 +228,7 @@ export function LeaguesPage() {
           <li>Dacă acumulezi mai puțin XP decât minimul săptămânal, ești retrogradat o ligă.</li>
           <li>Verificarea se face în fiecare duminică la 23:59.</li>
           <li>XP-ul total nu se pierde — poți repromova rapid.</li>
-          <li>Liga <span className="text-[#8B6914]">Cherestea</span> nu are retrogradare.</li>
+          <li>Liga <span className="text-[#8B6914]">Inițiat</span> nu are retrogradare.</li>
         </ul>
       </div>
     </div>

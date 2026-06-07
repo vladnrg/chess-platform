@@ -11,6 +11,43 @@ export interface PuzzleState {
   waitingOpponent: boolean
 }
 
+// XP de bază pentru un puzzle, după rating
+export function basePuzzleXp(rating: number): number {
+  return rating < 1000 ? 10 : rating < 1500 ? 20 : 30
+}
+
+// Factor XP după nivelul maxim de indiciu folosit:
+// 0 = niciun indiciu → integral; 1 = indiciu → 3/4; 2 = arată piesa → 1/4; 3 = arată mutarea → 0
+export function hintXpFactor(level: number): number {
+  return [1, 0.75, 0.25, 0][level] ?? 0
+}
+
+const PIECE_RO: Record<string, string> = {
+  p: 'pionul', n: 'calul', b: 'nebunul', r: 'tura', q: 'dama', k: 'regele',
+}
+
+// Indiciu mai specific (nivelul 1): numește piesa de mutat și tema, fără destinație
+export function buildSpecificHint(fen: string, correctUci: string, themes: string[]): string {
+  const from = correctUci.slice(0, 2)
+  let pieceName = 'piesa potrivită'
+  try {
+    const g = new Chess(fen)
+    const piece = g.get(from as Parameters<typeof g.get>[0])
+    if (piece) pieceName = PIECE_RO[piece.type] ?? pieceName
+  } catch { /* fallback */ }
+
+  const themeNudge =
+    themes.some(t => t.startsWith('mate')) ? 'Caută secvența care duce direct la mat.'
+    : themes.includes('fork') ? 'Caută o mutare care atacă două ținte deodată.'
+    : themes.includes('pin') ? 'Caută cum poți ținti o piesă în fața uneia mai valoroase.'
+    : themes.includes('skewer') ? 'Forțează o piesă valoroasă să se ferească și ia ce rămâne în spate.'
+    : themes.includes('discoveredAttack') || themes.includes('doubleCheck') ? 'Mută o piesă ca să dezvălui atacul alteia.'
+    : themes.includes('sacrifice') ? 'Uneori trebuie să dai material ca să deschizi atacul.'
+    : 'Gândește ce amenințare poți crea cu ea.'
+
+  return `Uită-te bine la ${pieceName} de pe ${from}. ${themeNudge}`
+}
+
 export function initPuzzleState(fen: string, movesStr: string): PuzzleState {
   const g = new Chess(fen)
   const moves = movesStr.split(' ').filter(Boolean)

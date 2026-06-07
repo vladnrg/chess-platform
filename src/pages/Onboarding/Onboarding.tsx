@@ -224,7 +224,7 @@ function TacticsQuestion({
         <p className="mt-4 text-center text-[#4ade80] font-semibold">✓ Corect!</p>
       )}
       {tacticsState.solved === false && (
-        <p className="mt-4 text-center text-[#f87171] font-semibold">✗ Greșit</p>
+        <p className="mt-4 text-center text-[#fbbf24] font-semibold">Mai gândește-te</p>
       )}
       {!tacticsState.attempted && (
         <button onClick={onSkip} className="mt-4 w-full text-sm text-[#666] hover:text-[#a0a0a0] transition-colors">

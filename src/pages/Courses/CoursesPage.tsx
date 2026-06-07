@@ -194,16 +194,6 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
           <div className="absolute bottom-0 left-0 right-0 h-1/2"
             style={{ background: `linear-gradient(to top, ${theme.accent}18, transparent)` }} />
 
-          {/* ECO badge top-left */}
-          {course.eco_code && (
-            <div className="absolute top-3 left-3">
-              <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded"
-                style={{ backgroundColor: theme.accent + '30', color: theme.accent, border: `1px solid ${theme.accent}50` }}>
-                {course.eco_code}
-              </span>
-            </div>
-          )}
-
           {/* Level badge top-right */}
           <div className="absolute top-3 right-3">
             {locked ? (
