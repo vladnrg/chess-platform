@@ -670,6 +670,33 @@ export function PuzzlesPage() {
                       +{xpBurst} XP · Serie {correctStreak}
                     </div>
                   )}
+
+                  {/* Pop-up flotant cu explicația — vizibil imediat, fără scroll */}
+                  {puzzleState.status === 'wrong' && (
+                    <div className="absolute top-0 left-0 right-0 z-20 p-2">
+                      <div
+                        className="mx-auto max-w-md rounded-xl border border-[rgba(251,191,36,0.45)] bg-[#1a1408]/95 backdrop-blur-sm shadow-2xl p-3 space-y-2"
+                        style={{ animation: 'pop-in 0.25s ease-out' }}
+                      >
+                        <div className="flex items-center gap-2">
+                          {evalLoading
+                            ? <Loader2 className="h-4 w-4 animate-spin text-[#fbbf24]" />
+                            : <Info className="h-4 w-4 text-[#fbbf24]" />}
+                          <p className="text-sm font-bold text-[#fbbf24]">Mai gândește-te</p>
+                        </div>
+                        {evalLoading ? (
+                          <p className="text-sm text-[#888]">Se analizează poziția...</p>
+                        ) : moveExplanation ? (
+                          <p className="text-sm text-[#e8e8e8] leading-relaxed">{moveExplanation.message}</p>
+                        ) : null}
+                        {secondHint && (
+                          <div className="rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-2.5">
+                            <p className="text-sm text-[#d4b860]">{secondHint}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -706,50 +733,29 @@ export function PuzzlesPage() {
                 </div>
               )}
 
-              {/* Mai gândește-te — explicație + indicii graduale (XP descrescător) */}
+              {/* Opțiuni — exact sub puzzle (mesajul e în pop-up peste tablă) */}
               {puzzleState.status === 'wrong' && (
-                <div className="rounded-lg bg-[rgba(251,191,36,0.08)] border border-[rgba(251,191,36,0.3)] p-4 space-y-3">
-                  {evalLoading ? (
-                    <div className="flex items-center gap-2 text-sm text-[#666]">
-                      <Loader2 className="h-4 w-4 animate-spin text-[#fbbf24]" />
-                      <span>Se analizează poziția...</span>
-                    </div>
-                  ) : moveExplanation ? (
-                    <p className="text-sm font-semibold text-[#fbbf24]">Mai gândește-te</p>
-                  ) : null}
-                  {moveExplanation && !evalLoading && (
-                    <p className="text-sm text-[#d0d0d0]">{moveExplanation.message}</p>
-                  )}
+                <div className="flex gap-2 flex-wrap">
+                  <Button size="sm" variant="secondary" className="gap-2" onClick={resetToInitial}>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Reia poziția
+                  </Button>
 
-                  {/* Indiciul mai specific (nivel 1) */}
-                  {secondHint && (
-                    <div className="rounded-lg bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.25)] p-3">
-                      <p className="text-sm text-[#c0a060]">{secondHint}</p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" variant="secondary" className="gap-2" onClick={resetToInitial}>
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      Reia poziția
+                  {hintLevel < 1 && (
+                    <Button size="sm" variant="secondary" onClick={() => useHint(1)}>
+                      Dă-mi un indiciu <span className="opacity-60 ml-1">· ¾ XP</span>
                     </Button>
-
-                    {hintLevel < 1 && (
-                      <Button size="sm" variant="secondary" onClick={() => useHint(1)}>
-                        Dă-mi un indiciu <span className="opacity-60 ml-1">· ¾ XP</span>
-                      </Button>
-                    )}
-                    {hintLevel < 2 && (
-                      <Button size="sm" variant="secondary" onClick={() => useHint(2)}>
-                        Arată ce trebuie să mut <span className="opacity-60 ml-1">· ¼ XP</span>
-                      </Button>
-                    )}
-                    {hintLevel < 3 && (
-                      <Button size="sm" variant="secondary" onClick={() => useHint(3)}>
-                        Nu mă prind, arată mutarea <span className="opacity-60 ml-1">· fără XP</span>
-                      </Button>
-                    )}
-                  </div>
+                  )}
+                  {hintLevel < 2 && (
+                    <Button size="sm" variant="secondary" onClick={() => useHint(2)}>
+                      Arată ce trebuie să mut <span className="opacity-60 ml-1">· ¼ XP</span>
+                    </Button>
+                  )}
+                  {hintLevel < 3 && (
+                    <Button size="sm" variant="secondary" onClick={() => useHint(3)}>
+                      Nu mă prind, arată mutarea <span className="opacity-60 ml-1">· fără XP</span>
+                    </Button>
+                  )}
                 </div>
               )}
 
