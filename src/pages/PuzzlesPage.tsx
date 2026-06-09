@@ -145,6 +145,9 @@ export function PuzzlesPage() {
   const [moveExplanation, setMoveExplanation] = useState<MoveExplanation | null>(null)
   const [evalLoading, setEvalLoading] = useState(false)
   const [expectedMoveUci, setExpectedMoveUci] = useState<string | null>(null)
+  // Pentru En Passant: poziția dinainte de greșeală + mutarea încercată
+  const [wrongFen, setWrongFen] = useState<string | null>(null)
+  const [playerMoveSan, setPlayerMoveSan] = useState<string | null>(null)
 
   // Click-to-move state
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
@@ -293,6 +296,8 @@ export function PuzzlesPage() {
     setMoveExplanation(null)
     setEvalLoading(false)
     setExpectedMoveUci(null)
+    setWrongFen(null)
+    setPlayerMoveSan(null)
     setHintLevel(0)
     hintLevelRef.current = 0
     setSecondHint(null)
@@ -393,6 +398,8 @@ export function PuzzlesPage() {
 
         puzzlePerfectRef.current = false
         pendingHintRef.current = buildSpecificHint(fenBeforeMove, correctUci, currentPuzzle.themes)
+        setWrongFen(fenBeforeMove)
+        setPlayerMoveSan(uciToSan(fenBeforeMove, myMove))
         setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'wrong' } : null)
         setWrongMoveFrom(source)
         setWrongMoveTo(target)
@@ -893,8 +900,12 @@ export function PuzzlesPage() {
 
       {coachOpen && puzzleState && (
         <AICoachPanel
-          fen={puzzleState.game.fen()}
-          context="Puzzle tactic"
+          fen={playerMoveSan && wrongFen ? wrongFen : puzzleState.game.fen()}
+          context={
+            playerMoveSan && wrongFen
+              ? `Exercițiu tactic (puzzle). FEN-ul dat este poziția DE DINAINTE de mutarea jucătorului — la mutare este ${playerColor === 'white' ? 'Albul' : 'Negrul'}. Jucătorul a încercat ${playerMoveSan}, dar nu este mutarea corectă; cea corectă este ${moveExplanation?.bestMoveSan ?? 'necunoscută'}. Explică de ce ${playerMoveSan} nu funcționează și ce idee era mai bună.`
+              : `Exercițiu tactic (puzzle). La mutare este ${playerColor === 'white' ? 'Albul' : 'Negrul'}.`
+          }
           onClose={() => setCoachOpen(false)}
         />
       )}
