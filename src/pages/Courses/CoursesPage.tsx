@@ -5,7 +5,6 @@ import { BookOpen, Lock, Search, Flame, Shield, Zap, Scale } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { Spinner } from '@/components/ui/Spinner'
-import { OpeningEmblem } from '@/components/courses/OpeningEmblem'
 import type { Course, CourseLevel, PlayingStyle } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -181,23 +180,18 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
           : 'border-[#1e1e1e] hover:border-[#3a3a3a] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
       }`}>
 
-        {/* Thumbnail — mini-tablă cu poziția reală a deschiderii */}
+        {/* Thumbnail — imagine tematică a deschiderii */}
         <div className={`relative ${thumbH} overflow-hidden`}
           style={{ background: `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)` }}>
 
-          {/* Emblemă tematică a deschiderii */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <OpeningEmblem
-              slug={course.slug}
-              size={featured ? 92 : 80}
-              color={theme.accent}
-              className={`drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] transition-transform duration-200 group-hover:scale-110 ${locked ? 'opacity-60' : ''}`}
-            />
-          </div>
-
-          {/* Accent glow */}
-          <div className="absolute bottom-0 left-0 right-0 h-1/2 pointer-events-none"
-            style={{ background: `linear-gradient(to top, ${theme.accent}14, transparent)` }} />
+          {/* Imaginea cursului */}
+          <img
+            src={`/openings/${course.slug}.png`}
+            alt={course.title}
+            loading="lazy"
+            onError={e => { e.currentTarget.style.display = 'none' }}
+            className={`absolute inset-0 h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-105 ${locked ? 'opacity-70' : ''}`}
+          />
 
           {/* Level badge top-right */}
           <div className="absolute top-3 right-3">
