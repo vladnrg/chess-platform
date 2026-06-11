@@ -217,16 +217,16 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
             className={`absolute inset-0 h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-105 ${locked ? 'opacity-70' : ''}`}
           />
 
-          {/* Level badge top-right */}
-          <div className="absolute top-3 right-3 z-10">
+          {/* Etichetă de nivel — panglică opacă în colț, acoperă orice badge „desenat" rămas în imagine */}
+          <div className="absolute top-0 right-0 z-10 rounded-bl-xl overflow-hidden">
             {locked ? (
-              <span className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded bg-[rgba(200,168,75,0.9)] text-black">
+              <span className="flex items-center gap-1 text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#c8a84b] text-black">
                 <Lock className="h-2.5 w-2.5" /> PRO
               </span>
             ) : course.level === 'fundamental' ? (
-              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-[#4ade80]/90 text-black">GRATUIT</span>
+              <span className="block text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#4ade80] text-black">GRATUIT</span>
             ) : (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-black/50 text-[#a0a0a0] border border-[#333]">
+              <span className="block text-[10px] font-bold pl-4 pr-3 py-2.5 bg-[#161616] text-[#d0d0d0]">
                 {LEVEL_LABELS[course.level]}
               </span>
             )}
