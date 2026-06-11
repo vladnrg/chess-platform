@@ -61,7 +61,7 @@ export const MCQ_QUESTIONS: McqQuestion[] = [
     type: 'mcq',
     id: 'k1',
     category: 'knowledge',
-    question: 'Care este prima mutare tipică în Sistemul London pentru alb?',
+    question: 'Care este prima mutare tipică în Sistemul Londra pentru alb?',
     options: [
       { label: '1.d4', value: 'd4' },
       { label: '1.e4', value: 'e4' },

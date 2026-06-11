@@ -193,10 +193,6 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
             className={`absolute inset-0 h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-105 ${locked ? 'opacity-70' : ''}`}
           />
 
-          {/* Mască radială în colțul dreapta-sus — ascunde badge-ul „desenat" din imagine */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(72% 66% at 100% 0%, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.9) 44%, rgba(0,0,0,0.5) 60%, transparent 80%)' }} />
-
           {/* Level badge top-right */}
           <div className="absolute top-3 right-3 z-10">
             {locked ? (

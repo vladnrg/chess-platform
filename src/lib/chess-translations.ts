@@ -37,7 +37,7 @@ const FULL_NAME_MAP: [string, string][] = [
   ["Reti Opening", 'Deschiderea Réti'],
   ["Réti Opening", 'Deschiderea Réti'],
   ["Catalan Opening", 'Deschiderea Catalană'],
-  ["London System", 'Sistemul London'],
+  ["London System", 'Sistemul Londra'],
   ["Rapport-Jobava System", 'Sistemul Rapport-Jobava'],
   ["Torre Attack", 'Atacul Torre'],
   ["Trompowsky Attack", 'Atacul Trompowsky'],
