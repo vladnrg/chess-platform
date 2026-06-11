@@ -28,6 +28,30 @@ const STYLE_ICONS: Record<PlayingStyle, React.ReactNode> = {
   defensive: <Shield className="h-3 w-3" />,
 }
 
+// Subtitlul familiei deschiderii, în română (per slug)
+const FAMILY_RO: Record<string, string> = {
+  'london-system': 'Sistemul Londra',
+  'italian-game': 'Partida Italiană',
+  'kings-gambit': 'Gambitul Regelui',
+  'queens-gambit': 'Gambitul Damei',
+  'catalan-opening': 'Deschiderea Catalană',
+  'ruy-lopez': 'Partida Spaniolă',
+  'english-opening': 'Deschiderea Engleză',
+  'kings-indian-attack': 'Atacul Regelui Indian',
+  'colle-system': 'Sistemul Colle',
+  'vienna-game': 'Jocul Vienez',
+  'sicilian-defense': 'Apărarea Siciliană',
+  'french-defense': 'Apărarea Franceză',
+  'caro-kann-defense': 'Apărarea Caro-Kann',
+  'kings-indian-defense': 'Apărarea Regelui Indian',
+  'nimzo-indian-defense': 'Apărarea Nimzo-Indiană',
+  'dutch-defense': 'Apărarea Olandeză',
+  'slav-defense': 'Apărarea Slavă',
+  'pirc-defense': 'Apărarea Pirc',
+  'scandinavian-defense': 'Apărarea Scandinavă',
+  'alekhine-defense': 'Apărarea Alekhine',
+}
+
 const LEVELS: { value: CourseLevel | 'all'; label: string }[] = [
   { value: 'beginner', label: 'Începător' },
   { value: 'intermediate', label: 'Mediu' },
@@ -223,9 +247,11 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
 
         {/* Card body */}
         <div className="px-4 py-3 flex flex-col flex-1 gap-2">
-          {/* Opening family */}
+          {/* Opening family (în română) */}
           {course.opening_family && (
-            <p className="text-xs text-[#555] truncate">{course.opening_family}</p>
+            <p className="text-xs text-[#555] truncate">
+              {FAMILY_RO[course.slug] ?? course.opening_family}
+            </p>
           )}
 
           {/* Playing styles */}
