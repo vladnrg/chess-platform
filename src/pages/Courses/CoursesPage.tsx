@@ -232,27 +232,16 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
             )}
           </div>
 
-          {/* Title overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 px-4 pt-8 pb-3"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)' }}>
-            <h3 className={`font-black text-white leading-tight group-hover:text-[${theme.accent}] transition-colors ${featured ? 'text-base' : 'text-sm'}`}
-              style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
-              {course.title}
-            </h3>
-          </div>
-
           {/* Dimmer on locked */}
           {locked && <div className="absolute inset-0 bg-black/30" />}
         </div>
 
         {/* Card body */}
         <div className="px-4 py-3 flex flex-col flex-1 gap-2">
-          {/* Opening family (în română) */}
-          {course.opening_family && (
-            <p className="text-xs text-[#555] truncate">
-              {FAMILY_RO[course.slug] ?? course.opening_family}
-            </p>
-          )}
+          {/* Titlul cursului (numele românesc) */}
+          <h3 className={`font-bold text-[#f0f0f0] leading-tight truncate group-hover:text-[#c8a84b] transition-colors ${featured ? 'text-base' : 'text-sm'}`}>
+            {FAMILY_RO[course.slug] ?? course.opening_family ?? course.title}
+          </h3>
 
           {/* Playing styles */}
           {course.playing_styles.length > 0 && (
