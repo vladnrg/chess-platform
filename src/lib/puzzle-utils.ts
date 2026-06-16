@@ -138,7 +138,7 @@ export function analyzeWrongMove(
       return 'Trebuia să atragi sau să deviezi o piesă cheie a adversarului. Sacrificiul este uneori prețul corect!'
     }
 
-    if (puzzleThemes.includes('removeDefender') || puzzleThemes.includes('overloading')) {
+    if (puzzleThemes.includes('capturingDefender')) {
       return 'Trebuia să elimini apărătorul cheie al adversarului. O piesă nu poate apăra simultan două câmpuri critice!'
     }
 
