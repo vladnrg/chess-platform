@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
-import { CheckCircle2, XCircle, RefreshCw, X } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -48,7 +48,24 @@ export function PuzzleModal({ theme, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [todayCount, setTodayCount] = useState(0)
 
+  // Orientare fixată la încărcare (nu se mai rotește când mută adversarul)
+  const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
+  // Indicii
+  const [hintFrom, setHintFrom] = useState<string | null>(null)   // evidențiază piesa de mutat
+  const [showMove, setShowMove] = useState(false)                 // evidențiază mutarea (from+to)
+  const [revealed, setRevealed] = useState(false)                 // secvența a fost arătată
+  const [seqPlaying, setSeqPlaying] = useState(false)
+  const seqAbort = useRef(false)
+
   const playerElo = profile?.estimated_elo ?? 800
+
+  function clearHints() {
+    setHintFrom(null)
+    setShowMove(false)
+    setRevealed(false)
+    setSeqPlaying(false)
+    seqAbort.current = true
+  }
 
   // Count today's attempts
   useQuery({
@@ -87,8 +104,12 @@ export function PuzzleModal({ theme, onClose }: Props) {
 
   function loadPuzzle(puzzle: Puzzle) {
     setCurrentPuzzle(puzzle)
+    clearHints()
+    seqAbort.current = false
     try {
-      setPuzzleState(initPuzzleState(puzzle.fen, puzzle.moves))
+      const state = initPuzzleState(puzzle.fen, puzzle.moves)
+      setPuzzleState(state)
+      setPlayerColor(state.game.turn() === 'w' ? 'white' : 'black')
     } catch {
       toast.error('Eroare la încărcarea puzzle-ului.')
     }
@@ -141,17 +162,20 @@ export function PuzzleModal({ theme, onClose }: Props) {
 
       try {
         const gameCopy = new Chess(puzzleState.game.fen())
-        gameCopy.move({ from: source, to: target, promotion: 'q' })
+        const moved = gameCopy.move({ from: source, to: target, promotion: 'q' })
+        if (!moved) return false   // mutare ilegală → snap-back curat
 
         const isCorrect = myMove === expectedMove.slice(0, 4)
 
         if (!isCorrect) {
+          // Snap-back curat: NU actualizăm poziția, returnăm false (fără glitch)
           setPuzzleState(s => s ? { ...s, status: 'wrong' } : null)
           const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
           attemptMutation.mutate({ solved: false, timeSeconds: elapsed })
-          return true
+          return false
         }
 
+        clearHints()
         const nextIdx = puzzleState.currentMoveIdx + 1
         const isLast = nextIdx >= puzzleState.solutionMoves.length
 
@@ -181,6 +205,47 @@ export function PuzzleModal({ theme, onClose }: Props) {
     },
     [puzzleState, currentPuzzle, attemptMutation],
   )
+
+  // Mutarea pe care trebuie să o facă jucătorul acum (UCI)
+  const expectedNext = puzzleState && puzzleState.status === 'playing'
+    ? puzzleState.solutionMoves[puzzleState.currentMoveIdx]
+    : undefined
+  const expFrom = expectedNext?.slice(0, 2)
+  const expTo = expectedNext?.slice(2, 4)
+
+  // Tactică multi-mutare? (mai rămân cel puțin player+adversar+player)
+  const isMultiMove = !!puzzleState && puzzleState.solutionMoves.length - puzzleState.currentMoveIdx >= 3
+
+  // Redă întreaga secvență rămasă, pas cu pas
+  async function showSequence() {
+    if (!puzzleState) return
+    seqAbort.current = false
+    setSeqPlaying(true)
+    setHintFrom(null)
+    setShowMove(false)
+    const g = new Chess(puzzleState.game.fen())
+    const moves = puzzleState.solutionMoves
+    for (let i = puzzleState.currentMoveIdx; i < moves.length; i++) {
+      if (seqAbort.current) { setSeqPlaying(false); return }
+      const m = moves[i]
+      try { g.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) } catch { break }
+      const fen = g.fen()
+      setPuzzleState(s => s ? { ...s, game: new Chess(fen) } : null)
+      await new Promise(r => setTimeout(r, 750))
+    }
+    setSeqPlaying(false)
+    setRevealed(true)
+  }
+
+  const squareStyles: Record<string, React.CSSProperties> = {}
+  if (hintFrom) squareStyles[hintFrom] = { background: 'rgba(200,168,75,0.55)', boxShadow: 'inset 0 0 0 3px #c8a84b' }
+  if (showMove && expFrom && expTo) {
+    squareStyles[expFrom] = { background: 'rgba(200,168,75,0.45)' }
+    squareStyles[expTo] = { background: 'rgba(200,168,75,0.7)' }
+  }
+  const boardArrows = showMove && expFrom && expTo
+    ? [{ startSquare: expFrom, endSquare: expTo, color: '#c8a84b' }]
+    : []
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
   const themeLabel = PUZZLE_THEMES[theme] ?? theme
@@ -240,14 +305,48 @@ export function PuzzleModal({ theme, onClose }: Props) {
                     options={{
                       position: puzzleState.game.fen(),
                       onPieceDrop,
-                      allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent,
-                      boardOrientation: puzzleState.game.turn() === 'w' ? 'white' : 'black',
+                      allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
+                      boardOrientation: playerColor,
                       boardStyle: { borderRadius: 0 },
                       darkSquareStyle: { backgroundColor: '#3d3d3d' },
                       lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                      squareStyles,
+                      arrows: boardArrows,
                     }}
                   />
                 </div>
+
+                {/* Indicii — doar cât timp e rândul jucătorului */}
+                {puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" className="gap-1.5"
+                      onClick={() => setHintFrom(expFrom ?? null)} disabled={!expFrom}>
+                      <Lightbulb className="h-3.5 w-3.5" /> Dă-mi un indiciu
+                    </Button>
+                    <Button size="sm" variant="secondary" className="gap-1.5"
+                      onClick={() => { setShowMove(true); setHintFrom(expFrom ?? null) }} disabled={!expFrom}>
+                      <Eye className="h-3.5 w-3.5" /> Arată mutarea
+                    </Button>
+                    {isMultiMove && (
+                      <Button size="sm" variant="secondary" className="gap-1.5" onClick={() => void showSequence()}>
+                        <ListVideo className="h-3.5 w-3.5" /> Arată secvența
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {seqPlaying && (
+                  <p className="text-sm text-[#c8a84b] text-center">Se redă secvența...</p>
+                )}
+                {revealed && !seqPlaying && (
+                  <div className="flex items-center gap-2 rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-3">
+                    <ListVideo className="h-5 w-5 text-[#c8a84b]" />
+                    <span className="text-[#c8a84b] font-semibold">Aceasta era soluția completă.</span>
+                    <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
+                      Reia
+                    </Button>
+                  </div>
+                )}
 
                 {puzzleState.status === 'correct' && (
                   <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
@@ -319,8 +418,8 @@ export function PuzzleModal({ theme, onClose }: Props) {
                   <ol className="space-y-1.5 text-xs text-[#888]">
                     <li>1. Ultima mutare a fost a adversarului — acum e rândul tău</li>
                     <li>2. Mută piesa cu drag & drop spre pătratul dorit</li>
-                    <li>3. Dacă e corect, adversarul răspunde automat</li>
-                    <li>4. Dacă greșești, poți relua din același punct</li>
+                    <li>3. Blocat? „Dă-mi un indiciu" îți arată piesa, „Arată mutarea" îți arată mutarea</li>
+                    <li>4. La tacticile cu mai multe mutări, „Arată secvența" redă toată soluția</li>
                   </ol>
                 </div>
               </div>
