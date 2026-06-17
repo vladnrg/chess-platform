@@ -61,6 +61,14 @@ body {
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* Bifă verde care apare, pulsează scurt și se estompează (mutare corectă) */
+@keyframes checkPop {
+  0% { opacity: 0; transform: scale(0.3); }
+  35% { opacity: 1; transform: scale(1.12); }
+  60% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
 /* Burst "+XP" care urcă și se estompează */
 @keyframes xp-float {
   0% { opacity: 0; transform: translateY(8px) scale(0.8); }

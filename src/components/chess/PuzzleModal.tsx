@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
-import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -32,6 +32,45 @@ const PUZZLE_THEMES: Record<string, string> = {
   trappedPiece: 'Piesă capturată',
 }
 
+// Obiectivul tacticii, explicat în termeni simpli (comentariu lateral)
+const TACTIC_OBJECTIVES: Record<string, string> = {
+  fork: 'Atacă două piese deodată cu o singură piesă. Adversarul nu le poate salva pe amândouă — așa câștigi material.',
+  pin: 'Țintuiește o piesă în fața uneia mai valoroase (sau a regelui). Cât e „legată", nu se poate mișca, deci o poți ataca în voie.',
+  skewer: 'Atacă o piesă valoroasă: când se ferește, capturezi piesa mai slabă rămasă în spatele ei.',
+  xRayAttack: 'Ataci „prin" o piesă — când cea din față se mută, lovești ținta din spatele ei.',
+  discoveredAttack: 'Mută o piesă ca să dezvălui atacul piesei din spatele ei. Dintr-o singură mutare apar două amenințări.',
+  doubleCheck: 'Dă șah cu două piese deodată. Regele e obligat să fugă — nimic altceva nu îl mai salvează.',
+  attraction: 'Atrage o piesă adversă (de obicei regele) pe un câmp prost, unde devine vulnerabilă la următoarea lovitură.',
+  deflection: 'Forțează o piesă adversă să-și părăsească postul de apărare. Odată plecată, ținta pe care o păzea rămâne descoperită.',
+  capturingDefender: 'Elimină piesa care apără un câmp sau o piesă cheie. Fără apărător, atacul tău trece.',
+  trappedPiece: 'O piesă adversă a rămas fără scăpare. Închide-i ultimele câmpuri și capturează-o.',
+  mateIn1: 'Găsește mutarea care dă mat imediat — regele advers nu mai are nicio scăpare.',
+  mateIn2: 'Găsește secvența forțată de mat în două mutări. Calculează fiecare șah până regele e prins.',
+  mateIn3: 'Găsește secvența forțată de mat în trei mutări. Fiecare șah îl împinge spre capcană.',
+  smotheredMate: 'Dă mat cu calul, când regele e sufocat de propriile piese și nu poate fugi.',
+  backRankMate: 'Exploatează rândul de bază: regele e blocat de proprii pioni și matul vine pe ultima linie.',
+  defensiveMove: 'Poziția pare pierdută, dar există o singură mutare care te salvează. Găsește resursa defensivă.',
+  intermezzo: 'În loc să răspunzi imediat, strecoară o mutare-surpriză (un șah sau o amenințare mai mare) înainte. Schimbă tot calculul.',
+  interference: 'Întrerupe legătura dintre două piese adverse, blocând linia dintre ele cu o piesă proprie.',
+  sacrifice: 'Dă material intenționat ca să deschizi atacul, să atragi regele sau să forțezi matul. Calculează ce primești în schimb.',
+  clearance: 'Eliberează un câmp sau o linie pentru altă piesă a ta, chiar dacă pare că pierzi tempo.',
+  quietMove: 'Nu orice lovitură e un șah sau o captură. Uneori o mutare „liniștită" pregătește o amenințare imposibil de parat.',
+  zugzwang: 'Pune adversarul în situația în care e obligat să mute, dar orice mutare îi înrăutățește poziția.',
+  exposedKing: 'Regele advers e descoperit. Adu piese în atac și exploatează lipsa de apărare.',
+  middlegame: 'Găsește combinația tactică ascunsă în această poziție de mijloc de joc.',
+  endgame: 'În final fiecare tempo contează. Găsește mutarea precisă care decide partida.',
+  crushing: 'Există o lovitură care îți dă un avantaj zdrobitor. Găsește-o.',
+  advantage: 'Există o mutare care îți câștigă un avantaj clar. Caut-o.',
+  equality: 'Poziția e dificilă — găsește mutarea care îți menține echilibrul.',
+}
+
+function getObjective(theme: string, puzzleThemes: string[]): string {
+  if (TACTIC_OBJECTIVES[theme]) return TACTIC_OBJECTIVES[theme]
+  const match = puzzleThemes.find(t => TACTIC_OBJECTIVES[t])
+  if (match) return TACTIC_OBJECTIVES[match]
+  return 'Găsește cea mai bună mutare din poziție și exploatează slăbiciunea adversarului.'
+}
+
 interface Props {
   theme: string
   onClose: () => void
@@ -56,6 +95,10 @@ export function PuzzleModal({ theme, onClose }: Props) {
   const [revealed, setRevealed] = useState(false)                 // secvența a fost arătată
   const [seqPlaying, setSeqPlaying] = useState(false)
   const seqAbort = useRef(false)
+
+  // Comentariu lateral (obiectivul tacticii) + bifă verde la mutare corectă
+  const [showCommentary, setShowCommentary] = useState(true)
+  const [flashCheck, setFlashCheck] = useState(false)
 
   const playerElo = profile?.estimated_elo ?? 800
 
@@ -176,6 +219,9 @@ export function PuzzleModal({ theme, onClose }: Props) {
         }
 
         clearHints()
+        // Bifă verde la fiecare mutare corectă (și intermediară, și finală)
+        setFlashCheck(true)
+        setTimeout(() => setFlashCheck(false), 850)
         const nextIdx = puzzleState.currentMoveIdx + 1
         const isLast = nextIdx >= puzzleState.solutionMoves.length
 
@@ -249,18 +295,19 @@ export function PuzzleModal({ theme, onClose }: Props) {
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
   const themeLabel = PUZZLE_THEMES[theme] ?? theme
+  const objective = getObjective(theme, currentPuzzle?.themes ?? [])
 
   return (
     <div
-      className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/85 z-50 flex flex-col"
       onClick={onClose}
     >
       <div
-        className="relative bg-[#161616] border border-[#2a2a2a] rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="relative flex flex-col w-full h-full bg-[#161616]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a]">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a] shrink-0">
           <div>
             <h2 className="text-base font-semibold text-[#f0f0f0]">Exersează: {themeLabel}</h2>
             <p className="text-xs text-[#666] mt-0.5">
@@ -276,9 +323,9 @@ export function PuzzleModal({ theme, onClose }: Props) {
         </div>
 
         {/* Body */}
-        <div className="p-5">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
           {limitReached ? (
-            <div className="rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.3)] p-6 text-center">
+            <div className="max-w-md mx-auto rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.3)] p-6 text-center">
               <p className="text-[#c8a84b] font-semibold">Ai atins limita zilnică de {FREE_LIMIT} puzzle-uri</p>
               <p className="text-[#666] text-sm mt-1">Upgrade la Pro pentru puzzle-uri nelimitate</p>
               <a href="/pricing" className="mt-3 inline-block">
@@ -290,35 +337,47 @@ export function PuzzleModal({ theme, onClose }: Props) {
               <Spinner className="h-7 w-7" />
             </div>
           ) : puzzleState ? (
-            <div className="grid gap-5 lg:grid-cols-3">
+            <div className="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
               {/* Board */}
-              <div className="lg:col-span-2 space-y-3">
-                <div className="flex items-center gap-2 text-sm text-[#a0a0a0]">
+              <div className="flex-1 flex flex-col items-center gap-3 min-w-0">
+                <div className="flex items-center gap-2 text-sm text-[#a0a0a0] self-start lg:self-center">
                   <span>Joci cu</span>
                   <span className={`font-semibold px-2 py-0.5 rounded text-xs ${puzzleState.game.turn() === 'w' ? 'bg-[#f0f0f0] text-black' : 'bg-[#1a1a1a] border border-[#444] text-[#f0f0f0]'}`}>
                     {puzzleState.game.turn() === 'w' ? '♔ Alb' : '♚ Negru'}
                   </span>
                 </div>
 
-                <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
-                  <Chessboard
-                    options={{
-                      position: puzzleState.game.fen(),
-                      onPieceDrop,
-                      allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
-                      boardOrientation: playerColor,
-                      boardStyle: { borderRadius: 0 },
-                      darkSquareStyle: { backgroundColor: '#3d3d3d' },
-                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                      squareStyles,
-                      arrows: boardArrows,
-                    }}
-                  />
+                {/* Tablă mare pătrată, încadrată în înălțimea ecranului */}
+                <div className="relative w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
+                  <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+                    <Chessboard
+                      options={{
+                        position: puzzleState.game.fen(),
+                        onPieceDrop,
+                        allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
+                        boardOrientation: playerColor,
+                        boardStyle: { borderRadius: 0 },
+                        darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                        squareStyles,
+                        arrows: boardArrows,
+                      }}
+                    />
+                  </div>
+                  {/* Bifă verde la fiecare mutare corectă */}
+                  {flashCheck && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                      <CheckCircle2
+                        className="text-[#4ade80] drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]"
+                        style={{ width: '38%', height: '38%', animation: 'checkPop 0.85s ease-out forwards' }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Indicii — doar cât timp e rândul jucătorului */}
                 {puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 justify-center">
                     <Button size="sm" variant="secondary" className="gap-1.5"
                       onClick={() => setHintFrom(expFrom ?? null)} disabled={!expFrom}>
                       <Lightbulb className="h-3.5 w-3.5" /> Dă-mi un indiciu
@@ -335,44 +394,64 @@ export function PuzzleModal({ theme, onClose }: Props) {
                   </div>
                 )}
 
-                {seqPlaying && (
-                  <p className="text-sm text-[#c8a84b] text-center">Se redă secvența...</p>
-                )}
-                {revealed && !seqPlaying && (
-                  <div className="flex items-center gap-2 rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-3">
-                    <ListVideo className="h-5 w-5 text-[#c8a84b]" />
-                    <span className="text-[#c8a84b] font-semibold">Aceasta era soluția completă.</span>
-                    <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
-                      Reia
-                    </Button>
-                  </div>
-                )}
+                <div className="w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
+                  {seqPlaying && (
+                    <p className="text-sm text-[#c8a84b] text-center">Se redă secvența...</p>
+                  )}
+                  {revealed && !seqPlaying && (
+                    <div className="flex items-center gap-2 rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-3">
+                      <ListVideo className="h-5 w-5 text-[#c8a84b]" />
+                      <span className="text-[#c8a84b] font-semibold">Aceasta era soluția completă.</span>
+                      <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
+                        Reia
+                      </Button>
+                    </div>
+                  )}
 
-                {puzzleState.status === 'correct' && (
-                  <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
-                    <span className="text-[#4ade80] font-semibold">Corect! Excelent!</span>
-                    <Button size="sm" className="ml-auto" onClick={() => void fetchNextPuzzle()}>
-                      <RefreshCw className="h-3.5 w-3.5" /> Următor
-                    </Button>
-                  </div>
-                )}
-                {puzzleState.status === 'wrong' && (
-                  <div className="flex items-center gap-2 rounded-lg bg-[rgba(251,191,36,0.1)] border border-[rgba(251,191,36,0.35)] p-3">
-                    <XCircle className="h-5 w-5 text-[#fbbf24]" />
-                    <span className="text-[#fbbf24] font-semibold">Mai gândește-te. Încearcă din nou.</span>
-                    <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
-                      Reia
-                    </Button>
-                  </div>
-                )}
-                {puzzleState.waitingOpponent && (
-                  <p className="text-sm text-[#666] text-center">Adversarul mută...</p>
-                )}
+                  {puzzleState.status === 'correct' && (
+                    <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
+                      <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
+                      <span className="text-[#4ade80] font-semibold">Corect! Excelent!</span>
+                      <Button size="sm" className="ml-auto" onClick={() => void fetchNextPuzzle()}>
+                        <RefreshCw className="h-3.5 w-3.5" /> Următor
+                      </Button>
+                    </div>
+                  )}
+                  {puzzleState.status === 'wrong' && (
+                    <div className="flex items-center gap-2 rounded-lg bg-[rgba(251,191,36,0.1)] border border-[rgba(251,191,36,0.35)] p-3">
+                      <XCircle className="h-5 w-5 text-[#fbbf24]" />
+                      <span className="text-[#fbbf24] font-semibold">Mai gândește-te. Încearcă din nou.</span>
+                      <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
+                        Reia
+                      </Button>
+                    </div>
+                  )}
+                  {puzzleState.waitingOpponent && (
+                    <p className="text-sm text-[#666] text-center">Adversarul mută...</p>
+                  )}
+                </div>
               </div>
 
               {/* Info */}
-              <div className="space-y-4">
+              <div className="w-full lg:w-[340px] shrink-0 space-y-4">
+                {/* Comentariu: obiectivul tacticii (activabil/dezactivabil) */}
+                <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-[#666] uppercase tracking-wider flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5 text-[#c8a84b]" /> Obiectivul tacticii
+                    </p>
+                    <button
+                      onClick={() => setShowCommentary(v => !v)}
+                      className="text-xs font-medium text-[#c8a84b] hover:text-[#d4b860] transition-colors"
+                    >
+                      {showCommentary ? 'Ascunde' : 'Arată'}
+                    </button>
+                  </div>
+                  {showCommentary && (
+                    <p className="text-sm text-[#b0b0b0] leading-relaxed mt-2">{objective}</p>
+                  )}
+                </div>
+
                 {currentPuzzle && (
                   <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 space-y-3">
                     <div>
