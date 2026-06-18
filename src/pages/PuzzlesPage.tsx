@@ -595,7 +595,7 @@ export function PuzzlesPage() {
           )}
           <div className="relative rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-center">
             <p className="text-[10px] uppercase tracking-wider text-[#666] flex items-center justify-center gap-1">
-              <Target className="h-3 w-3" /> Rating puzzle
+              <Target className="h-3 w-3" /> Rating-ul tău
             </p>
             <p className="text-2xl font-black text-[#f0f0f0] leading-tight tabular-nums">{puzzleRating}</p>
             {lastDelta !== null && lastDelta !== 0 && (
