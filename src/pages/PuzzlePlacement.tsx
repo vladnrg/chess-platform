@@ -129,7 +129,8 @@ export function PuzzlePlacement() {
     const stored = placementToStoredRating(raw)
     const { error } = await supabase.rpc('set_puzzle_placement', { p_user_id: user.id, p_rating: stored })
     if (error) {
-      toast.error('Nu am putut salva rezultatul plasamentului.')
+      console.error('[placement] set_puzzle_placement error:', error)
+      toast.error(`Plasament eșuat: ${error.message ?? 'eroare necunoscută'}`, { duration: 8000 })
       setSubmitting(false)
       return
     }
