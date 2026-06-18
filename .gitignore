@@ -32,3 +32,6 @@ supabase/.temp/
 *.sw?
 
 .vercel
+
+# Claude Code — setări locale personale
+.claude/settings.local.json

@@ -12,6 +12,8 @@ export interface Profile {
   current_league: League
   xp: number
   estimated_elo: number
+  puzzle_rating: number | null
+  puzzle_win_streak: number
   assessment_completed: boolean
   streak_days: number
   last_active_date: string | null

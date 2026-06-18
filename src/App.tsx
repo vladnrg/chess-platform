@@ -14,6 +14,7 @@ import { CourseDetail } from '@/pages/Courses/CourseDetail'
 import { LessonPage } from '@/pages/Courses/LessonPage'
 import { OpeningTrainerPage } from '@/pages/Courses/OpeningTrainerPage'
 import { PuzzlesPage } from '@/pages/PuzzlesPage'
+import { PuzzlePlacement } from '@/pages/PuzzlePlacement'
 import { StatsPage } from '@/pages/StatsPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { PricingPage } from '@/pages/PricingPage'
@@ -73,6 +74,7 @@ function AppRoutes() {
         <Route path="/courses/:slug/guided/:lineId" element={<OpeningTrainerPage mode="guided" />} />
         <Route path="/courses/:slug/practice/:lineId" element={<OpeningTrainerPage mode="practice" />} />
         <Route path="/puzzles" element={<PuzzlesPage />} />
+        <Route path="/puzzles/placement" element={<PuzzlePlacement />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/community" element={<CommunityPage />} />

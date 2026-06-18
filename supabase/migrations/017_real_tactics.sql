@@ -1,6 +1,8 @@
 -- Migration 017: puzzle-uri tactice REALE și dense din baza Lichess (poziții cu multe piese)
 -- Generat din scripts/seed_tactics_csv.py (523 puzzle-uri)
 
+-- Întâi ștergem tentativele care referențiază vechile puzzle-uri seed_ (altfel foreign key blochează)
+DELETE FROM public.user_puzzle_attempts WHERE puzzle_id LIKE 'seed_%';
 DELETE FROM public.puzzles WHERE id LIKE 'seed_%';
 
 INSERT INTO public.puzzles (id, fen, moves, rating, themes, game_url) VALUES

@@ -103,7 +103,7 @@ export function ProfilePage() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: 'Streak', value: `${profile.streak_days} zile` },
-              { label: 'Elo estimat', value: `~${profile.estimated_elo}` },
+              { label: 'Rating puzzle', value: profile.puzzle_rating != null ? `${profile.puzzle_rating}` : 'Neplasat' },
               { label: 'Liga curentă', value: leagueConfig.label },
               { label: 'XP total', value: profile.xp.toLocaleString('ro-RO') },
             ].map(({ label, value }) => (

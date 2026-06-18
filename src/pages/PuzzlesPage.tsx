@@ -1,20 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
-import { CheckCircle2, RefreshCw, Loader2, RotateCcw, Info } from 'lucide-react'
+import { CheckCircle2, RefreshCw, Loader2, RotateCcw, Info, Target, Flame } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
-import { fetchLichessDailyPuzzle, fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
+import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, hintXpFactor, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
+import { accessibleBands, bandForRating, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { Card } from '@/components/ui/Card'
 import { AICoachPanel } from '@/components/chess/AICoachPanel'
-import { PawnPromotionCelebration } from '@/components/ui/PawnPromotionCelebration'
 import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
 import { cn } from '@/lib/utils'
 import type { Puzzle } from '@/types'
@@ -27,17 +28,12 @@ const PUZZLE_THEMES: Record<string, string> = {
   hangingPiece: 'Piesă agățată', sacrifice: 'Sacrificiu',
 }
 
-const ELO_BANDS = [
-  { id: 'beginner',     label: 'Începător',  range: [400,  800]  as [number, number], color: '#4ade80', desc: '< 800'       },
-  { id: 'intermediate', label: 'Mediu',      range: [800,  1200] as [number, number], color: '#60a5fa', desc: '800 – 1200'  },
-  { id: 'advanced',     label: 'Avansat',    range: [1200, 1600] as [number, number], color: '#c8a84b', desc: '1200 – 1600' },
-  { id: 'expert',       label: 'Expert',     range: [1600, 2000] as [number, number], color: '#f97316', desc: '1600 – 2000' },
-  { id: 'master',       label: 'Master',     range: [2000, 3500] as [number, number], color: '#f87171', desc: '2000+'       },
-]
-type ELOBand = typeof ELO_BANDS[number]
-
-function getBandForElo(elo: number): ELOBand {
-  return ELO_BANDS.find(b => elo >= b.range[0] && elo < b.range[1]) ?? ELO_BANDS[1]
+// Culoare / etichetă per poziție a benzii (inferioară / curentă / superioară)
+function offsetColor(o: BandOffset): string {
+  return o === -1 ? '#60a5fa' : o === 0 ? '#c8a84b' : '#f97316'
+}
+function offsetLabel(o: BandOffset): string {
+  return o === -1 ? 'Inferioară' : o === 0 ? 'Nivelul tău' : 'Superioară'
 }
 
 interface MoveExplanation {
@@ -103,6 +99,7 @@ function EvalBar({ cp, mate, prevCp, prevMate, orientation }: EvalBarProps) {
 }
 
 export function PuzzlesPage() {
+  const navigate = useNavigate()
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
 
@@ -110,20 +107,19 @@ export function PuzzlesPage() {
   const [initialPuzzleState, setInitialPuzzleState] = useState<PuzzleState | null>(null)
   const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(null)
   const [todayCount, setTodayCount] = useState(0)
-  const [activeBand, setActiveBand] = useState<ELOBand>(() => getBandForElo(profile?.estimated_elo ?? 800))
   const [nextLoading, setNextLoading] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
-  const [solvedInBand, setSolvedInBand] = useState(0)
-  const [showLevelUpPrompt, setShowLevelUpPrompt] = useState(false)
 
-  const SOLVED_TO_LEVEL_UP = 10
-  const nextBand = ELO_BANDS[ELO_BANDS.findIndex(b => b.id === activeBand.id) + 1] ?? null
+  // Rating de puzzle (sursa de adevăr: profilul; oglindit local pentru update instant)
+  const [puzzleRating, setPuzzleRating] = useState<number | null>(profile?.puzzle_rating ?? null)
+  const [winStreak, setWinStreak] = useState(profile?.puzzle_win_streak ?? 0)
+  const [activeOffset, setActiveOffset] = useState<BandOffset>(0)
+  const [lastDelta, setLastDelta] = useState<number | null>(null)
+  const ratingAppliedRef = useRef(false)
 
-  // Dificultate adaptivă: ținta de ELO crește cu 100 după 3 rezolvări perfecte la rând
-  const [targetElo, setTargetElo] = useState(() => (profile?.estimated_elo ?? 800) + 100)
+  // Burst "+XP" la fiecare serie de 3 rezolvări
   const [correctStreak, setCorrectStreak] = useState(0)
   const [xpBurst, setXpBurst] = useState<number | null>(null)
-  const perfectStreakRef = useRef(0)
   const puzzlePerfectRef = useRef(true)
 
   // Indicii graduale: 0 = niciunul, 1 = indiciu, 2 = arată piesa, 3 = arată mutarea
@@ -133,10 +129,8 @@ export function PuzzlesPage() {
 
   // Anti-skip: timestamps ale apăsărilor pe "Puzzle nou" (fereastră 60 min)
   const skipTimestampsRef = useRef<number[]>([])
-  // Indiciul specific (nivel 1), pregătit în momentul greșelii
   const pendingHintRef = useRef<string>('')
 
-  // Board orientation — fixed for the duration of each puzzle
   const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
 
   // Wrong move state
@@ -145,7 +139,6 @@ export function PuzzlesPage() {
   const [moveExplanation, setMoveExplanation] = useState<MoveExplanation | null>(null)
   const [evalLoading, setEvalLoading] = useState(false)
   const [expectedMoveUci, setExpectedMoveUci] = useState<string | null>(null)
-  // Pentru En Passant: poziția dinainte de greșeală + mutarea încercată
   const [wrongFen, setWrongFen] = useState<string | null>(null)
   const [playerMoveSan, setPlayerMoveSan] = useState<string | null>(null)
 
@@ -161,49 +154,33 @@ export function PuzzlesPage() {
 
   const FREE_LIMIT = 10
 
-  const { data: dailyPuzzleData, isLoading: dailyLoading } = useQuery({
-    queryKey: ['daily-puzzle'],
-    queryFn: async () => {
-      const lp = await fetchLichessDailyPuzzle()
-      return lichessPuzzleToLocal(lp)
-    },
-    staleTime: Infinity,
-  })
-
+  // Sincronizează rating-ul local cu profilul când acesta se încarcă/schimbă
   useEffect(() => {
-    if (dailyPuzzleData && !currentPuzzle) {
-      loadPuzzle(dailyPuzzleData)
+    if (profile?.puzzle_rating != null) {
+      setPuzzleRating(profile.puzzle_rating)
+      setWinStreak(profile.puzzle_win_streak ?? 0)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailyPuzzleData])
+  }, [profile?.puzzle_rating, profile?.puzzle_win_streak])
 
-  useQuery({
-    queryKey: ['today-attempts', user?.id],
-    queryFn: async () => {
-      if (!user) return 0
-      const today = new Date().toISOString().split('T')[0]
-      const { count } = await supabase
-        .from('user_puzzle_attempts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('attempted_at', `${today}T00:00:00`)
-      setTodayCount(count ?? 0)
-      return count
-    },
-    enabled: !!user,
-  })
+  // Numără tentativele de azi
+  useEffect(() => {
+    if (!user) return
+    const today = new Date().toISOString().split('T')[0]
+    void supabase
+      .from('user_puzzle_attempts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('attempted_at', `${today}T00:00:00`)
+      .then(({ count }: { count: number | null }) => setTodayCount(count ?? 0))
+  }, [user])
 
-  const { data: fallbackPuzzles } = useQuery({
-    queryKey: ['puzzles-pool', activeBand.id],
-    queryFn: async () => {
-      const { data } = await supabase.from('puzzles').select('*')
-        .gte('rating', activeBand.range[0])
-        .lte('rating', activeBand.range[1])
-        .limit(30)
-      return (data ?? []) as Puzzle[]
-    },
-    enabled: !!profile,
-  })
+  // Încarcă primul puzzle când avem rating (banda curentă)
+  useEffect(() => {
+    if (puzzleRating != null && !currentPuzzle) {
+      void loadNext(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleRating])
 
   const attemptMutation = useMutation({
     mutationFn: async ({ solved, timeSeconds, xpAmount }: { solved: boolean; timeSeconds: number; xpAmount: number }) => {
@@ -222,6 +199,24 @@ export function PuzzlesPage() {
     },
   })
 
+  // Aplică rezultatul la rating-ul de puzzle (o singură dată per puzzle, server-side)
+  function applyRating(solved: boolean) {
+    if (ratingAppliedRef.current || !user || !currentPuzzle) return
+    ratingAppliedRef.current = true
+    void (async () => {
+      const { data, error } = await supabase.rpc('apply_puzzle_result', {
+        p_user_id: user.id, p_puzzle_id: currentPuzzle.id, p_solved: solved,
+      })
+      if (error || !data || (typeof data === 'object' && 'error' in data)) return
+      const res = data as { rating: number; delta: number; promoted: boolean; streak: number }
+      setPuzzleRating(res.rating)
+      setWinStreak(res.streak)
+      setLastDelta(res.delta)
+      window.setTimeout(() => setLastDelta(null), 2200)
+      if (res.promoted) toast.success('Promovat! 5 corecte la rând — treci la banda superioară 🎯')
+    })()
+  }
+
   // Penalizare anti-skip: după 3 apăsări pe "Puzzle nou" în 60 min, XP × 1/3
   function skipPenaltyActive(): boolean {
     const cutoff = Date.now() - 60 * 60 * 1000
@@ -229,7 +224,6 @@ export function PuzzlesPage() {
     return skipTimestampsRef.current.length > 3
   }
 
-  // XP final pentru o rezolvare, ținând cont de indicii + penalizare anti-skip
   function computeSolveXp(rating: number): number {
     const base = basePuzzleXp(rating)
     const factor = hintXpFactor(hintLevelRef.current)
@@ -237,8 +231,7 @@ export function PuzzlesPage() {
     return Math.round(base * factor * skip)
   }
 
-  // Actualizează seriile, burst-ul de XP, dificultatea adaptivă și prompt-ul de level-up
-  function registerSolve(xpAmount: number, perfect: boolean) {
+  function registerSolve(xpAmount: number) {
     setCorrectStreak(prev => {
       const next = prev + 1
       if (next % 3 === 0) {
@@ -247,32 +240,13 @@ export function PuzzlesPage() {
       }
       return next
     })
-
-    // Dificultate adaptivă: 3 rezolvări perfecte la rând → +100 ELO țintă
-    if (perfect) {
-      perfectStreakRef.current += 1
-      if (perfectStreakRef.current >= 3) {
-        perfectStreakRef.current = 0
-        setTargetElo(t => Math.min(2800, t + 100))
-      }
-    } else {
-      perfectStreakRef.current = 0
-    }
-
-    setSolvedInBand(prev => {
-      const next = prev + 1
-      if (next >= SOLVED_TO_LEVEL_UP && nextBand) setShowLevelUpPrompt(true)
-      return next
-    })
   }
 
   function registerWrong() {
     puzzlePerfectRef.current = false
-    perfectStreakRef.current = 0
     setCorrectStreak(0)
   }
 
-  // Aplică un nivel de indiciu (1 = text, 2 = arată piesa, 3 = arată mutarea)
   function useHint(level: number) {
     setHintLevel(level)
     hintLevelRef.current = level
@@ -280,14 +254,12 @@ export function PuzzlesPage() {
     if (level >= 1) setSecondHint(pendingHintRef.current || null)
   }
 
-  // "Puzzle nou": dacă sare peste un puzzle nerezolvat, înregistrează skip-ul (anti-skip)
   function handleSkipPuzzle() {
     if (puzzleState && puzzleState.status === 'playing') {
       skipTimestampsRef.current.push(Date.now())
-      perfectStreakRef.current = 0
       setCorrectStreak(0)
     }
-    void loadNextForBand(activeBand)
+    void loadNext(activeOffset)
   }
 
   function clearWrongState() {
@@ -310,6 +282,7 @@ export function PuzzlesPage() {
     setCurrentPuzzle(puzzle)
     setEvalHistory([])
     puzzlePerfectRef.current = true
+    ratingAppliedRef.current = false
     try {
       const state = initPuzzleState(puzzle.fen, puzzle.moves)
       setPuzzleState(state)
@@ -319,7 +292,7 @@ export function PuzzlesPage() {
       console.error('[loadPuzzle] initPuzzleState failed:', e, { fen: puzzle.fen, moves: puzzle.moves })
       setCurrentPuzzle(null)
       toast.error('Puzzle invalid — se încarcă altul...')
-      void loadNextForBand(getBandForElo(puzzle.rating))
+      void loadNext(activeOffset)
     }
   }
 
@@ -330,23 +303,31 @@ export function PuzzlesPage() {
     clearWrongState()
   }
 
-  async function loadNextForBand(band: ELOBand) {
+  // Încarcă un puzzle din banda corespunzătoare offset-ului (relativ la rating-ul curent)
+  async function loadNext(offset: BandOffset) {
+    if (puzzleRating == null) return
     if (!isPro && todayCount >= FREE_LIMIT) {
       toast.error('Limita zilnică atinsă. Upgrade la Pro pentru puzzle-uri nelimitate.')
       return
     }
+    const bands = accessibleBands(puzzleRating)
+    const chosen = bands.find(b => b.offset === offset) ?? bands.find(b => b.offset === 0)!
+    setActiveOffset(chosen.offset)
+    const band: PuzzleBand = chosen.band
+
     setNextLoading(true)
     try {
-      const pool = (fallbackPuzzles ?? []).filter(
-        p => p.rating >= band.range[0] && p.rating <= band.range[1]
-      )
+      const { data } = await supabase.from('puzzles').select('*')
+        .gte('rating', band.floor)
+        .lt('rating', band.ceil)
+        .limit(40)
+      const pool = (data ?? []) as Puzzle[]
       if (pool.length >= 1) {
         loadPuzzle(pool[Math.floor(Math.random() * pool.length)])
         return
       }
-      // Dificultate adaptivă: țintim targetElo, dar îl menținem în jurul benzii curente
-      const aimElo = Math.min(band.range[1], Math.max(band.range[0], targetElo))
-      const lp = await fetchLichessPuzzleNext(eloToDifficulty(aimElo))
+      // Fallback Lichess (mijlocul benzii)
+      const lp = await fetchLichessPuzzleNext(eloToDifficulty(band.floor + 100))
       const puzzle = lichessPuzzleToLocal(lp)
       await supabase.from('puzzles').upsert(
         { id: puzzle.id, fen: puzzle.fen, moves: puzzle.moves, rating: puzzle.rating, themes: puzzle.themes, game_url: puzzle.game_url },
@@ -358,16 +339,6 @@ export function PuzzlesPage() {
     } finally {
       setNextLoading(false)
     }
-  }
-
-  function handleBandChange(band: ELOBand) {
-    setActiveBand(band)
-    setSolvedInBand(0)
-    setCorrectStreak(0)
-    perfectStreakRef.current = 0
-    // Ținta de ELO repornește puțin peste baza benzii alese
-    setTargetElo(band.range[0] + 100)
-    void loadNextForBand(band)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -391,7 +362,6 @@ export function PuzzlesPage() {
         const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
         const correctUci = expectedMove.slice(0, 4)
 
-        // Contextual explanation — instant, based on themes + chess analysis
         const contextMessage = analyzeWrongMove(
           fenBeforeMove, myMove, correctUci, currentPuzzle.themes
         )
@@ -410,7 +380,6 @@ export function PuzzlesPage() {
           bestMoveSan: uciToSan(fenBeforeMove, correctUci),
         })
 
-        // Async: check near-equal via cloud eval
         setEvalLoading(true)
         void (async () => {
           try {
@@ -429,7 +398,6 @@ export function PuzzlesPage() {
                 const bestMoveUci = bestPv.moves.split(' ')[0]
                 const playerIsBest = myMove === bestMoveUci
 
-                // Collect other near-equal alternatives (within 20cp, excluding player's move)
                 const nearEqualAlternatives = evalData.pvs
                   .filter(pv => {
                     const pvFirst = pv.moves.split(' ')[0]
@@ -459,10 +427,10 @@ export function PuzzlesPage() {
                 setWrongMoveFrom(null)
                 setWrongMoveTo(null)
                 setExpectedMoveUci(null)
-                // Mutare aproape-egală — acceptată, dar nu „perfectă" (nu era soluția)
                 const xpNear = computeSolveXp(currentPuzzle.rating)
                 attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpNear })
-                registerSolve(xpNear, false)
+                registerSolve(xpNear)
+                applyRating(true)
                 return
               }
             }
@@ -475,6 +443,7 @@ export function PuzzlesPage() {
           }
           registerWrong()
           attemptMutation.mutate({ solved: false, timeSeconds: elapsed, xpAmount: 0 })
+          applyRating(false)
         })()
 
         return true
@@ -487,11 +456,10 @@ export function PuzzlesPage() {
         setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'correct', currentMoveIdx: nextIdx } : null)
         const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
         toast.success('Corect!')
-        // Perfect = fără indicii și fără greșeli pe acest puzzle
-        const perfect = puzzlePerfectRef.current && hintLevelRef.current === 0
         const xpSolve = computeSolveXp(currentPuzzle.rating)
         attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpSolve })
-        registerSolve(xpSolve, perfect)
+        registerSolve(xpSolve)
+        applyRating(true)
         void fetchLichessCloudEval(gameCopy.fen(), 1).then(data => {
           if (data?.pvs?.[0]) setEvalHistory(h => [...h, { cp: data.pvs![0].cp, mate: data.pvs![0].mate }])
         })
@@ -552,8 +520,32 @@ export function PuzzlesPage() {
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
 
-  // Board decorations — wrong move (galben/portocaliu) + indicii (auriu) + selected + shake
-  // hintLevel ≥ 2 → evidențiază piesa (from); ≥ 3 → evidențiază și destinația (to)
+  // ---- Gate: testul de plasament ----
+  if (profile && profile.puzzle_rating == null && puzzleRating == null) {
+    return (
+      <div className="max-w-lg mx-auto mt-10">
+        <Card className="p-8 text-center space-y-5">
+          <div className="flex justify-center">
+            <MascotEnPassant mood="encouraging" size={64} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#f0f0f0]">Întâi, hai să-ți aflăm nivelul</h1>
+            <p className="text-[#a0a0a0] text-sm mt-2 leading-relaxed">
+              Rezolvi un test de plasament cu 20 de puzzle-uri progresiv mai grele. Pe baza lui primești un
+              <span className="text-[#c8a84b] font-medium"> rating de puzzle</span> și începi să joci exact la nivelul tău.
+            </p>
+          </div>
+          <Button size="lg" className="w-full" onClick={() => navigate('/puzzles/placement')}>
+            Începe testul de plasament
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
+  const bands = puzzleRating != null ? accessibleBands(puzzleRating) : []
+  const currentBand = puzzleRating != null ? bandForRating(puzzleRating) : null
+
   const boardSquareStyles: Record<string, React.CSSProperties> = {
     ...(wrongMoveFrom && wrongMoveTo ? {
       [wrongMoveFrom]: { backgroundColor: 'rgba(251, 191, 36, 0.35)' },
@@ -585,39 +577,68 @@ export function PuzzlesPage() {
           <h1 className="text-2xl font-bold text-[#f0f0f0]">Puzzle-uri</h1>
           <p className="text-[#666] text-sm mt-0.5">
             {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
-            {' · '}
-            <span style={{ color: activeBand.color }}>{activeBand.label} ({activeBand.desc})</span>
-            {nextBand && solvedInBand > 0 && (
-              <> · <span className="text-[#888]">{solvedInBand}/{SOLVED_TO_LEVEL_UP} la nivel curent</span></>
+            {currentBand && (
+              <> · <span style={{ color: offsetColor(0) }}>Banda {currentBand.label}</span></>
             )}
             {currentPuzzle && (
-              <> · <span className="text-[#f0f0f0] font-medium">ELO {currentPuzzle.rating}</span></>
+              <> · <span className="text-[#f0f0f0] font-medium">puzzle ELO {currentPuzzle.rating}</span></>
             )}
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={handleSkipPuzzle} disabled={limitReached || nextLoading}>
-          <RefreshCw className={`h-4 w-4 ${nextLoading ? 'animate-spin' : ''}`} /> Puzzle nou
-        </Button>
+
+        {/* Rating curent — stil chess.com */}
+        <div className="flex items-center gap-3">
+          {winStreak > 0 && (
+            <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
+              <Flame className="h-4 w-4" /> {winStreak}
+            </span>
+          )}
+          <div className="relative rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-center">
+            <p className="text-[10px] uppercase tracking-wider text-[#666] flex items-center justify-center gap-1">
+              <Target className="h-3 w-3" /> Rating puzzle
+            </p>
+            <p className="text-2xl font-black text-[#f0f0f0] leading-tight tabular-nums">{puzzleRating}</p>
+            {lastDelta !== null && lastDelta !== 0 && (
+              <span
+                className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#f87171] text-black'}`}
+                style={{ animation: 'xp-float 2.2s ease-out forwards' }}
+              >
+                {lastDelta > 0 ? `+${lastDelta}` : lastDelta}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Benzi ELO */}
+      {/* Selector pe 3 benzi: inferioară / curentă / superioară */}
       <div className="flex gap-2 flex-wrap">
-        {ELO_BANDS.map(band => (
+        {bands.map(({ offset, band, gain, loss }) => (
           <button
-            key={band.id}
-            onClick={() => handleBandChange(band)}
+            key={offset}
+            onClick={() => void loadNext(offset)}
+            disabled={limitReached || nextLoading}
             className={cn(
-              'flex flex-col items-center gap-0.5 rounded-xl px-4 py-2.5 text-sm font-semibold border-2 transition-all',
-              activeBand.id === band.id
+              'flex flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-sm font-semibold border-2 transition-all disabled:opacity-50',
+              activeOffset === offset
                 ? 'text-black border-transparent'
-                : 'bg-transparent text-[#666] border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-[#f0f0f0]'
+                : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-[#f0f0f0]'
             )}
-            style={activeBand.id === band.id ? { backgroundColor: band.color, borderColor: band.color } : {}}
+            style={activeOffset === offset ? { backgroundColor: offsetColor(offset), borderColor: offsetColor(offset) } : {}}
           >
-            <span>{band.label}</span>
-            <span className="text-xs font-normal opacity-70">{band.desc}</span>
+            <span className="flex items-center gap-1.5">
+              {offsetLabel(offset)}
+              <span className="opacity-70 font-normal">· {band.label}</span>
+            </span>
+            <span className={cn('text-xs font-bold', activeOffset === offset ? 'text-black/70' : '')}>
+              <span className={activeOffset === offset ? '' : 'text-[#4ade80]'}>+{gain}</span>
+              {' / '}
+              <span className={activeOffset === offset ? '' : 'text-[#f87171]'}>−{loss}</span>
+            </span>
           </button>
         ))}
+        <Button variant="secondary" size="sm" className="ml-auto self-center" onClick={handleSkipPuzzle} disabled={limitReached || nextLoading}>
+          <RefreshCw className={`h-4 w-4 ${nextLoading ? 'animate-spin' : ''}`} /> Puzzle nou
+        </Button>
       </div>
 
       {limitReached && (
@@ -633,7 +654,7 @@ export function PuzzlesPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Tablă */}
         <div className="lg:col-span-2">
-          {dailyLoading && !puzzleState ? (
+          {nextLoading && !puzzleState ? (
             <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
           ) : puzzleState ? (
             <div className="space-y-2">
@@ -668,7 +689,6 @@ export function PuzzlesPage() {
                       arrows: boardArrows,
                     }}
                   />
-                  {/* Burst "+XP" — apare doar la o serie de 3 rezolvări */}
                   {xpBurst !== null && (
                     <div
                       className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-10 rounded-full bg-[rgba(200,168,75,0.95)] px-4 py-1.5 text-sm font-black text-black shadow-lg"
@@ -678,7 +698,6 @@ export function PuzzlesPage() {
                     </div>
                   )}
 
-                  {/* Pop-up flotant cu explicația — vizibil imediat, fără scroll */}
                   {puzzleState.status === 'wrong' && (
                     <div className="absolute top-0 left-0 right-0 z-20 p-2">
                       <div
@@ -712,7 +731,7 @@ export function PuzzlesPage() {
                 <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
                   <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
                   <span className="text-[#4ade80] font-semibold">Corect! Excelent!</span>
-                  <Button size="sm" className="ml-auto" onClick={() => void loadNextForBand(activeBand)}>Următor</Button>
+                  <Button size="sm" className="ml-auto" onClick={() => void loadNext(activeOffset)}>Următor</Button>
                 </div>
               )}
 
@@ -735,12 +754,12 @@ export function PuzzlesPage() {
                         </div>
                       )}
                     </div>
-                    <Button size="sm" className="ml-auto flex-shrink-0" onClick={() => void loadNextForBand(activeBand)}>Următor</Button>
+                    <Button size="sm" className="ml-auto flex-shrink-0" onClick={() => void loadNext(activeOffset)}>Următor</Button>
                   </div>
                 </div>
               )}
 
-              {/* Opțiuni — exact sub puzzle (mesajul e în pop-up peste tablă) */}
+              {/* Opțiuni — exact sub puzzle */}
               {puzzleState.status === 'wrong' && (
                 <div className="flex gap-2 flex-wrap">
                   <Button size="sm" variant="secondary" className="gap-2" onClick={resetToInitial}>
@@ -763,6 +782,8 @@ export function PuzzlesPage() {
                       Nu mă prind, arată mutarea <span className="opacity-60 ml-1">· fără XP</span>
                     </Button>
                   )}
+
+                  <Button size="sm" className="ml-auto" onClick={() => void loadNext(activeOffset)}>Următor</Button>
                 </div>
               )}
 
@@ -807,11 +828,12 @@ export function PuzzlesPage() {
           )}
 
           <Card className="p-4">
-            <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Cum funcționează</p>
-            <ol className="space-y-1.5 text-sm text-[#a0a0a0]">
-              <li>1. Piesele pot fi mutate cu drag &amp; drop sau prin click pe piesă → click pe pătratul dorit</li>
-              <li>2. Continuă secvența de mutări până ajungi la finalul exercițiului</li>
-            </ol>
+            <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Cum funcționează rating-ul</p>
+            <ul className="space-y-1.5 text-sm text-[#a0a0a0]">
+              <li>• Joci doar din 3 benzi: inferioară, a ta și superioară</li>
+              <li>• Banda ta: <span className="text-[#4ade80]">+5</span> / <span className="text-[#f87171]">−5</span> · inferioară: <span className="text-[#4ade80]">+3</span> / <span className="text-[#f87171]">−7</span> · superioară: <span className="text-[#4ade80]">+7</span> / <span className="text-[#f87171]">−3</span></li>
+              <li>• 5 corecte la rând → promovare automată la banda superioară</li>
+            </ul>
           </Card>
 
           <Card className="p-4">
@@ -851,52 +873,6 @@ export function PuzzlesPage() {
           )}
         </div>
       </div>
-
-      {showLevelUpPrompt && nextBand && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
-          onClick={() => { setShowLevelUpPrompt(false); setSolvedInBand(0) }}>
-          {/* Celebrare tematică (pion→damă), nu confetti */}
-          <PawnPromotionCelebration accentColor={nextBand.color} />
-          <div
-            className="relative bg-[#161616] border border-[#2a2a2a] rounded-2xl p-7 max-w-sm w-full mx-4 space-y-5 text-center"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex justify-center">
-              <MascotEnPassant mood="happy" size={56} />
-            </div>
-            <div>
-              <p className="text-[#f0f0f0] font-black text-xl">Ți-ai arătat valoarea!</p>
-              <p className="text-[#888] text-sm mt-2 leading-relaxed">
-                Ai rezolvat {SOLVED_TO_LEVEL_UP} puzzle-uri la nivel{' '}
-                <span style={{ color: activeBand.color }}>{activeBand.label}</span>.
-                Treci la{' '}
-                <span style={{ color: nextBand.color }}>{nextBand.label}</span>?
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="flex-1"
-                onClick={() => { setShowLevelUpPrompt(false); setSolvedInBand(0) }}
-              >
-                Rămân la {activeBand.label}
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 font-bold"
-                style={{ backgroundColor: nextBand.color, color: '#000', border: 'none' }}
-                onClick={() => {
-                  setShowLevelUpPrompt(false)
-                  handleBandChange(nextBand)
-                }}
-              >
-                Da, trec la {nextBand.label}!
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {coachOpen && puzzleState && (
         <AICoachPanel
