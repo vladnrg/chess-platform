@@ -12,6 +12,7 @@ import {
   placementTargets, computePlacementRating, placementToStoredRating,
   bandForRating, type PlacementResult,
 } from '@/lib/puzzle-rating'
+import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
 import type { Puzzle } from '@/types'
@@ -164,8 +165,8 @@ export function PuzzlePlacement() {
   const pct = Math.round((idx / total) * 100)
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-10">
-      <div className="w-full max-w-xl">
+    <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-8">
+      <div className="w-full max-w-3xl">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-[#f0f0f0] mb-1">Test de plasament</h1>
           <p className="text-[#a0a0a0] text-sm">
@@ -188,7 +189,7 @@ export function PuzzlePlacement() {
           </div>
 
           {state && (
-            <div className="mx-auto" style={{ maxWidth: 420 }}>
+            <div className="mx-auto" style={{ maxWidth: 'min(78vh, 100%)' }}>
               <Chessboard
                 options={{
                   position: state.game.fen(),
@@ -205,12 +206,16 @@ export function PuzzlePlacement() {
           )}
 
           {!feedback && (
-            <button
-              onClick={() => advance(false)}
-              className="mt-4 w-full text-sm text-[#666] hover:text-[#a0a0a0] transition-colors"
-            >
-              Nu știu — treci mai departe
-            </button>
+            <div className="mx-auto mt-5" style={{ maxWidth: 'min(78vh, 100%)' }}>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={() => advance(false)}
+              >
+                Nu știu — treci mai departe
+              </Button>
+            </div>
           )}
         </div>
 
