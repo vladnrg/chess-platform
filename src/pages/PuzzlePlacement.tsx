@@ -58,7 +58,7 @@ async function buildPlacementSet(): Promise<Puzzle[]> {
 
 export function PuzzlePlacement() {
   const navigate = useNavigate()
-  const { user, profile, fetchProfile } = useAuth()
+  const { user, fetchProfile } = useAuth()
 
   const [puzzles, setPuzzles] = useState<Puzzle[] | null>(null)
   const [idx, setIdx] = useState(0)
@@ -66,11 +66,6 @@ export function PuzzlePlacement() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const resultsRef = useRef<PlacementResult[]>([])
-
-  // Dacă e deja plasat, nu mai repetăm testul.
-  useEffect(() => {
-    if (profile && profile.puzzle_rating != null) navigate('/puzzles', { replace: true })
-  }, [profile, navigate])
 
   // Construiește setul de plasament o singură dată.
   useEffect(() => {
@@ -213,7 +208,7 @@ export function PuzzlePlacement() {
                 className="w-full"
                 onClick={() => advance(false)}
               >
-                Nu știu — treci mai departe
+                Nu știu — sari la următorul
               </Button>
             </div>
           )}

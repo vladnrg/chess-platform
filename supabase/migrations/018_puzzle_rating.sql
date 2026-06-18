@@ -7,7 +7,8 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS puzzle_win_streak integer NOT NULL DEFAULT 0;
 
 -- ============================================================
--- Plasament: setează rating-ul inițial (DOAR dacă încă nu e plasat)
+-- Plasament: setează rating-ul (la prima plasare SAU la re-vizitarea testului).
+-- Resetează streak-ul de fiecare dată.
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.set_puzzle_placement(p_user_id uuid, p_rating integer)
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -22,9 +23,9 @@ BEGIN
 
   UPDATE public.profiles
   SET puzzle_rating = v_rating, puzzle_win_streak = 0
-  WHERE id = p_user_id AND puzzle_rating IS NULL;
+  WHERE id = p_user_id;
 
-  RETURN (SELECT puzzle_rating FROM public.profiles WHERE id = p_user_id);
+  RETURN v_rating;
 END;
 $$;
 

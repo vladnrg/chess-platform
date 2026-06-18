@@ -834,6 +834,12 @@ export function PuzzlesPage() {
               <li>• Banda ta: <span className="text-[#4ade80]">+5</span> / <span className="text-[#f87171]">−5</span> · inferioară: <span className="text-[#4ade80]">+3</span> / <span className="text-[#f87171]">−7</span> · superioară: <span className="text-[#4ade80]">+7</span> / <span className="text-[#f87171]">−3</span></li>
               <li>• 5 corecte la rând → promovare automată la banda superioară</li>
             </ul>
+            <button
+              onClick={() => navigate('/puzzles/placement')}
+              className="mt-3 text-xs text-[#888] hover:text-[#c8a84b] transition-colors underline underline-offset-2"
+            >
+              Refă testul de plasament
+            </button>
           </Card>
 
           <Card className="p-4">
