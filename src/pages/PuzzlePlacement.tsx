@@ -168,7 +168,7 @@ export function PuzzlePlacement() {
     <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-3xl">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-[#f0f0f0] mb-1">Test de plasament</h1>
+          <h1 className="text-2xl font-bold text-[#f0f0f0] mb-1">Pentru început, hai să-ți aflăm nivelul</h1>
           <p className="text-[#a0a0a0] text-sm">
             Puzzle-ul {idx + 1} din {total} — devin progresiv mai grele. Găsește cea mai bună mutare.
           </p>
@@ -218,10 +218,6 @@ export function PuzzlePlacement() {
             </div>
           )}
         </div>
-
-        <p className="mt-4 text-center text-xs text-[#666]">
-          Rezultatul stabilește intervalul tău de rating. Joacă cinstit — oricum, 5 corecte la rând te promovează automat.
-        </p>
       </div>
     </div>
   )
