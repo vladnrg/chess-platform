@@ -82,11 +82,44 @@ const HIDDEN_THEMES = new Set([
   'master', 'masterVsMaster', 'superGM',
 ])
 
+const MATE_IN = new Set(['mateIn1', 'mateIn2', 'mateIn3', 'mateIn4', 'mateIn5'])
+const NAMED_MATE = new Set([
+  'smotheredMate', 'backRankMate', 'bodenMate', 'dovetailMate', 'hookMate',
+  'arabianMate', 'anastasiaMate', 'doubleBishopMate', 'killBoxMate', 'vukovicMate',
+  'cornerMate', 'epauletteMate', 'pillsburysMate', 'morphysMate', 'operaMate',
+])
+const SPECIFIC_ENDGAME = new Set([
+  'pawnEndgame', 'rookEndgame', 'bishopEndgame', 'knightEndgame', 'queenEndgame', 'queenRookEndgame',
+])
+
 export function themeLabel(theme: string): string {
   return PUZZLE_THEME_RO[theme] ?? theme
 }
 
-// Temele de afișat pentru un puzzle: scoatem zgomotul, traducem implicit la randare.
+// Temele de afișat: scoatem zgomotul, eliminăm suprapunerile și dublurile.
 export function displayThemes(themes: string[], max = 5): string[] {
-  return themes.filter(t => !HIDDEN_THEMES.has(t)).slice(0, max)
+  let list = themes.filter(t => !HIDDEN_THEMES.has(t))
+
+  // O SINGURĂ etichetă de mat: pattern denumit > „Mat în N" > „Mat" generic.
+  const hasAnyMate = list.some(t => t === 'mate' || MATE_IN.has(t) || NAMED_MATE.has(t))
+  if (hasAnyMate) {
+    const keep = list.find(t => NAMED_MATE.has(t)) ?? list.find(t => MATE_IN.has(t)) ?? 'mate'
+    list = list.filter(t => t === keep || (t !== 'mate' && !MATE_IN.has(t) && !NAMED_MATE.has(t)))
+  }
+
+  // „Final" generic dispare dacă există un final specific (ex. „Final de turn").
+  if (list.some(t => SPECIFIC_ENDGAME.has(t))) {
+    list = list.filter(t => t !== 'endgame')
+  }
+
+  // Eliminăm dublurile după eticheta tradusă (ex. capturingDefender + removeDefender).
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const t of list) {
+    const lbl = themeLabel(t)
+    if (seen.has(lbl)) continue
+    seen.add(lbl)
+    out.push(t)
+  }
+  return out.slice(0, max)
 }
