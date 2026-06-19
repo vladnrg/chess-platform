@@ -11,26 +11,8 @@ import { initPuzzleState, type PuzzleState } from '@/lib/puzzle-utils'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
+import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import type { Puzzle } from '@/types'
-
-const PUZZLE_THEMES: Record<string, string> = {
-  fork: 'Bifurcare',
-  pin: 'Andocare',
-  skewer: 'Frigare',
-  mateIn1: 'Mat în 1',
-  mateIn2: 'Mat în 2',
-  mateIn3: 'Mat în 3',
-  discoveredAttack: 'Atac descoperit',
-  endgame: 'Final',
-  middlegame: 'Mijlocul jocului',
-  opening: 'Deschidere',
-  hangingPiece: 'Piesă agățată',
-  sacrifice: 'Sacrificiu',
-  zugzwang: 'Zugzwang',
-  promotion: 'Transformare',
-  perpetualCheck: 'Șah perpetuu',
-  trappedPiece: 'Piesă capturată',
-}
 
 // Obiectivul tacticii, explicat în termeni simpli (comentariu lateral)
 const TACTIC_OBJECTIVES: Record<string, string> = {
@@ -294,7 +276,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
     : []
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
-  const themeLabel = PUZZLE_THEMES[theme] ?? theme
+  const categoryLabel = themeLabel(theme)
   const objective = getObjective(theme, currentPuzzle?.themes ?? [])
 
   return (
@@ -309,7 +291,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a] shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#f0f0f0]">Exersează: {themeLabel}</h2>
+            <h2 className="text-base font-semibold text-[#f0f0f0]">Exersează: {categoryLabel}</h2>
             <p className="text-xs text-[#666] mt-0.5">
               {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} puzzle-uri azi`}
             </p>
@@ -461,9 +443,9 @@ export function PuzzleModal({ theme, onClose }: Props) {
                     <div>
                       <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Teme</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {currentPuzzle.themes.slice(0, 5).map(t => (
+                        {displayThemes(currentPuzzle.themes).map(t => (
                           <Badge key={t} variant="accent">
-                            {PUZZLE_THEMES[t] ?? t}
+                            {themeLabel(t)}
                           </Badge>
                         ))}
                       </div>

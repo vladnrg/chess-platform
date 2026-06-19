@@ -6,6 +6,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig } from '@/lib/utils'
+import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import { Card, CardContent } from '@/components/ui/Card'
 
 const TOOLTIP_STYLE = {
@@ -55,7 +56,7 @@ export function StatsPage() {
       const themeStats: Record<string, { total: number; solved: number }> = {}
       ;(data ?? []).forEach((attempt: Record<string, unknown>) => {
         const puzzle = attempt.puzzles as { themes?: string[] } | null
-        ;(puzzle?.themes ?? []).slice(0, 3).forEach(theme => {
+        displayThemes(puzzle?.themes ?? [], 3).forEach(theme => {
           if (!themeStats[theme]) themeStats[theme] = { total: 0, solved: 0 }
           themeStats[theme].total++
           if (attempt.solved) themeStats[theme].solved++
@@ -64,7 +65,7 @@ export function StatsPage() {
 
       return Object.entries(themeStats)
         .map(([theme, { total, solved }]) => ({
-          theme,
+          theme: themeLabel(theme),
           'Rată succes': Math.round((solved / total) * 100),
           total,
         }))

@@ -11,6 +11,7 @@ import { useSubscription } from '@/hooks/useSubscription'
 import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, hintXpFactor, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
 import { accessibleBands, bandForRating, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
+import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
@@ -19,14 +20,6 @@ import { AICoachPanel } from '@/components/chess/AICoachPanel'
 import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
 import { cn } from '@/lib/utils'
 import type { Puzzle } from '@/types'
-
-const PUZZLE_THEMES: Record<string, string> = {
-  fork: 'Bifurcare', pin: 'Andocare', skewer: 'Frigare',
-  mateIn1: 'Mat în 1', mateIn2: 'Mat în 2', mateIn3: 'Mat în 3',
-  discoveredAttack: 'Atac descoperit', endgame: 'Final',
-  middlegame: 'Mijlocul jocului', opening: 'Deschidere',
-  hangingPiece: 'Piesă agățată', sacrifice: 'Sacrificiu',
-}
 
 // Culoare / etichetă per poziție a benzii (inferioară / curentă / superioară)
 function offsetColor(o: BandOffset): string {
@@ -807,9 +800,9 @@ export function PuzzlesPage() {
               <div>
                 <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Teme</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {currentPuzzle.themes.slice(0, 5).map(theme => (
+                  {displayThemes(currentPuzzle.themes).map(theme => (
                     <Badge key={theme} variant="accent">
-                      {PUZZLE_THEMES[theme] ?? theme}
+                      {themeLabel(theme)}
                     </Badge>
                   ))}
                 </div>
