@@ -89,6 +89,24 @@ export function StatsPage() {
     enabled: !!user,
   })
 
+  const { data: ratingHistory } = useQuery({
+    queryKey: ['puzzle-rating-history', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('puzzle_rating_history')
+        .select('rating, created_at')
+        .eq('user_id', user!.id)
+        .order('created_at')
+        .limit(300)
+      return (data ?? []).map((row: Record<string, unknown>, i: number) => ({
+        idx: i + 1,
+        rating: row['rating'] as number,
+        date: new Date(row['created_at'] as string).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }),
+      }))
+    },
+    enabled: !!user,
+  })
+
   const { data: courseStats } = useQuery({
     queryKey: ['course-stats', user?.id],
     queryFn: async () => {
@@ -194,17 +212,58 @@ export function StatsPage() {
           sub="activitate consecutivă"
         />
         <StatCard
-          label="Elo estimat"
-          value={profile.estimated_elo.toString()}
+          label="Rating puzzle"
+          value={profile.puzzle_rating != null ? profile.puzzle_rating.toString() : 'Neplasat'}
           sub={
             puzzleCounts
               ? `${puzzleCounts.solved} din ${puzzleCounts.total} puzzle-uri rezolvate`
-              : 'nivel de joc'
+              : 'fă testul de plasament'
           }
+          color="#c8a84b"
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Evoluția rating-ului de puzzle */}
+        <Card className="lg:col-span-2">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-[#f0f0f0]">Rating de puzzle în timp</h2>
+              {profile.puzzle_rating != null && (
+                <span className="text-sm font-bold text-[#c8a84b] tabular-nums">{profile.puzzle_rating}</span>
+              )}
+            </div>
+            {ratingHistory && ratingHistory.length >= 2 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={ratingHistory}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                  <XAxis dataKey="idx" tick={{ fill: '#666', fontSize: 11 }} tickFormatter={() => ''} />
+                  <YAxis
+                    domain={['dataMin - 30', 'dataMax + 30']}
+                    tick={{ fill: '#666', fontSize: 11 }}
+                    width={44}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={TOOLTIP_STYLE}
+                    labelFormatter={(_, payload) => (payload?.[0]?.payload?.date as string) ?? ''}
+                    formatter={(v) => [v, 'Rating']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="rating"
+                    stroke="#c8a84b"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="Rezolvă câteva puzzle-uri ca să apară evoluția rating-ului." />
+            )}
+          </CardContent>
+        </Card>
+
         {/* XP săptămânal */}
         <Card>
           <CardContent className="p-5">
