@@ -90,11 +90,11 @@ export function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <p className="text-xs text-[#555] uppercase tracking-widest mb-1">Bârlogul Șahistului</p>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">
+        <p className="text-xs text-[#6B6B6B] uppercase tracking-widest mb-1">Bârlogul Șahistului</p>
+        <h1 className="text-2xl font-bold text-[#F0F0F0]">
           Salut, {profile.username}!
         </h1>
-        <p className="text-[#666] text-sm mt-0.5">Continuă să înveți și să avansezi.</p>
+        <p className="text-[#6B6B6B] text-sm mt-0.5">Continuă să înveți și să avansezi.</p>
       </div>
 
       {/* Grid principal */}
@@ -107,7 +107,7 @@ export function Dashboard() {
         {/* Stats rapide — coloana dreaptă */}
         <div className="lg:col-span-2 grid gap-4 sm:grid-cols-3">
           <StatCard
-            icon={<Puzzle className="h-5 w-5 text-[#c8a84b]" />}
+            icon={<Puzzle className="h-5 w-5 text-[#E2B340]" />}
             label="Puzzle-uri azi"
             value={`${todayPuzzleCount ?? 0}`}
             sub="din 10 gratuite"
@@ -129,7 +129,7 @@ export function Dashboard() {
 
       {/* Ligile platformei */}
       <section>
-        <h2 className="text-lg font-semibold text-[#f0f0f0] mb-4">Ligile platformei</h2>
+        <h2 className="text-lg font-semibold text-[#F0F0F0] mb-4">Ligile platformei</h2>
 
         {/* Liga curentă + mesaj avansare */}
         <div
@@ -147,24 +147,24 @@ export function Dashboard() {
               </span>
             </div>
             {xpToNext !== null && nextLeagueConfig ? (
-              <p className="text-sm text-[#a0a0a0]">
+              <p className="text-sm text-[#A0A0A0]">
                 Câștigă încă{' '}
-                <span className="text-[#c8a84b] font-semibold">{xpToNext} XP</span>
+                <span className="text-[#E2B340] font-semibold">{xpToNext} XP</span>
                 {' '}pentru a avansa în liga{' '}
                 <span className="font-semibold" style={{ color: nextLeagueConfig.color }}>{nextLeagueConfig.label}</span>
               </p>
             ) : (
-              <p className="text-sm text-[#c8a84b] font-medium">Ești în liga supremă ✦</p>
+              <p className="text-sm text-[#E2B340] font-medium">Ești în liga supremă ✦</p>
             )}
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-[#f0f0f0]">{profile.xp}</p>
-            <p className="text-xs text-[#666]">XP total</p>
+            <p className="text-2xl font-bold text-[#F0F0F0]">{profile.xp}</p>
+            <p className="text-xs text-[#6B6B6B]">XP total</p>
           </div>
         </div>
 
         {/* Lista tuturor ligilor */}
-        <div className="rounded-xl border border-[#2a2a2a] overflow-hidden">
+        <div className="rounded-xl border border-[#2A2A2A] overflow-hidden">
           {LEAGUES.map((league, idx) => {
             const isCurrent = league.name === profile.current_league
             const isPassed = profile.xp >= league.minXp
@@ -173,16 +173,16 @@ export function Dashboard() {
                 key={league.name}
                 className={cn(
                   'flex items-center justify-between px-4 py-3 transition-colors',
-                  idx !== LEAGUES.length - 1 && 'border-b border-[#2a2a2a]',
-                  isCurrent ? 'bg-[#1e1e1e]' : 'bg-transparent'
+                  idx !== LEAGUES.length - 1 && 'border-b border-[#2A2A2A]',
+                  isCurrent ? 'bg-[#141414]' : 'bg-transparent'
                 )}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: isPassed ? league.color : '#333' }}
+                    style={{ backgroundColor: isPassed ? league.color : '#2A2A2A' }}
                   />
-                  <span className={cn('font-medium text-sm', isCurrent ? 'text-[#f0f0f0]' : isPassed ? 'text-[#a0a0a0]' : 'text-[#444]')}>
+                  <span className={cn('font-medium text-sm', isCurrent ? 'text-[#F0F0F0]' : isPassed ? 'text-[#A0A0A0]' : 'text-[#3A3A3A]')}>
                     {league.label}
                   </span>
                   {isCurrent && (
@@ -191,7 +191,7 @@ export function Dashboard() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-6 text-xs text-[#555]">
+                <div className="flex items-center gap-6 text-xs text-[#6B6B6B]">
                   <span>{league.minXp} – {league.maxXp !== null ? league.maxXp : '∞'} XP</span>
                   <span className="hidden sm:block w-20 text-right">{league.weeklyMinXp} XP/săpt.</span>
                 </div>
@@ -204,8 +204,8 @@ export function Dashboard() {
       {/* Cursuri recomandate */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#f0f0f0]">Recomandat pentru tine</h2>
-          <Link to="/courses" className="flex items-center gap-1 text-sm text-[#c8a84b] hover:text-[#d4b860]">
+          <h2 className="text-lg font-semibold text-[#F0F0F0]">Recomandat pentru tine</h2>
+          <Link to="/courses" className="flex items-center gap-1 text-sm text-[#E2B340] hover:text-[#F0C85A]">
             Toate cursurile <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -217,7 +217,7 @@ export function Dashboard() {
               <CourseCard key={course.id} course={course} />
             ))}
             {(!recommendedCourses || recommendedCourses.length === 0) && (
-              <p className="text-[#666] text-sm col-span-3 text-center py-8">
+              <p className="text-[#6B6B6B] text-sm col-span-3 text-center py-8">
                 Nu există cursuri disponibile momentan.
               </p>
             )}
@@ -229,12 +229,12 @@ export function Dashboard() {
       <section>
         <Card className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(200,168,75,0.12)] text-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(226,179,64,0.12)] text-2xl">
               ♟
             </div>
             <div>
-              <h3 className="font-semibold text-[#f0f0f0]">Puzzle zilnic Lichess</h3>
-              <p className="text-sm text-[#666]">Antrenează-ți abilitățile tactice zilnic</p>
+              <h3 className="font-semibold text-[#F0F0F0]">Puzzle zilnic Lichess</h3>
+              <p className="text-sm text-[#6B6B6B]">Antrenează-ți abilitățile tactice zilnic</p>
             </div>
           </div>
           <Link to="/puzzles">
@@ -250,13 +250,13 @@ function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: s
   return (
     <Card>
       <CardContent className="flex items-start gap-3 p-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#111] flex-shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#141414] flex-shrink-0">
           {icon}
         </div>
         <div>
-          <p className="text-xs text-[#666]">{label}</p>
-          <p className="text-xl font-bold text-[#f0f0f0]">{value}</p>
-          <p className="text-xs text-[#a0a0a0]">{sub}</p>
+          <p className="text-xs text-[#6B6B6B]">{label}</p>
+          <p className="text-xl font-bold text-[#F0F0F0]">{value}</p>
+          <p className="text-xs text-[#A0A0A0]">{sub}</p>
         </div>
       </CardContent>
     </Card>
@@ -267,17 +267,17 @@ function CourseCard({ course }: { course: Course }) {
   const levelVariant = course.level === 'beginner' ? 'beginner' : course.level === 'intermediate' ? 'intermediate' : 'advanced'
   return (
     <Link to={`/courses/${course.slug}`}>
-      <Card className="hover:border-[#3a3a3a] transition-all hover:translate-y-[-1px] group h-full">
+      <Card className="hover:border-[#3A3A3A] transition-all hover:translate-y-[-1px] group h-full">
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <Badge variant={levelVariant}>{LEVEL_LABELS[course.level]}</Badge>
-            {course.is_premium && <Lock className="h-4 w-4 text-[#c8a84b]" />}
+            {course.is_premium && <Lock className="h-4 w-4 text-[#E2B340]" />}
           </div>
-          <h3 className="font-semibold text-[#f0f0f0] mb-1 group-hover:text-[#c8a84b] transition-colors line-clamp-2">
+          <h3 className="font-semibold text-[#F0F0F0] mb-1 group-hover:text-[#E2B340] transition-colors line-clamp-2">
             {course.title}
           </h3>
-          <p className="text-xs text-[#666] mb-3">{course.opening_family}</p>
-          <div className="flex items-center gap-1.5 text-xs text-[#a0a0a0]">
+          <p className="text-xs text-[#6B6B6B] mb-3">{course.opening_family}</p>
+          <div className="flex items-center gap-1.5 text-xs text-[#A0A0A0]">
             <BookOpen className="h-3.5 w-3.5" />
             {course.lesson_count} lecții
           </div>

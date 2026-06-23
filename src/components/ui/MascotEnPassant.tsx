@@ -26,9 +26,9 @@ export function MascotEnPassant({ mood = 'idle', size = 40, className = '', anim
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#e6cd82" />
-          <stop offset="55%" stopColor="#c8a84b" />
-          <stop offset="100%" stopColor="#9c7f2f" />
+          <stop offset="0%" stopColor="#F0C85A" />
+          <stop offset="55%" stopColor="#E2B340" />
+          <stop offset="100%" stopColor="#C99A2E" />
         </linearGradient>
       </defs>
 
@@ -57,7 +57,7 @@ export function MascotEnPassant({ mood = 'idle', size = 40, className = '', anim
 }
 
 function Face({ mood }: { mood: MascotMood }) {
-  const eyeFill = '#2a2118'
+  const eyeFill = '#1C1C1C'
 
   if (mood === 'happy') {
     return (
@@ -80,7 +80,7 @@ function Face({ mood }: { mood: MascotMood }) {
         {/* gură mică, neutră */}
         <path d="M29 25 q3 1.5 6 0" stroke={eyeFill} strokeWidth="2" strokeLinecap="round" fill="none" />
         {/* punctuleț de gând */}
-        <circle cx="44" cy="11" r="1.6" fill="#c8a84b" opacity="0.9" />
+        <circle cx="44" cy="11" r="1.6" fill="#E2B340" opacity="0.9" />
       </g>
     )
   }

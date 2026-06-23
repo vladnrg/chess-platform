@@ -36,7 +36,7 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-[#f0f0f0]">Profil</h1>
+      <h1 className="text-2xl font-bold text-[#F0F0F0]">Profil</h1>
 
       {/* Avatar + ligă */}
       <Card>
@@ -48,9 +48,9 @@ export function ProfilePage() {
             {profile.username.slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <p className="text-lg font-bold text-[#f0f0f0]">{profile.username}</p>
+            <p className="text-lg font-bold text-[#F0F0F0]">{profile.username}</p>
             <p className="text-sm font-semibold" style={{ color: leagueConfig.color }}>{leagueConfig.label}</p>
-            <p className="text-xs text-[#666]">{profile.xp} XP · Elo ~{profile.estimated_elo}</p>
+            <p className="text-xs text-[#6B6B6B]">{profile.xp} XP · Elo ~{profile.estimated_elo}</p>
           </div>
         </CardContent>
       </Card>
@@ -58,7 +58,7 @@ export function ProfilePage() {
       {/* Editare */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <h2 className="font-semibold text-[#f0f0f0]">Informații cont</h2>
+          <h2 className="font-semibold text-[#F0F0F0]">Informații cont</h2>
           <Input
             label="Nume utilizator"
             value={username}
@@ -85,8 +85,8 @@ export function ProfilePage() {
             placeholder="ex: MagnusCarlsen"
           />
           <div>
-            <p className="text-sm text-[#a0a0a0] mb-1">Stil de joc detectat</p>
-            <p className="font-semibold text-[#c8a84b]">
+            <p className="text-sm text-[#A0A0A0] mb-1">Stil de joc detectat</p>
+            <p className="font-semibold text-[#E2B340]">
               {profile.playing_style ? PLAYING_STYLE_LABELS[profile.playing_style as PlayingStyle] : 'Necunoscut'}
             </p>
           </div>
@@ -99,7 +99,7 @@ export function ProfilePage() {
       {/* Stats rapide */}
       <Card>
         <CardContent className="p-5 space-y-3">
-          <h2 className="font-semibold text-[#f0f0f0]">Statistici cont</h2>
+          <h2 className="font-semibold text-[#F0F0F0]">Statistici cont</h2>
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: 'Streak', value: `${profile.streak_days} zile` },
@@ -107,9 +107,9 @@ export function ProfilePage() {
               { label: 'Liga curentă', value: leagueConfig.label },
               { label: 'XP total', value: profile.xp.toLocaleString('ro-RO') },
             ].map(({ label, value }) => (
-              <div key={label} className="rounded-lg bg-[#111] p-3">
-                <p className="text-xs text-[#666]">{label}</p>
-                <p className="font-semibold text-[#f0f0f0]">{value}</p>
+              <div key={label} className="rounded-lg bg-[#141414] p-3">
+                <p className="text-xs text-[#6B6B6B]">{label}</p>
+                <p className="font-semibold text-[#F0F0F0]">{value}</p>
               </div>
             ))}
           </div>

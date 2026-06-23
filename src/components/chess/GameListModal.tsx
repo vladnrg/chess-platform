@@ -70,16 +70,16 @@ export function GameListModal({ eco, openingName, lichessUsername, playerColor, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-lg rounded-2xl bg-[#111] border border-[#2a2a2a] shadow-2xl overflow-hidden"
+        className="w-full max-w-lg rounded-2xl bg-[#141414] border border-[#2A2A2A] shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e1e1e]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#141414]">
           <div>
-            <h2 className="font-bold text-[#f0f0f0]">Partide recente</h2>
-            <p className="text-xs text-[#555] mt-0.5">{translateOpeningName(openingName)}</p>
+            <h2 className="font-bold text-[#F0F0F0]">Partide recente</h2>
+            <p className="text-xs text-[#6B6B6B] mt-0.5">{translateOpeningName(openingName)}</p>
           </div>
-          <button onClick={onClose} className="text-[#555] hover:text-[#f0f0f0] transition-colors">
+          <button onClick={onClose} className="text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -87,14 +87,14 @@ export function GameListModal({ eco, openingName, lichessUsername, playerColor, 
         {/* Content */}
         <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto">
           {loading ? (
-            <div className="flex items-center justify-center py-12 gap-2 text-[#555]">
+            <div className="flex items-center justify-center py-12 gap-2 text-[#6B6B6B]">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span className="text-sm">Se încarcă partidele...</span>
             </div>
           ) : error ? (
-            <p className="text-center text-sm text-[#f87171] py-8">{error}</p>
+            <p className="text-center text-sm text-[#FB7185] py-8">{error}</p>
           ) : games.length === 0 ? (
-            <p className="text-center text-sm text-[#555] py-8">
+            <p className="text-center text-sm text-[#6B6B6B] py-8">
               Nu am găsit partide cu {translateOpeningName(openingName)} pentru @{lichessUsername}.
             </p>
           ) : (
@@ -111,13 +111,13 @@ export function GameListModal({ eco, openingName, lichessUsername, playerColor, 
                 <button
                   key={game.id}
                   onClick={() => setSelected(game)}
-                  className="w-full flex items-center gap-3 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3 text-left hover:border-[#c8a84b] hover:bg-[rgba(200,168,75,0.05)] transition-all group"
+                  className="w-full flex items-center gap-3 rounded-xl bg-[#141414] border border-[#2A2A2A] px-4 py-3 text-left hover:border-[#E2B340] hover:bg-[rgba(226,179,64,0.05)] transition-all group"
                 >
                   {/* Result icon */}
                   <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     result === 'win' ? 'bg-[rgba(74,222,128,0.15)] text-[#4ade80]' :
-                    result === 'loss' ? 'bg-[rgba(248,113,113,0.15)] text-[#f87171]' :
-                    'bg-[#2a2a2a] text-[#a0a0a0]'
+                    result === 'loss' ? 'bg-[rgba(251,113,133,0.15)] text-[#FB7185]' :
+                    'bg-[#2A2A2A] text-[#A0A0A0]'
                   }`}>
                     {result === 'win' ? <Trophy className="h-3.5 w-3.5" /> :
                      result === 'loss' ? <TrendingDown className="h-3.5 w-3.5" /> :
@@ -127,19 +127,19 @@ export function GameListModal({ eco, openingName, lichessUsername, playerColor, 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#f0f0f0] truncate group-hover:text-[#c8a84b] transition-colors">
+                      <span className="text-sm font-medium text-[#F0F0F0] truncate group-hover:text-[#E2B340] transition-colors">
                         vs {opponentName}
                       </span>
                       {opponentRating > 0 && (
-                        <span className="text-xs text-[#555]">({opponentRating})</span>
+                        <span className="text-xs text-[#6B6B6B]">({opponentRating})</span>
                       )}
                     </div>
-                    <p className="text-xs text-[#555] mt-0.5">
+                    <p className="text-xs text-[#6B6B6B] mt-0.5">
                       {date} · {game.perf} · cu {myColor === 'white' ? 'Albul' : 'Negrul'}
                     </p>
                   </div>
 
-                  <span className="text-xs text-[#c8a84b] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                  <span className="text-xs text-[#E2B340] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     Analizează →
                   </span>
                 </button>

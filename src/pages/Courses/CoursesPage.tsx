@@ -14,10 +14,10 @@ function getEcoTheme(eco?: string | null) {
   switch (prefix) {
     case 'A': return { from: '#0f1729', to: '#1a2d6b', accent: '#4a7fd4', piece: '♟' }  // Flank/English - blue
     case 'B': return { from: '#1a0f2e', to: '#3d1260', accent: '#9b59d4', piece: '♝' }  // Semi-open - purple
-    case 'C': return { from: '#1f0a0a', to: '#6b1515', accent: '#d44a4a', piece: '♞' }  // e4 e5 - red
+    case 'C': return { from: '#1f0a0a', to: '#6b1515', accent: '#FB7185', piece: '♞' }  // e4 e5 - red
     case 'D': return { from: '#0a1a0f', to: '#145c20', accent: '#4ade80', piece: '♛' }  // d4 closed - green
-    case 'E': return { from: '#1f1200', to: '#6b3d00', accent: '#c8a84b', piece: '♜' }  // Indian - amber
-    default:  return { from: '#111111', to: '#2a2219', accent: '#c8a84b', piece: '♟' }  // Fundamental
+    case 'E': return { from: '#1f1200', to: '#6b3d00', accent: '#E2B340', piece: '♜' }  // Indian - amber
+    default:  return { from: '#141414', to: '#1C1C1C', accent: '#E2B340', piece: '♟' }  // Fundamental
   }
 }
 
@@ -90,30 +90,30 @@ export function CoursesPage() {
     <div className="space-y-8">
 
       {/* Hero header */}
-      <div className="relative rounded-2xl overflow-hidden border border-[#2a2a2a]"
-        style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a150a 50%, #0d0d0d 100%)' }}>
+      <div className="relative rounded-2xl overflow-hidden border border-[#2A2A2A]"
+        style={{ background: 'linear-gradient(135deg, #0A0A0A 0%, #1C1C1C 50%, #0A0A0A 100%)' }}>
         <div className="absolute inset-0 opacity-5 text-[200px] flex items-center justify-end pr-8 select-none pointer-events-none leading-none">
           ♛
         </div>
         <div className="relative px-6 py-8">
-          <h1 className="text-3xl font-black text-[#f0f0f0] tracking-tight">Cursuri interactive</h1>
-          <p className="text-[#888] mt-2 text-sm max-w-md">
+          <h1 className="text-3xl font-black text-[#F0F0F0] tracking-tight">Cursuri interactive</h1>
+          <p className="text-[#A0A0A0] mt-2 text-sm max-w-md">
             Stăpânește deschiderile preferate. Fiecare curs îți construiește repertoriul cu poziții reale și explicații clare.
           </p>
           <div className="flex gap-6 mt-5">
             <div>
-              <p className="text-2xl font-black text-[#c8a84b]">{totalCourses}</p>
-              <p className="text-xs text-[#555]">cursuri disponibile</p>
+              <p className="text-2xl font-black text-[#E2B340]">{totalCourses}</p>
+              <p className="text-xs text-[#6B6B6B]">cursuri disponibile</p>
             </div>
             {completedCourses > 0 && (
               <div>
                 <p className="text-2xl font-black text-[#4ade80]">{completedCourses}</p>
-                <p className="text-xs text-[#555]">finalizate</p>
+                <p className="text-xs text-[#6B6B6B]">finalizate</p>
               </div>
             )}
             <div>
-              <p className="text-2xl font-black text-[#f0f0f0]">{isPro ? '∞' : '3'}</p>
-              <p className="text-xs text-[#555]">acces {isPro ? 'complet' : 'gratuit'}</p>
+              <p className="text-2xl font-black text-[#F0F0F0]">{isPro ? '∞' : '3'}</p>
+              <p className="text-xs text-[#6B6B6B]">acces {isPro ? 'complet' : 'gratuit'}</p>
             </div>
           </div>
         </div>
@@ -122,15 +122,15 @@ export function CoursesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#555]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B6B6B]" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Caută deschidere..."
-            className="h-9 rounded-lg border border-[#2a2a2a] bg-[#111] pl-9 pr-3 text-sm text-[#f0f0f0] placeholder-[#555] focus:outline-none focus:border-[#c8a84b] w-48 transition-colors"
+            className="h-9 rounded-lg border border-[#2A2A2A] bg-[#141414] pl-9 pr-3 text-sm text-[#F0F0F0] placeholder-[#6B6B6B] focus:outline-none focus:border-[#E2B340] w-48 transition-colors"
           />
         </div>
-        <div className="h-5 w-px bg-[#2a2a2a]" />
+        <div className="h-5 w-px bg-[#2A2A2A]" />
         <div className="flex gap-1.5">
           {LEVELS.map(l => (
             <button
@@ -138,8 +138,8 @@ export function CoursesPage() {
               onClick={() => setLevelFilter(levelFilter === l.value ? 'all' : l.value)}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                 levelFilter === l.value
-                  ? 'bg-[#c8a84b] text-black shadow-[0_0_12px_rgba(200,168,75,0.4)]'
-                  : 'bg-[#111] border border-[#2a2a2a] text-[#666] hover:text-[#a0a0a0] hover:border-[#3a3a3a]'
+                  ? 'bg-[#E2B340] text-black shadow-[0_0_12px_rgba(226,179,64,0.4)]'
+                  : 'bg-[#141414] border border-[#2A2A2A] text-[#6B6B6B] hover:text-[#A0A0A0] hover:border-[#3A3A3A]'
               }`}
             >
               {l.label}
@@ -152,9 +152,9 @@ export function CoursesPage() {
       {!isLoading && fundamentals.length > 0 && levelFilter === 'all' && !search && (
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-[#1e1e1e]" />
-            <span className="text-xs font-bold text-[#c8a84b] uppercase tracking-widest">Înainte de orice altceva — Gratuit</span>
-            <div className="h-px flex-1 bg-[#1e1e1e]" />
+            <div className="h-px flex-1 bg-[#141414]" />
+            <span className="text-xs font-bold text-[#E2B340] uppercase tracking-widest">Înainte de orice altceva — Gratuit</span>
+            <div className="h-px flex-1 bg-[#141414]" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {fundamentals.map(course => (
@@ -170,11 +170,11 @@ export function CoursesPage() {
       ) : (
         <section>
           {filtered.length === 0 ? (
-            <p className="text-center text-[#555] py-20">Niciun curs nu corespunde filtrelor selectate.</p>
+            <p className="text-center text-[#6B6B6B] py-20">Niciun curs nu corespunde filtrelor selectate.</p>
           ) : (
             <>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-[#555]">{filtered.length} {filtered.length === 1 ? 'curs' : 'cursuri'}</span>
+                <span className="text-xs text-[#6B6B6B]">{filtered.length} {filtered.length === 1 ? 'curs' : 'cursuri'}</span>
               </div>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filtered.map(course => (
@@ -198,10 +198,10 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
 
   return (
     <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-      <div className={`rounded-2xl border bg-[#111] transition-all duration-200 h-full flex flex-col overflow-hidden ${
+      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col overflow-hidden ${
         locked
-          ? 'border-[#222] hover:border-[#2a2a2a]'
-          : 'border-[#1e1e1e] hover:border-[#3a3a3a] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+          ? 'border-[#1C1C1C] hover:border-[#2A2A2A]'
+          : 'border-[#141414] hover:border-[#3A3A3A] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
       }`}>
 
         {/* Thumbnail — imagine tematică a deschiderii */}
@@ -220,13 +220,13 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
           {/* Etichetă de nivel — panglică opacă în colț, acoperă orice badge „desenat" rămas în imagine */}
           <div className="absolute top-0 right-0 z-10 rounded-bl-xl overflow-hidden">
             {locked ? (
-              <span className="flex items-center gap-1 text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#c8a84b] text-black">
+              <span className="flex items-center gap-1 text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#E2B340] text-black">
                 <Lock className="h-2.5 w-2.5" /> PRO
               </span>
             ) : course.level === 'fundamental' ? (
               <span className="block text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#4ade80] text-black">GRATUIT</span>
             ) : (
-              <span className="block text-[10px] font-bold pl-4 pr-3 py-2.5 bg-[#161616] text-[#d0d0d0]">
+              <span className="block text-[10px] font-bold pl-4 pr-3 py-2.5 bg-[#141414] text-[#F0F0F0]">
                 {LEVEL_LABELS[course.level]}
               </span>
             )}
@@ -239,7 +239,7 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
         {/* Card body */}
         <div className="px-4 py-3 flex flex-col flex-1 gap-2">
           {/* Titlul cursului (numele românesc) */}
-          <h3 className={`font-bold text-[#f0f0f0] leading-tight truncate group-hover:text-[#c8a84b] transition-colors ${featured ? 'text-base' : 'text-sm'}`}>
+          <h3 className={`font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors ${featured ? 'text-base' : 'text-sm'}`}>
             {FAMILY_RO[course.slug] ?? course.opening_family ?? course.title}
           </h3>
 
@@ -248,7 +248,7 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
             <div className="flex gap-1.5 flex-wrap">
               {course.playing_styles.map(style => (
                 <span key={style}
-                  className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] text-[#666]">
+                  className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#141414] border border-[#2A2A2A] text-[#6B6B6B]">
                   {STYLE_ICONS[style]}
                   {PLAYING_STYLE_LABELS[style]}
                 </span>
@@ -258,19 +258,19 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
 
           {/* Footer */}
           <div className="mt-auto pt-1">
-            <div className="flex items-center justify-between text-xs text-[#555] mb-1.5">
+            <div className="flex items-center justify-between text-xs text-[#6B6B6B] mb-1.5">
               <span className="flex items-center gap-1">
                 <BookOpen className="h-3 w-3" />
                 {course.lesson_count} {course.lesson_count === 1 ? 'lecție' : 'lecții'}
               </span>
               {completedLessons > 0 && (
-                <span className={pct === 100 ? 'text-[#4ade80] font-semibold' : 'text-[#c8a84b]'}>
+                <span className={pct === 100 ? 'text-[#4ade80] font-semibold' : 'text-[#E2B340]'}>
                   {pct === 100 ? '✓ Complet' : `${pct}%`}
                 </span>
               )}
             </div>
             {completedLessons > 0 && (
-              <div className="h-1 rounded-full bg-[#1a1a1a] overflow-hidden">
+              <div className="h-1 rounded-full bg-[#141414] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : theme.accent }}

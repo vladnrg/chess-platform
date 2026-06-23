@@ -54,7 +54,7 @@ export function ParentalStatsPage() {
   }, [token])
 
   if (state === 'loading') {
-    return <Screen><p className="text-[#666]">Se încarcă statisticile...</p></Screen>
+    return <Screen><p className="text-[#6B6B6B]">Se încarcă statisticile...</p></Screen>
   }
 
   if (state === 'error' || !stats) {
@@ -62,8 +62,8 @@ export function ParentalStatsPage() {
       <Screen>
         <div className="text-center space-y-3">
           <p className="text-3xl">⌛</p>
-          <p className="text-[#f0f0f0] font-semibold">Link invalid sau expirat</p>
-          <p className="text-sm text-[#666]">Linkul de statistici expiră după 7 zile. Verifică emailul pentru un link nou.</p>
+          <p className="text-[#F0F0F0] font-semibold">Link invalid sau expirat</p>
+          <p className="text-sm text-[#6B6B6B]">Linkul de statistici expiră după 7 zile. Verifică emailul pentru un link nou.</p>
         </div>
       </Screen>
     )
@@ -72,12 +72,12 @@ export function ParentalStatsPage() {
   const totalXpThisMonth = weeklyXp.slice(0, 4).reduce((a, w) => a + w.xp_earned, 0)
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] px-4 py-10">
+    <div className="min-h-screen bg-[#0A0A0A] px-4 py-10">
       <div className="max-w-lg mx-auto space-y-6">
         <div className="text-center">
           <div className="text-4xl mb-3">♟</div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Progresul lui {stats.username}</h1>
-          <p className="text-sm text-[#666] mt-1">Raport parental — ultimele 8 săptămâni</p>
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Progresul lui {stats.username}</h1>
+          <p className="text-sm text-[#6B6B6B] mt-1">Raport parental — ultimele 8 săptămâni</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -87,28 +87,28 @@ export function ParentalStatsPage() {
           <StatCard label="XP luna aceasta" value={totalXpThisMonth.toLocaleString('ro-RO')} />
         </div>
 
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5">
-          <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">XP pe săptămâni</h2>
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
+          <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">XP pe săptămâni</h2>
           <div className="space-y-2">
             {weeklyXp.map(w => {
               const date = new Date(w.week_start).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })
               const pct = Math.min(100, Math.round((w.xp_earned / 300) * 100))
               return (
                 <div key={w.week_start}>
-                  <div className="flex justify-between text-xs text-[#666] mb-0.5">
-                    <span>{date}</span><span className="text-[#c8a84b]">{w.xp_earned} XP</span>
+                  <div className="flex justify-between text-xs text-[#6B6B6B] mb-0.5">
+                    <span>{date}</span><span className="text-[#E2B340]">{w.xp_earned} XP</span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-[#2a2a2a]">
-                    <div className="h-1.5 rounded-full bg-[#c8a84b]" style={{ width: `${pct}%` }} />
+                  <div className="h-1.5 rounded-full bg-[#2A2A2A]">
+                    <div className="h-1.5 rounded-full bg-[#E2B340]" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )
             })}
-            {weeklyXp.length === 0 && <p className="text-xs text-[#666] text-center py-4">Nicio activitate înregistrată încă.</p>}
+            {weeklyXp.length === 0 && <p className="text-xs text-[#6B6B6B] text-center py-4">Nicio activitate înregistrată încă.</p>}
           </div>
         </div>
 
-        <p className="text-xs text-[#666] text-center">
+        <p className="text-xs text-[#6B6B6B] text-center">
           Acest raport e disponibil 7 zile. Un nou raport e trimis în fiecare duminică.
         </p>
       </div>
@@ -118,7 +118,7 @@ export function ParentalStatsPage() {
 
 function Screen({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="max-w-sm w-full">{children}</div>
     </div>
   )
@@ -126,9 +126,9 @@ function Screen({ children }: { children: React.ReactNode }) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
-      <p className="text-xs text-[#666] uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-xl font-bold text-[#f0f0f0]">{value}</p>
+    <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+      <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-xl font-bold text-[#F0F0F0]">{value}</p>
     </div>
   )
 }

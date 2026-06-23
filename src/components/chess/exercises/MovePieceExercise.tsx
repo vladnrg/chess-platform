@@ -43,8 +43,8 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
     setStatus('wrong')
     setHighlight({
-      [sourceSquare]: { background: 'rgba(248, 113, 113, 0.4)' },
-      [targetSquare]: { background: 'rgba(248, 113, 113, 0.4)' },
+      [sourceSquare]: { background: 'rgba(251,113,133, 0.4)' },
+      [targetSquare]: { background: 'rgba(251,113,133, 0.4)' },
     })
     setTimeout(() => {
       setStatus('idle')
@@ -56,9 +56,9 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[#a0a0a0] leading-relaxed">{exercise.instruction}</p>
+      <p className="text-sm text-[#A0A0A0] leading-relaxed">{exercise.instruction}</p>
 
-      <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+      <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
         <Chessboard
           options={{
             position: fen,
@@ -66,7 +66,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
             onPieceDrop: onDrop,
             squareStyles: highlight,
             boardStyle: { borderRadius: 0 },
-            darkSquareStyle: { backgroundColor: '#3d3d3d' },
+            darkSquareStyle: { backgroundColor: '#3A3A3A' },
             lightSquareStyle: { backgroundColor: '#f0d9b5' },
           }}
         />
@@ -76,7 +76,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
         <p className="text-sm font-medium text-[#4ade80]">Mutare corectă!</p>
       )}
       {status === 'wrong' && (
-        <p className="text-sm font-medium text-[#f87171]">Nu e mutarea potrivită. Încearcă din nou!</p>
+        <p className="text-sm font-medium text-[#FB7185]">Nu e mutarea potrivită. Încearcă din nou!</p>
       )}
     </div>
   )

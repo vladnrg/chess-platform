@@ -23,7 +23,7 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
     } else {
       setStatus('wrong')
       setHighlighted({
-        [square]: { background: 'rgba(248, 113, 113, 0.5)' },
+        [square]: { background: 'rgba(251,113,133, 0.5)' },
         [exercise.target]: { background: 'rgba(74, 222, 128, 0.3)' },
       })
       setTimeout(() => {
@@ -35,9 +35,9 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[#a0a0a0] leading-relaxed">{exercise.instruction}</p>
+      <p className="text-sm text-[#A0A0A0] leading-relaxed">{exercise.instruction}</p>
 
-      <div className="rounded-xl overflow-hidden border border-[#2a2a2a] select-none">
+      <div className="rounded-xl overflow-hidden border border-[#2A2A2A] select-none">
         <Chessboard
           options={{
             position: exercise.fen,
@@ -45,7 +45,7 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
             onSquareClick: handleSquareClick,
             squareStyles: highlighted,
             boardStyle: { borderRadius: 0, cursor: 'pointer' },
-            darkSquareStyle: { backgroundColor: '#3d3d3d' },
+            darkSquareStyle: { backgroundColor: '#3A3A3A' },
             lightSquareStyle: { backgroundColor: '#f0d9b5' },
           }}
         />
@@ -55,7 +55,7 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
         <p className="text-sm font-medium text-[#4ade80]">Corect! Super!</p>
       )}
       {status === 'wrong' && (
-        <p className="text-sm font-medium text-[#f87171]">Încearcă din nou — uite unde e!</p>
+        <p className="text-sm font-medium text-[#FB7185]">Încearcă din nou — uite unde e!</p>
       )}
     </div>
   )

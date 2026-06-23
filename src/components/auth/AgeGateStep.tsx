@@ -33,16 +33,16 @@ export function AgeGateStep({ onComplete }: Props) {
   if (step === 'parental') {
     return (
       <div className="space-y-4">
-        <div className="rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.3)] p-4">
-          <p className="text-sm text-[#c8a84b] font-semibold mb-1">Cont pentru minori</p>
-          <p className="text-xs text-[#a0a0a0]">
+        <div className="rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.3)] p-4">
+          <p className="text-sm text-[#E2B340] font-semibold mb-1">Cont pentru minori</p>
+          <p className="text-xs text-[#A0A0A0]">
             Deoarece ai sub 14 ani, contul tău necesită aprobarea unui părinte sau tutore.
             Vom trimite un email de confirmare la adresa introdusă mai jos.
           </p>
         </div>
 
         <div>
-          <label className="text-xs text-[#666] block mb-1.5">Email părinte / tutore</label>
+          <label className="text-xs text-[#6B6B6B] block mb-1.5">Email părinte / tutore</label>
           <Input
             type="email"
             placeholder="parinte@exemplu.com"
@@ -55,7 +55,7 @@ export function AgeGateStep({ onComplete }: Props) {
           Trimite cererea de aprobare
         </Button>
 
-        <p className="text-xs text-[#666] text-center">
+        <p className="text-xs text-[#6B6B6B] text-center">
           Contul va fi activat după ce părintele confirmă prin email.
         </p>
       </div>
@@ -65,7 +65,7 @@ export function AgeGateStep({ onComplete }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-xs text-[#666] block mb-1.5">Anul nașterii</label>
+        <label className="text-xs text-[#6B6B6B] block mb-1.5">Anul nașterii</label>
         <Input
           type="number"
           placeholder="ex: 2012"

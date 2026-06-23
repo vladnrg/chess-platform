@@ -33,17 +33,17 @@ export function CalendarPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Calendar competițional</h1>
-          <p className="text-[#666] text-sm mt-0.5">Turnee și competiții — pe platformă și în comunitate</p>
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Calendar competițional</h1>
+          <p className="text-[#6B6B6B] text-sm mt-0.5">Turnee și competiții — pe platformă și în comunitate</p>
         </div>
 
         {/* View toggle */}
-        <div className="flex rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] p-1 gap-1 w-fit">
+        <div className="flex rounded-lg bg-[#141414] border border-[#2A2A2A] p-1 gap-1 w-fit">
           <button
             onClick={() => setView('list')}
             className={[
               'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-              view === 'list' ? 'bg-[#2a2a2a] text-[#f0f0f0]' : 'text-[#666] hover:text-[#a0a0a0]',
+              view === 'list' ? 'bg-[#2A2A2A] text-[#F0F0F0]' : 'text-[#6B6B6B] hover:text-[#A0A0A0]',
             ].join(' ')}
           >
             <List className="h-3.5 w-3.5" />
@@ -53,7 +53,7 @@ export function CalendarPage() {
             onClick={() => setView('grid')}
             className={[
               'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-              view === 'grid' ? 'bg-[#2a2a2a] text-[#f0f0f0]' : 'text-[#666] hover:text-[#a0a0a0]',
+              view === 'grid' ? 'bg-[#2A2A2A] text-[#F0F0F0]' : 'text-[#6B6B6B] hover:text-[#A0A0A0]',
             ].join(' ')}
           >
             <CalendarDays className="h-3.5 w-3.5" />
@@ -71,8 +71,8 @@ export function CalendarPage() {
             className={[
               'rounded-full px-4 py-1.5 text-sm font-medium border transition-colors',
               filter === key
-                ? 'bg-[#c8a84b] text-black border-[#c8a84b]'
-                : 'bg-transparent text-[#666] border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-[#a0a0a0]',
+                ? 'bg-[#E2B340] text-black border-[#E2B340]'
+                : 'bg-transparent text-[#6B6B6B] border-[#2A2A2A] hover:border-[#3A3A3A] hover:text-[#A0A0A0]',
             ].join(' ')}
           >
             {label}
@@ -85,8 +85,8 @@ export function CalendarPage() {
       ) : view === 'list' ? (
         filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-center">
-            <CalendarDays className="h-12 w-12 text-[#333] mb-3" />
-            <p className="text-[#666]">Niciun eveniment viitor în această categorie.</p>
+            <CalendarDays className="h-12 w-12 text-[#2A2A2A] mb-3" />
+            <p className="text-[#6B6B6B]">Niciun eveniment viitor în această categorie.</p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

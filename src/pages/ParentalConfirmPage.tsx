@@ -69,8 +69,8 @@ export function ParentalConfirmPage() {
 
   if (state === 'loading') {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
-        <p className="text-[#666]">Se verifică linkul...</p>
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <p className="text-[#6B6B6B]">Se verifică linkul...</p>
       </div>
     )
   }
@@ -93,24 +93,24 @@ export function ParentalConfirmPage() {
 
   // state === 'confirm'
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-6">
         <div className="text-center">
           <div className="text-5xl mb-4">♟</div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0] mb-2">Cerere cont copil</h1>
-          <p className="text-[#a0a0a0] text-sm">
-            <span className="text-[#f0f0f0] font-semibold">{childName}</span> a solicitat un cont pe platforma noastră de șah.
+          <h1 className="text-2xl font-bold text-[#F0F0F0] mb-2">Cerere cont copil</h1>
+          <p className="text-[#A0A0A0] text-sm">
+            <span className="text-[#F0F0F0] font-semibold">{childName}</span> a solicitat un cont pe platforma noastră de șah.
             Ca părinte sau tutore, îți cerem acordul pentru activarea contului.
           </p>
         </div>
 
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5 space-y-3 text-sm text-[#a0a0a0]">
-          <p className="font-semibold text-[#f0f0f0]">Platforma oferă:</p>
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 space-y-3 text-sm text-[#A0A0A0]">
+          <p className="font-semibold text-[#F0F0F0]">Platforma oferă:</p>
           <ul className="space-y-1.5 list-disc list-inside">
             <li>Cursuri interactive de șah pentru toate nivelele</li>
             <li>Puzzle-uri tactice cu rating și progres</li>
             <li>Sistem de ligi care recompensează perseverența</li>
-            <li><strong className="text-[#c8a84b]">Limită de 60 min/sesiune</strong> cu pauze progresive</li>
+            <li><strong className="text-[#E2B340]">Limită de 60 min/sesiune</strong> cu pauze progresive</li>
             <li>Raport săptămânal cu activitatea copilului</li>
           </ul>
         </div>
@@ -119,20 +119,20 @@ export function ParentalConfirmPage() {
           <button
             onClick={() => { /* handleAction called with token data */ }}
             disabled={submitting}
-            className="rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-[#f87171] font-semibold py-3 hover:border-[#f87171] transition-colors disabled:opacity-50"
+            className="rounded-lg bg-[#141414] border border-[#2A2A2A] text-[#FB7185] font-semibold py-3 hover:border-[#FB7185] transition-colors disabled:opacity-50"
           >
             Respinge
           </button>
           <button
             onClick={() => { /* handleAction called with token data */ }}
             disabled={submitting}
-            className="rounded-lg bg-[#c8a84b] text-black font-semibold py-3 hover:bg-[#d4b860] transition-colors disabled:opacity-50"
+            className="rounded-lg bg-[#E2B340] text-black font-semibold py-3 hover:bg-[#F0C85A] transition-colors disabled:opacity-50"
           >
             Confirma
           </button>
         </div>
 
-        <p className="text-xs text-[#666] text-center">
+        <p className="text-xs text-[#6B6B6B] text-center">
           Platforma nu colectează date personale ale copilului în afara unui username și progresului educațional.
         </p>
       </div>
@@ -142,11 +142,11 @@ export function ParentalConfirmPage() {
 
 function StatusPage({ icon, title, message }: { icon: string; title: string; message: string }) {
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="max-w-sm w-full text-center space-y-4">
         <div className="text-5xl">{icon}</div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">{title}</h1>
-        <p className="text-[#a0a0a0] text-sm">{message}</p>
+        <h1 className="text-2xl font-bold text-[#F0F0F0]">{title}</h1>
+        <p className="text-[#A0A0A0] text-sm">{message}</p>
       </div>
     </div>
   )

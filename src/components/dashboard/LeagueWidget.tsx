@@ -19,7 +19,7 @@ export function LeagueWidget() {
   const weeklyShort = !weeklyLoading && weeklyXp < weeklyMin
 
   return (
-    <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5">
+    <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
@@ -29,47 +29,47 @@ export function LeagueWidget() {
             ♟
           </div>
           <div>
-            <p className="text-xs text-[#666] uppercase tracking-wider">Liga ta</p>
+            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">Liga ta</p>
             <p className="text-xl font-bold" style={{ color: leagueConfig.color }}>
               {leagueConfig.label}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-[#f0f0f0]">{formatXp(profile.xp)}</p>
-          <p className="text-xs text-[#666]">XP total</p>
+          <p className="text-2xl font-bold text-[#F0F0F0]">{formatXp(profile.xp)}</p>
+          <p className="text-xs text-[#6B6B6B]">XP total</p>
         </div>
       </div>
 
       {/* Progres spre liga următoare */}
       <div className="mb-3">
-        <div className="flex justify-between text-xs text-[#666] mb-1.5">
+        <div className="flex justify-between text-xs text-[#6B6B6B] mb-1.5">
           <span>{leagueConfig.label}</span>
           {nextLeague ? (
             <span>{getLeagueConfig(nextLeague).label} în {xpToNext} XP</span>
           ) : (
-            <span className="text-[#c8a84b]">Ligă maximă ✦</span>
+            <span className="text-[#E2B340]">Ligă maximă ✦</span>
           )}
         </div>
-        <Progress value={progress} barClassName="bg-[#c8a84b]" />
+        <Progress value={progress} barClassName="bg-[#E2B340]" />
       </div>
 
       {/* XP săptămânal */}
-      <div className={`rounded-lg p-3 ${weeklyShort ? 'bg-[rgba(248,113,113,0.08)] border border-[rgba(248,113,113,0.2)]' : 'bg-[#111] border border-[#2a2a2a]'}`}>
+      <div className={`rounded-lg p-3 ${weeklyShort ? 'bg-[rgba(251,113,133,0.08)] border border-[rgba(251,113,133,0.2)]' : 'bg-[#141414] border border-[#2A2A2A]'}`}>
         <div className="flex justify-between text-xs mb-1.5">
-          <span className={weeklyShort ? 'text-[#f87171]' : 'text-[#666]'}>
+          <span className={weeklyShort ? 'text-[#FB7185]' : 'text-[#6B6B6B]'}>
             {weeklyShort ? '⚠ XP săptămânal insuficient' : 'XP săptămâna aceasta'}
           </span>
-          <span className={weeklyShort ? 'text-[#f87171]' : 'text-[#a0a0a0]'}>
+          <span className={weeklyShort ? 'text-[#FB7185]' : 'text-[#A0A0A0]'}>
             {weeklyLoading ? '...' : `${weeklyXp} / ${weeklyMin}`}
           </span>
         </div>
         <Progress
           value={weeklyPct}
-          barClassName={weeklyShort ? 'bg-[#f87171]' : 'bg-[#4ade80]'}
+          barClassName={weeklyShort ? 'bg-[#FB7185]' : 'bg-[#4ade80]'}
         />
         {weeklyShort && (
-          <p className="text-xs text-[#f87171] mt-1.5">
+          <p className="text-xs text-[#FB7185] mt-1.5">
             Fă cel puțin {weeklyMin - weeklyXp} XP până duminică pentru a nu retrograda.
           </p>
         )}
@@ -80,7 +80,7 @@ export function LeagueWidget() {
         <div className="mt-3 flex items-center gap-1.5 text-sm text-[#fbbf24]">
           <Flame className="h-4 w-4" />
           <span className="font-semibold">{profile.streak_days} zile</span>
-          <span className="text-[#666]">streak activ</span>
+          <span className="text-[#6B6B6B]">streak activ</span>
         </div>
       )}
     </div>

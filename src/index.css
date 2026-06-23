@@ -1,21 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #0f0f0f;
-  --color-bg-secondary: #1a1a1a;
-  --color-bg-card: #1e1e1e;
-  --color-bg-hover: #252525;
-  --color-border: #2a2a2a;
-  --color-text-primary: #f0f0f0;
-  --color-text-secondary: #a0a0a0;
-  --color-text-muted: #666666;
-  --color-accent: #c8a84b;
-  --color-accent-hover: #d4b860;
-  --color-accent-dim: rgba(200,168,75,0.15);
-  --color-success: #4ade80;
-  --color-danger: #f87171;
+  /* Bază — negru neutru (fără tentă albastră) */
+  --color-bg-primary: #0A0A0A;
+  --color-bg-secondary: #141414;
+  --color-bg-card: #141414;
+  --color-bg-elevated: #1C1C1C;
+  --color-bg-hover: #242424;
+  --color-border: #2A2A2A;
+  --color-border-strong: #3A3A3A;
+
+  /* Text */
+  --color-text-primary: #F0F0F0;
+  --color-text-secondary: #A0A0A0;
+  --color-text-muted: #6B6B6B;
+
+  /* Semnătură — auriu (rol: brand, CTA major, victorie) */
+  --color-accent: #E2B340;
+  --color-accent-hover: #F0C85A;
+  --color-accent-dark: #C99A2E;
+  --color-accent-dim: rgba(226,179,64,0.15);
+  --color-accent-glow: rgba(226,179,64,0.30);
+
+  /* Accente funcționale (codate pe stare) */
+  --color-active: #2DD4BF;        /* teal — activ / în desfășurare */
+  --color-active-dim: rgba(45,212,191,0.15);
+  --color-active-glow: rgba(45,212,191,0.30);
+  --color-success: #4ade80;       /* verde — completat */
+  --color-special: #8B5CF6;       /* violet — challenge/premium */
+  --color-special-dim: rgba(139,92,246,0.15);
+  --color-special-glow: rgba(139,92,246,0.25);
+  --color-danger: #FB7185;        /* coral — alertă/eroare */
   --color-warning: #fbbf24;
 
+  /* Ligile — păstrate (spectru de progresie deja bun) */
   --color-league-cherestea: #8B6914;
   --color-league-tinichea: #71797E;
   --color-league-bronz: #CD7F32;
@@ -23,6 +41,16 @@
   --color-league-aur: #FFD700;
   --color-league-smarald: #50C878;
   --color-league-diamant: #B9F2FF;
+
+  /* Tipografie */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+
+  /* Profunzime & glow (aplicare selectivă) */
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.30), 0 6px 20px rgba(0,0,0,0.28);
+  --shadow-glow-teal: 0 0 0 1px rgba(45,212,191,0.45), 0 0 22px rgba(45,212,191,0.28);
+  --shadow-glow-gold: 0 0 22px rgba(226,179,64,0.38);
+  --shadow-glow-violet: 0 0 22px rgba(139,92,246,0.32);
 }
 
 * {
@@ -32,8 +60,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #0f0f0f;
-  color: #f0f0f0;
+  background-color: #0A0A0A;
+  color: #F0F0F0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -42,10 +70,16 @@ body {
   min-height: 100vh;
 }
 
+/* Titlurile folosesc fontul de display (Space Grotesk) */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #1a1a1a; }
-::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #666; }
+::-webkit-scrollbar-track { background: #141414; }
+::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3A3A3A; }
 
 @keyframes piece-shake {
   0%, 100% { transform: translateX(0); }
@@ -101,4 +135,18 @@ body {
 @keyframes mascot-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+/* Glow teal care pulsează (nodul/elementul activ — "ești aici") */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(45,212,191,0.35), 0 0 14px rgba(45,212,191,0.18); }
+  50% { box-shadow: 0 0 0 1px rgba(45,212,191,0.55), 0 0 26px rgba(45,212,191,0.40); }
+}
+
+.animate-glow-pulse { animation: glow-pulse 2.2s ease-in-out infinite; }
+
+/* Sweep de lumină peste bara de progres */
+@keyframes progress-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
 }

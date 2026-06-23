@@ -15,7 +15,7 @@ export function PlayerCard({ profile }: PlayerCardProps) {
   return (
     <Link
       to={`/profile/${profile.id}`}
-      className="block rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 hover:border-[#3a3a3a] hover:bg-[#222] transition-colors"
+      className="block rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
     >
       <div className="flex items-center gap-3 mb-3">
         <div
@@ -29,26 +29,26 @@ export function PlayerCard({ profile }: PlayerCardProps) {
           {profile.username.slice(0, 2).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-[#f0f0f0]">{profile.username}</p>
+          <p className="truncate text-sm font-semibold text-[#F0F0F0]">{profile.username}</p>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="text-xs font-medium" style={{ color: leagueConfig.color }}>
               {leagueConfig.label}
             </span>
             {profile.city && (
-              <span className="text-xs text-[#555]">· {profile.city}</span>
+              <span className="text-xs text-[#6B6B6B]">· {profile.city}</span>
             )}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-        <div className="rounded-lg bg-[#111] px-2.5 py-2">
-          <p className="text-[#555] mb-0.5">XP Total</p>
-          <p className="font-semibold text-[#f0f0f0]">{profile.xp.toLocaleString('ro-RO')}</p>
+        <div className="rounded-lg bg-[#141414] px-2.5 py-2">
+          <p className="text-[#6B6B6B] mb-0.5">XP Total</p>
+          <p className="font-semibold text-[#F0F0F0]">{profile.xp.toLocaleString('ro-RO')}</p>
         </div>
-        <div className="rounded-lg bg-[#111] px-2.5 py-2">
-          <p className="text-[#555] mb-0.5">Elo estimat</p>
-          <p className="font-semibold text-[#f0f0f0]">~{profile.estimated_elo}</p>
+        <div className="rounded-lg bg-[#141414] px-2.5 py-2">
+          <p className="text-[#6B6B6B] mb-0.5">Elo estimat</p>
+          <p className="font-semibold text-[#F0F0F0]">~{profile.estimated_elo}</p>
         </div>
       </div>
 

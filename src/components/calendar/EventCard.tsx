@@ -84,7 +84,7 @@ export function EventCard({ tournament: t }: EventCardProps) {
   const categoryVariant = t.category ? (CATEGORY_COLORS[t.category] ?? 'default') : 'default'
 
   return (
-    <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5 flex flex-col gap-4">
+    <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap gap-2 mb-2">
@@ -95,28 +95,28 @@ export function EventCard({ tournament: t }: EventCardProps) {
               <Badge variant="default">Competiție externă</Badge>
             )}
           </div>
-          <h3 className="font-semibold text-[#f0f0f0] leading-snug">{t.title}</h3>
+          <h3 className="font-semibold text-[#F0F0F0] leading-snug">{t.title}</h3>
           {t.organizer && (
-            <p className="text-xs text-[#555] mt-0.5">{t.organizer}</p>
+            <p className="text-xs text-[#6B6B6B] mt-0.5">{t.organizer}</p>
           )}
         </div>
 
         {/* Date block */}
-        <div className="flex-shrink-0 rounded-lg bg-[#111] border border-[#2a2a2a] p-2.5 text-center min-w-[52px]">
-          <p className="text-lg font-bold text-[#c8a84b] leading-none">
+        <div className="flex-shrink-0 rounded-lg bg-[#141414] border border-[#2A2A2A] p-2.5 text-center min-w-[52px]">
+          <p className="text-lg font-bold text-[#E2B340] leading-none">
             {new Date(t.starts_at).getDate()}
           </p>
-          <p className="text-xs text-[#666] uppercase tracking-wide mt-0.5">
+          <p className="text-xs text-[#6B6B6B] uppercase tracking-wide mt-0.5">
             {new Date(t.starts_at).toLocaleDateString('ro-RO', { month: 'short' })}
           </p>
         </div>
       </div>
 
       {t.description && (
-        <p className="text-sm text-[#888] leading-relaxed">{t.description}</p>
+        <p className="text-sm text-[#A0A0A0] leading-relaxed">{t.description}</p>
       )}
 
-      <div className="flex flex-wrap gap-3 text-xs text-[#666]">
+      <div className="flex flex-wrap gap-3 text-xs text-[#6B6B6B]">
         <div className="flex items-center gap-1.5">
           <Calendar className="h-3.5 w-3.5" />
           <span>
@@ -152,7 +152,7 @@ export function EventCard({ tournament: t }: EventCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full text-[#f87171]"
+              className="w-full text-[#FB7185]"
               onClick={() => unregisterMutation.mutate()}
               loading={unregisterMutation.isPending}
             >
@@ -169,7 +169,7 @@ export function EventCard({ tournament: t }: EventCardProps) {
             </Button>
           )
         ) : isPast ? (
-          <p className="text-center text-xs text-[#555]">Eveniment încheiat</p>
+          <p className="text-center text-xs text-[#6B6B6B]">Eveniment încheiat</p>
         ) : null}
       </div>
     </div>

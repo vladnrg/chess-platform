@@ -23,7 +23,7 @@ import type { Puzzle } from '@/types'
 
 // Culoare / etichetă per poziție a benzii (inferioară / curentă / superioară)
 function offsetColor(o: BandOffset): string {
-  return o === -1 ? '#60a5fa' : o === 0 ? '#c8a84b' : '#f97316'
+  return o === -1 ? '#60a5fa' : o === 0 ? '#E2B340' : '#f97316'
 }
 function offsetLabel(o: BandOffset): string {
   return o === -1 ? 'Inferioară' : o === 0 ? 'Nivelul tău' : 'Superioară'
@@ -75,15 +75,15 @@ function EvalBar({ cp, mate, prevCp, prevMate, orientation }: EvalBarProps) {
 
   return (
     <div className="flex flex-col items-center gap-1 select-none" style={{ width: 28 }}>
-      <div className="relative flex-1 w-full rounded-lg overflow-hidden border border-[#2a2a2a] bg-[#222]" style={{ minHeight: 80 }}>
+      <div className="relative flex-1 w-full rounded-lg overflow-hidden border border-[#2A2A2A] bg-[#1C1C1C]" style={{ minHeight: 80 }}>
         <div
-          className="absolute bottom-0 left-0 right-0 bg-[#e8e8e8] transition-all duration-700 ease-out"
+          className="absolute bottom-0 left-0 right-0 bg-[#F0F0F0] transition-all duration-700 ease-out"
           style={{ height: `${fillPct}%` }}
         />
       </div>
-      <span className="text-[11px] font-mono font-bold text-[#f0f0f0] leading-none tabular-nums">{label}</span>
+      <span className="text-[11px] font-mono font-bold text-[#F0F0F0] leading-none tabular-nums">{label}</span>
       {deltaLabel && (
-        <span className={`text-[10px] font-mono leading-none tabular-nums ${deltaPositive ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
+        <span className={`text-[10px] font-mono leading-none tabular-nums ${deltaPositive ? 'text-[#4ade80]' : 'text-[#FB7185]'}`}>
           {deltaLabel}
         </span>
       )}
@@ -522,10 +522,10 @@ export function PuzzlesPage() {
             <MascotEnPassant mood="encouraging" size={64} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f0]">Întâi, hai să-ți aflăm nivelul</h1>
-            <p className="text-[#a0a0a0] text-sm mt-2 leading-relaxed">
+            <h1 className="text-2xl font-bold text-[#F0F0F0]">Întâi, hai să-ți aflăm nivelul</h1>
+            <p className="text-[#A0A0A0] text-sm mt-2 leading-relaxed">
               Rezolvi un test de plasament cu 20 de puzzle-uri progresiv mai grele. Pe baza lui primești un
-              <span className="text-[#c8a84b] font-medium"> rating de puzzle</span> și începi să joci exact la nivelul tău.
+              <span className="text-[#E2B340] font-medium"> rating de puzzle</span> și începi să joci exact la nivelul tău.
             </p>
           </div>
           <Button size="lg" className="w-full" onClick={() => navigate('/puzzles/placement')}>
@@ -545,13 +545,13 @@ export function PuzzlesPage() {
       [wrongMoveTo]: { backgroundColor: 'rgba(249, 115, 22, 0.55)' },
     } : {}),
     ...(hintLevel >= 2 && expectedMoveUci ? {
-      [expectedMoveUci.slice(0, 2)]: { backgroundColor: 'rgba(200, 168, 75, 0.45)' },
+      [expectedMoveUci.slice(0, 2)]: { backgroundColor: 'rgba(226,179,64, 0.45)' },
     } : {}),
     ...(hintLevel >= 3 && expectedMoveUci ? {
-      [expectedMoveUci.slice(2, 4)]: { backgroundColor: 'rgba(200, 168, 75, 0.7)' },
+      [expectedMoveUci.slice(2, 4)]: { backgroundColor: 'rgba(226,179,64, 0.7)' },
     } : {}),
     ...(selectedSquare ? {
-      [selectedSquare]: { backgroundColor: 'rgba(200, 168, 75, 0.4)' },
+      [selectedSquare]: { backgroundColor: 'rgba(226,179,64, 0.4)' },
     } : {}),
     ...(shakingSquare ? {
       [shakingSquare]: { animation: 'piece-shake 0.4s ease-in-out' },
@@ -560,21 +560,21 @@ export function PuzzlesPage() {
 
   const boardArrows = [
     ...(wrongMoveFrom && wrongMoveTo ? [{ startSquare: wrongMoveFrom, endSquare: wrongMoveTo, color: '#f97316' }] : []),
-    ...(hintLevel >= 3 && expectedMoveUci ? [{ startSquare: expectedMoveUci.slice(0, 2), endSquare: expectedMoveUci.slice(2, 4), color: '#c8a84b' }] : []),
+    ...(hintLevel >= 3 && expectedMoveUci ? [{ startSquare: expectedMoveUci.slice(0, 2), endSquare: expectedMoveUci.slice(2, 4), color: '#E2B340' }] : []),
   ]
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Puzzle-uri</h1>
-          <p className="text-[#666] text-sm mt-0.5">
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Puzzle-uri</h1>
+          <p className="text-[#6B6B6B] text-sm mt-0.5">
             {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
             {currentBand && (
               <> · <span style={{ color: offsetColor(0) }}>Banda {currentBand.label}</span></>
             )}
             {currentPuzzle && (
-              <> · <span className="text-[#f0f0f0] font-medium">puzzle ELO {currentPuzzle.rating}</span></>
+              <> · <span className="text-[#F0F0F0] font-medium">puzzle ELO {currentPuzzle.rating}</span></>
             )}
           </p>
         </div>
@@ -586,14 +586,14 @@ export function PuzzlesPage() {
               <Flame className="h-4 w-4" /> {winStreak}
             </span>
           )}
-          <div className="relative rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-center">
-            <p className="text-[10px] uppercase tracking-wider text-[#666] flex items-center justify-center gap-1">
+          <div className="relative rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-2 text-center">
+            <p className="text-[10px] uppercase tracking-wider text-[#6B6B6B] flex items-center justify-center gap-1">
               <Target className="h-3 w-3" /> Rating-ul tău
             </p>
-            <p className="text-2xl font-black text-[#f0f0f0] leading-tight tabular-nums">{puzzleRating}</p>
+            <p className="text-2xl font-black text-[#F0F0F0] leading-tight tabular-nums">{puzzleRating}</p>
             {lastDelta !== null && lastDelta !== 0 && (
               <span
-                className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#f87171] text-black'}`}
+                className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#FB7185] text-black'}`}
                 style={{ animation: 'xp-float 2.2s ease-out forwards' }}
               >
                 {lastDelta > 0 ? `+${lastDelta}` : lastDelta}
@@ -614,7 +614,7 @@ export function PuzzlesPage() {
               'flex flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-sm font-semibold border-2 transition-all disabled:opacity-50',
               activeOffset === offset
                 ? 'text-black border-transparent'
-                : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-[#f0f0f0]'
+                : 'bg-transparent text-[#A0A0A0] border-[#2A2A2A] hover:border-[#3A3A3A] hover:text-[#F0F0F0]'
             )}
             style={activeOffset === offset ? { backgroundColor: offsetColor(offset), borderColor: offsetColor(offset) } : {}}
           >
@@ -625,7 +625,7 @@ export function PuzzlesPage() {
             <span className={cn('text-xs font-bold', activeOffset === offset ? 'text-black/70' : '')}>
               <span className={activeOffset === offset ? '' : 'text-[#4ade80]'}>+{gain}</span>
               {' / '}
-              <span className={activeOffset === offset ? '' : 'text-[#f87171]'}>−{loss}</span>
+              <span className={activeOffset === offset ? '' : 'text-[#FB7185]'}>−{loss}</span>
             </span>
           </button>
         ))}
@@ -635,9 +635,9 @@ export function PuzzlesPage() {
       </div>
 
       {limitReached && (
-        <div className="rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.3)] p-4 text-center">
-          <p className="text-[#c8a84b] font-semibold">Ai atins limita zilnică de {FREE_LIMIT} puzzle-uri</p>
-          <p className="text-[#666] text-sm mt-1">Upgrade la Pro pentru puzzle-uri nelimitate</p>
+        <div className="rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.3)] p-4 text-center">
+          <p className="text-[#E2B340] font-semibold">Ai atins limita zilnică de {FREE_LIMIT} puzzle-uri</p>
+          <p className="text-[#6B6B6B] text-sm mt-1">Upgrade la Pro pentru puzzle-uri nelimitate</p>
           <a href="/pricing" className="mt-3 inline-block">
             <Button size="sm">Upgrade la Pro</Button>
           </a>
@@ -651,10 +651,10 @@ export function PuzzlesPage() {
             <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
           ) : puzzleState ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-[#f0f0f0]">
+              <div className="flex items-center gap-2 text-sm font-medium text-[#F0F0F0]">
                 {puzzleState.status === 'playing' && !puzzleState.waitingOpponent
-                  ? <><span className="text-[#c8a84b]">Mutarea ta!</span> Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#f0f0f0] text-black' : 'bg-[#2a2a2a] border border-[#444] text-[#f0f0f0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
-                  : <>Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#f0f0f0] text-black' : 'bg-[#2a2a2a] border border-[#444] text-[#f0f0f0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
+                  ? <><span className="text-[#E2B340]">Mutarea ta!</span> Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
+                  : <>Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
                 }
               </div>
               <div className="flex gap-2 items-stretch">
@@ -667,7 +667,7 @@ export function PuzzlesPage() {
                     orientation={playerColor}
                   />
                 )}
-                <div className="relative flex-1 rounded-xl overflow-hidden border border-[#2a2a2a]">
+                <div className="relative flex-1 rounded-xl overflow-hidden border border-[#2A2A2A]">
                   <Chessboard
                     options={{
                       position: puzzleState.game.fen(),
@@ -676,7 +676,7 @@ export function PuzzlesPage() {
                       allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent,
                       boardOrientation: playerColor,
                       boardStyle: { borderRadius: 0 },
-                      darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                      darkSquareStyle: { backgroundColor: '#3A3A3A' },
                       lightSquareStyle: { backgroundColor: '#f0d9b5' },
                       squareStyles: boardSquareStyles,
                       arrows: boardArrows,
@@ -684,7 +684,7 @@ export function PuzzlesPage() {
                   />
                   {xpBurst !== null && (
                     <div
-                      className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-10 rounded-full bg-[rgba(200,168,75,0.95)] px-4 py-1.5 text-sm font-black text-black shadow-lg"
+                      className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-10 rounded-full bg-[rgba(226,179,64,0.95)] px-4 py-1.5 text-sm font-black text-black shadow-lg"
                       style={{ animation: 'xp-float 1.5s ease-out forwards' }}
                     >
                       +{xpBurst} XP · Serie {correctStreak}
@@ -694,7 +694,7 @@ export function PuzzlesPage() {
                   {puzzleState.status === 'wrong' && (
                     <div className="absolute top-0 left-0 right-0 z-20 p-2">
                       <div
-                        className="mx-auto max-w-md rounded-xl border border-[rgba(251,191,36,0.45)] bg-[#1a1408]/95 backdrop-blur-sm shadow-2xl p-3 space-y-2"
+                        className="mx-auto max-w-md rounded-xl border border-[rgba(251,191,36,0.45)] bg-[#1C1C1C]/95 backdrop-blur-sm shadow-2xl p-3 space-y-2"
                         style={{ animation: 'pop-in 0.25s ease-out' }}
                       >
                         <div className="flex items-center gap-2">
@@ -704,13 +704,13 @@ export function PuzzlesPage() {
                           <p className="text-sm font-bold text-[#fbbf24]">Mai gândește-te</p>
                         </div>
                         {evalLoading ? (
-                          <p className="text-sm text-[#888]">Se analizează poziția...</p>
+                          <p className="text-sm text-[#A0A0A0]">Se analizează poziția...</p>
                         ) : moveExplanation ? (
-                          <p className="text-sm text-[#e8e8e8] leading-relaxed">{moveExplanation.message}</p>
+                          <p className="text-sm text-[#F0F0F0] leading-relaxed">{moveExplanation.message}</p>
                         ) : null}
                         {secondHint && (
-                          <div className="rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-2.5">
-                            <p className="text-sm text-[#d4b860]">{secondHint}</p>
+                          <div className="rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] p-2.5">
+                            <p className="text-sm text-[#F0C85A]">{secondHint}</p>
                           </div>
                         )}
                       </div>
@@ -730,17 +730,17 @@ export function PuzzlesPage() {
 
               {/* Near-equal — acceptat */}
               {puzzleState.status === 'correct' && moveExplanation?.type === 'near-equal' && (
-                <div className="rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-3 space-y-2">
+                <div className="rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] p-3 space-y-2">
                   <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-[#c8a84b] mt-0.5 flex-shrink-0" />
+                    <Info className="h-4 w-4 text-[#E2B340] mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-[#c8a84b] font-semibold">Bine jucat!</p>
-                      <p className="text-sm text-[#a0a0a0] mt-0.5">{moveExplanation.message}</p>
+                      <p className="text-sm text-[#E2B340] font-semibold">Bine jucat!</p>
+                      <p className="text-sm text-[#A0A0A0] mt-0.5">{moveExplanation.message}</p>
                       {moveExplanation.nearEqualAlternatives && moveExplanation.nearEqualAlternatives.length > 0 && (
                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                          <span className="text-xs text-[#666]">Variante echivalente:</span>
+                          <span className="text-xs text-[#6B6B6B]">Variante echivalente:</span>
                           {moveExplanation.nearEqualAlternatives.map(san => (
-                            <span key={san} className="font-mono text-xs font-semibold text-[#c8a84b] bg-[rgba(200,168,75,0.15)] px-1.5 py-0.5 rounded">
+                            <span key={san} className="font-mono text-xs font-semibold text-[#E2B340] bg-[rgba(226,179,64,0.15)] px-1.5 py-0.5 rounded">
                               {san}
                             </span>
                           ))}
@@ -781,11 +781,11 @@ export function PuzzlesPage() {
               )}
 
               {puzzleState.waitingOpponent && (
-                <p className="text-sm text-[#666] text-center">Adversarul mută...</p>
+                <p className="text-sm text-[#6B6B6B] text-center">Adversarul mută...</p>
               )}
             </div>
           ) : (
-            <div className="flex justify-center py-16 text-[#666]">Niciun puzzle încărcat.</div>
+            <div className="flex justify-center py-16 text-[#6B6B6B]">Niciun puzzle încărcat.</div>
           )}
         </div>
 
@@ -794,11 +794,11 @@ export function PuzzlesPage() {
           {currentPuzzle && (
             <Card className="p-4 space-y-3">
               <div>
-                <p className="text-xs text-[#666] uppercase tracking-wider mb-1">Rating puzzle</p>
-                <p className="text-2xl font-bold text-[#f0f0f0]">{currentPuzzle.rating}</p>
+                <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">Rating puzzle</p>
+                <p className="text-2xl font-bold text-[#F0F0F0]">{currentPuzzle.rating}</p>
               </div>
               <div>
-                <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Teme</p>
+                <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Teme</p>
                 <div className="flex flex-wrap gap-1.5">
                   {displayThemes(currentPuzzle.themes).map(theme => (
                     <Badge key={theme} variant="accent">
@@ -812,7 +812,7 @@ export function PuzzlesPage() {
                   href={currentPuzzle.game_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[#c8a84b] hover:text-[#d4b860]"
+                  className="text-xs text-[#E2B340] hover:text-[#F0C85A]"
                 >
                   Partida originală pe Lichess →
                 </a>
@@ -821,15 +821,15 @@ export function PuzzlesPage() {
           )}
 
           <Card className="p-4">
-            <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Cum funcționează rating-ul</p>
-            <ul className="space-y-1.5 text-sm text-[#a0a0a0]">
+            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Cum funcționează rating-ul</p>
+            <ul className="space-y-1.5 text-sm text-[#A0A0A0]">
               <li>• Joci doar din 3 benzi: inferioară, a ta și superioară</li>
-              <li>• Banda ta: <span className="text-[#4ade80]">+5</span> / <span className="text-[#f87171]">−5</span> · inferioară: <span className="text-[#4ade80]">+3</span> / <span className="text-[#f87171]">−7</span> · superioară: <span className="text-[#4ade80]">+7</span> / <span className="text-[#f87171]">−3</span></li>
+              <li>• Banda ta: <span className="text-[#4ade80]">+5</span> / <span className="text-[#FB7185]">−5</span> · inferioară: <span className="text-[#4ade80]">+3</span> / <span className="text-[#FB7185]">−7</span> · superioară: <span className="text-[#4ade80]">+7</span> / <span className="text-[#FB7185]">−3</span></li>
               <li>• 5 corecte la rând → promovare automată la banda superioară</li>
             </ul>
             <button
               onClick={() => navigate('/puzzles/placement')}
-              className="mt-3 text-xs text-[#888] hover:text-[#c8a84b] transition-colors underline underline-offset-2"
+              className="mt-3 text-xs text-[#A0A0A0] hover:text-[#E2B340] transition-colors underline underline-offset-2"
             >
               Refă testul de plasament
             </button>
@@ -838,8 +838,8 @@ export function PuzzlesPage() {
           <Card className="p-4">
             <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
               <div>
-                <p className="text-sm text-[#f0f0f0] font-medium">Bara de evaluare</p>
-                <p className="text-xs text-[#666] mt-0.5">Afișează evaluarea după fiecare mutare</p>
+                <p className="text-sm text-[#F0F0F0] font-medium">Bara de evaluare</p>
+                <p className="text-xs text-[#6B6B6B] mt-0.5">Afișează evaluarea după fiecare mutare</p>
               </div>
               <button
                 role="switch"
@@ -847,7 +847,7 @@ export function PuzzlesPage() {
                 onClick={() => setEvalBarEnabled(v => !v)}
                 className={cn(
                   'relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200',
-                  evalBarEnabled ? 'bg-[#c8a84b]' : 'bg-[#2a2a2a]'
+                  evalBarEnabled ? 'bg-[#E2B340]' : 'bg-[#2A2A2A]'
                 )}
               >
                 <span

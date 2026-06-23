@@ -13,7 +13,7 @@ interface Props {
 
 const FLOATING_PIECES = ['♟', '♞', '♝', '♜', '♛', '♙', '♘', '♗', '♖']
 
-export function PawnPromotionCelebration({ accentColor = '#c8a84b', duration = 2200, onDone }: Props) {
+export function PawnPromotionCelebration({ accentColor = '#E2B340', duration = 2200, onDone }: Props) {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {

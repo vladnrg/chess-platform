@@ -57,8 +57,8 @@ function ScoreDots({ score }: { score: number }) {
           key={i}
           className={`inline-block h-2 w-2 rounded-full ${
             i < filled
-              ? score >= 60 ? 'bg-[#4ade80]' : score >= 45 ? 'bg-[#c8a84b]' : 'bg-[#f87171]'
-              : 'bg-[#2a2a2a]'
+              ? score >= 60 ? 'bg-[#4ade80]' : score >= 45 ? 'bg-[#E2B340]' : 'bg-[#FB7185]'
+              : 'bg-[#2A2A2A]'
           }`}
         />
       ))}
@@ -119,8 +119,8 @@ export function RepertoirePage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Studiază-ți partidele</h1>
-        <p className="text-[#666] text-sm mt-1 max-w-xl">
+        <h1 className="text-2xl font-bold text-[#F0F0F0]">Studiază-ți partidele</h1>
+        <p className="text-[#6B6B6B] text-sm mt-1 max-w-xl">
           Conectează-ți contul Lichess pentru a vedea cum performezi cu fiecare deschidere și ce trebuie să antrenezi.
         </p>
       </div>
@@ -128,7 +128,7 @@ export function RepertoirePage() {
       {/* Import panel */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <h2 className="font-semibold text-[#f0f0f0] text-sm">Conectează cont Lichess</h2>
+          <h2 className="font-semibold text-[#F0F0F0] text-sm">Conectează cont Lichess</h2>
           <div className="flex gap-2">
             <input
               type="text"
@@ -136,7 +136,7 @@ export function RepertoirePage() {
               onChange={e => setLichessInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') importMutation.mutate() }}
               placeholder="Username Lichess..."
-              className="flex-1 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm text-[#f0f0f0] placeholder:text-[#444] focus:outline-none focus:border-[#c8a84b]"
+              className="flex-1 rounded-lg bg-[#141414] border border-[#2A2A2A] px-3 py-2 text-sm text-[#F0F0F0] placeholder:text-[#3A3A3A] focus:outline-none focus:border-[#E2B340]"
             />
             <Button
               size="sm"
@@ -151,7 +151,7 @@ export function RepertoirePage() {
             </Button>
           </div>
           {stats && stats.length > 0 && (
-            <p className="text-xs text-[#555]">
+            <p className="text-xs text-[#6B6B6B]">
               {total} partide analizate · {filtered.length} deschideri
               {(stats[0] as any)?.last_imported_at &&
                 ` · Ultima import: ${new Date(stats[0].last_imported_at).toLocaleDateString('ro-RO')}`}
@@ -163,19 +163,19 @@ export function RepertoirePage() {
       {isLoading ? (
         <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
       ) : !stats || stats.length === 0 ? (
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-8 text-center">
-          <Target className="h-10 w-10 text-[#333] mx-auto mb-3" />
-          <p className="text-[#666]">Nicio dată importată încă.</p>
-          <p className="text-[#444] text-sm mt-1">Introdu username-ul Lichess și apasă "Importă".</p>
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-8 text-center">
+          <Target className="h-10 w-10 text-[#2A2A2A] mx-auto mb-3" />
+          <p className="text-[#6B6B6B]">Nicio dată importată încă.</p>
+          <p className="text-[#3A3A3A] text-sm mt-1">Introdu username-ul Lichess și apasă "Importă".</p>
         </div>
       ) : (
         <>
           {/* Weak openings alert */}
           {weak.length > 0 && (
-            <div className="rounded-xl bg-[rgba(248,113,113,0.07)] border border-[rgba(248,113,113,0.25)] p-4 space-y-3">
+            <div className="rounded-xl bg-[rgba(251,113,133,0.07)] border border-[rgba(251,113,133,0.25)] p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-[#f87171]" />
-                <p className="text-sm font-semibold text-[#f87171]">Puncte slabe identificate</p>
+                <AlertTriangle className="h-4 w-4 text-[#FB7185]" />
+                <p className="text-sm font-semibold text-[#FB7185]">Puncte slabe identificate</p>
               </div>
               {weak.slice(0, 3).map(s => {
                 const total = s.wins + s.draws + s.losses
@@ -183,10 +183,10 @@ export function RepertoirePage() {
                 const courseSlug = ECO_TO_COURSE[ecoPrefix]
                 const puzzleTheme = ECO_TO_THEME[ecoPrefix]
                 return (
-                  <div key={s.id} className="flex items-start justify-between gap-3 bg-[#111] rounded-lg p-3">
+                  <div key={s.id} className="flex items-start justify-between gap-3 bg-[#141414] rounded-lg p-3">
                     <div>
-                      <p className="text-sm font-medium text-[#f0f0f0]">{translateOpeningName(s.opening_name)}</p>
-                      <p className="text-xs text-[#666] mt-0.5">
+                      <p className="text-sm font-medium text-[#F0F0F0]">{translateOpeningName(s.opening_name)}</p>
+                      <p className="text-xs text-[#6B6B6B] mt-0.5">
                         Cu {s.color === 'white' ? 'Albul' : 'Negrul'} · {scorePercent(s)}% scor · {total} partide
                       </p>
                     </div>
@@ -218,15 +218,15 @@ export function RepertoirePage() {
 
           {/* Training panel */}
           {weak.length > 0 && (
-            <div className="rounded-xl border border-[#2a2a2a] bg-[#111] p-5 space-y-4">
+            <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-5 space-y-4">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Swords className="h-4 w-4 text-[#c8a84b]" />
-                  <h3 className="text-sm font-semibold text-[#f0f0f0]">Antrenează-ți slăbiciunile cu Dl. En Passant</h3>
+                  <Swords className="h-4 w-4 text-[#E2B340]" />
+                  <h3 className="text-sm font-semibold text-[#F0F0F0]">Antrenează-ți slăbiciunile cu Dl. En Passant</h3>
                 </div>
                 <button
                   onClick={() => setShowPersonalTactics(true)}
-                  className="flex items-center gap-1.5 rounded-lg bg-[rgba(248,113,113,0.1)] border border-[rgba(248,113,113,0.3)] px-3 py-1.5 text-xs font-semibold text-[#f87171] hover:bg-[rgba(248,113,113,0.18)] transition-colors"
+                  className="flex items-center gap-1.5 rounded-lg bg-[rgba(251,113,133,0.1)] border border-[rgba(251,113,133,0.3)] px-3 py-1.5 text-xs font-semibold text-[#FB7185] hover:bg-[rgba(251,113,133,0.18)] transition-colors"
                 >
                   <Crosshair className="h-3.5 w-3.5" />
                   Tactici din partidele mele
@@ -236,8 +236,8 @@ export function RepertoirePage() {
               {/* ELO slider */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#666]">Nivel antrenor</span>
-                  <span className="text-sm font-bold" style={{ color: trainerElo >= 2600 ? '#f87171' : trainerElo >= 2200 ? '#c8a84b' : '#4ade80' }}>
+                  <span className="text-xs text-[#6B6B6B]">Nivel antrenor</span>
+                  <span className="text-sm font-bold" style={{ color: trainerElo >= 2600 ? '#FB7185' : trainerElo >= 2200 ? '#E2B340' : '#4ade80' }}>
                     {trainerElo} ELO
                   </span>
                 </div>
@@ -248,28 +248,28 @@ export function RepertoirePage() {
                   onChange={e => setTrainerElo(Number(e.target.value))}
                   className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #c8a84b ${((trainerElo - 1600) / 1400) * 100}%, #2a2a2a ${((trainerElo - 1600) / 1400) * 100}%)`
+                    background: `linear-gradient(to right, #E2B340 ${((trainerElo - 1600) / 1400) * 100}%, #2A2A2A ${((trainerElo - 1600) / 1400) * 100}%)`
                   }}
                 />
-                <div className="flex justify-between text-xs text-[#444]">
+                <div className="flex justify-between text-xs text-[#3A3A3A]">
                   <span>1600</span><span>2000</span><span>2400</span><span>2800</span><span>3000</span>
                 </div>
               </div>
 
               {/* Weak openings as train buttons */}
               <div className="space-y-2">
-                <p className="text-xs text-[#555]">Selectează o deschidere cu care să antrenezi:</p>
+                <p className="text-xs text-[#6B6B6B]">Selectează o deschidere cu care să antrenezi:</p>
                 {weak.slice(0, 3).map(s => (
                   <button
                     key={s.id}
                     onClick={() => setTrainerOpening({ name: translateOpeningName(s.opening_name), color: s.color })}
-                    className="w-full flex items-center justify-between rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3 text-left hover:border-[#c8a84b] hover:bg-[rgba(200,168,75,0.05)] transition-all group"
+                    className="w-full flex items-center justify-between rounded-lg bg-[#141414] border border-[#2A2A2A] px-4 py-3 text-left hover:border-[#E2B340] hover:bg-[rgba(226,179,64,0.05)] transition-all group"
                   >
                     <div>
-                      <p className="text-sm font-medium text-[#f0f0f0] group-hover:text-[#c8a84b] transition-colors">{translateOpeningName(s.opening_name)}</p>
-                      <p className="text-xs text-[#555] mt-0.5">Cu {s.color === 'white' ? 'Albul' : 'Negrul'} · {scorePercent(s)}% scor</p>
+                      <p className="text-sm font-medium text-[#F0F0F0] group-hover:text-[#E2B340] transition-colors">{translateOpeningName(s.opening_name)}</p>
+                      <p className="text-xs text-[#6B6B6B] mt-0.5">Cu {s.color === 'white' ? 'Albul' : 'Negrul'} · {scorePercent(s)}% scor</p>
                     </div>
-                    <Swords className="h-4 w-4 text-[#444] group-hover:text-[#c8a84b] transition-colors flex-shrink-0" />
+                    <Swords className="h-4 w-4 text-[#3A3A3A] group-hover:text-[#E2B340] transition-colors flex-shrink-0" />
                   </button>
                 ))}
               </div>
@@ -285,8 +285,8 @@ export function RepertoirePage() {
                 className={[
                   'rounded-full px-3 py-1 text-xs font-medium border transition-colors',
                   colorFilter === f
-                    ? 'bg-[#c8a84b] text-black border-[#c8a84b]'
-                    : 'bg-transparent text-[#666] border-[#2a2a2a] hover:border-[#3a3a3a] hover:text-[#a0a0a0]',
+                    ? 'bg-[#E2B340] text-black border-[#E2B340]'
+                    : 'bg-transparent text-[#6B6B6B] border-[#2A2A2A] hover:border-[#3A3A3A] hover:text-[#A0A0A0]',
                 ].join(' ')}
               >
                 {f === 'all' ? 'Toate' : f === 'white' ? 'Cu Albul' : 'Cu Negrul'}
@@ -295,15 +295,15 @@ export function RepertoirePage() {
           </div>
 
           {/* Opening table */}
-          <div className="rounded-xl border border-[#2a2a2a] overflow-hidden">
+          <div className="rounded-xl border border-[#2A2A2A] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#2a2a2a] bg-[#1a1a1a]">
-                  <th className="text-left px-4 py-3 text-xs text-[#666] font-medium">Deschidere</th>
-                  <th className="text-center px-3 py-3 text-xs text-[#666] font-medium">Culoare</th>
-                  <th className="text-center px-3 py-3 text-xs text-[#666] font-medium">Partide</th>
-                  <th className="text-center px-3 py-3 text-xs text-[#666] font-medium hidden sm:table-cell">V / R / P</th>
-                  <th className="text-center px-3 py-3 text-xs text-[#666] font-medium">Scor</th>
+                <tr className="border-b border-[#2A2A2A] bg-[#141414]">
+                  <th className="text-left px-4 py-3 text-xs text-[#6B6B6B] font-medium">Deschidere</th>
+                  <th className="text-center px-3 py-3 text-xs text-[#6B6B6B] font-medium">Culoare</th>
+                  <th className="text-center px-3 py-3 text-xs text-[#6B6B6B] font-medium">Partide</th>
+                  <th className="text-center px-3 py-3 text-xs text-[#6B6B6B] font-medium hidden sm:table-cell">V / R / P</th>
+                  <th className="text-center px-3 py-3 text-xs text-[#6B6B6B] font-medium">Scor</th>
                   <th className="px-3 py-3" />
                 </tr>
               </thead>
@@ -316,37 +316,37 @@ export function RepertoirePage() {
                     <tr
                       key={s.id}
                       className={[
-                        'border-b border-[#1a1a1a] transition-colors',
-                        i % 2 === 0 ? 'bg-[#111]' : 'bg-[#131313]',
-                        isWeak ? 'border-l-2 border-l-[#f87171]' : '',
+                        'border-b border-[#141414] transition-colors',
+                        i % 2 === 0 ? 'bg-[#141414]' : 'bg-[#141414]',
+                        isWeak ? 'border-l-2 border-l-[#FB7185]' : '',
                       ].join(' ')}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          {isWeak && <AlertTriangle className="h-3 w-3 text-[#f87171] flex-shrink-0" />}
+                          {isWeak && <AlertTriangle className="h-3 w-3 text-[#FB7185] flex-shrink-0" />}
                           <div>
-                            <p className="text-[#f0f0f0] font-medium truncate max-w-[200px]">{translateOpeningName(s.opening_name)}</p>
-                            <p className="text-[#555] text-xs">{s.eco}</p>
+                            <p className="text-[#F0F0F0] font-medium truncate max-w-[200px]">{translateOpeningName(s.opening_name)}</p>
+                            <p className="text-[#6B6B6B] text-xs">{s.eco}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${s.color === 'white' ? 'bg-[#f0f0f0]/10 text-[#f0f0f0]' : 'bg-[#1a1a1a] border border-[#333] text-[#a0a0a0]'}`}>
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${s.color === 'white' ? 'bg-[#F0F0F0]/10 text-[#F0F0F0]' : 'bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0]'}`}>
                           {s.color === 'white' ? '♔' : '♚'}
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-center text-[#a0a0a0]">{tot}</td>
-                      <td className="px-3 py-3 text-center text-[#666] text-xs hidden sm:table-cell">
+                      <td className="px-3 py-3 text-center text-[#A0A0A0]">{tot}</td>
+                      <td className="px-3 py-3 text-center text-[#6B6B6B] text-xs hidden sm:table-cell">
                         <span className="text-[#4ade80]">{s.wins}</span>
                         {' / '}
-                        <span className="text-[#a0a0a0]">{s.draws}</span>
+                        <span className="text-[#A0A0A0]">{s.draws}</span>
                         {' / '}
-                        <span className="text-[#f87171]">{s.losses}</span>
+                        <span className="text-[#FB7185]">{s.losses}</span>
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center justify-center gap-2">
                           <ScoreDots score={score} />
-                          <span className={`text-xs font-semibold ${score >= 60 ? 'text-[#4ade80]' : score >= 45 ? 'text-[#c8a84b]' : 'text-[#f87171]'}`}>
+                          <span className={`text-xs font-semibold ${score >= 60 ? 'text-[#4ade80]' : score >= 45 ? 'text-[#E2B340]' : 'text-[#FB7185]'}`}>
                             {score}%
                           </span>
                         </div>
@@ -355,7 +355,7 @@ export function RepertoirePage() {
                         <button
                           onClick={() => setReviewOpening({ eco: s.eco, name: translateOpeningName(s.opening_name), color: s.color })}
                           title="Revizuiește partide"
-                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[#555] hover:text-[#c8a84b] hover:bg-[rgba(200,168,75,0.1)] transition-colors"
+                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[#6B6B6B] hover:text-[#E2B340] hover:bg-[rgba(226,179,64,0.1)] transition-colors"
                         >
                           <Film className="h-3.5 w-3.5" />
                           Partide

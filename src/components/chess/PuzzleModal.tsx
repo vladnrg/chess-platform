@@ -266,13 +266,13 @@ export function PuzzleModal({ theme, onClose }: Props) {
   }
 
   const squareStyles: Record<string, React.CSSProperties> = {}
-  if (hintFrom) squareStyles[hintFrom] = { background: 'rgba(200,168,75,0.55)', boxShadow: 'inset 0 0 0 3px #c8a84b' }
+  if (hintFrom) squareStyles[hintFrom] = { background: 'rgba(226,179,64,0.55)', boxShadow: 'inset 0 0 0 3px #E2B340' }
   if (showMove && expFrom && expTo) {
-    squareStyles[expFrom] = { background: 'rgba(200,168,75,0.45)' }
-    squareStyles[expTo] = { background: 'rgba(200,168,75,0.7)' }
+    squareStyles[expFrom] = { background: 'rgba(226,179,64,0.45)' }
+    squareStyles[expTo] = { background: 'rgba(226,179,64,0.7)' }
   }
   const boardArrows = showMove && expFrom && expTo
-    ? [{ startSquare: expFrom, endSquare: expTo, color: '#c8a84b' }]
+    ? [{ startSquare: expFrom, endSquare: expTo, color: '#E2B340' }]
     : []
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
@@ -285,20 +285,20 @@ export function PuzzleModal({ theme, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col w-full h-full bg-[#161616]"
+        className="relative flex flex-col w-full h-full bg-[#141414]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#2a2a2a] shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#2A2A2A] shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#f0f0f0]">Exersează: {categoryLabel}</h2>
-            <p className="text-xs text-[#666] mt-0.5">
+            <h2 className="text-base font-semibold text-[#F0F0F0]">Exersează: {categoryLabel}</h2>
+            <p className="text-xs text-[#6B6B6B] mt-0.5">
               {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} puzzle-uri azi`}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#666] hover:text-[#f0f0f0] hover:bg-[#2a2a2a] transition-colors"
+            className="rounded-lg p-1.5 text-[#6B6B6B] hover:text-[#F0F0F0] hover:bg-[#2A2A2A] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -307,9 +307,9 @@ export function PuzzleModal({ theme, onClose }: Props) {
         {/* Body */}
         <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
           {limitReached ? (
-            <div className="max-w-md mx-auto rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.3)] p-6 text-center">
-              <p className="text-[#c8a84b] font-semibold">Ai atins limita zilnică de {FREE_LIMIT} puzzle-uri</p>
-              <p className="text-[#666] text-sm mt-1">Upgrade la Pro pentru puzzle-uri nelimitate</p>
+            <div className="max-w-md mx-auto rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.3)] p-6 text-center">
+              <p className="text-[#E2B340] font-semibold">Ai atins limita zilnică de {FREE_LIMIT} puzzle-uri</p>
+              <p className="text-[#6B6B6B] text-sm mt-1">Upgrade la Pro pentru puzzle-uri nelimitate</p>
               <a href="/pricing" className="mt-3 inline-block">
                 <Button size="sm">Upgrade la Pro</Button>
               </a>
@@ -322,16 +322,16 @@ export function PuzzleModal({ theme, onClose }: Props) {
             <div className="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
               {/* Board */}
               <div className="flex-1 flex flex-col items-center gap-3 min-w-0">
-                <div className="flex items-center gap-2 text-sm text-[#a0a0a0] self-start lg:self-center">
+                <div className="flex items-center gap-2 text-sm text-[#A0A0A0] self-start lg:self-center">
                   <span>Joci cu</span>
-                  <span className={`font-semibold px-2 py-0.5 rounded text-xs ${puzzleState.game.turn() === 'w' ? 'bg-[#f0f0f0] text-black' : 'bg-[#1a1a1a] border border-[#444] text-[#f0f0f0]'}`}>
+                  <span className={`font-semibold px-2 py-0.5 rounded text-xs ${puzzleState.game.turn() === 'w' ? 'bg-[#F0F0F0] text-black' : 'bg-[#141414] border border-[#3A3A3A] text-[#F0F0F0]'}`}>
                     {puzzleState.game.turn() === 'w' ? '♔ Alb' : '♚ Negru'}
                   </span>
                 </div>
 
                 {/* Tablă mare pătrată, încadrată în înălțimea ecranului */}
                 <div className="relative w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
-                  <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+                  <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
                     <Chessboard
                       options={{
                         position: puzzleState.game.fen(),
@@ -339,7 +339,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
                         allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
                         boardOrientation: playerColor,
                         boardStyle: { borderRadius: 0 },
-                        darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                        darkSquareStyle: { backgroundColor: '#3A3A3A' },
                         lightSquareStyle: { backgroundColor: '#f0d9b5' },
                         squareStyles,
                         arrows: boardArrows,
@@ -378,12 +378,12 @@ export function PuzzleModal({ theme, onClose }: Props) {
 
                 <div className="w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
                   {seqPlaying && (
-                    <p className="text-sm text-[#c8a84b] text-center">Se redă secvența...</p>
+                    <p className="text-sm text-[#E2B340] text-center">Se redă secvența...</p>
                   )}
                   {revealed && !seqPlaying && (
-                    <div className="flex items-center gap-2 rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] p-3">
-                      <ListVideo className="h-5 w-5 text-[#c8a84b]" />
-                      <span className="text-[#c8a84b] font-semibold">Aceasta era soluția completă.</span>
+                    <div className="flex items-center gap-2 rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] p-3">
+                      <ListVideo className="h-5 w-5 text-[#E2B340]" />
+                      <span className="text-[#E2B340] font-semibold">Aceasta era soluția completă.</span>
                       <Button size="sm" variant="secondary" className="ml-auto" onClick={() => loadPuzzle(currentPuzzle!)}>
                         Reia
                       </Button>
@@ -409,7 +409,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
                     </div>
                   )}
                   {puzzleState.waitingOpponent && (
-                    <p className="text-sm text-[#666] text-center">Adversarul mută...</p>
+                    <p className="text-sm text-[#6B6B6B] text-center">Adversarul mută...</p>
                   )}
                 </div>
               </div>
@@ -417,31 +417,31 @@ export function PuzzleModal({ theme, onClose }: Props) {
               {/* Info */}
               <div className="w-full lg:w-[340px] shrink-0 space-y-4">
                 {/* Comentariu: obiectivul tacticii (activabil/dezactivabil) */}
-                <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
+                <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-[#666] uppercase tracking-wider flex items-center gap-1.5">
-                      <Target className="h-3.5 w-3.5 text-[#c8a84b]" /> Obiectivul tacticii
+                    <p className="text-xs text-[#6B6B6B] uppercase tracking-wider flex items-center gap-1.5">
+                      <Target className="h-3.5 w-3.5 text-[#E2B340]" /> Obiectivul tacticii
                     </p>
                     <button
                       onClick={() => setShowCommentary(v => !v)}
-                      className="text-xs font-medium text-[#c8a84b] hover:text-[#d4b860] transition-colors"
+                      className="text-xs font-medium text-[#E2B340] hover:text-[#F0C85A] transition-colors"
                     >
                       {showCommentary ? 'Ascunde' : 'Arată'}
                     </button>
                   </div>
                   {showCommentary && (
-                    <p className="text-sm text-[#b0b0b0] leading-relaxed mt-2">{objective}</p>
+                    <p className="text-sm text-[#A0A0A0] leading-relaxed mt-2">{objective}</p>
                   )}
                 </div>
 
                 {currentPuzzle && (
-                  <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 space-y-3">
+                  <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 space-y-3">
                     <div>
-                      <p className="text-xs text-[#666] uppercase tracking-wider mb-1">Rating puzzle</p>
-                      <p className="text-2xl font-bold text-[#f0f0f0]">{currentPuzzle.rating}</p>
+                      <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">Rating puzzle</p>
+                      <p className="text-2xl font-bold text-[#F0F0F0]">{currentPuzzle.rating}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Teme</p>
+                      <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Teme</p>
                       <div className="flex flex-wrap gap-1.5">
                         {displayThemes(currentPuzzle.themes).map(t => (
                           <Badge key={t} variant="accent">
@@ -455,7 +455,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
                         href={currentPuzzle.game_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-[#c8a84b] hover:text-[#d4b860]"
+                        className="text-xs text-[#E2B340] hover:text-[#F0C85A]"
                       >
                         Partida originală pe Lichess →
                       </a>
@@ -474,9 +474,9 @@ export function PuzzleModal({ theme, onClose }: Props) {
                   Puzzle următor
                 </Button>
 
-                <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
-                  <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Cum funcționează</p>
-                  <ol className="space-y-1.5 text-xs text-[#888]">
+                <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+                  <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Cum funcționează</p>
+                  <ol className="space-y-1.5 text-xs text-[#A0A0A0]">
                     <li>1. Ultima mutare a fost a adversarului — acum e rândul tău</li>
                     <li>2. Mută piesa cu drag & drop spre pătratul dorit</li>
                     <li>3. Blocat? „Dă-mi un indiciu" îți arată piesa, „Arată mutarea" îți arată mutarea</li>
@@ -486,7 +486,7 @@ export function PuzzleModal({ theme, onClose }: Props) {
               </div>
             </div>
           ) : (
-            <div className="flex justify-center py-16 text-[#666]">Niciun puzzle disponibil.</div>
+            <div className="flex justify-center py-16 text-[#6B6B6B]">Niciun puzzle disponibil.</div>
           )}
         </div>
       </div>

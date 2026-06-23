@@ -142,18 +142,18 @@ export function PuzzlePlacement() {
   // ---- UI ----
   if (!puzzles) {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-3">
         <Spinner className="h-7 w-7" />
-        <p className="text-[#888] text-sm">Pregătim testul de plasament...</p>
+        <p className="text-[#A0A0A0] text-sm">Pregătim testul de plasament...</p>
       </div>
     )
   }
 
   if (submitting || idx >= puzzles.length) {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-3">
         <Spinner className="h-7 w-7" />
-        <p className="text-[#888] text-sm">Îți calculăm rating-ul...</p>
+        <p className="text-[#A0A0A0] text-sm">Îți calculăm rating-ul...</p>
       </div>
     )
   }
@@ -161,22 +161,22 @@ export function PuzzlePlacement() {
   const pct = Math.round((idx / total) * 100)
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-8">
       <div className="w-full max-w-3xl">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-[#f0f0f0] mb-1">Pentru început, hai să-ți aflăm nivelul</h1>
-          <p className="text-[#a0a0a0] text-sm">
+          <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1">Pentru început, hai să-ți aflăm nivelul</h1>
+          <p className="text-[#A0A0A0] text-sm">
             Puzzle-ul {idx + 1} din {total} — devin progresiv mai grele. Găsește cea mai bună mutare.
           </p>
         </div>
 
         <Progress value={pct} className="mb-6 h-2" />
 
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5">
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
           <div className="flex items-center justify-between mb-3 text-sm">
-            <span className="text-[#a0a0a0]">
+            <span className="text-[#A0A0A0]">
               Joci cu{' '}
-              <span className={`font-semibold px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#f0f0f0] text-black' : 'bg-[#2a2a2a] border border-[#444] text-[#f0f0f0]'}`}>
+              <span className={`font-semibold px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>
                 {playerColor === 'white' ? '♔ Alb' : '♚ Negru'}
               </span>
             </span>
@@ -194,7 +194,7 @@ export function PuzzlePlacement() {
                   allowDragging: !feedback,
                   boardOrientation: playerColor,
                   boardStyle: { borderRadius: 8 },
-                  darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                  darkSquareStyle: { backgroundColor: '#3A3A3A' },
                   lightSquareStyle: { backgroundColor: '#f0d9b5' },
                 }}
               />

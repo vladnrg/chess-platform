@@ -73,16 +73,16 @@ export function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] px-6 py-16">
+    <div className="min-h-screen bg-[#0A0A0A] px-6 py-16">
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">
-          <Link to="/" className="flex items-center gap-1.5 text-sm text-[#666] hover:text-[#f0f0f0] transition-colors">
+          <Link to="/" className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <ArrowLeft className="h-4 w-4" /> Înapoi
           </Link>
         </div>
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-[#f0f0f0] mb-3">Prețuri simple și corecte</h1>
-          <p className="text-[#a0a0a0] max-w-xl mx-auto">
+          <h1 className="text-4xl font-bold text-[#F0F0F0] mb-3">Prețuri simple și corecte</h1>
+          <p className="text-[#A0A0A0] max-w-xl mx-auto">
             Refund garantat după 60 de zile de utilizare activă dacă nu observi progres real în partide.
           </p>
         </div>
@@ -93,25 +93,25 @@ export function PricingPage() {
               key={plan.id}
               className={`rounded-xl border p-6 flex flex-col ${
                 plan.highlight
-                  ? 'bg-[rgba(200,168,75,0.06)] border-[rgba(200,168,75,0.5)]'
-                  : 'bg-[#1a1a1a] border-[#2a2a2a]'
+                  ? 'bg-[rgba(226,179,64,0.06)] border-[rgba(226,179,64,0.5)]'
+                  : 'bg-[#141414] border-[#2A2A2A]'
               }`}
             >
               {plan.highlight && (
-                <div className="mb-4 w-fit rounded-full bg-[#c8a84b] px-3 py-0.5 text-xs font-bold text-black">
+                <div className="mb-4 w-fit rounded-full bg-[#E2B340] px-3 py-0.5 text-xs font-bold text-black">
                   POPULAR
                 </div>
               )}
-              <p className="text-sm text-[#666] mb-1">{plan.name}</p>
+              <p className="text-sm text-[#6B6B6B] mb-1">{plan.name}</p>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-[#f0f0f0]">${plan.price}</span>
-                <span className="text-[#666]">{plan.period}</span>
+                <span className="text-4xl font-bold text-[#F0F0F0]">${plan.price}</span>
+                <span className="text-[#6B6B6B]">{plan.period}</span>
               </div>
               <ul className="flex-1 space-y-2.5 mb-6">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-[#4ade80] mt-0.5 flex-shrink-0" />
-                    <span className="text-[#a0a0a0]">{f}</span>
+                    <span className="text-[#A0A0A0]">{f}</span>
                   </li>
                 ))}
               </ul>
@@ -143,9 +143,9 @@ export function PricingPage() {
           ))}
         </div>
 
-        <div className="mt-12 text-center text-sm text-[#666]">
+        <div className="mt-12 text-center text-sm text-[#6B6B6B]">
           <p className="mb-1">
-            <span className="text-[#c8a84b]">Politica de refund</span> — Dacă după 60 de zile de utilizare activă nu observi progres real
+            <span className="text-[#E2B340]">Politica de refund</span> — Dacă după 60 de zile de utilizare activă nu observi progres real
             (măsurat prin statisticile din aplicație), oferi un refund complet.
           </p>
           <p>Plăți procesate securizat prin Stripe. Poți anula oricând.</p>

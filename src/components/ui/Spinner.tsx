@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 export function Spinner({ className }: { className?: string }) {
   return (
     <svg
-      className={cn('animate-spin text-[#c8a84b]', className)}
+      className={cn('animate-spin text-[#E2B340]', className)}
       viewBox="0 0 24 24"
       fill="none"
     >
@@ -15,7 +15,7 @@ export function Spinner({ className }: { className?: string }) {
 
 export function PageLoader() {
   return (
-    <div className="flex h-screen items-center justify-center bg-[#0f0f0f]">
+    <div className="flex h-screen items-center justify-center bg-[#0A0A0A]">
       <Spinner className="h-10 w-10" />
     </div>
   )

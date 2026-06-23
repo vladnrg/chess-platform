@@ -238,18 +238,18 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
 
   // Board styles
   const squareStyles: Record<string, React.CSSProperties> = {}
-  if (selectedSquare) squareStyles[selectedSquare] = { backgroundColor: 'rgba(200,168,75,0.4)' }
+  if (selectedSquare) squareStyles[selectedSquare] = { backgroundColor: 'rgba(226,179,64,0.4)' }
   if (moveResult === 'correct' && userMove) {
     squareStyles[userMove.from] = { backgroundColor: 'rgba(74,222,128,0.35)' }
     squareStyles[userMove.to] = { backgroundColor: 'rgba(74,222,128,0.55)' }
   }
   if (moveResult === 'wrong' && userMove) {
-    squareStyles[userMove.from] = { backgroundColor: 'rgba(248,113,113,0.35)' }
-    squareStyles[userMove.to] = { backgroundColor: 'rgba(248,113,113,0.55)' }
+    squareStyles[userMove.from] = { backgroundColor: 'rgba(251,113,133,0.35)' }
+    squareStyles[userMove.to] = { backgroundColor: 'rgba(251,113,133,0.55)' }
   }
   if (showBest && current) {
-    squareStyles[current.bestUci.slice(0, 2)] = { backgroundColor: 'rgba(200,168,75,0.45)' }
-    squareStyles[current.bestUci.slice(2, 4)] = { backgroundColor: 'rgba(200,168,75,0.7)' }
+    squareStyles[current.bestUci.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.45)' }
+    squareStyles[current.bestUci.slice(2, 4)] = { backgroundColor: 'rgba(226,179,64,0.7)' }
   }
 
   const boardForSolving = (() => {
@@ -262,28 +262,28 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 md:p-4" onClick={onClose}>
       <div
-        className="w-full max-w-2xl max-h-[95vh] rounded-2xl bg-[#111] border border-[#2a2a2a] shadow-2xl flex flex-col overflow-hidden"
+        className="w-full max-w-2xl max-h-[95vh] rounded-2xl bg-[#141414] border border-[#2A2A2A] shadow-2xl flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#1e1e1e] flex-shrink-0">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#141414] flex-shrink-0">
           {phase === 'solving' && (
-            <button onClick={() => setPhase('list')} className="text-[#555] hover:text-[#f0f0f0] transition-colors">
+            <button onClick={() => setPhase('list')} className="text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
               <ChevronLeft className="h-5 w-5" />
             </button>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="font-bold text-[#f0f0f0]">Tactici din partidele tale</h2>
+            <h2 className="font-bold text-[#F0F0F0]">Tactici din partidele tale</h2>
             {phase === 'solving' && current && (
-              <p className="text-xs text-[#555] mt-0.5">
+              <p className="text-xs text-[#6B6B6B] mt-0.5">
                 Mutarea {current.moveNumber} · vs {current.opponent} · {current.date}
               </p>
             )}
             {phase === 'list' && positions.length > 0 && (
-              <p className="text-xs text-[#555] mt-0.5">{positions.length} momente critice găsite</p>
+              <p className="text-xs text-[#6B6B6B] mt-0.5">{positions.length} momente critice găsite</p>
             )}
           </div>
-          <button onClick={onClose} className="text-[#555] hover:text-[#f0f0f0] transition-colors flex-shrink-0">
+          <button onClick={onClose} className="text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors flex-shrink-0">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -294,18 +294,18 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
           {/* LOADING */}
           {phase === 'loading' && (
             <div className="flex flex-col items-center justify-center gap-6 py-16 px-8">
-              <Loader2 className="h-8 w-8 animate-spin text-[#c8a84b]" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#E2B340]" />
               <div className="w-full max-w-sm space-y-2">
-                <p className="text-sm text-[#888] text-center">{progressLabel}</p>
-                <div className="h-1.5 rounded-full bg-[#1e1e1e] overflow-hidden">
+                <p className="text-sm text-[#A0A0A0] text-center">{progressLabel}</p>
+                <div className="h-1.5 rounded-full bg-[#141414] overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[#c8a84b] transition-all duration-300"
+                    className="h-full rounded-full bg-[#E2B340] transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <p className="text-xs text-[#555] text-center">{progress}%</p>
+                <p className="text-xs text-[#6B6B6B] text-center">{progress}%</p>
               </div>
-              <p className="text-xs text-[#444] text-center max-w-xs leading-relaxed">
+              <p className="text-xs text-[#3A3A3A] text-center max-w-xs leading-relaxed">
                 Stockfish analizează pozițiile din partidele tale pentru a găsi momentele în care ai putut juca mai bine.
               </p>
             </div>
@@ -316,25 +316,25 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
             <div className="p-4 space-y-3">
               {positions.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-[#888] font-medium">Niciun moment critic găsit.</p>
-                  <p className="text-[#555] text-sm mt-1">
+                  <p className="text-[#A0A0A0] font-medium">Niciun moment critic găsit.</p>
+                  <p className="text-[#6B6B6B] text-sm mt-1">
                     {lichessUsername ? 'Partidele importate sunt foarte bine jucate!' : 'Importă mai întâi partide de pe Lichess.'}
                   </p>
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-[#555] px-1">
+                  <p className="text-xs text-[#6B6B6B] px-1">
                     Selectează o poziție pentru a o antrena:
                   </p>
                   {positions.map((pos, i) => {
-                    const severity = pos.evalDrop >= 300 ? { label: 'Gafă', color: '#f87171' }
+                    const severity = pos.evalDrop >= 300 ? { label: 'Gafă', color: '#FB7185' }
                       : pos.evalDrop >= 150 ? { label: 'Greșeală', color: '#f97316' }
                       : { label: 'Imprecizie', color: '#fbbf24' }
                     return (
                       <button
                         key={i}
                         onClick={() => startSolving(i)}
-                        className="w-full flex items-center gap-3 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3 text-left hover:border-[#c8a84b] hover:bg-[rgba(200,168,75,0.05)] transition-all group"
+                        className="w-full flex items-center gap-3 rounded-xl bg-[#141414] border border-[#2A2A2A] px-4 py-3 text-left hover:border-[#E2B340] hover:bg-[rgba(226,179,64,0.05)] transition-all group"
                       >
                         <div className="flex-shrink-0 text-left">
                           <div
@@ -345,14 +345,14 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#f0f0f0] group-hover:text-[#c8a84b] transition-colors">
+                          <p className="text-sm font-medium text-[#F0F0F0] group-hover:text-[#E2B340] transition-colors">
                             Mutarea {pos.moveNumber} vs {pos.opponent}
                           </p>
-                          <p className="text-xs text-[#555] mt-0.5">
+                          <p className="text-xs text-[#6B6B6B] mt-0.5">
                             {pos.date} · ai jucat {pos.playedSan} · pierdere {Math.round(pos.evalDrop / 100 * 10) / 10} pioni
                           </p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-[#444] group-hover:text-[#c8a84b] transition-colors flex-shrink-0" />
+                        <ChevronRight className="h-4 w-4 text-[#3A3A3A] group-hover:text-[#E2B340] transition-colors flex-shrink-0" />
                       </button>
                     )
                   })}
@@ -365,18 +365,18 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
           {phase === 'solving' && current && (
             <div className="p-4 space-y-4">
               {/* Instruction */}
-              <div className="rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3">
-                <p className="text-sm text-[#f0f0f0] font-medium">
+              <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] px-4 py-3">
+                <p className="text-sm text-[#F0F0F0] font-medium">
                   Joci cu {current.playerColor === 'white' ? '♔ Albul' : '♚ Negrul'} — mutarea {current.moveNumber}
                 </p>
-                <p className="text-xs text-[#666] mt-1">
-                  Ai jucat <span className="font-mono text-[#f87171] font-semibold">{current.playedSan}</span>{' '}
+                <p className="text-xs text-[#6B6B6B] mt-1">
+                  Ai jucat <span className="font-mono text-[#FB7185] font-semibold">{current.playedSan}</span>{' '}
                   dar exista o mutare mai buna. Gaseste-o!
                 </p>
               </div>
 
               {/* Board */}
-              <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+              <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
                 <Chessboard
                   options={{
                     position: moveResult !== null ? (boardForSolving ?? current.fen) : current.fen,
@@ -398,7 +398,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                     <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
                     <p className="font-bold text-[#4ade80]">Excelent! Ai găsit cea mai bună mutare!</p>
                   </div>
-                  <p className="text-sm text-[#888]">
+                  <p className="text-sm text-[#A0A0A0]">
                     <span className="font-mono font-semibold text-[#4ade80]">{current.bestSan}</span>{' '}
                     era cu {Math.round(current.evalDrop / 100 * 10) / 10} pioni mai bună decât {current.playedSan}.
                   </p>
@@ -416,10 +416,10 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
               )}
 
               {moveResult === 'wrong' && (
-                <div className="rounded-lg bg-[rgba(248,113,113,0.08)] border border-[rgba(248,113,113,0.3)] p-4 space-y-3">
+                <div className="rounded-lg bg-[rgba(251,113,133,0.08)] border border-[rgba(251,113,133,0.3)] p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-[#f87171]" />
-                    <p className="text-sm font-semibold text-[#f87171]">Nu e cea mai bună mutare. Mai încearcă!</p>
+                    <AlertCircle className="h-4 w-4 text-[#FB7185]" />
+                    <p className="text-sm font-semibold text-[#FB7185]">Nu e cea mai bună mutare. Mai încearcă!</p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <Button size="sm" variant="secondary" onClick={resetCurrent}>
@@ -450,12 +450,12 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
 
               {/* Hint from AI Coach */}
               {hint && (
-                <div className="rounded-xl bg-[rgba(200,168,75,0.07)] border border-[rgba(200,168,75,0.25)] p-4 space-y-2">
+                <div className="rounded-xl bg-[rgba(226,179,64,0.07)] border border-[rgba(226,179,64,0.25)] p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-[#c8a84b]" />
-                    <p className="text-xs font-semibold text-[#c8a84b] uppercase tracking-wider">Dl. En Passant</p>
+                    <Brain className="h-4 w-4 text-[#E2B340]" />
+                    <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Dl. En Passant</p>
                   </div>
-                  <p className="text-sm text-[#c0a060] leading-relaxed">{hint}</p>
+                  <p className="text-sm text-[#C99A2E] leading-relaxed">{hint}</p>
                 </div>
               )}
 
@@ -470,7 +470,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                       style={{
                         width: i === currentIdx ? 20 : 8,
                         height: 8,
-                        backgroundColor: i === currentIdx ? '#c8a84b' : '#2a2a2a',
+                        backgroundColor: i === currentIdx ? '#E2B340' : '#2A2A2A',
                       }}
                     />
                   ))}

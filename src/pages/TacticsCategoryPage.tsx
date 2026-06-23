@@ -62,7 +62,7 @@ export function TacticsCategoryPage() {
   if (!category) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <p className="text-[#666]">Categoria nu a fost găsită.</p>
+        <p className="text-[#6B6B6B]">Categoria nu a fost găsită.</p>
         <Button variant="secondary" size="sm" onClick={() => navigate('/tactics')}>
           ← Înapoi la Tactici
         </Button>
@@ -76,24 +76,24 @@ export function TacticsCategoryPage() {
       <div>
         <button
           onClick={() => navigate('/tactics')}
-          className="flex items-center gap-1.5 text-sm text-[#666] hover:text-[#f0f0f0] transition-colors mb-3"
+          className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors mb-3"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Înapoi la Tactici
         </button>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#f0f0f0]">{category.title}</h1>
-            <p className="text-[#666] text-sm mt-1 max-w-2xl">{category.description}</p>
+            <h1 className="text-2xl font-bold text-[#F0F0F0]">{category.title}</h1>
+            <p className="text-[#6B6B6B] text-sm mt-1 max-w-2xl">{category.description}</p>
           </div>
           {category.isPro && (
-            <span className="flex-shrink-0 text-xs font-bold uppercase tracking-wider bg-[#c8a84b]/15 text-[#c8a84b] border border-[#c8a84b]/30 rounded px-2 py-1">
+            <span className="flex-shrink-0 text-xs font-bold uppercase tracking-wider bg-[#E2B340]/15 text-[#E2B340] border border-[#E2B340]/30 rounded px-2 py-1">
               Pro
             </span>
           )}
         </div>
         {totalCount !== undefined && totalCount > 0 && (
-          <p className="text-xs text-[#555] mt-2">
+          <p className="text-xs text-[#6B6B6B] mt-2">
             {totalCount} exerciții disponibile · ELO estimat: {playerElo}
           </p>
         )}
@@ -101,14 +101,14 @@ export function TacticsCategoryPage() {
 
       {/* Pro gate */}
       {locked ? (
-        <div className="rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.3)] p-8 text-center">
+        <div className="rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.3)] p-8 text-center">
           <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-[#c8a84b]/15 p-4">
-              <Lock className="h-8 w-8 text-[#c8a84b]" />
+            <div className="rounded-full bg-[#E2B340]/15 p-4">
+              <Lock className="h-8 w-8 text-[#E2B340]" />
             </div>
           </div>
-          <p className="text-[#c8a84b] font-semibold text-lg">Conținut exclusiv Pro</p>
-          <p className="text-[#666] text-sm mt-2 max-w-sm mx-auto">
+          <p className="text-[#E2B340] font-semibold text-lg">Conținut exclusiv Pro</p>
+          <p className="text-[#6B6B6B] text-sm mt-2 max-w-sm mx-auto">
             Această categorie include exerciții avansate disponibile doar cu abonament Pro.
           </p>
           <a href="/pricing" className="mt-4 inline-block">
@@ -120,9 +120,9 @@ export function TacticsCategoryPage() {
           <Spinner className="h-7 w-7" />
         </div>
       ) : !exercises || exercises.length === 0 ? (
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-8 text-center">
-          <p className="text-[#666]">Nu există exerciții disponibile pentru această categorie momentan.</p>
-          <p className="text-[#555] text-xs mt-2">Baza de date va fi populată în curând.</p>
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-8 text-center">
+          <p className="text-[#6B6B6B]">Nu există exerciții disponibile pentru această categorie momentan.</p>
+          <p className="text-[#6B6B6B] text-xs mt-2">Baza de date va fi populată în curând.</p>
         </div>
       ) : (
         <>
@@ -147,7 +147,7 @@ export function TacticsCategoryPage() {
             >
               ← Pagina anterioară
             </Button>
-            <span className="text-xs text-[#555]">
+            <span className="text-xs text-[#6B6B6B]">
               Pagina {page + 1}
               {totalCount ? ` · ${Math.ceil(totalCount / PAGE_SIZE)} total` : ''}
             </span>
@@ -179,7 +179,7 @@ function ExerciseCard({ puzzle, onSolve }: ExerciseCardProps) {
   return (
     <button
       onClick={onSolve}
-      className="group rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden flex flex-col text-left hover:border-[#c8a84b] transition-colors"
+      className="group rounded-xl bg-[#141414] border border-[#2A2A2A] overflow-hidden flex flex-col text-left hover:border-[#E2B340] transition-colors"
     >
       <div className="aspect-square w-full pointer-events-none select-none">
         <Chessboard
@@ -187,13 +187,13 @@ function ExerciseCard({ puzzle, onSolve }: ExerciseCardProps) {
             position: puzzle.fen,
             allowDragging: false,
             boardStyle: { borderRadius: 0 },
-            darkSquareStyle: { backgroundColor: '#3d3d3d' },
+            darkSquareStyle: { backgroundColor: '#3A3A3A' },
             lightSquareStyle: { backgroundColor: '#f0d9b5' },
           }}
         />
       </div>
       <div className="px-3 py-2">
-        <span className="text-sm font-semibold text-[#f0f0f0]">{puzzle.rating}</span>
+        <span className="text-sm font-semibold text-[#F0F0F0]">{puzzle.rating}</span>
       </div>
     </button>
   )

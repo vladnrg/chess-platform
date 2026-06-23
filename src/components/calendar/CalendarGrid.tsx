@@ -51,14 +51,14 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => onMonthChange(-1)}
-          className="rounded-lg p-1.5 text-[#666] hover:text-[#f0f0f0] hover:bg-[#1a1a1a] transition-colors"
+          className="rounded-lg p-1.5 text-[#6B6B6B] hover:text-[#F0F0F0] hover:bg-[#141414] transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <p className="font-semibold text-[#f0f0f0] capitalize">{monthLabel}</p>
+        <p className="font-semibold text-[#F0F0F0] capitalize">{monthLabel}</p>
         <button
           onClick={() => onMonthChange(1)}
-          className="rounded-lg p-1.5 text-[#666] hover:text-[#f0f0f0] hover:bg-[#1a1a1a] transition-colors"
+          className="rounded-lg p-1.5 text-[#6B6B6B] hover:text-[#F0F0F0] hover:bg-[#141414] transition-colors"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
@@ -67,15 +67,15 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
         {DAY_LABELS.map(d => (
-          <div key={d} className="py-1 text-center text-xs font-medium text-[#555]">{d}</div>
+          <div key={d} className="py-1 text-center text-xs font-medium text-[#6B6B6B]">{d}</div>
         ))}
       </div>
 
       {/* Days grid */}
-      <div className="grid grid-cols-7 gap-px bg-[#2a2a2a] rounded-xl overflow-hidden border border-[#2a2a2a]">
+      <div className="grid grid-cols-7 gap-px bg-[#2A2A2A] rounded-xl overflow-hidden border border-[#2A2A2A]">
         {cells.map((day, idx) => {
           if (!day) {
-            return <div key={`empty-${idx}`} className="bg-[#111] h-16" />
+            return <div key={`empty-${idx}`} className="bg-[#141414] h-16" />
           }
           const events = eventsByDay.get(day) ?? []
           const isToday = isCurrentMonth && day === today.getDate()
@@ -84,13 +84,13 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
             <div
               key={day}
               className={[
-                'bg-[#1a1a1a] h-16 p-1.5 flex flex-col',
-                isToday ? 'ring-1 ring-inset ring-[#c8a84b]' : '',
+                'bg-[#141414] h-16 p-1.5 flex flex-col',
+                isToday ? 'ring-1 ring-inset ring-[#E2B340]' : '',
               ].join(' ')}
             >
               <span className={[
                 'text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full',
-                isToday ? 'bg-[#c8a84b] text-black' : 'text-[#666]',
+                isToday ? 'bg-[#E2B340] text-black' : 'text-[#6B6B6B]',
               ].join(' ')}>
                 {day}
               </span>
@@ -101,7 +101,7 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
                     className={[
                       'truncate rounded px-1 text-[9px] font-medium leading-4',
                       e.type === 'platform'
-                        ? 'bg-[rgba(200,168,75,0.2)] text-[#c8a84b]'
+                        ? 'bg-[rgba(226,179,64,0.2)] text-[#E2B340]'
                         : 'bg-[rgba(100,200,100,0.15)] text-[#6cd06c]',
                     ].join(' ')}
                     title={e.title}
@@ -110,7 +110,7 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
                   </div>
                 ))}
                 {events.length > 2 && (
-                  <p className="text-[9px] text-[#555] px-1">+{events.length - 2} mai mult</p>
+                  <p className="text-[9px] text-[#6B6B6B] px-1">+{events.length - 2} mai mult</p>
                 )}
               </div>
             </div>
@@ -119,9 +119,9 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex gap-4 text-xs text-[#666]">
+      <div className="mt-3 flex gap-4 text-xs text-[#6B6B6B]">
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-sm bg-[rgba(200,168,75,0.3)]" />
+          <div className="h-2.5 w-2.5 rounded-sm bg-[rgba(226,179,64,0.3)]" />
           <span>Platformă</span>
         </div>
         <div className="flex items-center gap-1.5">

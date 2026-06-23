@@ -86,18 +86,18 @@ export function Landing() {
   const leagueByName = Object.fromEntries(LEAGUES.map(l => [l.name, l]))
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f]">
+    <div className="min-h-screen bg-[#0A0A0A]">
       {/* Nav */}
-      <nav className="border-b border-[#1e1e1e] px-6 py-4">
+      <nav className="border-b border-[#141414] px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#c8a84b]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
               <span className="text-black font-black">♟</span>
             </div>
-            <span className="font-bold text-[#f0f0f0] text-lg">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-lg">ChessUp</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors">
+            <Link to="/login" className="text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
               Conectare
             </Link>
             <Link to="/register">
@@ -110,16 +110,16 @@ export function Landing() {
       {/* Hero */}
       <section className="px-6 py-24 text-center">
         <div className="mx-auto max-w-3xl">
-          <Link to="/register" className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.08)] px-4 py-1.5 text-sm text-[#c8a84b] hover:bg-[rgba(200,168,75,0.14)] transition-colors">
+          <Link to="/register" className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-4 py-1.5 text-sm text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors">
             <span>Fă prima mutare</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </Link>
-          <h1 className="text-5xl md:text-6xl font-bold text-[#f0f0f0] leading-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-[#F0F0F0] leading-tight mb-6">
             Mulți doar joacă șah.<br />
             Alții fac din șah o artă.<br />
-            <span className="text-[#c8a84b]">Arată-ți măiestria în universul celor 64 de pătrate.</span>
+            <span className="text-[#E2B340]">Arată-ți măiestria în universul celor 64 de pătrate.</span>
           </h1>
-          <p className="text-lg text-[#a0a0a0] mb-10 max-w-xl mx-auto">
+          <p className="text-lg text-[#A0A0A0] mb-10 max-w-xl mx-auto">
             De la prima mutare până la finalul care decide totul — avem rețeta clară pentru orice nivel ai acum.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -134,15 +134,15 @@ export function Landing() {
       </section>
 
       {/* Ligi */}
-      <section className="px-6 py-14 bg-[#0a0a0a]">
+      <section className="px-6 py-14 bg-[#0A0A0A]">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-sm text-[#666] mb-2 uppercase tracking-widest">Sistemul de ligi</p>
-          <p className="text-[#a0a0a0] text-sm mb-8">Toată lumea începe din același loc. Cât de sus ajungi depinde doar de tine.</p>
+          <p className="text-sm text-[#6B6B6B] mb-2 uppercase tracking-widest">Sistemul de ligi</p>
+          <p className="text-[#A0A0A0] text-sm mb-8">Toată lumea începe din același loc. Cât de sus ajungi depinde doar de tine.</p>
 
           <div className="flex flex-col sm:flex-row items-start justify-center gap-6">
             {LEAGUE_GROUPS.map((group) => (
               <div key={group.label} className="flex-1 min-w-[160px]">
-                <p className="text-xs text-[#555] uppercase tracking-wider mb-3">{group.label}</p>
+                <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-3">{group.label}</p>
                 <div className="space-y-2">
                   {group.leagues.map((name) => {
                     const league = leagueByName[name]
@@ -174,17 +174,17 @@ export function Landing() {
       <section className="px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-[#f0f0f0] mb-3">Tot ce ai nevoie să urci în clasament</h2>
-            <p className="text-[#a0a0a0]">Exact ce contează, pus cap la cap — ca să progresi de fiecare dată când deschizi aplicația.</p>
+            <h2 className="text-3xl font-bold text-[#F0F0F0] mb-3">Tot ce ai nevoie să urci în clasament</h2>
+            <p className="text-[#A0A0A0]">Exact ce contează, pus cap la cap — ca să progresi de fiecare dată când deschizi aplicația.</p>
           </div>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5 hover:border-[#3a3a3a] transition-colors">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[rgba(200,168,75,0.12)]">
-                  <Icon className="h-5 w-5 text-[#c8a84b]" />
+              <div key={title} className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 hover:border-[#3A3A3A] transition-colors">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[rgba(226,179,64,0.12)]">
+                  <Icon className="h-5 w-5 text-[#E2B340]" />
                 </div>
-                <h3 className="font-semibold text-[#f0f0f0] mb-1">{title}</h3>
-                <p className="text-sm text-[#a0a0a0]">{desc}</p>
+                <h3 className="font-semibold text-[#F0F0F0] mb-1">{title}</h3>
+                <p className="text-sm text-[#A0A0A0]">{desc}</p>
               </div>
             ))}
           </div>
@@ -192,11 +192,11 @@ export function Landing() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="px-6 py-20 bg-[#0a0a0a]">
+      <section id="pricing" className="px-6 py-20 bg-[#0A0A0A]">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold text-[#f0f0f0] mb-3">Alege ritmul tău</h2>
-            <p className="text-[#a0a0a0]">Dacă după 60 de zile nu simți că ai progresat, îți dăm banii înapoi — simplu.</p>
+            <h2 className="text-3xl font-bold text-[#F0F0F0] mb-3">Alege ritmul tău</h2>
+            <p className="text-[#A0A0A0]">Dacă după 60 de zile nu simți că ai progresat, îți dăm banii înapoi — simplu.</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {PRICING.map(plan => (
@@ -204,26 +204,26 @@ export function Landing() {
                 key={plan.name}
                 className={`rounded-xl border p-6 flex flex-col ${
                   plan.highlight
-                    ? 'bg-[rgba(200,168,75,0.06)] border-[rgba(200,168,75,0.4)]'
-                    : 'bg-[#1a1a1a] border-[#2a2a2a]'
+                    ? 'bg-[rgba(226,179,64,0.06)] border-[rgba(226,179,64,0.4)]'
+                    : 'bg-[#141414] border-[#2A2A2A]'
                 }`}
               >
                 {plan.highlight && (
-                  <div className="mb-4 inline-flex w-fit rounded-full bg-[#c8a84b] px-3 py-0.5 text-xs font-bold text-black">
+                  <div className="mb-4 inline-flex w-fit rounded-full bg-[#E2B340] px-3 py-0.5 text-xs font-bold text-black">
                     CEL MAI ALES
                   </div>
                 )}
-                <div className="mb-1 text-sm font-medium text-[#a0a0a0]">{plan.name}</div>
+                <div className="mb-1 text-sm font-medium text-[#A0A0A0]">{plan.name}</div>
                 <div className="mb-1 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-[#f0f0f0]">${plan.price}</span>
-                  <span className="text-[#666]">{plan.period}</span>
+                  <span className="text-4xl font-bold text-[#F0F0F0]">${plan.price}</span>
+                  <span className="text-[#6B6B6B]">{plan.period}</span>
                 </div>
-                <p className="mb-6 text-sm text-[#666]">{plan.description}</p>
+                <p className="mb-6 text-sm text-[#6B6B6B]">{plan.description}</p>
                 <ul className="mb-6 flex-1 space-y-2.5">
                   {plan.features.map(f => (
                     <li key={f} className="flex items-start gap-2 text-sm">
                       <CheckCircle2 className="h-4 w-4 text-[#4ade80] mt-0.5 flex-shrink-0" />
-                      <span className="text-[#a0a0a0]">{f}</span>
+                      <span className="text-[#A0A0A0]">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -243,13 +243,13 @@ export function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#1e1e1e] px-6 py-8 text-center text-sm text-[#666]">
+      <footer className="border-t border-[#141414] px-6 py-8 text-center text-sm text-[#6B6B6B]">
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© 2026 ChessUp. Toate drepturile rezervate.</span>
           <div className="flex gap-6">
-            <Link to="/terms" className="hover:text-[#a0a0a0]">Termeni</Link>
-            <Link to="/privacy" className="hover:text-[#a0a0a0]">Confidențialitate</Link>
-            <Link to="/pricing" className="hover:text-[#a0a0a0]">Prețuri</Link>
+            <Link to="/terms" className="hover:text-[#A0A0A0]">Termeni</Link>
+            <Link to="/privacy" className="hover:text-[#A0A0A0]">Confidențialitate</Link>
+            <Link to="/pricing" className="hover:text-[#A0A0A0]">Prețuri</Link>
           </div>
         </div>
       </footer>

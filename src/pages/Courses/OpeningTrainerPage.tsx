@@ -194,7 +194,7 @@ export function OpeningTrainerPage({ mode }: Props) {
     return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
   }
   if (!line) {
-    return <p className="text-[#666]">Varianta nu a fost găsită.</p>
+    return <p className="text-[#6B6B6B]">Varianta nu a fost găsită.</p>
   }
 
   const moves = line.moves_uci.split(' ')
@@ -209,15 +209,15 @@ export function OpeningTrainerPage({ mode }: Props) {
   if (state.status === 'user-turn') {
     const nextMove = moves[state.plyIdx]
     if (isGuided && nextMove) {
-      squareStyles[nextMove.slice(0, 2)] = { backgroundColor: 'rgba(200,168,75,0.65)' }
-      squareStyles[nextMove.slice(2, 4)] = { backgroundColor: 'rgba(200,168,75,0.35)' }
+      squareStyles[nextMove.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.65)' }
+      squareStyles[nextMove.slice(2, 4)] = { backgroundColor: 'rgba(226,179,64,0.35)' }
     }
   }
   if (state.wrongFrom) {
-    squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(248,113,113,0.55)' }
+    squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
   }
   if (state.wrongTo) {
-    squareStyles[state.wrongTo] = { backgroundColor: 'rgba(248,113,113,0.30)' }
+    squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }
   }
 
   const isPlaying = state.status === 'user-turn' || state.status === 'computer-thinking' || state.status === 'wrong'
@@ -227,7 +227,7 @@ export function OpeningTrainerPage({ mode }: Props) {
       {/* Back */}
       <Link
         to={`/courses/${slug}`}
-        className="flex items-center gap-1.5 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors"
+        className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
         Înapoi la curs
@@ -236,26 +236,26 @@ export function OpeningTrainerPage({ mode }: Props) {
       {/* Title row */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#f0f0f0]">{line.variation_name}</h1>
-          <p className="text-sm text-[#666] mt-0.5">
+          <h1 className="text-xl font-bold text-[#F0F0F0]">{line.variation_name}</h1>
+          <p className="text-sm text-[#6B6B6B] mt-0.5">
             {isGuided ? 'Mod ghidat' : 'Pe cont propriu'}
             {isPlaying && (
-              <> · <span className="text-[#a0a0a0]">Partea {state.part} din {totalParts}</span></>
+              <> · <span className="text-[#A0A0A0]">Partea {state.part} din {totalParts}</span></>
             )}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`text-xs font-medium px-2 py-1 rounded-full border ${
             line.user_color === 'white'
-              ? 'bg-[#f0f0f0] text-black border-[#f0f0f0]'
-              : 'bg-[#1a1a1a] text-[#f0f0f0] border-[#444]'
+              ? 'bg-[#F0F0F0] text-black border-[#F0F0F0]'
+              : 'bg-[#141414] text-[#F0F0F0] border-[#3A3A3A]'
           }`}>
             {line.user_color === 'white' ? '♔ Alb' : '♚ Negru'}
           </span>
           <button
             onClick={resetLine}
             title="Reia de la început"
-            className="p-1.5 text-[#444] hover:text-[#a0a0a0] transition-colors"
+            className="p-1.5 text-[#3A3A3A] hover:text-[#A0A0A0] transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
           </button>
@@ -263,9 +263,9 @@ export function OpeningTrainerPage({ mode }: Props) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#c8a84b] rounded-full transition-all duration-500"
+          className="h-full bg-[#E2B340] rounded-full transition-all duration-500"
           style={{ width: `${progressPct}%` }}
         />
       </div>
@@ -273,7 +273,7 @@ export function OpeningTrainerPage({ mode }: Props) {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Board — always visible */}
         <div className="lg:col-span-2">
-          <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+          <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
             <Chessboard
               options={{
                 position: state.game.fen(),
@@ -282,7 +282,7 @@ export function OpeningTrainerPage({ mode }: Props) {
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
                 boardStyle: { borderRadius: 0 },
-                darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                darkSquareStyle: { backgroundColor: '#3A3A3A' },
                 lightSquareStyle: { backgroundColor: '#f0d9b5' },
               }}
             />
@@ -292,47 +292,47 @@ export function OpeningTrainerPage({ mode }: Props) {
         {/* Sidebar */}
         <div className="space-y-3">
           {/* Status + explanation card */}
-          <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
+          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
             {state.status === 'user-turn' && (
               <div>
-                <p className="text-xs font-semibold text-[#c8a84b] uppercase tracking-wider mb-2">
+                <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider mb-2">
                   Mutarea ta
                 </p>
                 {isGuided ? (
-                  <p className="text-sm text-[#a0a0a0]">
+                  <p className="text-sm text-[#A0A0A0]">
                     Mută piesa de pe pătratul auriu pe destinație.
                   </p>
                 ) : (
-                  <p className="text-sm text-[#a0a0a0]">
+                  <p className="text-sm text-[#A0A0A0]">
                     Gândește-te la teoria opening-ului și mută.
                   </p>
                 )}
                 {isGuided && explanation && (
-                  <div className="mt-3 pt-3 border-t border-[#2a2a2a]">
-                    <p className="text-xs text-[#888] leading-relaxed">{explanation}</p>
+                  <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
+                    <p className="text-xs text-[#A0A0A0] leading-relaxed">{explanation}</p>
                   </div>
                 )}
               </div>
             )}
             {state.status === 'computer-thinking' && (
               <div>
-                <p className="text-xs font-semibold text-[#666] uppercase tracking-wider mb-2">
+                <p className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-2">
                   Adversarul mută
                 </p>
-                <p className="text-sm text-[#a0a0a0]">Calculez răspunsul teoretic...</p>
+                <p className="text-sm text-[#A0A0A0]">Calculez răspunsul teoretic...</p>
                 {isGuided && explanation && (
-                  <div className="mt-3 pt-3 border-t border-[#2a2a2a]">
-                    <p className="text-xs text-[#888] leading-relaxed">{explanation}</p>
+                  <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
+                    <p className="text-xs text-[#A0A0A0] leading-relaxed">{explanation}</p>
                   </div>
                 )}
               </div>
             )}
             {state.status === 'wrong' && (
               <div>
-                <p className="text-xs font-semibold text-[#f87171] uppercase tracking-wider mb-2">
+                <p className="text-xs font-semibold text-[#FB7185] uppercase tracking-wider mb-2">
                   Mutare greșită
                 </p>
-                <p className="text-sm text-[#a0a0a0]">
+                <p className="text-sm text-[#A0A0A0]">
                   Aceasta nu este mutarea din teorie. Gândește-te din nou.
                 </p>
               </div>
@@ -342,7 +342,7 @@ export function OpeningTrainerPage({ mode }: Props) {
                 <p className="text-xs font-semibold text-[#4ade80] uppercase tracking-wider mb-2">
                   {state.status === 'line-done' ? 'Variantă completă' : 'Fază completă'}
                 </p>
-                <p className="text-sm text-[#a0a0a0]">
+                <p className="text-sm text-[#A0A0A0]">
                   {state.status === 'line-done'
                     ? 'Ai parcurs toate mutările din această variantă.'
                     : 'Excelent! Ai finalizat această parte a opening-ului.'}
@@ -352,8 +352,8 @@ export function OpeningTrainerPage({ mode }: Props) {
           </div>
 
           {/* Parts tracker */}
-          <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
-            <p className="text-xs text-[#666] uppercase tracking-wider mb-3">Progres Variație</p>
+          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-3">Progres Variație</p>
             <div className="space-y-2.5">
               {Array.from({ length: totalParts }).map((_, i) => {
                 const partNum = i + 1
@@ -363,15 +363,15 @@ export function OpeningTrainerPage({ mode }: Props) {
                   <div
                     key={i}
                     className={`flex items-center gap-2.5 text-sm ${
-                      isDone ? 'text-[#4ade80]' : isCurrent ? 'text-[#f0f0f0]' : 'text-[#3a3a3a]'
+                      isDone ? 'text-[#4ade80]' : isCurrent ? 'text-[#F0F0F0]' : 'text-[#3A3A3A]'
                     }`}
                   >
                     <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                       isDone
                         ? 'bg-[#4ade80] text-black'
                         : isCurrent
-                        ? 'bg-[#c8a84b] text-black'
-                        : 'bg-[#222] text-[#3a3a3a]'
+                        ? 'bg-[#E2B340] text-black'
+                        : 'bg-[#1C1C1C] text-[#3A3A3A]'
                     }`}>
                       {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : partNum}
                     </div>
@@ -385,7 +385,7 @@ export function OpeningTrainerPage({ mode }: Props) {
             {state.status === 'part-done' && (
               <button
                 onClick={advancePart}
-                className="mt-4 w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.08)] px-3 py-2.5 text-sm text-[#c8a84b] hover:bg-[rgba(200,168,75,0.14)] transition-colors"
+                className="mt-4 w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
               >
                 <span>Ești gata de următoarea fază a opening-ului?</span>
                 <ChevronRight className="h-4 w-4 flex-shrink-0" />
@@ -401,7 +401,7 @@ export function OpeningTrainerPage({ mode }: Props) {
                 </div>
                 <button
                   onClick={handleMiddlegame}
-                  className="w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(200,168,75,0.3)] bg-[rgba(200,168,75,0.08)] px-3 py-2.5 text-sm text-[#c8a84b] hover:bg-[rgba(200,168,75,0.14)] transition-colors"
+                  className="w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
                 >
                   <span>Parcurge ideile din Middlegame</span>
                   <ChevronRight className="h-4 w-4 flex-shrink-0" />
@@ -426,15 +426,15 @@ export function OpeningTrainerPage({ mode }: Props) {
           </div>
 
           {/* Mode switcher */}
-          <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4">
-            <p className="text-xs text-[#666] uppercase tracking-wider mb-2">Antrenează-te</p>
+          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Antrenează-te</p>
             <div className="space-y-1">
               <Link
                 to={`/courses/${slug}/guided/${lineId}`}
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   isGuided
-                    ? 'bg-[rgba(200,168,75,0.15)] text-[#c8a84b]'
-                    : 'text-[#666] hover:text-[#a0a0a0] hover:bg-[#222]'
+                    ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
+                    : 'text-[#6B6B6B] hover:text-[#A0A0A0] hover:bg-[#1C1C1C]'
                 }`}
               >
                 Ghidat — vreau indicații vizuale
@@ -443,8 +443,8 @@ export function OpeningTrainerPage({ mode }: Props) {
                 to={`/courses/${slug}/practice/${lineId}`}
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   !isGuided
-                    ? 'bg-[rgba(200,168,75,0.15)] text-[#c8a84b]'
-                    : 'text-[#666] hover:text-[#a0a0a0] hover:bg-[#222]'
+                    ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
+                    : 'text-[#6B6B6B] hover:text-[#A0A0A0] hover:bg-[#1C1C1C]'
                 }`}
               >
                 Pe cont propriu — vreau să mă testez

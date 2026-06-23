@@ -27,21 +27,21 @@ export function CommunityPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Comunitate</h1>
-        <p className="text-[#666] text-sm mt-0.5">Descoperă jucători din comunitatea ta</p>
+        <h1 className="text-2xl font-bold text-[#F0F0F0]">Comunitate</h1>
+        <p className="text-[#6B6B6B] text-sm mt-0.5">Descoperă jucători din comunitatea ta</p>
       </div>
 
       {/* Banner locație lipsă */}
       {!hasLocation && (
-        <div className="flex items-start gap-3 rounded-xl bg-[rgba(200,168,75,0.08)] border border-[rgba(200,168,75,0.25)] p-4">
-          <MapPin className="h-5 w-5 text-[#c8a84b] flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.25)] p-4">
+          <MapPin className="h-5 w-5 text-[#E2B340] flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[#c8a84b]">Setează-ți locația pentru a vedea jucători din zona ta</p>
-            <p className="text-xs text-[#666] mt-0.5">Adaugă orașul tău în profil și apare în tabul "Din zona mea".</p>
+            <p className="text-sm font-medium text-[#E2B340]">Setează-ți locația pentru a vedea jucători din zona ta</p>
+            <p className="text-xs text-[#6B6B6B] mt-0.5">Adaugă orașul tău în profil și apare în tabul "Din zona mea".</p>
           </div>
           <Link
             to="/profile"
-            className="flex-shrink-0 text-xs font-medium text-[#c8a84b] hover:text-[#d4b860] underline underline-offset-2"
+            className="flex-shrink-0 text-xs font-medium text-[#E2B340] hover:text-[#F0C85A] underline underline-offset-2"
           >
             Profil →
           </Link>
@@ -50,7 +50,7 @@ export function CommunityPage() {
 
       {/* Tabs + controls */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] p-1 gap-1 w-fit">
+        <div className="flex rounded-lg bg-[#141414] border border-[#2A2A2A] p-1 gap-1 w-fit">
           {([
             { key: 'region' as FilterTab, label: hasLocation ? `Din ${profile?.city}` : 'Din zona mea' },
             { key: 'all' as FilterTab, label: 'Toți jucătorii' },
@@ -62,8 +62,8 @@ export function CommunityPage() {
               className={[
                 'rounded-md px-4 py-1.5 text-sm font-medium transition-colors',
                 tab === key
-                  ? 'bg-[#2a2a2a] text-[#f0f0f0]'
-                  : 'text-[#666] hover:text-[#a0a0a0] disabled:opacity-40 disabled:cursor-not-allowed',
+                  ? 'bg-[#2A2A2A] text-[#F0F0F0]'
+                  : 'text-[#6B6B6B] hover:text-[#A0A0A0] disabled:opacity-40 disabled:cursor-not-allowed',
               ].join(' ')}
             >
               {label}
@@ -73,19 +73,19 @@ export function CommunityPage() {
 
         <div className="flex gap-2">
           <div className="relative flex-1 sm:w-48">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#555]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B6B6B]" />
             <input
               type="text"
               placeholder="Caută jucător..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] pl-8 pr-3 py-2 text-sm text-[#f0f0f0] placeholder-[#555] focus:outline-none focus:border-[#c8a84b]"
+              className="w-full rounded-lg bg-[#141414] border border-[#2A2A2A] pl-8 pr-3 py-2 text-sm text-[#F0F0F0] placeholder-[#6B6B6B] focus:outline-none focus:border-[#E2B340]"
             />
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value as CommunitySortKey)}
-            className="rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm text-[#f0f0f0] focus:outline-none focus:border-[#c8a84b]"
+            className="rounded-lg bg-[#141414] border border-[#2A2A2A] px-3 py-2 text-sm text-[#F0F0F0] focus:outline-none focus:border-[#E2B340]"
           >
             <option value="xp">XP</option>
             <option value="estimated_elo">Elo</option>
@@ -98,13 +98,13 @@ export function CommunityPage() {
         <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
       ) : !players?.length ? (
         <div className="flex flex-col items-center py-16 text-center">
-          <Users className="h-12 w-12 text-[#333] mb-3" />
+          <Users className="h-12 w-12 text-[#2A2A2A] mb-3" />
           {tab === 'region' && !hasLocation ? (
-            <p className="text-[#666]">Setează-ți orașul în profil pentru a vedea jucători din zona ta.</p>
+            <p className="text-[#6B6B6B]">Setează-ți orașul în profil pentru a vedea jucători din zona ta.</p>
           ) : tab === 'region' ? (
-            <p className="text-[#666]">Niciun jucător înregistrat din {profile?.city} încă.</p>
+            <p className="text-[#6B6B6B]">Niciun jucător înregistrat din {profile?.city} încă.</p>
           ) : (
-            <p className="text-[#666]">Niciun rezultat pentru "{search}".</p>
+            <p className="text-[#6B6B6B]">Niciun rezultat pentru "{search}".</p>
           )}
         </div>
       ) : (

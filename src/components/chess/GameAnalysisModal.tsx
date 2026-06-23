@@ -28,10 +28,10 @@ function getQuality(drop: number): MoveQuality {
 
 const QUALITY_COLOR: Record<MoveQuality, string> = {
   best: '#4ade80',
-  good: '#a0a0a0',
+  good: '#A0A0A0',
   inaccuracy: '#fbbf24',
   mistake: '#f97316',
-  blunder: '#f87171',
+  blunder: '#FB7185',
 }
 
 const QUALITY_LABEL: Record<MoveQuality, string> = {
@@ -89,8 +89,8 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
     const g = new Chess(positions.fens[cursor - 1])
     const r = g.move(positions.sans[cursor - 1])
     if (r) {
-      squareStyles[r.from] = { backgroundColor: 'rgba(200,168,75,0.25)' }
-      squareStyles[r.to] = { backgroundColor: 'rgba(200,168,75,0.4)' }
+      squareStyles[r.from] = { backgroundColor: 'rgba(226,179,64,0.25)' }
+      squareStyles[r.to] = { backgroundColor: 'rgba(226,179,64,0.4)' }
     }
   }
 
@@ -163,23 +163,23 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 md:p-4" onClick={onClose}>
       <div
-        className="relative w-full max-w-5xl max-h-[96vh] rounded-2xl bg-[#111] border border-[#2a2a2a] shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-5xl max-h-[96vh] rounded-2xl bg-[#141414] border border-[#2A2A2A] shadow-2xl flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#1e1e1e] flex-shrink-0">
-          <button onClick={onBack} className="text-[#555] hover:text-[#f0f0f0] transition-colors">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#141414] flex-shrink-0">
+          <button onClick={onBack} className="text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#f0f0f0] truncate">
+            <p className="text-sm font-semibold text-[#F0F0F0] truncate">
               {lichessUsername} vs {opponentName}
             </p>
-            <p className="text-xs text-[#555]">
+            <p className="text-xs text-[#6B6B6B]">
               {game.opening?.name ?? 'Unknown'} · {game.perf}
             </p>
           </div>
-          <button onClick={onClose} className="text-[#555] hover:text-[#f0f0f0] transition-colors">
+          <button onClick={onClose} className="text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -190,16 +190,16 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
           <div className="flex flex-shrink-0">
             {/* Eval bar */}
             {evals.length > 0 && (
-              <div className="w-4 flex flex-col bg-[#0d0d0d] relative">
+              <div className="w-4 flex flex-col bg-[#0A0A0A] relative">
                 <div
-                  className="absolute left-0 right-0 top-0 bg-[#f0f0f0] transition-all duration-300"
+                  className="absolute left-0 right-0 top-0 bg-[#F0F0F0] transition-all duration-300"
                   style={{ height: `${100 - barPct}%` }}
                 />
                 <div
-                  className="absolute left-0 right-0 bottom-0 bg-[#1a1a1a] transition-all duration-300"
+                  className="absolute left-0 right-0 bottom-0 bg-[#141414] transition-all duration-300"
                   style={{ height: `${barPct}%` }}
                 />
-                <div className="absolute inset-x-0 top-1/2 h-px bg-[#333]" />
+                <div className="absolute inset-x-0 top-1/2 h-px bg-[#2A2A2A]" />
               </div>
             )}
             {/* Board */}
@@ -220,62 +220,62 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
           {/* Right panel */}
           <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
             {/* Navigation controls */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1e1e1e] flex-shrink-0">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#141414] flex-shrink-0">
               <button
                 onClick={() => setCursor(0)}
                 disabled={cursor === 0}
-                className="text-[#555] hover:text-[#f0f0f0] disabled:opacity-30 transition-colors p-1"
+                className="text-[#6B6B6B] hover:text-[#F0F0F0] disabled:opacity-30 transition-colors p-1"
               >
                 |◀
               </button>
               <button
                 onClick={() => setCursor(c => Math.max(0, c - 1))}
                 disabled={cursor === 0}
-                className="text-[#555] hover:text-[#f0f0f0] disabled:opacity-30 transition-colors p-1"
+                className="text-[#6B6B6B] hover:text-[#F0F0F0] disabled:opacity-30 transition-colors p-1"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="text-xs text-[#555] flex-1 text-center">
+              <span className="text-xs text-[#6B6B6B] flex-1 text-center">
                 {cursor === 0 ? 'Start' : `Mutarea ${cursor}`}
               </span>
               <button
                 onClick={() => setCursor(c => Math.min(positions.fens.length - 1, c + 1))}
                 disabled={cursor === positions.fens.length - 1}
-                className="text-[#555] hover:text-[#f0f0f0] disabled:opacity-30 transition-colors p-1"
+                className="text-[#6B6B6B] hover:text-[#F0F0F0] disabled:opacity-30 transition-colors p-1"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setCursor(positions.fens.length - 1)}
                 disabled={cursor === positions.fens.length - 1}
-                className="text-[#555] hover:text-[#f0f0f0] disabled:opacity-30 transition-colors p-1"
+                className="text-[#6B6B6B] hover:text-[#F0F0F0] disabled:opacity-30 transition-colors p-1"
               >
                 ▶|
               </button>
             </div>
 
             {/* Analyze button */}
-            <div className="px-4 py-3 border-b border-[#1e1e1e] flex-shrink-0">
+            <div className="px-4 py-3 border-b border-[#141414] flex-shrink-0">
               {!analyzing && evals.length === 0 ? (
                 <button
                   onClick={runAnalysis}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-[rgba(200,168,75,0.1)] border border-[rgba(200,168,75,0.3)] px-4 py-2.5 text-sm font-semibold text-[#c8a84b] hover:bg-[rgba(200,168,75,0.2)] transition-colors"
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] px-4 py-2.5 text-sm font-semibold text-[#E2B340] hover:bg-[rgba(226,179,64,0.2)] transition-colors"
                 >
                   <Zap className="h-4 w-4" />
                   Analizează greșelile cu Dl. En Passant
                 </button>
               ) : analyzing ? (
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-[#555]">
+                  <div className="flex items-center justify-between text-xs text-[#6B6B6B]">
                     <span className="flex items-center gap-1.5">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Analizez poziția {Math.round(analyzeProgress * positions.fens.length / 100)}/{positions.fens.length - 1}...
                     </span>
                     <span>{analyzeProgress}%</span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-[#1e1e1e] overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-[#141414] overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-[#c8a84b] transition-all duration-200"
+                      className="h-full rounded-full bg-[#E2B340] transition-all duration-200"
                       style={{ width: `${analyzeProgress}%` }}
                     />
                   </div>
@@ -283,7 +283,7 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
               ) : (
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-[#4ade80]">Analiză completă</span>
-                  <span className="text-[#555]">
+                  <span className="text-[#6B6B6B]">
                     {evals.filter(e => getQuality(e.drop) === 'blunder').length} gafe ·{' '}
                     {evals.filter(e => getQuality(e.drop) === 'mistake').length} greșeli ·{' '}
                     {evals.filter(e => getQuality(e.drop) === 'inaccuracy').length} imprecizii
@@ -306,7 +306,7 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                   <div key={i}>
                     <div className="flex items-center gap-1">
                       {i % 2 === 0 && (
-                        <span className="text-xs text-[#444] w-6 flex-shrink-0 font-mono">
+                        <span className="text-xs text-[#3A3A3A] w-6 flex-shrink-0 font-mono">
                           {Math.floor(i / 2) + 1}.
                         </span>
                       )}
@@ -315,8 +315,8 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                         className={cn(
                           'flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-mono transition-colors flex-1',
                           isActive
-                            ? 'bg-[#c8a84b] text-black font-bold'
-                            : 'hover:bg-[#1a1a1a] text-[#a0a0a0]'
+                            ? 'bg-[#E2B340] text-black font-bold'
+                            : 'hover:bg-[#141414] text-[#A0A0A0]'
                         )}
                       >
                         {quality && quality !== 'best' && quality !== 'good' && (
@@ -342,7 +342,7 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                         <button
                           onClick={() => void askExplanation(i)}
                           disabled={isLoadingThis || loadingExplanation !== null}
-                          className="flex-shrink-0 rounded-md p-1 text-[#c8a84b] hover:bg-[rgba(200,168,75,0.1)] disabled:opacity-40 transition-colors"
+                          className="flex-shrink-0 rounded-md p-1 text-[#E2B340] hover:bg-[rgba(226,179,64,0.1)] disabled:opacity-40 transition-colors"
                           title="Explică Dl. En Passant"
                         >
                           {isLoadingThis
@@ -355,8 +355,8 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
 
                     {/* AI explanation */}
                     {hasExplanation && (
-                      <div className="mx-1 mb-1 rounded-lg bg-[rgba(200,168,75,0.07)] border border-[rgba(200,168,75,0.2)] p-3 text-xs text-[#c0a060] leading-relaxed">
-                        <div className="flex items-center gap-1.5 mb-1.5 text-[#c8a84b] font-semibold">
+                      <div className="mx-1 mb-1 rounded-lg bg-[rgba(226,179,64,0.07)] border border-[rgba(226,179,64,0.2)] p-3 text-xs text-[#C99A2E] leading-relaxed">
+                        <div className="flex items-center gap-1.5 mb-1.5 text-[#E2B340] font-semibold">
                           <Brain className="h-3 w-3" />
                           Dl. En Passant
                         </div>

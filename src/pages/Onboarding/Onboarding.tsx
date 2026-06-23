@@ -142,18 +142,18 @@ export function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="flex items-center gap-2 justify-center mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#c8a84b]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
               <span className="text-black font-black">♟</span>
             </div>
-            <span className="font-bold text-[#f0f0f0] text-lg">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-lg">ChessUp</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0] mb-1">Evaluare nivel</h1>
-          <p className="text-[#a0a0a0] text-sm">
+          <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1">Evaluare nivel</h1>
+          <p className="text-[#A0A0A0] text-sm">
             Întrebarea {step + 1} din {total} — răspunde cinstit pentru recomandări precise
           </p>
         </div>
@@ -162,7 +162,7 @@ export function Onboarding() {
         <Progress value={pct} className="mb-8 h-2" />
 
         {/* Question */}
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-6">
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
           {current?.type === 'tactics' && tacticsState && (
             <TacticsQuestion
               question={current}
@@ -180,7 +180,7 @@ export function Onboarding() {
           )}
           {!current && (
             <div className="text-center py-8">
-              <p className="text-[#a0a0a0] mb-4">Evaluare completată!</p>
+              <p className="text-[#A0A0A0] mb-4">Evaluare completată!</p>
               <Button onClick={handleFinish} loading={submitting} size="lg">
                 Salvează și continuă
               </Button>
@@ -189,7 +189,7 @@ export function Onboarding() {
         </div>
 
         {/* Section label */}
-        <p className="mt-4 text-center text-xs text-[#666]">
+        <p className="mt-4 text-center text-xs text-[#6B6B6B]">
           {step < 5 ? '♟ Tactici' : step < 10 ? '📚 Cunoștințe openings' : '🎯 Stil de joc'}
         </p>
       </div>
@@ -207,15 +207,15 @@ function TacticsQuestion({
 }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold text-[#f0f0f0] mb-2">Găsește cea mai bună mutare</h2>
-      <p className="text-sm text-[#a0a0a0] mb-4">{question.hint}</p>
+      <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Găsește cea mai bună mutare</h2>
+      <p className="text-sm text-[#A0A0A0] mb-4">{question.hint}</p>
       <div className="mx-auto" style={{ maxWidth: 380 }}>
         <Chessboard
           options={{
             position: tacticsState.game.fen(),
             onPieceDrop: ({ sourceSquare, targetSquare }: any) => onDrop(sourceSquare, targetSquare),
             boardStyle: { borderRadius: 8 },
-            darkSquareStyle: { backgroundColor: '#3d3d3d' },
+            darkSquareStyle: { backgroundColor: '#3A3A3A' },
             lightSquareStyle: { backgroundColor: '#f0d9b5' },
           }}
         />
@@ -227,7 +227,7 @@ function TacticsQuestion({
         <p className="mt-4 text-center text-[#fbbf24] font-semibold">Mai gândește-te</p>
       )}
       {!tacticsState.attempted && (
-        <button onClick={onSkip} className="mt-4 w-full text-sm text-[#666] hover:text-[#a0a0a0] transition-colors">
+        <button onClick={onSkip} className="mt-4 w-full text-sm text-[#6B6B6B] hover:text-[#A0A0A0] transition-colors">
           Nu știu — treci mai departe
         </button>
       )}
@@ -244,7 +244,7 @@ function McqQuestion({
 }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold text-[#f0f0f0] mb-5">{question.question}</h2>
+      <h2 className="text-lg font-semibold text-[#F0F0F0] mb-5">{question.question}</h2>
       <div className="space-y-3">
         {question.options.map(opt => (
           <button
@@ -252,8 +252,8 @@ function McqQuestion({
             onClick={() => !selected && onAnswer(opt.value)}
             className={`w-full rounded-lg border px-4 py-3 text-left text-sm font-medium transition-all ${
               selected === opt.value
-                ? 'border-[#c8a84b] bg-[rgba(200,168,75,0.12)] text-[#c8a84b]'
-                : 'border-[#2a2a2a] text-[#a0a0a0] hover:border-[#3a3a3a] hover:text-[#f0f0f0]'
+                ? 'border-[#E2B340] bg-[rgba(226,179,64,0.12)] text-[#E2B340]'
+                : 'border-[#2A2A2A] text-[#A0A0A0] hover:border-[#3A3A3A] hover:text-[#F0F0F0]'
             }`}
           >
             {opt.label}

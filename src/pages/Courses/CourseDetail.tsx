@@ -66,7 +66,7 @@ export function CourseDetail() {
   })
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
-  if (!course) return <p className="text-[#666]">Cursul nu a fost găsit.</p>
+  if (!course) return <p className="text-[#6B6B6B]">Cursul nu a fost găsit.</p>
 
   const hasOpeningLines = openingLines && openingLines.length > 0
 
@@ -84,13 +84,13 @@ export function CourseDetail() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <Link to="/courses" className="flex items-center gap-1.5 text-sm text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors">
+      <Link to="/courses" className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
         <ChevronLeft className="h-4 w-4" />
         Toate cursurile
       </Link>
 
       {/* Header */}
-      <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-6">
+      <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -102,22 +102,22 @@ export function CourseDetail() {
               }>
                 {LEVEL_LABELS[course.level]}
               </Badge>
-              {course.eco_code && <span className="text-xs text-[#666]">{course.eco_code}</span>}
+              {course.eco_code && <span className="text-xs text-[#6B6B6B]">{course.eco_code}</span>}
               {(course.playing_styles ?? []).map((s: string) => (
                 <Badge key={s} variant="default">{PLAYING_STYLE_LABELS[s as keyof typeof PLAYING_STYLE_LABELS]}</Badge>
               ))}
               {isLocked && <Badge variant="premium">Pro</Badge>}
             </div>
-            <h1 className="text-2xl font-bold text-[#f0f0f0] mb-3">{course.title}</h1>
+            <h1 className="text-2xl font-bold text-[#F0F0F0] mb-3">{course.title}</h1>
             {course.description && (
-              <p className="text-[#a0a0a0] text-sm leading-relaxed border-l-2 border-[#c8a84b] pl-3">
+              <p className="text-[#A0A0A0] text-sm leading-relaxed border-l-2 border-[#E2B340] pl-3">
                 {course.description}
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-[#666] mb-4 flex-wrap">
+        <div className="flex items-center gap-4 text-sm text-[#6B6B6B] mb-4 flex-wrap">
           {hasOpeningLines ? (
             <span className="flex items-center gap-1.5">
               <TrendingUp className="h-4 w-4" />
@@ -137,7 +137,7 @@ export function CourseDetail() {
 
         {!hasOpeningLines && lessonPct > 0 && (
           <div className="mb-4">
-            <div className="flex justify-between text-xs text-[#666] mb-1.5">
+            <div className="flex justify-between text-xs text-[#6B6B6B] mb-1.5">
               <span>Progres</span>
               <span className="text-[#4ade80]">{lessonPct}% complet</span>
             </div>
@@ -169,44 +169,44 @@ export function CourseDetail() {
       {/* Opening lines section */}
       {hasOpeningLines && (
         <div>
-          <h2 className="text-lg font-semibold text-[#f0f0f0] mb-3">
+          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-3">
             Variante ({openingLines.length})
           </h2>
           <div className="space-y-3">
             {openingLines.map((line) => (
               <div
                 key={line.id}
-                className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 hover:border-[#3a3a3a] transition-colors"
+                className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#3A3A3A] transition-colors"
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-[#666] border border-[#333] rounded px-1.5 py-0.5">
+                      <span className="text-xs font-bold text-[#6B6B6B] border border-[#2A2A2A] rounded px-1.5 py-0.5">
                         {line.variation_code}
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                         line.user_color === 'white'
-                          ? 'bg-[#f0f0f0] text-black'
-                          : 'bg-[#2a2a2a] text-[#f0f0f0] border border-[#444]'
+                          ? 'bg-[#F0F0F0] text-black'
+                          : 'bg-[#2A2A2A] text-[#F0F0F0] border border-[#3A3A3A]'
                       }`}>
                         {line.user_color === 'white' ? '♔ Alb' : '♚ Negru'}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-[#f0f0f0] text-sm leading-snug">
+                    <h3 className="font-semibold text-[#F0F0F0] text-sm leading-snug">
                       {line.variation_name}
                     </h3>
                   </div>
                   {/* Popularity */}
                   <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-bold text-[#c8a84b]">{line.popularity_pct}%</p>
-                    <p className="text-[10px] text-[#555] uppercase tracking-wide">popularitate</p>
+                    <p className="text-lg font-bold text-[#E2B340]">{line.popularity_pct}%</p>
+                    <p className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">popularitate</p>
                   </div>
                 </div>
 
                 {/* Popularity bar */}
-                <div className="h-1 bg-[#2a2a2a] rounded-full mb-3 overflow-hidden">
+                <div className="h-1 bg-[#2A2A2A] rounded-full mb-3 overflow-hidden">
                   <div
-                    className="h-full bg-[#c8a84b] rounded-full"
+                    className="h-full bg-[#E2B340] rounded-full"
                     style={{ width: `${Math.min(line.popularity_pct * 2, 100)}%` }}
                   />
                 </div>
@@ -243,7 +243,7 @@ export function CourseDetail() {
       {/* Lessons section (for fundamental courses) */}
       {!hasOpeningLines && (
         <div>
-          <h2 className="text-lg font-semibold text-[#f0f0f0] mb-3">
+          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-3">
             Lecții ({lessons?.length ?? 0})
           </h2>
           <div className="space-y-2">
@@ -254,25 +254,25 @@ export function CourseDetail() {
                 <Link
                   key={lesson.id}
                   to={locked ? '/pricing' : `/courses/${slug}/lessons/${lesson.id}`}
-                  className="flex items-center gap-4 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-4 hover:border-[#3a3a3a] transition-all group"
+                  className="flex items-center gap-4 rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#3A3A3A] transition-all group"
                 >
                   <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold flex-shrink-0 ${
-                    done ? 'bg-[#4ade80] text-black' : 'bg-[#2a2a2a] text-[#666]'
+                    done ? 'bg-[#4ade80] text-black' : 'bg-[#2A2A2A] text-[#6B6B6B]'
                   }`}>
                     {done ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium group-hover:text-[#c8a84b] transition-colors ${done ? 'text-[#4ade80]' : 'text-[#f0f0f0]'}`}>
+                    <p className={`text-sm font-medium group-hover:text-[#E2B340] transition-colors ${done ? 'text-[#4ade80]' : 'text-[#F0F0F0]'}`}>
                       {lesson.title}
                     </p>
-                    <p className="text-xs text-[#666]">{lesson.duration_minutes} min</p>
+                    <p className="text-xs text-[#6B6B6B]">{lesson.duration_minutes} min</p>
                   </div>
-                  {locked && <Lock className="h-4 w-4 text-[#c8a84b] flex-shrink-0" />}
+                  {locked && <Lock className="h-4 w-4 text-[#E2B340] flex-shrink-0" />}
                 </Link>
               )
             })}
             {(!lessons || lessons.length === 0) && (
-              <p className="text-[#666] text-sm text-center py-8">Lecțiile sunt în curs de pregătire.</p>
+              <p className="text-[#6B6B6B] text-sm text-center py-8">Lecțiile sunt în curs de pregătire.</p>
             )}
           </div>
         </div>

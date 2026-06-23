@@ -83,30 +83,30 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#666]">
-        <Link to="/courses" className="hover:text-[#f0f0f0] transition-colors">Cursuri</Link>
+      <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+        <Link to="/courses" className="hover:text-[#F0F0F0] transition-colors">Cursuri</Link>
         <span>›</span>
-        <Link to={`/courses/${course.slug}`} className="hover:text-[#f0f0f0] transition-colors">{course.title}</Link>
+        <Link to={`/courses/${course.slug}`} className="hover:text-[#F0F0F0] transition-colors">{course.title}</Link>
         <span>›</span>
-        <span className="text-[#a0a0a0]">{lesson.title}</span>
+        <span className="text-[#A0A0A0]">{lesson.title}</span>
       </div>
 
       {/* Header lecție */}
-      <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5 space-y-3">
-        <h1 className="text-xl font-bold text-[#f0f0f0]">{lesson.title}</h1>
+      <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 space-y-3">
+        <h1 className="text-xl font-bold text-[#F0F0F0]">{lesson.title}</h1>
 
         {/* Teorie */}
         {lesson.theory_html && (
           <div
-            className="prose prose-sm prose-invert max-w-none text-[#a0a0a0] leading-relaxed"
+            className="prose prose-sm prose-invert max-w-none text-[#A0A0A0] leading-relaxed"
             dangerouslySetInnerHTML={{ __html: lesson.theory_html }}
           />
         )}
 
         {/* Progress exerciții */}
         {exercises.length > 0 && (
-          <div className="space-y-1.5 pt-2 border-t border-[#2a2a2a]">
-            <div className="flex justify-between text-xs text-[#666]">
+          <div className="space-y-1.5 pt-2 border-t border-[#2A2A2A]">
+            <div className="flex justify-between text-xs text-[#6B6B6B]">
               <span>Exerciții</span>
               <span>{allDone ? exercises.length : exerciseIndex} / {exercises.length}</span>
             </div>
@@ -117,9 +117,9 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
 
       {/* Exercițiu curent */}
       {!allDone && currentExercise && (
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5">
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-medium text-[#c8a84b] bg-[rgba(200,168,75,0.15)] rounded-full px-3 py-1">
+            <span className="text-xs font-medium text-[#E2B340] bg-[rgba(226,179,64,0.15)] rounded-full px-3 py-1">
               Exercițiu {exerciseIndex + 1} din {exercises.length}
             </span>
           </div>
@@ -149,8 +149,8 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
       {allDone && (
         <div className="rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] p-5 text-center space-y-3">
           <CheckCircle2 className="h-10 w-10 text-[#4ade80] mx-auto" />
-          <p className="font-semibold text-[#f0f0f0]">Toate exercițiile rezolvate!</p>
-          <p className="text-sm text-[#666]">Apasă "Finalizează" pentru a câștiga XP-ul.</p>
+          <p className="font-semibold text-[#F0F0F0]">Toate exercițiile rezolvate!</p>
+          <p className="text-sm text-[#6B6B6B]">Apasă "Finalizează" pentru a câștiga XP-ul.</p>
         </div>
       )}
 

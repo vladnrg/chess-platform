@@ -112,8 +112,8 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
 
   const squareStyles: Record<string, React.CSSProperties> = {}
   if (lastMove) {
-    squareStyles[lastMove.from] = { backgroundColor: 'rgba(200,168,75,0.25)' }
-    squareStyles[lastMove.to] = { backgroundColor: 'rgba(200,168,75,0.4)' }
+    squareStyles[lastMove.from] = { backgroundColor: 'rgba(226,179,64,0.25)' }
+    squareStyles[lastMove.to] = { backgroundColor: 'rgba(226,179,64,0.4)' }
   }
 
   const statusText = {
@@ -127,7 +127,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
       <div
-        className="relative w-full max-w-3xl rounded-2xl bg-[#111] border border-[#2a2a2a] shadow-2xl flex flex-col md:flex-row overflow-hidden"
+        className="relative w-full max-w-3xl rounded-2xl bg-[#141414] border border-[#2A2A2A] shadow-2xl flex flex-col md:flex-row overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Board */}
@@ -152,15 +152,15 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <Brain className="h-4 w-4 text-[#c8a84b]" />
-                <span className="text-xs font-semibold text-[#c8a84b] uppercase tracking-wider">Dl. En Passant</span>
+                <Brain className="h-4 w-4 text-[#E2B340]" />
+                <span className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Dl. En Passant</span>
               </div>
-              <h3 className="font-bold text-[#f0f0f0] text-sm leading-snug">{openingName}</h3>
-              <p className="text-xs text-[#555] mt-0.5">
+              <h3 className="font-bold text-[#F0F0F0] text-sm leading-snug">{openingName}</h3>
+              <p className="text-xs text-[#6B6B6B] mt-0.5">
                 {elo} ELO · {ELO_LABELS[elo] ?? ''}
               </p>
             </div>
-            <button onClick={onClose} className="text-[#555] hover:text-[#f0f0f0] transition-colors flex-shrink-0">
+            <button onClick={onClose} className="text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors flex-shrink-0">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -168,30 +168,30 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
           {/* Status */}
           <div className={cn(
             'rounded-lg px-3 py-2 text-sm font-medium text-center',
-            status === 'playing' ? 'bg-[#1a1a1a] text-[#a0a0a0]' :
-            status === 'thinking' ? 'bg-[rgba(200,168,75,0.1)] text-[#c8a84b]' :
+            status === 'playing' ? 'bg-[#141414] text-[#A0A0A0]' :
+            status === 'thinking' ? 'bg-[rgba(226,179,64,0.1)] text-[#E2B340]' :
             status === 'won' ? 'bg-[rgba(74,222,128,0.1)] text-[#4ade80]' :
-            status === 'lost' ? 'bg-[rgba(248,113,113,0.1)] text-[#f87171]' :
-            'bg-[#1a1a1a] text-[#a0a0a0]'
+            status === 'lost' ? 'bg-[rgba(251,113,133,0.1)] text-[#FB7185]' :
+            'bg-[#141414] text-[#A0A0A0]'
           )}>
             {statusText}
           </div>
 
           {/* Move history */}
-          <div className="flex-1 min-h-0 overflow-y-auto rounded-lg bg-[#0d0d0d] border border-[#1e1e1e] p-2">
+          <div className="flex-1 min-h-0 overflow-y-auto rounded-lg bg-[#0A0A0A] border border-[#141414] p-2">
             {moveHistory.length === 0 ? (
-              <p className="text-xs text-[#444] text-center py-4">Nicio mutare încă</p>
+              <p className="text-xs text-[#3A3A3A] text-center py-4">Nicio mutare încă</p>
             ) : (
               <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs font-mono">
                 {Array.from({ length: Math.ceil(moveHistory.length / 2) }, (_, i) => (
                   <div key={i} className="contents">
-                    <div className="flex items-center gap-1.5 rounded px-1.5 py-0.5 hover:bg-[#1a1a1a]">
-                      <span className="text-[#444] w-4">{i + 1}.</span>
-                      <span className="text-[#f0f0f0]">{moveHistory[i * 2]}</span>
+                    <div className="flex items-center gap-1.5 rounded px-1.5 py-0.5 hover:bg-[#141414]">
+                      <span className="text-[#3A3A3A] w-4">{i + 1}.</span>
+                      <span className="text-[#F0F0F0]">{moveHistory[i * 2]}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded px-1.5 py-0.5 hover:bg-[#1a1a1a]">
+                    <div className="flex items-center gap-1.5 rounded px-1.5 py-0.5 hover:bg-[#141414]">
                       {moveHistory[i * 2 + 1] && (
-                        <span className="text-[#a0a0a0]">{moveHistory[i * 2 + 1]}</span>
+                        <span className="text-[#A0A0A0]">{moveHistory[i * 2 + 1]}</span>
                       )}
                     </div>
                   </div>
@@ -204,12 +204,12 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
           <div className="flex gap-2">
             <button
               onClick={resetGame}
-              className="flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-xs text-[#a0a0a0] hover:text-[#f0f0f0] hover:border-[#3a3a3a] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-[#141414] border border-[#2A2A2A] px-3 py-2 text-xs text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] transition-colors"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Resetează
             </button>
-            <div className="flex items-center gap-1 ml-auto text-xs text-[#555]">
+            <div className="flex items-center gap-1 ml-auto text-xs text-[#6B6B6B]">
               <ChevronLeft className="h-4 w-4" />
               <span>mutare</span>
               <ChevronRight className="h-4 w-4" />

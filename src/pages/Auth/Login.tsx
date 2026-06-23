@@ -26,18 +26,18 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c8a84b]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340]">
               <span className="text-black font-black text-xl">♟</span>
             </div>
-            <span className="font-bold text-[#f0f0f0] text-xl">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-xl">ChessUp</span>
           </Link>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Bun revenit!</h1>
-          <p className="mt-1 text-sm text-[#a0a0a0]">Conectează-te la contul tău</p>
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Bun revenit!</h1>
+          <p className="mt-1 text-sm text-[#A0A0A0]">Conectează-te la contul tău</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,9 +63,9 @@ export function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-[#a0a0a0]">
+        <p className="mt-6 text-center text-sm text-[#A0A0A0]">
           Nu ai cont?{' '}
-          <Link to="/register" className="text-[#c8a84b] hover:text-[#d4b860] font-medium">
+          <Link to="/register" className="text-[#E2B340] hover:text-[#F0C85A] font-medium">
             Înregistrează-te gratuit
           </Link>
         </p>

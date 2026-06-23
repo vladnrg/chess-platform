@@ -98,9 +98,9 @@ export default function App() {
         <Toaster
           position="bottom-right"
           toastOptions={{
-            style: { background: '#1e1e1e', color: '#f0f0f0', border: '1px solid #2a2a2a' },
-            success: { iconTheme: { primary: '#4ade80', secondary: '#1e1e1e' } },
-            error: { iconTheme: { primary: '#f87171', secondary: '#1e1e1e' } },
+            style: { background: '#141414', color: '#F0F0F0', border: '1px solid #2A2A2A' },
+            success: { iconTheme: { primary: '#4ade80', secondary: '#141414' } },
+            error: { iconTheme: { primary: '#FB7185', secondary: '#141414' } },
           }}
         />
       </BrowserRouter>

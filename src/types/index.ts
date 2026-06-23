@@ -199,10 +199,10 @@ export const LEAGUES: LeagueConfig[] = [
   { name: 'cherestea', label: 'Inițiat',     minXp: 0,    maxXp: 299,  weeklyMinXp: 30,  color: '#8B6914', textColor: '#fff' },
   { name: 'tinichea',  label: 'Integrat',    minXp: 300,  maxXp: 699,  weeklyMinXp: 50,  color: '#71797E', textColor: '#fff' },
   { name: 'bronz',     label: 'Pretendent',  minXp: 700,  maxXp: 1299, weeklyMinXp: 75,  color: '#CD7F32', textColor: '#fff' },
-  { name: 'argint',    label: 'Bazat',       minXp: 1300, maxXp: 2199, weeklyMinXp: 100, color: '#C0C0C0', textColor: '#111' },
-  { name: 'aur',       label: 'Avansat',     minXp: 2200, maxXp: 3499, weeklyMinXp: 150, color: '#FFD700', textColor: '#111' },
-  { name: 'smarald',   label: 'Remarcabil',  minXp: 3500, maxXp: 5499, weeklyMinXp: 200, color: '#50C878', textColor: '#111' },
-  { name: 'diamant',   label: 'Legendar',    minXp: 5500, maxXp: null, weeklyMinXp: 250, color: '#B9F2FF', textColor: '#111' },
+  { name: 'argint',    label: 'Bazat',       minXp: 1300, maxXp: 2199, weeklyMinXp: 100, color: '#C0C0C0', textColor: '#141414' },
+  { name: 'aur',       label: 'Avansat',     minXp: 2200, maxXp: 3499, weeklyMinXp: 150, color: '#FFD700', textColor: '#141414' },
+  { name: 'smarald',   label: 'Remarcabil',  minXp: 3500, maxXp: 5499, weeklyMinXp: 200, color: '#50C878', textColor: '#141414' },
+  { name: 'diamant',   label: 'Legendar',    minXp: 5500, maxXp: null, weeklyMinXp: 250, color: '#B9F2FF', textColor: '#141414' },
 ]
 
 export const PLAYING_STYLE_LABELS: Record<PlayingStyle, string> = {

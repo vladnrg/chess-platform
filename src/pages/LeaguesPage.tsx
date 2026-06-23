@@ -25,8 +25,8 @@ export function LeaguesPage() {
     <div className="max-w-3xl mx-auto space-y-8 py-2">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Sistemul de ligi</h1>
-        <p className="text-[#666] mt-1 text-sm">
+        <h1 className="text-2xl font-bold text-[#F0F0F0]">Sistemul de ligi</h1>
+        <p className="text-[#6B6B6B] mt-1 text-sm">
           Acumulează XP rezolvând puzzle-uri și parcurgând cursuri pentru a avansa în ligi.
         </p>
       </div>
@@ -49,18 +49,18 @@ export function LeaguesPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-[#888]">Liga ta curentă</span>
+                <span className="text-sm text-[#A0A0A0]">Liga ta curentă</span>
               </div>
               <h2 className="text-xl font-bold mt-0.5" style={{ color: currentLeagueConfig.color }}>
                 {currentLeagueConfig.label}
               </h2>
-              <p className="text-sm text-[#888] mt-0.5">{profile.xp} XP total</p>
+              <p className="text-sm text-[#A0A0A0] mt-0.5">{profile.xp} XP total</p>
             </div>
             <div className="text-right">
               {xpToNext !== null ? (
                 <>
-                  <p className="text-xs text-[#666]">până la liga următoare</p>
-                  <p className="text-lg font-bold text-[#f0f0f0] mt-0.5">{xpToNext} XP</p>
+                  <p className="text-xs text-[#6B6B6B]">până la liga următoare</p>
+                  <p className="text-lg font-bold text-[#F0F0F0] mt-0.5">{xpToNext} XP</p>
                 </>
               ) : (
                 <p className="text-sm font-semibold" style={{ color: currentLeagueConfig.color }}>
@@ -72,26 +72,26 @@ export function LeaguesPage() {
 
           {xpToNext !== null && (
             <div className="mt-4">
-              <div className="flex justify-between text-xs text-[#666] mb-1.5">
+              <div className="flex justify-between text-xs text-[#6B6B6B] mb-1.5">
                 <span>{currentLeagueConfig.minXp} XP</span>
                 <span>{currentLeagueConfig.maxXp} XP</span>
               </div>
-              <div className="h-2 rounded-full bg-[#1e1e1e] overflow-hidden">
+              <div className="h-2 rounded-full bg-[#141414] overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${progress}%`, backgroundColor: currentLeagueConfig.color }}
                 />
               </div>
-              <p className="text-xs text-[#666] mt-1.5 text-right">{Math.round(progress)}% completat</p>
+              <p className="text-xs text-[#6B6B6B] mt-1.5 text-right">{Math.round(progress)}% completat</p>
             </div>
           )}
         </div>
       )}
 
       {/* XP sources */}
-      <div className="rounded-xl border border-[#1e1e1e] bg-[#111] p-5">
-        <h3 className="text-sm font-semibold text-[#f0f0f0] mb-4 flex items-center gap-2">
-          <Zap className="h-4 w-4 text-[#c8a84b]" />
+      <div className="rounded-xl border border-[#141414] bg-[#141414] p-5">
+        <h3 className="text-sm font-semibold text-[#F0F0F0] mb-4 flex items-center gap-2">
+          <Zap className="h-4 w-4 text-[#E2B340]" />
           Cum câștig XP?
         </h3>
         <div className="grid grid-cols-2 gap-3 text-sm">
@@ -104,9 +104,9 @@ export function LeaguesPage() {
             { label: 'Streak zilnic activ', xp: '+25 XP/zi' },
             { label: 'Evaluare completată', xp: '+100 XP' },
           ].map(({ label, xp }) => (
-            <div key={label} className="flex items-center justify-between gap-2 rounded-lg bg-[#1a1a1a] px-3 py-2">
-              <span className="text-[#a0a0a0]">{label}</span>
-              <span className="font-semibold text-[#c8a84b] whitespace-nowrap">{xp}</span>
+            <div key={label} className="flex items-center justify-between gap-2 rounded-lg bg-[#141414] px-3 py-2">
+              <span className="text-[#A0A0A0]">{label}</span>
+              <span className="font-semibold text-[#E2B340] whitespace-nowrap">{xp}</span>
             </div>
           ))}
         </div>
@@ -114,7 +114,7 @@ export function LeaguesPage() {
 
       {/* All leagues */}
       <div>
-        <h3 className="text-sm font-semibold text-[#888] uppercase tracking-wider mb-4">Toate ligile</h3>
+        <h3 className="text-sm font-semibold text-[#A0A0A0] uppercase tracking-wider mb-4">Toate ligile</h3>
         <div className="space-y-3">
           {LEAGUES.map((league, idx) => {
             const isCurrent = profile?.current_league === league.name
@@ -133,7 +133,7 @@ export function LeaguesPage() {
                     ? `linear-gradient(135deg, ${league.color}18 0%, ${league.color}08 100%)`
                     : isPassed
                     ? `linear-gradient(135deg, ${league.color}10 0%, transparent 100%)`
-                    : '#111',
+                    : '#141414',
                   border: `1px solid ${isCurrent ? league.color + '50' : isPassed ? league.color + '30' : league.color + '20'}`,
                   boxShadow: isCurrent ? `0 0 32px ${league.color}20, inset 0 0 60px ${league.color}08` : undefined,
                 }}
@@ -197,10 +197,10 @@ export function LeaguesPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: isFuture ? '#444' : '#666' }}>
+                  <p className="text-xs mt-0.5" style={{ color: isFuture ? '#3A3A3A' : '#6B6B6B' }}>
                     {LEAGUE_DESCRIPTIONS[idx]}
                   </p>
-                  <p className="text-xs mt-1.5 font-mono" style={{ color: isFuture ? '#333' : '#555' }}>
+                  <p className="text-xs mt-1.5 font-mono" style={{ color: isFuture ? '#2A2A2A' : '#6B6B6B' }}>
                     {league.maxXp !== null ? `${league.minXp} – ${league.maxXp} XP` : `${league.minXp}+ XP`}
                     <span className="mx-1.5 opacity-40">·</span>
                     {league.weeklyMinXp} XP/săpt.
@@ -222,8 +222,8 @@ export function LeaguesPage() {
       </div>
 
       {/* Relegation rules */}
-      <div className="rounded-xl border border-[#1e1e1e] bg-[#111] p-5 text-sm text-[#666]">
-        <h3 className="text-[#888] font-semibold mb-3">Reguli retrogradare</h3>
+      <div className="rounded-xl border border-[#141414] bg-[#141414] p-5 text-sm text-[#6B6B6B]">
+        <h3 className="text-[#A0A0A0] font-semibold mb-3">Reguli retrogradare</h3>
         <ul className="space-y-1.5 list-disc list-inside">
           <li>Dacă acumulezi mai puțin XP decât minimul săptămânal, ești retrogradat o ligă.</li>
           <li>Verificarea se face în fiecare duminică la 23:59.</li>

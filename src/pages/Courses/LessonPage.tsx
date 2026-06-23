@@ -114,7 +114,7 @@ export function LessonPage() {
   const nextLesson = myIdx >= 0 && myIdx < (siblings?.length ?? 0) - 1 ? siblings?.[myIdx + 1] : null
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
-  if (!lesson) return <p className="text-[#666]">Lecția nu a fost găsită.</p>
+  if (!lesson) return <p className="text-[#6B6B6B]">Lecția nu a fost găsită.</p>
 
   if (lesson.lesson_type === 'rules' || lesson.lesson_type === 'notation') {
     return (
@@ -130,32 +130,32 @@ export function LessonPage() {
   return (
     <div className="space-y-4">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#666]">
-        <Link to="/courses" className="hover:text-[#f0f0f0] transition-colors">Cursuri</Link>
+      <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+        <Link to="/courses" className="hover:text-[#F0F0F0] transition-colors">Cursuri</Link>
         <span>›</span>
-        <Link to={`/courses/${slug}`} className="hover:text-[#f0f0f0] transition-colors">{course?.title}</Link>
+        <Link to={`/courses/${slug}`} className="hover:text-[#F0F0F0] transition-colors">{course?.title}</Link>
         <span>›</span>
-        <span className="text-[#a0a0a0]">{lesson.title}</span>
+        <span className="text-[#A0A0A0]">{lesson.title}</span>
       </div>
 
       {/* Layout split */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Stânga: tabla */}
         <div className="space-y-4">
-          <div className="rounded-xl overflow-hidden border border-[#2a2a2a]">
+          <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
             <Chessboard
               options={{
                 position: getCurrentFen(),
                 allowDragging: false,
                 boardStyle: { borderRadius: 0 },
-                darkSquareStyle: { backgroundColor: '#3d3d3d' },
+                darkSquareStyle: { backgroundColor: '#3A3A3A' },
                 lightSquareStyle: { backgroundColor: '#f0d9b5' },
               }}
             />
           </div>
 
           {/* Controale PGN */}
-          <div className="flex items-center justify-between rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] p-3">
+          <div className="flex items-center justify-between rounded-lg bg-[#141414] border border-[#2A2A2A] p-3">
             <Button variant="ghost" size="icon" onClick={reset} title="Reset">
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -163,7 +163,7 @@ export function LessonPage() {
               <Button variant="secondary" size="sm" onClick={goBack} disabled={moveIndex === 0}>
                 <ChevronLeft className="h-4 w-4" /> Înapoi
               </Button>
-              <span className="text-xs text-[#666] min-w-[60px] text-center">
+              <span className="text-xs text-[#6B6B6B] min-w-[60px] text-center">
                 {moveIndex} / {moves.length}
               </span>
               <Button variant="secondary" size="sm" onClick={goForward} disabled={moveIndex >= moves.length}>
@@ -175,7 +175,7 @@ export function LessonPage() {
 
           {/* Mutări */}
           {moves.length > 0 && (
-            <div className="rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] p-3 max-h-32 overflow-y-auto">
+            <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-3 max-h-32 overflow-y-auto">
               <div className="flex flex-wrap gap-1">
                 {moves.map((move, i) => (
                   <button
@@ -183,11 +183,11 @@ export function LessonPage() {
                     onClick={() => setMoveIndex(i + 1)}
                     className={`text-xs rounded px-1.5 py-0.5 transition-colors ${
                       i + 1 === moveIndex
-                        ? 'bg-[#c8a84b] text-black font-bold'
-                        : 'text-[#a0a0a0] hover:text-[#f0f0f0]'
+                        ? 'bg-[#E2B340] text-black font-bold'
+                        : 'text-[#A0A0A0] hover:text-[#F0F0F0]'
                     }`}
                   >
-                    {i % 2 === 0 && <span className="text-[#666] mr-0.5">{Math.floor(i / 2) + 1}.</span>}
+                    {i % 2 === 0 && <span className="text-[#6B6B6B] mr-0.5">{Math.floor(i / 2) + 1}.</span>}
                     {move}
                   </button>
                 ))}
@@ -198,15 +198,15 @@ export function LessonPage() {
 
         {/* Dreapta: teorie */}
         <div className="space-y-4">
-          <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5">
-            <h1 className="text-xl font-bold text-[#f0f0f0] mb-4">{lesson.title}</h1>
+          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
+            <h1 className="text-xl font-bold text-[#F0F0F0] mb-4">{lesson.title}</h1>
             {lesson.theory_html ? (
               <div
-                className="prose prose-sm prose-invert max-w-none text-[#a0a0a0] leading-relaxed"
+                className="prose prose-sm prose-invert max-w-none text-[#A0A0A0] leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: lesson.theory_html }}
               />
             ) : (
-              <p className="text-[#666] text-sm">Teoria pentru această lecție este în curs de pregătire.</p>
+              <p className="text-[#6B6B6B] text-sm">Teoria pentru această lecție este în curs de pregătire.</p>
             )}
           </div>
 

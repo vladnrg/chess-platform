@@ -16,7 +16,7 @@ export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-[#0f0f0f] overflow-hidden">
+    <div className="flex h-screen bg-[#0A0A0A] overflow-hidden">
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
@@ -37,14 +37,14 @@ export function AppLayout() {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-auto">
         {/* Mobile topbar */}
-        <header className="flex items-center gap-3 border-b border-[#2a2a2a] px-4 py-3 lg:hidden">
+        <header className="flex items-center gap-3 border-b border-[#2A2A2A] px-4 py-3 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 text-[#a0a0a0] hover:bg-[#1e1e1e] hover:text-[#f0f0f0] transition-colors"
+            className="rounded-lg p-2 text-[#A0A0A0] hover:bg-[#141414] hover:text-[#F0F0F0] transition-colors"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-bold text-[#c8a84b] text-lg">ChessUp</span>
+          <span className="font-bold text-[#E2B340] text-lg">ChessUp</span>
         </header>
 
         {/* Page */}

@@ -10,18 +10,18 @@ import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import { Card, CardContent } from '@/components/ui/Card'
 
 const TOOLTIP_STYLE = {
-  backgroundColor: '#1e1e1e',
-  border: '1px solid #2a2a2a',
+  backgroundColor: '#141414',
+  border: '1px solid #2A2A2A',
   borderRadius: 8,
-  color: '#f0f0f0',
+  color: '#F0F0F0',
   fontSize: 12,
 }
 
 function getHeatColor(count: number): string {
-  if (count === 0) return '#1a1a1a'
-  if (count <= 2) return '#7a6228'
-  if (count <= 5) return '#a8872e'
-  return '#c8a84b'
+  if (count === 0) return '#141414'
+  if (count <= 2) return '#C99A2E'
+  if (count <= 5) return '#C99A2E'
+  return '#E2B340'
 }
 
 export function StatsPage() {
@@ -191,8 +191,8 @@ export function StatsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#f0f0f0]">Statistici personale</h1>
-        <p className="text-[#666] text-sm mt-0.5">Progresul tău în timp</p>
+        <h1 className="text-2xl font-bold text-[#F0F0F0]">Statistici personale</h1>
+        <p className="text-[#6B6B6B] text-sm mt-0.5">Progresul tău în timp</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -220,7 +220,7 @@ export function StatsPage() {
               ? `${puzzleCounts.solved} din ${puzzleCounts.total} puzzle-uri rezolvate`
               : 'fă testul de plasament'
           }
-          color="#c8a84b"
+          color="#E2B340"
         />
       </div>
 
@@ -229,19 +229,19 @@ export function StatsPage() {
         <Card className="lg:col-span-2">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-[#f0f0f0]">Rating de puzzle în timp</h2>
+              <h2 className="text-sm font-semibold text-[#F0F0F0]">Rating de puzzle în timp</h2>
               {profile.puzzle_rating != null && (
-                <span className="text-sm font-bold text-[#c8a84b] tabular-nums">{profile.puzzle_rating}</span>
+                <span className="text-sm font-bold text-[#E2B340] tabular-nums">{profile.puzzle_rating}</span>
               )}
             </div>
             {ratingHistory && ratingHistory.length >= 2 ? (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={ratingHistory}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis dataKey="idx" tick={{ fill: '#666', fontSize: 11 }} tickFormatter={() => ''} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
+                  <XAxis dataKey="idx" tick={{ fill: '#6B6B6B', fontSize: 11 }} tickFormatter={() => ''} />
                   <YAxis
                     domain={['dataMin - 30', 'dataMax + 30']}
-                    tick={{ fill: '#666', fontSize: 11 }}
+                    tick={{ fill: '#6B6B6B', fontSize: 11 }}
                     width={44}
                     allowDecimals={false}
                   />
@@ -253,7 +253,7 @@ export function StatsPage() {
                   <Line
                     type="monotone"
                     dataKey="rating"
-                    stroke="#c8a84b"
+                    stroke="#E2B340"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -268,20 +268,20 @@ export function StatsPage() {
         {/* XP săptămânal */}
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">XP câștigat săptămânal</h2>
+            <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">XP câștigat săptămânal</h2>
             {xpHistory && xpHistory.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={xpHistory}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis dataKey="week" tick={{ fill: '#666', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#666', fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
+                  <XAxis dataKey="week" tick={{ fill: '#6B6B6B', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#6B6B6B', fontSize: 11 }} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Line
                     type="monotone"
                     dataKey="xp"
-                    stroke="#c8a84b"
+                    stroke="#E2B340"
                     strokeWidth={2}
-                    dot={{ fill: '#c8a84b', r: 3 }}
+                    dot={{ fill: '#E2B340', r: 3 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -294,13 +294,13 @@ export function StatsPage() {
         {/* Heatmap activitate */}
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">
+            <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">
               Activitate — ultimele 12 săptămâni
             </h2>
             <ActivityHeatmap counts={activityCounts ?? {}} />
             {avgSuccess > 0 && (
-              <p className="text-[11px] text-[#555] mt-3">
-                Rată medie succes puzzle: <span className="text-[#c8a84b]">{avgSuccess}%</span>
+              <p className="text-[11px] text-[#6B6B6B] mt-3">
+                Rată medie succes puzzle: <span className="text-[#E2B340]">{avgSuccess}%</span>
               </p>
             )}
           </CardContent>
@@ -309,28 +309,28 @@ export function StatsPage() {
         {/* Rată succes puzzle */}
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">Rată succes pe teme puzzle</h2>
+            <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">Rată succes pe teme puzzle</h2>
             {puzzleStats && puzzleStats.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={puzzleStats} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                   <XAxis
                     type="number"
                     domain={[0, 100]}
-                    tick={{ fill: '#666', fontSize: 11 }}
+                    tick={{ fill: '#6B6B6B', fontSize: 11 }}
                     tickFormatter={v => `${v}%`}
                   />
                   <YAxis
                     type="category"
                     dataKey="theme"
-                    tick={{ fill: '#a0a0a0', fontSize: 10 }}
+                    tick={{ fill: '#A0A0A0', fontSize: 10 }}
                     width={80}
                   />
                   <Tooltip
                     contentStyle={TOOLTIP_STYLE}
                     formatter={(v) => [`${v}%`, 'Succes']}
                   />
-                  <Bar dataKey="Rată succes" fill="#c8a84b" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Rată succes" fill="#E2B340" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -342,16 +342,16 @@ export function StatsPage() {
         {/* Acoperire openings */}
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">Acoperire openings studiate</h2>
+            <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">Acoperire openings studiate</h2>
             {openingCoverage && openingCoverage.length >= 3 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <RadarChart data={openingCoverage} cx="50%" cy="50%" outerRadius={72}>
-                  <PolarGrid stroke="#2a2a2a" />
-                  <PolarAngleAxis dataKey="label" tick={{ fill: '#a0a0a0', fontSize: 10 }} />
+                  <PolarGrid stroke="#2A2A2A" />
+                  <PolarAngleAxis dataKey="label" tick={{ fill: '#A0A0A0', fontSize: 10 }} />
                   <Radar
                     dataKey="completare"
-                    stroke="#c8a84b"
-                    fill="#c8a84b"
+                    stroke="#E2B340"
+                    fill="#E2B340"
                     fillOpacity={0.25}
                   />
                   <Tooltip
@@ -363,9 +363,9 @@ export function StatsPage() {
             ) : openingCoverage && openingCoverage.length > 0 ? (
               <div className="space-y-2 pt-2">
                 {openingCoverage.map((o: { family: string; completare: number }) => (
-                  <div key={o.family} className="flex items-center justify-between rounded-lg bg-[#111] p-2.5">
-                    <span className="text-sm text-[#a0a0a0]">{o.family}</span>
-                    <span className="text-sm font-semibold text-[#c8a84b]">{o.completare}%</span>
+                  <div key={o.family} className="flex items-center justify-between rounded-lg bg-[#141414] p-2.5">
+                    <span className="text-sm text-[#A0A0A0]">{o.family}</span>
+                    <span className="text-sm font-semibold text-[#E2B340]">{o.completare}%</span>
                   </div>
                 ))}
               </div>
@@ -378,13 +378,13 @@ export function StatsPage() {
         {/* Cursuri studiate */}
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">Cursuri studiate — XP câștigat</h2>
+            <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">Cursuri studiate — XP câștigat</h2>
             {courseStats && courseStats.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={courseStats}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                  <XAxis dataKey="curs" tick={{ fill: '#666', fontSize: 10 }} />
-                  <YAxis tick={{ fill: '#666', fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
+                  <XAxis dataKey="curs" tick={{ fill: '#6B6B6B', fontSize: 10 }} />
+                  <YAxis tick={{ fill: '#6B6B6B', fontSize: 11 }} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Bar dataKey="xp" name="XP" fill="#50C878" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -398,16 +398,16 @@ export function StatsPage() {
         {/* Puncte slabe */}
         <Card>
           <CardContent className="p-5">
-            <h2 className="text-sm font-semibold text-[#f0f0f0] mb-4">Puncte slabe identificate</h2>
+            <h2 className="text-sm font-semibold text-[#F0F0F0] mb-4">Puncte slabe identificate</h2>
             {puzzleStats && puzzleStats.length > 0 ? (
               <div className="space-y-2">
                 {weakThemes.map(s => (
                   <div
                     key={s.theme}
-                    className="flex items-center justify-between rounded-lg bg-[#111] p-2.5"
+                    className="flex items-center justify-between rounded-lg bg-[#141414] p-2.5"
                   >
-                    <span className="text-sm text-[#a0a0a0]">{s.theme}</span>
-                    <span className="text-sm font-semibold text-[#f87171]">{s['Rată succes']}%</span>
+                    <span className="text-sm text-[#A0A0A0]">{s.theme}</span>
+                    <span className="text-sm font-semibold text-[#FB7185]">{s['Rată succes']}%</span>
                   </div>
                 ))}
                 {weakThemes.length === 0 && (
@@ -440,11 +440,11 @@ function StatCard({
   return (
     <Card>
       <CardContent className="p-4">
-        <p className="text-xs text-[#666] uppercase tracking-wider mb-1">{label}</p>
-        <p className="text-2xl font-bold" style={{ color: color ?? '#f0f0f0' }}>
+        <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-2xl font-bold" style={{ color: color ?? '#F0F0F0' }}>
           {value}
         </p>
-        <p className="text-xs text-[#a0a0a0] mt-0.5">{sub}</p>
+        <p className="text-xs text-[#A0A0A0] mt-0.5">{sub}</p>
       </CardContent>
     </Card>
   )
@@ -471,7 +471,7 @@ function ActivityHeatmap({ counts }: { counts: Record<string, number> }) {
       <div className="flex gap-1">
         <div className="flex flex-col gap-[3px] mr-1">
           {DAY_LABELS.map((label, i) => (
-            <div key={i} className="h-3 flex items-center text-[9px] text-[#444] leading-none w-3">
+            <div key={i} className="h-3 flex items-center text-[9px] text-[#3A3A3A] leading-none w-3">
               {label}
             </div>
           ))}
@@ -494,7 +494,7 @@ function ActivityHeatmap({ counts }: { counts: Record<string, number> }) {
           ))}
         </div>
       </div>
-      <div className="flex items-center gap-1.5 mt-3 text-[10px] text-[#444]">
+      <div className="flex items-center gap-1.5 mt-3 text-[10px] text-[#3A3A3A]">
         <span>Mai puțin</span>
         {[0, 2, 5, 8].map(n => (
           <div key={n} className="w-3 h-3 rounded-sm" style={{ backgroundColor: getHeatColor(n) }} />
@@ -506,5 +506,5 @@ function ActivityHeatmap({ counts }: { counts: Record<string, number> }) {
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <p className="text-sm text-[#666] text-center py-8">{text}</p>
+  return <p className="text-sm text-[#6B6B6B] text-center py-8">{text}</p>
 }

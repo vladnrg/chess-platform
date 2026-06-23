@@ -40,12 +40,12 @@ export function RestrictedPricing() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-4">
           <div className="text-5xl">📧</div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Email trimis!</h1>
-          <p className="text-[#a0a0a0] text-sm">
-            Am trimis un link de plată la adresa <span className="text-[#c8a84b]">{email}</span>.
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Email trimis!</h1>
+          <p className="text-[#A0A0A0] text-sm">
+            Am trimis un link de plată la adresa <span className="text-[#E2B340]">{email}</span>.
             Părintele/tutorele poate activa Pro-ul pentru tine.
           </p>
         </div>
@@ -54,24 +54,24 @@ export function RestrictedPricing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-6 text-center">
         <div>
           <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-[#1a1a1a] border border-[#2a2a2a] p-5">
-              <Lock className="h-8 w-8 text-[#c8a84b]" />
+            <div className="rounded-full bg-[#141414] border border-[#2A2A2A] p-5">
+              <Lock className="h-8 w-8 text-[#E2B340]" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0] mb-2">Plata pentru părinți</h1>
-          <p className="text-[#a0a0a0] text-sm">
+          <h1 className="text-2xl font-bold text-[#F0F0F0] mb-2">Plata pentru părinți</h1>
+          <p className="text-[#A0A0A0] text-sm">
             Deoarece ai sub 14 ani, plata se face prin intermediul unui părinte sau tutore.
             Trimitem un link securizat direct la email-ul lor.
           </p>
         </div>
 
-        <div className="rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-5 space-y-4 text-left">
+        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 space-y-4 text-left">
           <div>
-            <label className="text-xs text-[#666] block mb-1.5">Email părinte / tutore</label>
+            <label className="text-xs text-[#6B6B6B] block mb-1.5">Email părinte / tutore</label>
             <Input
               type="email"
               placeholder="parinte@exemplu.com"
@@ -89,7 +89,7 @@ export function RestrictedPricing() {
           </Button>
         </div>
 
-        <p className="text-xs text-[#666]">
+        <p className="text-xs text-[#6B6B6B]">
           Linkul expiră în 48h. Părintele poate plăti cu orice card, fără a-și crea un cont.
         </p>
       </div>

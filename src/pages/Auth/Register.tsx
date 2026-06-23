@@ -78,18 +78,18 @@ export function Register() {
 
   if (step === 'done-minor') {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
         <div className="max-w-sm w-full text-center space-y-5">
           <div className="text-5xl">📧</div>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Verifică emailul părintelui</h1>
-          <p className="text-[#a0a0a0] text-sm">
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Verifică emailul părintelui</h1>
+          <p className="text-[#A0A0A0] text-sm">
             Am trimis o cerere de aprobare la adresa indicată. Contul tău va fi activat
             după ce părintele sau tutorele confirmă prin email.
           </p>
-          <p className="text-xs text-[#666]">
+          <p className="text-xs text-[#6B6B6B]">
             Cererea expiră în 30 de zile. Dacă nu e confirmată, contul este șters automat.
           </p>
-          <Link to="/" className="block text-sm text-[#c8a84b] hover:text-[#d4b860]">
+          <Link to="/" className="block text-sm text-[#E2B340] hover:text-[#F0C85A]">
             Înapoi la pagina principală
           </Link>
         </div>
@@ -99,34 +99,34 @@ export function Register() {
 
   if (step === 'age') {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="mb-8 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c8a84b] mx-auto mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340] mx-auto mb-4">
               <span className="text-black font-black text-xl">♟</span>
             </div>
-            <h1 className="text-xl font-bold text-[#f0f0f0]">Un ultim pas</h1>
-            <p className="mt-1 text-sm text-[#a0a0a0]">Când ai fost născut?</p>
+            <h1 className="text-xl font-bold text-[#F0F0F0]">Un ultim pas</h1>
+            <p className="mt-1 text-sm text-[#A0A0A0]">Când ai fost născut?</p>
           </div>
           <AgeGateStep onComplete={handleAgeComplete} />
-          {loading && <p className="text-xs text-[#666] text-center mt-4">Se procesează...</p>}
+          {loading && <p className="text-xs text-[#6B6B6B] text-center mt-4">Se procesează...</p>}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c8a84b]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340]">
               <span className="text-black font-black text-xl">♟</span>
             </div>
-            <span className="font-bold text-[#f0f0f0] text-xl">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-xl">ChessUp</span>
           </Link>
-          <h1 className="text-2xl font-bold text-[#f0f0f0]">Creează cont gratuit</h1>
-          <p className="mt-1 text-sm text-[#a0a0a0]">Începe să înveți șah azi</p>
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Creează cont gratuit</h1>
+          <p className="mt-1 text-sm text-[#A0A0A0]">Începe să înveți șah azi</p>
         </div>
 
         <form onSubmit={handleCredentialsSubmit} className="space-y-4">
@@ -158,21 +158,21 @@ export function Register() {
             required
           />
           {errors.general && (
-            <p className="text-sm text-[#f87171] text-center">{errors.general}</p>
+            <p className="text-sm text-[#FB7185] text-center">{errors.general}</p>
           )}
           <Button type="submit" size="lg" className="w-full" loading={loading}>
             Înregistrare gratuită
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-[#666]">
+        <p className="mt-4 text-center text-xs text-[#6B6B6B]">
           Prin înregistrare, accepți{' '}
-          <Link to="/terms" className="text-[#a0a0a0] hover:text-[#c8a84b]">Termenii și condițiile</Link>
+          <Link to="/terms" className="text-[#A0A0A0] hover:text-[#E2B340]">Termenii și condițiile</Link>
         </p>
 
-        <p className="mt-4 text-center text-sm text-[#a0a0a0]">
+        <p className="mt-4 text-center text-sm text-[#A0A0A0]">
           Ai deja cont?{' '}
-          <Link to="/login" className="text-[#c8a84b] hover:text-[#d4b860] font-medium">
+          <Link to="/login" className="text-[#E2B340] hover:text-[#F0C85A] font-medium">
             Conectează-te
           </Link>
         </p>
