@@ -37,7 +37,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
 (
   'Ruy Lopez (Spaniola)',
   'ruy-lopez',
-  '1.e4 e5 2.Cf3 Cc6 3.Bb5 — cea mai studiată deschidere din istorie. Presiune pe calul c6.',
+  '1.e4 e5 2.Cf3 Cc6 3.Bb5 — cea mai studiată deschidere din istorie. Presiune pe calul de pe c6.',
   'intermediate', 'Ruy Lopez', 'C60', ARRAY['balanced','offensive'], true, 7, 6
 ),
 (
@@ -93,7 +93,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
 (
   'Apărarea Nimzo-Indian',
   'nimzo-indian-defense',
-  '1.d4 Cf6 2.c4 e6 3.Cc3 Bb4 — pin pe calul c3, structuri complexe. Favorita marilor maeștri.',
+  '1.d4 Cf6 2.c4 e6 3.Cc3 Bb4 — pin pe calul de pe c3, structuri complexe. Favorita marilor maeștri.',
   'advanced', 'Nimzo-Indian Defense', 'E20', ARRAY['balanced','offensive'], true, 6, 15
 ),
 (

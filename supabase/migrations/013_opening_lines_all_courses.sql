@@ -21,7 +21,7 @@ FROM public.courses WHERE slug = 'ruy-lopez';
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'e4 — deschiderea centrală clasică, cea mai jucată primă mutare în lume.',
   '2', 'Cf3 — atacă e5 și dezvoltă calul pe cel mai bun câmp.',
-  '4', 'Fb5 — Ruy Lopez! Nebunul pune presiune pe calul c6 care apără e5.',
+  '4', 'Fb5 — Ruy Lopez! Nebunul pune presiune pe calul de pe c6 care apără e5.',
   '6', 'Rocadă — regele la adăpost. Acum ameninți să câștigi e5 după Fxc6 și Cxe5.',
   '8', 'd4 — centrul explodează! Alb câștigă spațiu și deschide jocul.',
   '10', 'Fxc6 — schimbi nebunul pe cal, dublând pionii adversarului pe coloana c.',
@@ -36,7 +36,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '5', 'a6 — varianta Morphy! Black cere explicit intenția albului cu nebunul.',
   '6', 'Fa4 — nebunul se retrage, menținând presiunea. Dacă Fxc6 acum, negrul recaptează confortabil.',
   '8', 'Rocadă — regele la adăpost. Planul clasic în varianta închisă.',
-  '10', 'Te1 — turnul susține pionul e4 care va fi atacat în continuare.',
+  '10', 'Te1 — turnul susține pionul de pe e4 care va fi atacat în continuare.',
   '12', 'Fb3 — nebunul se retrage pe o diagonală mai sigură, vizând f7.',
   '14', 'c3 — pregătești d4 pentru a construi un centru puternic.',
   '16', 'h3 — previi Cg4 care ar da schimb pe nebunul din f3.',
@@ -77,7 +77,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'd4 — controlezi centrul cu pionul damei. Gambitul Damei este cea mai solidă deschidere cu 1.d4.',
   '2', 'c4 — gambitul! Oferi un pion pentru avantaj de dezvoltare și centru.',
   '3', 'e6 — negrul refuză gambitul și construiește o structură solidă.',
-  '6', 'Fg5 — pin pe calul f6 care apăra d5. Presiune psihologică și tactică.',
+  '6', 'Fg5 — pin pe calul de pe f6 care apăra d5. Presiune psihologică și tactică.',
   '8', 'e3 — susții centrul, deschizi drumul pentru Fd3.',
   '10', 'Cf3 — cal dezvoltat, se pregătesc turnurile.',
   '12', 'Tc1 — turnul pe coloana c, presiune latentă pe c6.',
@@ -101,13 +101,13 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
 
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'd4 — deschidere clasică cu pionul damei.',
-  '3', 'c6 — Apărarea Slavă! Negrul susține d5 cu pionul c, fără a bloca nebunul c8.',
+  '3', 'c6 — Apărarea Slavă! Negrul susține d5 cu pionul c, fără a bloca nebunul de pe c8.',
   '6', 'dxc4 — negrul acceptă gambitul în varianta slavă.',
-  '7', 'a4 — previi b5 care ar apăra pionul c4. Mutare cheie în slavă!',
+  '7', 'a4 — previi b5 care ar apăra pionul de pe c4. Mutare cheie în slavă!',
   '8', 'Ff5 — nebunul iese liber înainte de e6. Asta este forța apărării slave!',
   '10', 'e3 — consolidezi centrul și deschizi Fc4.',
   '12', 'Fc4 — recuperezi pionul, nebunul activ pe c4.',
-  '13', 'Fb4 — pin pe calul c3! Negrul creează complicații.',
+  '13', 'Fb4 — pin pe calul de pe c3! Negrul creează complicații.',
   '16', 'De2 — pregătești e4 central. Jocul devine dinamic.',
   '18', 'e4 — centrul explodează! Alb câștigă spațiu decisiv.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'queens-gambit') AND variation_code = 'C';
@@ -138,7 +138,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '8', 'dxc4 — negrul acceptă gambitul! Cedează centrul pentru un pion.',
   '10', 'Cf3 — presiune pe d4 și e5.',
   '12', 'Rocadă — regele la adăpost, Fg2 devine activ imediat.',
-  '14', 'Da4 — ataci calul c6 și respecți câștigarea pionului c4.',
+  '14', 'Da4 — ataci calul de pe c6 și respecți câștigarea pionului de pe c4.',
   '16', 'Dxc4 — recuperezi pionul. Fg2 rămâne o armă puternică pe diagonala lungă.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'catalan-opening') AND variation_code = 'A';
 
@@ -148,7 +148,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '6', 'Fg2 — nebunul pe g2, piesa cheie a catalanei.',
   '8', 'Fe7 — negrul adoptă setup-ul solid clasic, fără să accepte pionul.',
   '10', 'Cf3 — calul pe f3, susține centrul și controlează e5.',
-  '12', 'Rocadă — regele la adăpost, turnul f1 susține pionul e4 viitor.',
+  '12', 'Rocadă — regele la adăpost, turnul de pe f1 susține pionul de pe e4 viitor.',
   '14', 'Dc2 — dama pregătește e4 și controlează centrul.',
   '16', 'Cd2 — al doilea cal iese, pregătind e4 cu sprijin.',
   '18', 'e4 — explozia centrală! Fg2 devine activ, jocul se deschide în favoarea albului.'
@@ -159,7 +159,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '5', 'c5 — negrul atacă imediat centrul. Joc complicat și dinamic.',
   '6', 'Fg2 — fianchetto, pregătești presiunea pe diagonala lungă.',
   '7', 'cxd4 — negrul schimbă în centru, simplificând.',
-  '8', 'Cf3 — recâștigi pionul d4 cu calul.',
+  '8', 'Cf3 — recâștigi pionul de pe d4 cu calul.',
   '10', 'Rocadă — regele la adăpost.',
   '11', 'd5 — negrul contraatacă în centru! Joc deschis.',
   '12', 'cxd5 exd5 — schimburi în centru, pionii negri devin izolaț sau uniți pe coloana d.',
@@ -194,7 +194,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '8', 'd4 — centrul devine puternic. Acum ai doi pioni în centru și inițiativă.',
   '10', 'dxe5 exd5 — schimburi forțate în centru.',
   '14', 'Ce2 — calul se pregătește să susțină atacul pe flancul regelui.',
-  '16', 'Rocadă — regele la adăpost, turnul f1 devine activ pe coloana f.'
+  '16', 'Rocadă — regele la adăpost, turnul de pe f1 devine activ pe coloana f.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'kings-gambit') AND variation_code = 'A';
 
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
@@ -207,18 +207,18 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '7', 'Fh4+ — negrul dă șah! Regele alb trebuie să mute.',
   '8', 'Rf1 — regele pe f1, ocolind șahul. Regele rămâne în centru temporar.',
   '10', 'd4 — centrul devine activ chiar cu regele pe f1!',
-  '14', 'Ff4 — nebunul activ, aperi pionul f4 și atacă centrul negru.'
+  '14', 'Ff4 — nebunul activ, aperi pionul de pe f4 și atacă centrul negru.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'kings-gambit') AND variation_code = 'B';
 
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'e4 — gambitul regelui.',
-  '2', 'f4 — gambitul! Oferi pionul e5 pentru inițiativă.',
+  '2', 'f4 — gambitul! Oferi pionul de pe e5 pentru inițiativă.',
   '3', 'd5 — Contra-Gambitul Falkbeer! Negrul ignoră pionul și contraatacă central.',
   '4', 'exd5 — alb acceptă schimbul. Pionul înaintat pe d5.',
-  '5', 'e4 — negrul înaintează! Pionul e4 creează probleme imediate albului.',
-  '6', 'd3 — alb atacă pionul e4.',
-  '7', 'Cf6 — negrul continuă să se dezvolte, ignorând pionul d3.',
-  '8', 'dxe4 — alb capturează, dar pionul e4 dispare și negrul rămâne cu inițiativă.',
+  '5', 'e4 — negrul înaintează! Pionul de pe e4 creează probleme imediate albului.',
+  '6', 'd3 — alb atacă pionul de pe e4.',
+  '7', 'Cf6 — negrul continuă să se dezvolte, ignorând pionul de pe d3.',
+  '8', 'dxe4 — alb capturează, dar pionul de pe e4 dispare și negrul rămâne cu inițiativă.',
   '10', 'Cf3 — alb se dezvoltă rapid.',
   '16', 'Fe3 — nebunul activ, susține centrul.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'kings-gambit') AND variation_code = 'C';
@@ -258,7 +258,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'c4 — Engleză. Flexibilă, profundă, pozițională.',
   '4', 'Cf3 — calul activ susține e4 și d5.',
   '5', 'b6 — negrul pregătește Hedgehog-ul! Structura cu pionii pe a6,b6,d6,e6.',
-  '6', 'g3 — fianchetto pentru nebunul g2.',
+  '6', 'g3 — fianchetto pentru nebunul de pe g2.',
   '7', 'Fb7 — nebunul pe b7 vizează diagonala lungă. Hedgehog complet.',
   '10', 'Cc3 — caii controlează centrul fără a împinge pionii.',
   '12', 'd4 — explozia centrală! Alb câștigă spațiu imediat.',
@@ -307,7 +307,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '10', 'Cd2 — calul pe d2, flexibil. Poate merge pe f1-e3 sau f1-g3.',
   '12', 'e4 — momentul cheie! Avansezi e4 după ce toată armata este pregătită.',
   '14', 'Te1 — turnul susține e4-e5 înaintarea centrală.',
-  '16', 'e5 — înaintare! Calul f6 este atacat, negrul trebuie să se retragă.',
+  '16', 'e5 — înaintare! Calul de pe f6 este atacat, negrul trebuie să se retragă.',
   '18', 'h4 — atac pe flancul regelui! Planul KIA clasic.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'kings-indian-attack') AND variation_code = 'A';
 
@@ -358,7 +358,7 @@ FROM public.courses WHERE slug = 'colle-system';
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'd4 — Sistemul Colle: simplu, solid, eficient pentru alb.',
   '2', 'Cf3 — calul pe f3, susține centrul.',
-  '4', 'e3 — pionul e3 nu blochează nebunul c1 intenționat — va ieși pe b2!',
+  '4', 'e3 — pionul de pe e3 nu blochează nebunul de pe c1 intenționat — va ieși pe b2!',
   '6', 'Fd3 — nebunul pe d3, vizând h7 după rocadă.',
   '7', 'c5 — negrul atacă centrul. Alb nu se grăbește.',
   '8', 'b3 — pregătești Fb2! Aceasta este diferența față de Colle clasic: nebunul iese pe b2.',
@@ -435,7 +435,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '6', 'Dg4 — Dama atacă g7! Ameninți să câștigi material.',
   '8', 'Cf3 — cal activ, mai multă presiune.',
   '10', 'Cd5 — caval fork! Ameninți Cxf6 sau Cxc7.',
-  '12', 'Fd5 — capturezi calul d5.',
+  '12', 'Fd5 — capturezi calul de pe d5.',
   '14', 'Fxf7+ — sacrificiu pe f7! Regele negru este expus.',
   '16', 'Cg5+ — șah! Continuarea atacului.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'vienna-game') AND variation_code = 'B';
@@ -498,7 +498,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '12', 'd5 — alb avansează, blocher central.',
   '13', 'e6 — negrul deschide jocul pe flancul damei!',
   '15', 'exd5 — schimb în centru, jocul se deschide.',
-  '16', 'cxd5 — pionul d5 avansat este puternic.',
+  '16', 'cxd5 — pionul de pe d5 avansat este puternic.',
   '17', 'Te8 — negrul atacă e4, presiune crescândă.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'kings-indian-defense') AND variation_code = 'B';
 
@@ -510,7 +510,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '10', 'd5 — blocaj central, joc închis.',
   '11', 'e6 — negrul deschide flancul damei.',
   '13', 'exd5 — schimb în centru.',
-  '14', 'cxd5 — pionul d5 avansat.',
+  '14', 'cxd5 — pionul de pe d5 avansat.',
   '15', 'Te8 — negrul susține e7 și pregătește e5.',
   '16', 'Ce2 — calul pe e2, mai sigur decât f3 unde era atacat.',
   '19', 'Ca6 — calul pe a6, pregătit să meargă pe c5 sau b4.'
@@ -538,7 +538,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'd4 — deschidere cu pionul damei.',
   '1', 'Cf6 — cal activ.',
   '3', 'e6 — negrul pregătește Fb4.',
-  '5', 'Fb4 — NIMZO-INDIANĂ! Negrul pinuiește calul c3 care apăra d4/e5.',
+  '5', 'Fb4 — NIMZO-INDIANĂ! Negrul pinuiește calul de pe c3 care apăra d4/e5.',
   '6', 'Dc2 — varianta Capablanca. Dama pe c2 pregătește să recaptureze pe c3 cu dama.',
   '8', 'Rocadă — negrul se rochează.',
   '9', 'a3 — alb forțează schimbul nebunului.',
@@ -560,7 +560,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '13', 'Rocadă — alb rocheazete.',
   '14', 'cxd4 — negrul simplifica centrul.',
   '15', 'exd4 — alb recapturează cu pionul e.',
-  '16', 'dxc4 — negrul câștigă pionul c4!'
+  '16', 'dxc4 — negrul câștigă pionul de pe c4!'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'nimzo-indian-defense') AND variation_code = 'B';
 
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
@@ -661,12 +661,12 @@ FROM public.courses WHERE slug = 'slav-defense';
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '0', 'd4 — alb deschide cu pionul damei.',
   '1', 'd5 — negrul controlează centrul simetric.',
-  '3', 'c6 — SLAVA! Pionul c susține d5 fără a bloca nebunul c8. Aceasta este superioritatea față de QGD.',
+  '3', 'c6 — SLAVA! Pionul c susține d5 fără a bloca nebunul de pe c8. Aceasta este superioritatea față de QGD.',
   '6', 'dxc4 — negrul acceptă gambitul în Slavă.',
   '7', 'a4 — alb previi b5 care ar apăra c4.',
   '8', 'Ff5 — MARELE AVANTAJ AL SLAVEI! Negrul poate juca Ff5 înainte de e6, ceva imposibil în QGD.',
   '12', 'Fc4 — alb recuperează pionul.',
-  '13', 'Fb4 — negrul pinuiește calul c3.',
+  '13', 'Fb4 — negrul pinuiește calul de pe c3.',
   '14', 'Rocadă — alb rocheazete.',
   '15', 'Rocadă — negrul se rocheazete.',
   '18', 'e4 — centrul explodează! Negrul trebuie să reacționeze.'
@@ -733,7 +733,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '8', 'Fe2 — alb se dezvoltă solid.',
   '9', 'Rocadă — negrul se rocheazete.',
   '11', 'c6 — negrul pregătește d5 sau contraatac.',
-  '13', 'Fg4 — negrul schimbă nebunul pe calul f3, slăbind centrul alb.',
+  '13', 'Fg4 — negrul schimbă nebunul pe calul de pe f3, slăbind centrul alb.',
   '15', 'Fxf3 — schimb forțat.',
   '17', 'e5 — contra-joc central!'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'pirc-defense') AND variation_code = 'A';
@@ -800,7 +800,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '8', 'Cf3 — calul alb pe f3.',
   '9', 'Ff5 — nebunul negru activ pe f5!',
   '14', 'Cd5 — fork! Alb amenință simultan dama și calul.',
-  '16', 'Fxd5 — alb câștigă calul d5.'
+  '16', 'Fxd5 — alb câștigă calul de pe d5.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'scandinavian-defense') AND variation_code = 'A';
 
 UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
@@ -815,7 +815,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '9', 'Fg7 — nebunul pe g7 vizează diagonala lungă.',
   '10', 'Rocadă — regele la adăpost.',
   '11', 'Rocadă — negrul rocheazete.',
-  '12', 'c4 — alb atacă calul d5.',
+  '12', 'c4 — alb atacă calul de pe d5.',
   '13', 'Cb6 — calul se retrage pe b6, mai puțin central dar solid.'
 ) WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'scandinavian-defense') AND variation_code = 'B';
 
@@ -875,7 +875,7 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '4', 'd4 — centrul alb.',
   '5', 'd6 — negrul atacă imediat.',
   '6', 'Cf3 — varianta modernă! Mai solidă decât c4.',
-  '7', 'Fg4 — negrul pinuiește calul f3! Pin important.',
+  '7', 'Fg4 — negrul pinuiește calul de pe f3! Pin important.',
   '8', 'Fe2 — alb întrerupe pinul cu Fe2.',
   '9', 'e6 — negrul consolideaza.',
   '10', 'Rocadă — alb rocheazete.',

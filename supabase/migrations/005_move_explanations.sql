@@ -367,9 +367,9 @@ UPDATE public.opening_lines SET move_explanations = jsonb_build_object(
   '12', 'Adversarul recapturează.',
   '13', 'Ca5 — calul atacă c4 și b3! Câștigai activitate pe flancul damei.',
   '14', 'Adversarul joacă b4 — atacă calul.',
-  '15', 'Cc4! — capturezi pionul b4? Nu, calul sare pe c4, captureaza pionul advers!',
+  '15', 'Cc4! — capturezi pionul de pe b4? Nu, calul sare pe c4, captureaza pionul advers!',
   '16', 'Adversarul recapturează cu Fxc4.',
-  '17', 'Dxb4 — capturezi pionul! Câștigai material. Pionul b4 era atârnat.',
+  '17', 'Dxb4 — capturezi pionul! Câștigai material. Pionul de pe b4 era atârnat.',
   '18', 'Adversarul joacă Cd2 — încearcă să se reorganizeze.'
 )
 WHERE course_id = (SELECT id FROM public.courses WHERE slug = 'french-defense') AND variation_code = 'C';
