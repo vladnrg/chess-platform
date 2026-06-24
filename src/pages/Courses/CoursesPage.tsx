@@ -194,90 +194,113 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
   const completedLessons = course.progress?.completed_lesson_ids.length ?? 0
   const pct = course.lesson_count > 0 ? Math.round((completedLessons / course.lesson_count) * 100) : 0
   const theme = getEcoTheme(course.eco_code)
-  const thumbH = featured ? 'h-44' : 'h-40'
+  const familyName = FAMILY_RO[course.slug] ?? course.opening_family ?? course.title
 
+  // Eticheta de nivel/acces (reutilizată în ambele layout-uri)
+  const levelBadge = locked ? (
+    <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E2B340] text-black">
+      <Lock className="h-2.5 w-2.5" /> PRO
+    </span>
+  ) : course.level === 'fundamental' ? (
+    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[rgba(74,222,128,0.15)] text-[#4ade80]">GRATUIT</span>
+  ) : (
+    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#1C1C1C] text-[#A0A0A0]">
+      {LEVEL_LABELS[course.level]}
+    </span>
+  )
+
+  // Tokenul pătrat al cursului, centrat pe glow în culoarea familiei
+  const tokenThumb = (sizeClass: string) => (
+    <div className={`relative ${sizeClass} flex items-center justify-center overflow-hidden`}>
+      <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 45%, ${theme.accent}24 0%, transparent 68%)` }} />
+      <img
+        src={`/openings/${course.slug}.png`}
+        alt={course.title}
+        loading="lazy"
+        onError={e => { e.currentTarget.style.display = 'none' }}
+        className={`relative h-full w-full object-contain p-3 drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform duration-200 group-hover:scale-[1.07] ${locked ? 'opacity-60' : ''}`}
+      />
+      {locked && <div className="absolute inset-0 bg-black/30" />}
+    </div>
+  )
+
+  // Footer: număr de lecții + progres (reutilizat)
+  const metaFooter = (
+    <div className="mt-auto pt-1">
+      <div className="flex items-center justify-between text-xs text-[#6B6B6B] mb-1.5">
+        <span className="flex items-center gap-1">
+          <BookOpen className="h-3 w-3" />
+          {course.lesson_count} {course.lesson_count === 1 ? 'lecție' : 'lecții'}
+        </span>
+        {completedLessons > 0 && (
+          <span className={pct === 100 ? 'text-[#4ade80] font-semibold' : 'text-[#E2B340]'}>
+            {pct === 100 ? '✓ Complet' : `${pct}%`}
+          </span>
+        )}
+      </div>
+      {completedLessons > 0 && (
+        <div className="h-1 rounded-full bg-[#1C1C1C] overflow-hidden">
+          <div className="h-full rounded-full transition-all"
+            style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : theme.accent }} />
+        </div>
+      )}
+    </div>
+  )
+
+  const styleTags = course.playing_styles.length > 0 && (
+    <div className="flex gap-1.5 flex-wrap">
+      {course.playing_styles.map(style => (
+        <span key={style}
+          className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] text-[#6B6B6B]">
+          {STYLE_ICONS[style]}
+          {PLAYING_STYLE_LABELS[style]}
+        </span>
+      ))}
+    </div>
+  )
+
+  const cardShell = locked
+    ? 'border-[#1C1C1C] hover:border-[#2A2A2A]'
+    : 'border-[#141414] hover:border-[#3A3A3A] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+
+  // Layout orizontal pentru cardurile featured (token stânga + conținut dreapta), stil Chessly
+  if (featured) {
+    return (
+      <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
+        <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex overflow-hidden ${cardShell}`}>
+          {tokenThumb('w-36 sm:w-40 shrink-0 self-stretch')}
+          <div className="flex flex-col flex-1 min-w-0 p-4 gap-2">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="text-base font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
+                {familyName}
+              </h3>
+              {levelBadge}
+            </div>
+            {course.description && (
+              <p className="text-xs text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
+            )}
+            {styleTags}
+            {metaFooter}
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
+  // Layout vertical (grila principală)
   return (
     <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col overflow-hidden ${
-        locked
-          ? 'border-[#1C1C1C] hover:border-[#2A2A2A]'
-          : 'border-[#141414] hover:border-[#3A3A3A] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
-      }`}>
-
-        {/* Thumbnail — imagine tematică a deschiderii */}
-        <div className={`relative ${thumbH} overflow-hidden`}
-          style={{ background: `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)` }}>
-
-          {/* Imaginea cursului */}
-          <img
-            src={`/openings/${course.slug}.png`}
-            alt={course.title}
-            loading="lazy"
-            onError={e => { e.currentTarget.style.display = 'none' }}
-            className={`absolute inset-0 h-full w-full object-cover object-center transition-transform duration-200 group-hover:scale-105 ${locked ? 'opacity-70' : ''}`}
-          />
-
-          {/* Etichetă de nivel — panglică opacă în colț, acoperă orice badge „desenat" rămas în imagine */}
-          <div className="absolute top-0 right-0 z-10 rounded-bl-xl overflow-hidden">
-            {locked ? (
-              <span className="flex items-center gap-1 text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#E2B340] text-black">
-                <Lock className="h-2.5 w-2.5" /> PRO
-              </span>
-            ) : course.level === 'fundamental' ? (
-              <span className="block text-[10px] font-black pl-4 pr-3 py-2.5 bg-[#4ade80] text-black">GRATUIT</span>
-            ) : (
-              <span className="block text-[10px] font-bold pl-4 pr-3 py-2.5 bg-[#141414] text-[#F0F0F0]">
-                {LEVEL_LABELS[course.level]}
-              </span>
-            )}
-          </div>
-
-          {/* Dimmer on locked */}
-          {locked && <div className="absolute inset-0 bg-black/30" />}
+      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col overflow-hidden ${cardShell}`}>
+        <div className="relative">
+          {tokenThumb('h-40')}
+          <div className="absolute top-2 right-2 z-10">{levelBadge}</div>
         </div>
-
-        {/* Card body */}
         <div className="px-4 py-3 flex flex-col flex-1 gap-2">
-          {/* Titlul cursului (numele românesc) */}
-          <h3 className={`font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors ${featured ? 'text-base' : 'text-sm'}`}>
-            {FAMILY_RO[course.slug] ?? course.opening_family ?? course.title}
+          <h3 className="font-bold text-sm text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
+            {familyName}
           </h3>
-
-          {/* Playing styles */}
-          {course.playing_styles.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap">
-              {course.playing_styles.map(style => (
-                <span key={style}
-                  className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#141414] border border-[#2A2A2A] text-[#6B6B6B]">
-                  {STYLE_ICONS[style]}
-                  {PLAYING_STYLE_LABELS[style]}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="mt-auto pt-1">
-            <div className="flex items-center justify-between text-xs text-[#6B6B6B] mb-1.5">
-              <span className="flex items-center gap-1">
-                <BookOpen className="h-3 w-3" />
-                {course.lesson_count} {course.lesson_count === 1 ? 'lecție' : 'lecții'}
-              </span>
-              {completedLessons > 0 && (
-                <span className={pct === 100 ? 'text-[#4ade80] font-semibold' : 'text-[#E2B340]'}>
-                  {pct === 100 ? '✓ Complet' : `${pct}%`}
-                </span>
-              )}
-            </div>
-            {completedLessons > 0 && (
-              <div className="h-1 rounded-full bg-[#141414] overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : theme.accent }}
-                />
-              </div>
-            )}
-          </div>
+          {styleTags}
+          {metaFooter}
         </div>
       </div>
     </Link>
