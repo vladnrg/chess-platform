@@ -209,16 +209,16 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
     </span>
   )
 
-  // Tokenul pătrat al cursului, centrat pe glow în culoarea familiei
-  const tokenThumb = (sizeClass: string) => (
-    <div className={`relative ${sizeClass} flex items-center justify-center overflow-hidden`}>
-      <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 45%, ${theme.accent}24 0%, transparent 68%)` }} />
+  // Iconul cursului — tile pătrat decupat curat (object-cover + zoom ușor care taie
+  // marginea transparentă / haloul exterior), colțuri rotunjite ca pe Chessly
+  const tokenIcon = (sizeClass: string) => (
+    <div className={`relative ${sizeClass} rounded-xl overflow-hidden shrink-0 bg-[#0A0A0A] shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}>
       <img
         src={`/openings/${course.slug}.png`}
         alt={course.title}
         loading="lazy"
         onError={e => { e.currentTarget.style.display = 'none' }}
-        className={`relative h-full w-full object-contain p-3 drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform duration-200 group-hover:scale-[1.07] ${locked ? 'opacity-60' : ''}`}
+        className={`h-full w-full object-cover scale-[1.07] transition-transform duration-200 group-hover:scale-[1.14] ${locked ? 'opacity-60' : ''}`}
       />
       {locked && <div className="absolute inset-0 bg-black/30" />}
     </div>
@@ -263,13 +263,13 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
     ? 'border-[#1C1C1C] hover:border-[#2A2A2A]'
     : 'border-[#141414] hover:border-[#3A3A3A] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
 
-  // Layout orizontal pentru cardurile featured (token stânga + conținut dreapta), stil Chessly
+  // Layout orizontal pentru cardurile featured (icon stânga + conținut dreapta), stil Chessly
   if (featured) {
     return (
       <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-        <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex overflow-hidden ${cardShell}`}>
-          {tokenThumb('w-36 sm:w-40 shrink-0 self-stretch')}
-          <div className="flex flex-col flex-1 min-w-0 p-4 gap-2">
+        <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex gap-4 p-4 ${cardShell}`}>
+          {tokenIcon('h-24 w-24 sm:h-28 sm:w-28')}
+          <div className="flex flex-col flex-1 min-w-0 gap-2">
             <div className="flex items-start justify-between gap-2">
               <h3 className="text-base font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
                 {familyName}
@@ -287,21 +287,24 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
     )
   }
 
-  // Layout vertical (grila principală)
+  // Layout vertical (grila principală) — icon sus-stânga, descriere dedesubt
   return (
     <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col overflow-hidden ${cardShell}`}>
-        <div className="relative">
-          {tokenThumb('h-40')}
-          <div className="absolute top-2 right-2 z-10">{levelBadge}</div>
+      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col gap-3 p-4 ${cardShell}`}>
+        <div className="flex items-start justify-between gap-2">
+          {tokenIcon('h-16 w-16')}
+          {levelBadge}
         </div>
-        <div className="px-4 py-3 flex flex-col flex-1 gap-2">
+        <div className="min-w-0">
           <h3 className="font-bold text-sm text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
             {familyName}
           </h3>
-          {styleTags}
-          {metaFooter}
+          {course.description && (
+            <p className="mt-1 text-xs text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
+          )}
         </div>
+        {styleTags}
+        {metaFooter}
       </div>
     </Link>
   )
