@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig, getLeagueProgress, getXpToNextLeague } from '@/lib/utils'
 import { CheckCircle2, Lock, Star, Zap, ChevronRight } from 'lucide-react'
 
-const LEAGUE_ICONS = ['🪵', '⚙️', '🥉', '🥈', '🥇', '✦', '◈']
 const LEAGUE_DESCRIPTIONS = [
   'Primii tăi pași în lumea șahului.',
   'Înveți să gândești mai profund.',
@@ -41,11 +40,12 @@ export function LeaguesPage() {
           }}
         >
           <div className="flex items-center gap-4">
-            <div
-              className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-              style={{ backgroundColor: currentLeagueConfig.color + '20' }}
-            >
-              {LEAGUE_ICONS[LEAGUES.findIndex(l => l.name === profile.current_league)]}
+            <div className="flex h-16 w-16 items-center justify-center flex-shrink-0">
+              <img
+                src={`/leagues/${profile.current_league}.png`}
+                alt={currentLeagueConfig.label}
+                className="h-full w-full object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -158,17 +158,12 @@ export function LeaguesPage() {
 
                 {/* Icon */}
                 <div className="ml-5 flex-shrink-0 my-4">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                    style={{
-                      background: isFuture
-                        ? `radial-gradient(circle, ${league.color}15, transparent)`
-                        : `radial-gradient(circle, ${league.color}30, ${league.color}10)`,
-                      boxShadow: isCurrent ? `0 0 20px ${league.color}50` : undefined,
-                    }}
-                  >
-                    {LEAGUE_ICONS[idx]}
-                  </div>
+                  <img
+                    src={`/leagues/${league.name}.png`}
+                    alt={league.label}
+                    className="h-14 w-14 object-contain"
+                    style={{ filter: isCurrent ? `drop-shadow(0 0 10px ${league.color}90)` : undefined }}
+                  />
                 </div>
 
                 {/* Info */}
