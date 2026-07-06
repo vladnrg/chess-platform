@@ -22,10 +22,10 @@ function getEcoTheme(eco?: string | null) {
 }
 
 const STYLE_ICONS: Record<PlayingStyle, React.ReactNode> = {
-  offensive: <Flame className="h-3 w-3" />,
-  balanced: <Scale className="h-3 w-3" />,
-  pragmatic: <Zap className="h-3 w-3" />,
-  defensive: <Shield className="h-3 w-3" />,
+  offensive: <Flame className="h-3.5 w-3.5" />,
+  balanced: <Scale className="h-3.5 w-3.5" />,
+  pragmatic: <Zap className="h-3.5 w-3.5" />,
+  defensive: <Shield className="h-3.5 w-3.5" />,
 }
 
 // Subtitlul familiei deschiderii, în română (per slug)
@@ -176,7 +176,7 @@ export function CoursesPage() {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs text-[#6B6B6B]">{filtered.length} {filtered.length === 1 ? 'curs' : 'cursuri'}</span>
               </div>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map(course => (
                   <CourseCard key={course.id} course={course} isPro={isPro} />
                 ))}
@@ -189,6 +189,16 @@ export function CoursesPage() {
   )
 }
 
+// ─── STANDARD LOGO DE CURS (sursă unică de adevăr) ──────────────────────────
+// Dimensiunea/poziția/încadrarea logo-urilor de curs. Reglează AICI ca să
+// ajustezi TOATE logo-urile deodată. Poziția = colțul stânga-sus al cardului;
+// încadrarea (object-cover + zoom) e standardizată în helper-ul `tokenIcon`.
+const LOGO_SIZE = 'h-36 w-36'              // grilă: 144px (egal cu fundamentalele)
+const LOGO_SIZE_FEATURED = 'h-36 w-36'     // featured: 144px
+const LOGO_RADIUS = 'rounded-xl'           // colțuri logo
+const LOGO_SCALE = 'scale-100'             // fără zoom — rama cu romburi ajunge fix la margine
+const LOGO_SCALE_HOVER = 'group-hover:scale-[1.08]'
+
 function CourseCard({ course, isPro, featured = false }: { course: Course; isPro: boolean; featured?: boolean }) {
   const locked = course.is_premium && !isPro
   const completedLessons = course.progress?.completed_lesson_ids.length ?? 0
@@ -198,13 +208,13 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
 
   // Eticheta de nivel/acces (reutilizată în ambele layout-uri)
   const levelBadge = locked ? (
-    <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E2B340] text-black">
-      <Lock className="h-2.5 w-2.5" /> PRO
+    <span className="flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-full bg-[#E2B340] text-black">
+      <Lock className="h-3 w-3" /> PRO
     </span>
   ) : course.level === 'fundamental' ? (
-    <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-[rgba(74,222,128,0.15)] text-[#4ade80]">GRATUIT</span>
+    <span className="text-xs font-black px-3 py-1.5 rounded-full bg-[rgba(74,222,128,0.15)] text-[#4ade80]">GRATUIT</span>
   ) : (
-    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#1C1C1C] text-[#A0A0A0]">
+    <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#1C1C1C] text-[#A0A0A0]">
       {LEVEL_LABELS[course.level]}
     </span>
   )
@@ -212,13 +222,13 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
   // Iconul cursului — tile pătrat decupat curat (object-cover + zoom ușor care taie
   // marginea transparentă / haloul exterior), colțuri rotunjite ca pe Chessly
   const tokenIcon = (sizeClass: string) => (
-    <div className={`relative ${sizeClass} rounded-xl overflow-hidden shrink-0 bg-[#0A0A0A] shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}>
+    <div className={`relative ${sizeClass} ${LOGO_RADIUS} overflow-hidden shrink-0 bg-[#141414] shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}>
       <img
         src={`/openings/${course.slug}.png`}
         alt={course.title}
         loading="lazy"
         onError={e => { e.currentTarget.style.display = 'none' }}
-        className={`h-full w-full object-cover scale-[1.07] transition-transform duration-200 group-hover:scale-[1.14] ${locked ? 'opacity-60' : ''}`}
+        className={`h-full w-full object-cover ${LOGO_SCALE} ${LOGO_SCALE_HOVER} transition-transform duration-200 ${locked ? 'opacity-60' : ''}`}
       />
       {locked && <div className="absolute inset-0 bg-black/30" />}
     </div>
@@ -226,10 +236,10 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
 
   // Footer: număr de lecții + progres (reutilizat)
   const metaFooter = (
-    <div className="mt-auto pt-1">
-      <div className="flex items-center justify-between text-xs text-[#6B6B6B] mb-1.5">
-        <span className="flex items-center gap-1">
-          <BookOpen className="h-3 w-3" />
+    <div className="mt-auto pt-1.5">
+      <div className="flex items-center justify-between text-sm text-[#6B6B6B] mb-2">
+        <span className="flex items-center gap-1.5">
+          <BookOpen className="h-4 w-4" />
           {course.lesson_count} {course.lesson_count === 1 ? 'lecție' : 'lecții'}
         </span>
         {completedLessons > 0 && (
@@ -239,7 +249,7 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
         )}
       </div>
       {completedLessons > 0 && (
-        <div className="h-1 rounded-full bg-[#1C1C1C] overflow-hidden">
+        <div className="h-1.5 rounded-full bg-[#1C1C1C] overflow-hidden">
           <div className="h-full rounded-full transition-all"
             style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : theme.accent }} />
         </div>
@@ -248,10 +258,10 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
   )
 
   const styleTags = course.playing_styles.length > 0 && (
-    <div className="flex gap-1.5 flex-wrap">
+    <div className="flex gap-2 flex-wrap">
       {course.playing_styles.map(style => (
         <span key={style}
-          className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] text-[#6B6B6B]">
+          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] text-[#6B6B6B]">
           {STYLE_ICONS[style]}
           {PLAYING_STYLE_LABELS[style]}
         </span>
@@ -267,17 +277,17 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
   if (featured) {
     return (
       <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-        <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex gap-4 p-4 ${cardShell}`}>
-          {tokenIcon('h-24 w-24 sm:h-28 sm:w-28')}
-          <div className="flex flex-col flex-1 min-w-0 gap-2">
+        <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex gap-5 p-5 ${cardShell}`}>
+          {tokenIcon(LOGO_SIZE_FEATURED)}
+          <div className="flex flex-col flex-1 min-w-0 gap-2.5">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-base font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
+              <h3 className="text-lg font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
                 {familyName}
               </h3>
               {levelBadge}
             </div>
             {course.description && (
-              <p className="text-xs text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
+              <p className="text-sm text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
             )}
             {styleTags}
             {metaFooter}
@@ -290,17 +300,17 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
   // Layout vertical (grila principală) — icon sus-stânga, descriere dedesubt
   return (
     <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col gap-3 p-4 ${cardShell}`}>
+      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col gap-4 p-5 ${cardShell}`}>
         <div className="flex items-start justify-between gap-2">
-          {tokenIcon('h-16 w-16')}
+          {tokenIcon(LOGO_SIZE)}
           {levelBadge}
         </div>
         <div className="min-w-0">
-          <h3 className="font-bold text-sm text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
+          <h3 className="font-bold text-lg text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
             {familyName}
           </h3>
           {course.description && (
-            <p className="mt-1 text-xs text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
+            <p className="mt-1.5 text-sm text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
           )}
         </div>
         {styleTags}
