@@ -126,7 +126,7 @@ export function LeaguesPage() {
             return (
               <div
                 key={league.name}
-                className="relative flex items-center gap-4 rounded-2xl overflow-hidden transition-all duration-300"
+                className="relative flex items-center gap-6 rounded-2xl overflow-hidden transition-all duration-300"
                 style={{
                   opacity: isFuture ? 0.55 : 1,
                   background: isCurrent
@@ -161,16 +161,16 @@ export function LeaguesPage() {
                   <img
                     src={`/leagues/${league.name}.png`}
                     alt={league.label}
-                    className="h-14 w-14 object-contain"
-                    style={{ filter: isCurrent ? `drop-shadow(0 0 10px ${league.color}90)` : undefined }}
+                    className="h-28 w-28 object-contain"
+                    style={{ filter: isCurrent ? `drop-shadow(0 0 20px ${league.color}90)` : undefined }}
                   />
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0 py-4">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     <span
-                      className="font-black text-base tracking-wide"
+                      className="font-black text-3xl tracking-wide"
                       style={{
                         color: isFuture ? league.color + '70' : league.color,
                         textShadow: isCurrent ? `0 0 20px ${league.color}60` : undefined,
@@ -180,22 +180,22 @@ export function LeaguesPage() {
                     </span>
                     {isCurrent && (
                       <span
-                        className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider"
+                        className="flex items-center gap-1 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider"
                         style={{ backgroundColor: league.color + '25', color: league.color, border: `1px solid ${league.color}40` }}
                       >
-                        <Star className="h-2.5 w-2.5" /> Tu ești aici
+                        <Star className="h-3.5 w-3.5" /> Tu ești aici
                       </span>
                     )}
                     {isPassed && (
-                      <span className="text-[10px] font-bold text-[#4ade80] flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> Atins
+                      <span className="text-xs font-bold text-[#4ade80] flex items-center gap-1">
+                        <CheckCircle2 className="h-4 w-4" /> Atins
                       </span>
                     )}
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: isFuture ? '#3A3A3A' : '#6B6B6B' }}>
+                  <p className="text-xl mt-1.5" style={{ color: isFuture ? '#3A3A3A' : '#6B6B6B' }}>
                     {LEAGUE_DESCRIPTIONS[idx]}
                   </p>
-                  <p className="text-xs mt-1.5 font-mono" style={{ color: isFuture ? '#2A2A2A' : '#6B6B6B' }}>
+                  <p className="text-lg mt-2 font-mono" style={{ color: isFuture ? '#2A2A2A' : '#6B6B6B' }}>
                     {league.maxXp !== null ? `${league.minXp} – ${league.maxXp} XP` : `${league.minXp}+ XP`}
                     <span className="mx-1.5 opacity-40">·</span>
                     {league.weeklyMinXp} XP/săpt.
@@ -203,11 +203,11 @@ export function LeaguesPage() {
                 </div>
 
                 {/* Right arrow / lock */}
-                <div className="mr-4 flex-shrink-0">
+                <div className="mr-5 flex-shrink-0">
                   {isFuture ? (
-                    <Lock className="h-4 w-4" style={{ color: league.color + '40' }} />
+                    <Lock className="h-6 w-6" style={{ color: league.color + '40' }} />
                   ) : (
-                    <ChevronRight className="h-4 w-4" style={{ color: league.color + '60' }} />
+                    <ChevronRight className="h-6 w-6" style={{ color: league.color + '60' }} />
                   )}
                 </div>
               </div>
