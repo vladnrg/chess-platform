@@ -13,7 +13,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
 (
   'Partida Italiană',
   'italian-game',
-  'Clasica 1.e4 e5 2.Cf3 Cc6 3.Bc4 — controlul centrului și presiunea pe f7. Perfectă pentru a învăța principiile deschiderii.',
+  'Clasica 1.e4 e5 2.Cf3 Cc6 3.Nc4 — controlul centrului și presiunea pe f7. Perfectă pentru a învăța principiile deschiderii.',
   'beginner', 'Italian Game', 'C50', ARRAY['balanced','offensive'], false, 5, 2
 ),
 (
@@ -37,7 +37,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
 (
   'Ruy Lopez (Spaniola)',
   'ruy-lopez',
-  '1.e4 e5 2.Cf3 Cc6 3.Bb5 — cea mai studiată deschidere din istorie. Presiune pe calul de pe c6.',
+  '1.e4 e5 2.Cf3 Cc6 3.Nb5 — cea mai studiată deschidere din istorie. Presiune pe calul de pe c6.',
   'intermediate', 'Ruy Lopez', 'C60', ARRAY['balanced','offensive'], true, 7, 6
 ),
 (
@@ -49,13 +49,13 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
 (
   'Atacul Regelui Indian (KIA)',
   'kings-indian-attack',
-  'Setup cu g3, Bg2, d3, Nf3, Nc3 — sistem flexibil pentru alb, potrivit împotriva oricărei deschideri negre.',
+  'Setup cu g3, Ng2, d3, Cf3, Cc3 — sistem flexibil pentru alb, potrivit împotriva oricărei deschideri negre.',
   'intermediate', 'King''s Indian Attack', 'A07', ARRAY['offensive','balanced'], true, 5, 8
 ),
 (
   'Sistemul Colle',
   'colle-system',
-  'Setup solid cu d4, Nf3, e3, Bd3 — pregătire pentru atacul e4 în centru. Ușor de învățat.',
+  'Setup solid cu d4, Cf3, e3, Nd3 — pregătire pentru atacul e4 în centru. Ușor de învățat.',
   'beginner', 'Colle System', 'D05', ARRAY['defensive','pragmatic'], false, 4, 9
 ),
 (
@@ -93,7 +93,7 @@ INSERT INTO public.courses (title, slug, description, level, opening_family, eco
 (
   'Apărarea Nimzo-Indian',
   'nimzo-indian-defense',
-  '1.d4 Cf6 2.c4 e6 3.Cc3 Bb4 — pin pe calul de pe c3, structuri complexe. Favorita marilor maeștri.',
+  '1.d4 Cf6 2.c4 e6 3.Cc3 Nb4 — pin pe calul de pe c3, structuri complexe. Favorita marilor maeștri.',
   'advanced', 'Nimzo-Indian Defense', 'E20', ARRAY['balanced','offensive'], true, 6, 15
 ),
 (

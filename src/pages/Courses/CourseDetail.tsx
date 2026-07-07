@@ -84,7 +84,7 @@ export function CourseDetail() {
   // Pașii traseului (noduri): variante pentru deschideri, lecții pentru fundamentale.
   const steps: PathStep[] = hasOpeningLines
     ? (openingLines ?? []).map(l => ({
-        id: l.id, title: l.variation_name, sub: l.variation_code,
+        id: l.id, title: l.variation_name, sub: `${l.popularity_pct}% popularitate`,
         href: `/courses/${slug}/guided/${l.id}`, premium: false,
       }))
     : (lessons ?? []).map(l => ({
