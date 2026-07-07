@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { BookOpen, Lock, Search, Flame, Shield, Zap, Scale } from 'lucide-react'
+import { BookOpen, Lock, Search, Flame, Shield, Zap, Scale, ChevronLeft, ChevronRight, Star, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
+import { useAuth } from '@/hooks/useAuth'
 import { Spinner } from '@/components/ui/Spinner'
-import type { Course, CourseLevel, PlayingStyle } from '@/types'
+import type { Course, CourseLevel, PlayingStyle, Profile } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
 // Color palette per ECO family
@@ -58,8 +59,31 @@ const LEVELS: { value: CourseLevel | 'all'; label: string }[] = [
   { value: 'advanced', label: 'Avansat' },
 ]
 
+// Clasificare culoare: apărările (slug cu "-defense") sunt pentru negru, restul pentru alb.
+function courseColor(course: Course): 'white' | 'black' {
+  return course.slug.includes('defense') ? 'black' : 'white'
+}
+
+// Nivelul de curs derivat din rating-ul testului de plasament.
+function ratingToLevel(rating: number): CourseLevel {
+  if (rating < 1000) return 'beginner'
+  if (rating < 1600) return 'intermediate'
+  return 'advanced'
+}
+
+// Un curs e "Recomandat" doar dacă utilizatorul a făcut testul de plasament și cursul
+// se potrivește nivelului lui (+ stilului de joc, dacă acesta e setat).
+function isRecommended(course: Course, profile: Profile | null): boolean {
+  if (!profile?.puzzle_rating) return false          // fără test de plasament → nimic
+  if (course.level === 'fundamental') return false
+  if (course.level !== ratingToLevel(profile.puzzle_rating)) return false
+  if (profile.playing_style) return course.playing_styles.includes(profile.playing_style)
+  return true
+}
+
 export function CoursesPage() {
   const { isPro } = useSubscription()
+  const { profile } = useAuth()
   const [levelFilter, setLevelFilter] = useState<CourseLevel | 'all'>('all')
   const [search, setSearch] = useState('')
 
@@ -79,6 +103,18 @@ export function CoursesPage() {
     if (search && !c.title.toLowerCase().includes(search.toLowerCase()) && !(c.opening_family ?? '').toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
+
+  // Ordine: recomandatele primele, apoi pe nivel (începător → avansat).
+  const levelRank: Record<CourseLevel, number> = { fundamental: 0, beginner: 1, intermediate: 2, advanced: 3 }
+  const sortCourses = (list: Course[]) => [...list].sort((a, b) => {
+    const ra = isRecommended(a, profile) ? 0 : 1
+    const rb = isRecommended(b, profile) ? 0 : 1
+    if (ra !== rb) return ra - rb
+    return levelRank[a.level] - levelRank[b.level]
+  })
+  const whiteCourses = sortCourses(filtered.filter(c => courseColor(c) === 'white'))
+  const blackCourses = sortCourses(filtered.filter(c => courseColor(c) === 'black'))
+  const hasPlacement = !!profile?.puzzle_rating
 
   const totalCourses = courses?.length ?? 0
   const completedCourses = (courses ?? []).filter(c => {
@@ -164,28 +200,77 @@ export function CoursesPage() {
         </section>
       )}
 
-      {/* Main grid */}
+      {/* Carusele pe culoare */}
       {isLoading ? (
         <div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>
+      ) : filtered.length === 0 ? (
+        <p className="text-center text-[#6B6B6B] py-20">Niciun curs nu corespunde filtrelor selectate.</p>
       ) : (
-        <section>
-          {filtered.length === 0 ? (
-            <p className="text-center text-[#6B6B6B] py-20">Niciun curs nu corespunde filtrelor selectate.</p>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-[#6B6B6B]">{filtered.length} {filtered.length === 1 ? 'curs' : 'cursuri'}</span>
-              </div>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map(course => (
-                  <CourseCard key={course.id} course={course} isPro={isPro} />
-                ))}
-              </div>
-            </>
+        <div className="space-y-8">
+          {/* Hint: fă testul de plasament pentru recomandări */}
+          {!hasPlacement && (
+            <Link
+              to="/puzzles/placement"
+              className="flex items-center gap-3 rounded-xl border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-4 py-3 text-sm hover:bg-[rgba(226,179,64,0.14)] transition-colors"
+            >
+              <Sparkles className="h-4 w-4 text-[#E2B340] flex-shrink-0" />
+              <span className="text-[#F0F0F0]">
+                Fă <span className="font-semibold text-[#E2B340]">testul de plasament</span> ca să primești cursuri recomandate pentru nivelul și stilul tău.
+              </span>
+              <ChevronRight className="h-4 w-4 text-[#E2B340] ml-auto flex-shrink-0" />
+            </Link>
           )}
-        </section>
+
+          {whiteCourses.length > 0 && (
+            <CourseCarousel title="Deschideri cu Albul" courses={whiteCourses} isPro={isPro} profile={profile} />
+          )}
+          {blackCourses.length > 0 && (
+            <CourseCarousel title="Deschideri cu Negrul" courses={blackCourses} isPro={isPro} profile={profile} />
+          )}
+        </div>
       )}
     </div>
+  )
+}
+
+// Carusel orizontal cu derulare prin săgeți (stil Chessly).
+function CourseCarousel({ title, courses, isPro, profile }: {
+  title: string; courses: Course[]; isPro: boolean; profile: Profile | null
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const scroll = (dir: number) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-bold text-[#F0F0F0] uppercase tracking-wider flex items-center gap-2">
+          {title}
+          <span className="text-xs text-[#6B6B6B] font-normal normal-case">· {courses.length}</span>
+        </h3>
+        <div className="flex gap-1.5">
+          {[-1, 1].map(dir => (
+            <button
+              key={dir}
+              onClick={() => scroll(dir)}
+              aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
+            >
+              {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {courses.map(course => (
+          <div key={course.id} className="w-64 sm:w-72 shrink-0 snap-start">
+            <CourseCard course={course} isPro={isPro} recommended={isRecommended(course, profile)} />
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -199,7 +284,7 @@ const LOGO_RADIUS = 'rounded-xl'           // colțuri logo
 const LOGO_SCALE = 'scale-100'             // fără zoom — rama cu romburi ajunge fix la margine
 const LOGO_SCALE_HOVER = 'group-hover:scale-[1.08]'
 
-function CourseCard({ course, isPro, featured = false }: { course: Course; isPro: boolean; featured?: boolean }) {
+function CourseCard({ course, isPro, featured = false, recommended = false }: { course: Course; isPro: boolean; featured?: boolean; recommended?: boolean }) {
   const locked = course.is_premium && !isPro
   const completedLessons = course.progress?.completed_lesson_ids.length ?? 0
   const pct = course.lesson_count > 0 ? Math.round((completedLessons / course.lesson_count) * 100) : 0
@@ -271,7 +356,15 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
 
   const cardShell = locked
     ? 'border-[#1C1C1C] hover:border-[#2A2A2A]'
+    : recommended
+    ? 'border-[rgba(226,179,64,0.55)] shadow-[0_0_22px_rgba(226,179,64,0.15)] hover:border-[#E2B340] hover:-translate-y-1'
     : 'border-[#141414] hover:border-[#3A3A3A] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+
+  const recBadge = recommended ? (
+    <span className="flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#E2B340] text-black shadow-[0_0_12px_rgba(226,179,64,0.5)]">
+      <Star className="h-2.5 w-2.5 fill-black" /> RECOMANDAT
+    </span>
+  ) : null
 
   // Layout orizontal pentru cardurile featured (icon stânga + conținut dreapta), stil Chessly
   if (featured) {
@@ -303,7 +396,10 @@ function CourseCard({ course, isPro, featured = false }: { course: Course; isPro
       <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col gap-4 p-5 ${cardShell}`}>
         <div className="flex items-start justify-between gap-2">
           {tokenIcon(LOGO_SIZE)}
-          {levelBadge}
+          <div className="flex flex-col items-end gap-1.5">
+            {recBadge}
+            {levelBadge}
+          </div>
         </div>
         <div className="min-w-0">
           <h3 className="font-bold text-lg text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
