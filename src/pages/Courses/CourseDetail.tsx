@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { BookOpen, CheckCircle2, Lock, ChevronLeft, Clock, TrendingUp, Dumbbell } from 'lucide-react'
+import { BookOpen, CheckCircle2, Lock, ChevronLeft, ChevronRight, Clock, TrendingUp, Dumbbell } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -10,6 +10,14 @@ import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
+
+interface PathStep {
+  id: string
+  title: string
+  sub: string
+  href: string
+  premium: boolean
+}
 
 export function CourseDetail() {
   const { slug } = useParams<{ slug: string }>()
@@ -69,18 +77,30 @@ export function CourseDetail() {
   if (!course) return <p className="text-[#6B6B6B]">Cursul nu a fost găsit.</p>
 
   const hasOpeningLines = openingLines && openingLines.length > 0
-
-  // For lesson-based courses
   const completedIds = progress?.completed_lesson_ids ?? []
-  const lessonPct = lessons?.length ? Math.round((completedIds.length / lessons.length) * 100) : 0
-  const firstLesson = lessons?.[0]
-  const lastLesson = progress?.last_lesson_id ? lessons?.find(l => l.id === progress.last_lesson_id) : null
-  const resumeLesson = lastLesson ?? firstLesson
-
-  // For opening courses — CTA goes to first line guided mode
+  const isLocked = course.is_premium && !isPro
   const firstLine = openingLines?.[0]
 
-  const isLocked = course.is_premium && !isPro
+  // Pașii traseului (noduri): variante pentru deschideri, lecții pentru fundamentale.
+  const steps: PathStep[] = hasOpeningLines
+    ? (openingLines ?? []).map(l => ({
+        id: l.id, title: l.variation_name, sub: l.variation_code,
+        href: `/courses/${slug}/guided/${l.id}`, premium: false,
+      }))
+    : (lessons ?? []).map(l => ({
+        id: l.id, title: l.title, sub: `${l.duration_minutes} min`,
+        href: `/courses/${slug}/lessons/${l.id}`, premium: l.is_premium,
+      }))
+
+  const totalSteps = steps.length
+  const doneCount = steps.filter(s => completedIds.includes(s.id)).length
+  const pct = totalSteps ? Math.round((doneCount / totalSteps) * 100) : 0
+  // Reluare: ultima variantă începută și neterminată; altfel prima neparcursă.
+  const lastId = progress?.last_lesson_id
+  const resumeId = lastId && !completedIds.includes(lastId) && steps.some(s => s.id === lastId)
+    ? lastId
+    : (steps.find(s => !completedIds.includes(s.id))?.id ?? steps[0]?.id)
+  const resumeStep = steps.find(s => s.id === resumeId)
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -89,10 +109,16 @@ export function CourseDetail() {
         Toate cursurile
       </Link>
 
-      {/* Header */}
+      {/* Header — iconiță + titlu + descriere */}
       <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex-1">
+        <div className="flex items-start gap-4 mb-4">
+          <img
+            src={`/openings/${course.slug}.png`}
+            alt={course.title}
+            onError={e => { e.currentTarget.style.display = 'none' }}
+            className="h-20 w-20 rounded-xl object-cover shrink-0 bg-[#141414] shadow-[0_2px_10px_rgba(0,0,0,0.45)]"
+          />
+          <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <Badge variant={
                 course.level === 'beginner' ? 'beginner'
@@ -108,7 +134,7 @@ export function CourseDetail() {
               ))}
               {isLocked && <Badge variant="premium">Pro</Badge>}
             </div>
-            <h1 className="text-2xl font-bold text-[#F0F0F0] mb-3">{course.title}</h1>
+            <h1 className="text-2xl font-bold text-[#F0F0F0] mb-2">{course.title}</h1>
             {course.description && (
               <p className="text-[#A0A0A0] text-sm leading-relaxed border-l-2 border-[#E2B340] pl-3">
                 {course.description}
@@ -135,13 +161,13 @@ export function CourseDetail() {
           </span>
         </div>
 
-        {!hasOpeningLines && lessonPct > 0 && (
+        {pct > 0 && (
           <div className="mb-4">
             <div className="flex justify-between text-xs text-[#6B6B6B] mb-1.5">
               <span>Progres</span>
-              <span className="text-[#4ade80]">{lessonPct}% complet</span>
+              <span className="text-[#4ade80]">{pct}% complet</span>
             </div>
-            <Progress value={lessonPct} barClassName="bg-[#4ade80]" />
+            <Progress value={pct} barClassName="bg-[#4ade80]" />
           </div>
         )}
 
@@ -151,131 +177,85 @@ export function CourseDetail() {
               <Lock className="h-4 w-4" /> Deblochează cu Pro
             </Button>
           </Link>
-        ) : hasOpeningLines && firstLine ? (
-          <Link to={`/courses/${course.slug}/guided/${firstLine.id}`}>
-            <Button size="lg" className="w-full">
-              Începe cu prima variantă
-            </Button>
-          </Link>
-        ) : resumeLesson ? (
-          <Link to={`/courses/${course.slug}/lessons/${resumeLesson.id}`}>
-            <Button size="lg" className="w-full">
-              {lessonPct > 0 ? 'Continuă cursul' : 'Începe cursul'}
-            </Button>
-          </Link>
+        ) : resumeStep ? (
+          <div className="flex gap-2">
+            <Link to={resumeStep.href} className="flex-1">
+              <Button size="lg" className="w-full">
+                {pct > 0 ? 'Continuă de unde ai rămas' : 'Începe cursul'}
+              </Button>
+            </Link>
+            {hasOpeningLines && firstLine && (
+              <Link to={`/courses/${course.slug}/practice/${firstLine.id}`}>
+                <Button variant="secondary" size="lg">
+                  <Dumbbell className="h-4 w-4" /> Practică
+                </Button>
+              </Link>
+            )}
+          </div>
         ) : null}
       </div>
 
-      {/* Opening lines section */}
-      {hasOpeningLines && (
+      {/* Conținutul cursului — traseu stil Duolingo */}
+      {steps.length > 0 ? (
         <div>
-          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-3">
-            Variante ({openingLines.length})
-          </h2>
-          <div className="space-y-3">
-            {openingLines.map((line) => (
-              <div
-                key={line.id}
-                className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#3A3A3A] transition-colors"
-              >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-[#6B6B6B] border border-[#2A2A2A] rounded px-1.5 py-0.5">
-                        {line.variation_code}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        line.user_color === 'white'
-                          ? 'bg-[#F0F0F0] text-black'
-                          : 'bg-[#2A2A2A] text-[#F0F0F0] border border-[#3A3A3A]'
-                      }`}>
-                        {line.user_color === 'white' ? '♔ Alb' : '♚ Negru'}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-[#F0F0F0] text-sm leading-snug">
-                      {line.variation_name}
-                    </h3>
-                  </div>
-                  {/* Popularity */}
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-bold text-[#E2B340]">{line.popularity_pct}%</p>
-                    <p className="text-[10px] text-[#6B6B6B] uppercase tracking-wide">popularitate</p>
-                  </div>
-                </div>
+          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-1">Conținutul cursului</h2>
+          <p className="text-xs text-[#6B6B6B] mb-4">{doneCount} din {totalSteps} parcurse</p>
 
-                {/* Popularity bar */}
-                <div className="h-1 bg-[#2A2A2A] rounded-full mb-3 overflow-hidden">
-                  <div
-                    className="h-full bg-[#E2B340] rounded-full"
-                    style={{ width: `${Math.min(line.popularity_pct * 2, 100)}%` }}
-                  />
-                </div>
-
-                {/* CTA buttons */}
-                {isLocked ? (
-                  <Link to="/pricing">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Lock className="h-3.5 w-3.5" /> Deblochează cu Pro
-                    </Button>
-                  </Link>
-                ) : (
-                  <div className="flex gap-2">
-                    <Link to={`/courses/${slug}/guided/${line.id}`} className="flex-1">
-                      <Button size="sm" className="w-full">
-                        <BookOpen className="h-3.5 w-3.5" />
-                        Mod ghidat
-                      </Button>
-                    </Link>
-                    <Link to={`/courses/${slug}/practice/${line.id}`} className="flex-1">
-                      <Button variant="secondary" size="sm" className="w-full">
-                        <Dumbbell className="h-3.5 w-3.5" />
-                        Practică liberă
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Lessons section (for fundamental courses) */}
-      {!hasOpeningLines && (
-        <div>
-          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-3">
-            Lecții ({lessons?.length ?? 0})
-          </h2>
-          <div className="space-y-2">
-            {(lessons ?? []).map((lesson, idx) => {
-              const done = completedIds.includes(lesson.id)
-              const locked = lesson.is_premium && !isPro
+          <div className="max-w-md mx-auto">
+            {steps.map((step, i) => {
+              const done = completedIds.includes(step.id)
+              const current = !done && step.id === resumeId
+              const locked = isLocked || (step.premium && !isPro)
               return (
-                <Link
-                  key={lesson.id}
-                  to={locked ? '/pricing' : `/courses/${slug}/lessons/${lesson.id}`}
-                  className="flex items-center gap-4 rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#3A3A3A] transition-all group"
-                >
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold flex-shrink-0 ${
-                    done ? 'bg-[#4ade80] text-black' : 'bg-[#2A2A2A] text-[#6B6B6B]'
-                  }`}>
-                    {done ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium group-hover:text-[#E2B340] transition-colors ${done ? 'text-[#4ade80]' : 'text-[#F0F0F0]'}`}>
-                      {lesson.title}
-                    </p>
-                    <p className="text-xs text-[#6B6B6B]">{lesson.duration_minutes} min</p>
-                  </div>
-                  {locked && <Lock className="h-4 w-4 text-[#E2B340] flex-shrink-0" />}
-                </Link>
+                <div key={step.id}>
+                  {/* Caseta cursului — titlu lizibil în interior */}
+                  <Link
+                    to={locked ? '/pricing' : step.href}
+                    title={step.title}
+                    className={`flex items-center gap-3 rounded-2xl border bg-[#141414] p-3 transition-all hover:-translate-y-0.5 ${
+                      current
+                        ? 'border-[rgba(226,179,64,0.55)] shadow-[0_0_18px_rgba(226,179,64,0.15)]'
+                        : done
+                        ? 'border-[rgba(74,222,128,0.35)]'
+                        : 'border-[#2A2A2A] hover:border-[#3A3A3A]'
+                    }`}
+                  >
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 ${
+                      done ? 'bg-[#4ade80] text-black'
+                        : current ? 'bg-[#E2B340] text-black'
+                        : 'bg-[#1C1C1C] text-[#6B6B6B]'
+                    }`}>
+                      {done ? <CheckCircle2 className="h-6 w-6" />
+                        : locked ? <Lock className="h-5 w-5" />
+                        : <BookOpen className="h-6 w-6" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-display font-semibold text-sm truncate ${done ? 'text-[#A0A0A0]' : 'text-[#F0F0F0]'}`}>
+                        {step.title}
+                      </p>
+                      <p className={`text-xs ${current ? 'text-[#E2B340] font-semibold' : done ? 'text-[#4ade80]' : 'text-[#6B6B6B]'}`}>
+                        {current ? 'Ești aici' : done ? 'Terminat' : step.sub}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-[#6B6B6B] shrink-0" />
+                  </Link>
+
+                  {/* Linie discontinuă șerpuită între casete (în gol, nu peste titluri) */}
+                  {i < steps.length - 1 && (
+                    <svg width="240" height="38" viewBox="0 0 240 38" fill="none" className="mx-auto block">
+                      <path
+                        d={i % 2 === 0 ? 'M120 2 C120 15, 66 24, 120 36' : 'M120 2 C120 15, 174 24, 120 36'}
+                        stroke="rgba(226,179,64,0.4)" strokeWidth="2.5" strokeDasharray="2 8" strokeLinecap="round"
+                      />
+                    </svg>
+                  )}
+                </div>
               )
             })}
-            {(!lessons || lessons.length === 0) && (
-              <p className="text-[#6B6B6B] text-sm text-center py-8">Lecțiile sunt în curs de pregătire.</p>
-            )}
           </div>
         </div>
+      ) : (
+        <p className="text-[#6B6B6B] text-sm text-center py-8">Conținutul e în curs de pregătire.</p>
       )}
     </div>
   )

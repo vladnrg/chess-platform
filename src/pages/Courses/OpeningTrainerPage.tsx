@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
@@ -6,6 +6,7 @@ import { Chessboard } from 'react-chessboard'
 import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import type { OpeningLine } from '@/types'
@@ -60,6 +61,27 @@ function buildInitialState(line: OpeningLine): TrainerState {
   }
 }
 
+// Reconstruiește poziția la reluare, rejucând mutările până la plyIdx-ul salvat.
+function buildResumedState(line: OpeningLine, plyIdx: number): TrainerState {
+  const moves = line.moves_uci.split(' ')
+  const target = Math.max(0, Math.min(plyIdx, moves.length))
+  const game = new Chess()
+  for (let i = 0; i < target; i++) {
+    const m = moves[i]
+    try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) } catch { break }
+  }
+  const part = target >= PART_ENDS[1] ? 3 : target >= PART_ENDS[0] ? 2 : 1
+  const partEnd = getPartEnd(moves.length, part)
+  const status: TrainerStatus = target >= moves.length
+    ? 'line-done'
+    : target >= partEnd
+    ? 'part-done'
+    : isUserPly(target, line.user_color) ? 'user-turn' : 'computer-thinking'
+  return { game, plyIdx: target, part, partEnd, status, wrongFrom: null, wrongTo: null }
+}
+
+const resumeKey = (lineId: string) => `op-resume:${lineId}`
+
 const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Pre-Middlegame']
 
 interface Props {
@@ -68,7 +90,9 @@ interface Props {
 
 export function OpeningTrainerPage({ mode }: Props) {
   const { slug, lineId } = useParams<{ slug: string; lineId: string }>()
+  const { user, fetchProfile } = useAuth()
   const isGuided = mode === 'guided'
+  const savedDoneRef = useRef(false)
 
   const { data: line, isLoading } = useQuery({
     queryKey: ['opening-line', lineId],
@@ -85,10 +109,57 @@ export function OpeningTrainerPage({ mode }: Props) {
 
   const [state, setState] = useState<TrainerState | null>(null)
 
+  // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
+  const persistProgress = useCallback(async (markDone: boolean) => {
+    if (!isGuided || !line || !user) return
+    const { data: existing } = await (supabase as any)
+      .from('user_course_progress')
+      .select('completed_lesson_ids, xp_earned')
+      .eq('user_id', user.id).eq('course_id', line.course_id).single()
+    const prev: string[] = existing?.completed_lesson_ids ?? []
+    const already = prev.includes(line.id)
+    await (supabase as any).from('user_course_progress').upsert({
+      user_id: user.id,
+      course_id: line.course_id,
+      completed_lesson_ids: markDone && !already ? [...prev, line.id] : prev,
+      last_lesson_id: line.id,
+      xp_earned: (existing?.xp_earned ?? 0) + (markDone && !already ? 30 : 0),
+    })
+    if (markDone && !already) {
+      await (supabase as any).rpc('award_xp', { p_user_id: user.id, p_amount: 30 })
+      await fetchProfile(user.id)
+      toast.success('+30 XP — Variantă stăpânită!')
+    }
+  }, [isGuided, line, user, fetchProfile])
+
+  // La montare: reia din plyIdx-ul salvat (mod ghidat) + marchează varianta ca fiind cea curentă.
   useEffect(() => {
     if (!line) return
-    setState(buildInitialState(line))
+    savedDoneRef.current = false
+    if (isGuided) {
+      const saved = Number(localStorage.getItem(resumeKey(line.id)))
+      setState(saved > 0 ? buildResumedState(line, saved) : buildInitialState(line))
+      void persistProgress(false)
+    } else {
+      setState(buildInitialState(line))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [line])
+
+  // Salvează punctul curent (plyIdx) pentru reluare exactă.
+  useEffect(() => {
+    if (!isGuided || !line || !state || state.status === 'line-done') return
+    localStorage.setItem(resumeKey(line.id), String(state.plyIdx))
+  }, [state?.plyIdx, isGuided, line])
+
+  // La finalizarea variantei: marchează complet + curăță punctul de reluare.
+  useEffect(() => {
+    if (!isGuided || !line || state?.status !== 'line-done' || savedDoneRef.current) return
+    savedDoneRef.current = true
+    localStorage.removeItem(resumeKey(line.id))
+    void persistProgress(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.status])
 
   // Auto-play computer moves
   useEffect(() => {
