@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
-import { CheckCircle2, RefreshCw, Loader2, RotateCcw, Info, Target, Flame } from 'lucide-react'
+import { CheckCircle2, RefreshCw, Loader2, RotateCcw, Info, Target, Flame, Calendar, Lightbulb, Sparkles, ChevronLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -27,6 +27,17 @@ function offsetColor(o: BandOffset): string {
 }
 function offsetLabel(o: BandOffset): string {
   return o === -1 ? 'Inferioară' : o === 0 ? 'Nivelul tău' : 'Superioară'
+}
+
+// Teme pentru provocările zilnice curate
+const COUNTER_THEMES = ['quietMove', 'zugzwang', 'defensiveMove', 'interference', 'clearance', 'xRayAttack', 'intermezzo', 'underPromotion']
+const SATISFYING_THEMES = ['smotheredMate', 'doubleCheck', 'discoveredAttack', 'attraction', 'sacrifice', 'backRankMate', 'operaMate']
+
+type DailyKind = 'zi' | 'contra' | 'satisf'
+const DAILY_META: Record<DailyKind, { title: string; subtitle: string }> = {
+  zi: { title: 'Puzzle-ul zilei', subtitle: 'Provocarea de azi, aceeași pentru toți.' },
+  contra: { title: 'Cel mai contraintuitiv', subtitle: 'Mutarea pe care n-o vezi venind.' },
+  satisf: { title: 'Cel mai satisfăcător', subtitle: 'Un final de combinație delicios.' },
 }
 
 interface MoveExplanation {
@@ -147,6 +158,33 @@ export function PuzzlesPage() {
 
   const FREE_LIMIT = 10
 
+  // ---- Provocările zilei (puzzle-uri curate, fără plasament) ----
+  const [daily, setDaily] = useState<Partial<Record<DailyKind, Puzzle>>>({})
+  const [mode, setMode] = useState<'rated' | 'daily'>('rated')
+  const modeRef = useRef<'rated' | 'daily'>('rated')
+  modeRef.current = mode
+  const [dailyKind, setDailyKind] = useState<DailyKind | null>(null)
+
+  // Alege puzzle-urile zilnice determinist (seed = data), din tabela locală
+  useEffect(() => {
+    void (async () => {
+      const seed = Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''))
+      const pick = async (
+        q: ReturnType<ReturnType<typeof supabase.from>['select']>, offset: number,
+      ): Promise<Puzzle | undefined> => {
+        const { data } = await q.order('id').limit(300)
+        const pool = (data ?? []) as Puzzle[]
+        return pool.length ? pool[(seed + offset) % pool.length] : undefined
+      }
+      const [zi, contra, satisf] = await Promise.all([
+        pick(supabase.from('puzzles').select('*').gte('rating', 900).lt('rating', 1600), 0),
+        pick(supabase.from('puzzles').select('*').overlaps('themes', COUNTER_THEMES), 1),
+        pick(supabase.from('puzzles').select('*').overlaps('themes', SATISFYING_THEMES), 2),
+      ])
+      setDaily({ zi, contra, satisf })
+    })()
+  }, [])
+
   // Sincronizează rating-ul local cu profilul când acesta se încarcă/schimbă
   useEffect(() => {
     if (profile?.puzzle_rating != null) {
@@ -194,6 +232,7 @@ export function PuzzlesPage() {
 
   // Aplică rezultatul la rating-ul de puzzle (o singură dată per puzzle, server-side)
   function applyRating(solved: boolean) {
+    if (modeRef.current === 'daily') return  // provocările zilnice nu schimbă rating-ul
     if (ratingAppliedRef.current || !user || !currentPuzzle) return
     ratingAppliedRef.current = true
     void (async () => {
@@ -253,6 +292,27 @@ export function PuzzlesPage() {
       setCorrectStreak(0)
     }
     void loadNext(activeOffset)
+  }
+
+  // Încarcă un puzzle-provocare zilnic (fără plasament, nu afectează rating-ul)
+  function loadDaily(kind: DailyKind) {
+    const p = daily[kind]
+    if (!p) return
+    setMode('daily')
+    modeRef.current = 'daily'
+    setDailyKind(kind)
+    loadPuzzle(p)
+  }
+
+  // Revine la lista de provocări (și reia antrenamentul rated dacă are rating)
+  function backToChallenges() {
+    setMode('rated')
+    modeRef.current = 'rated'
+    setDailyKind(null)
+    setCurrentPuzzle(null)
+    setPuzzleState(null)
+    clearWrongState()
+    if (puzzleRating != null) void loadNext(activeOffset)  // reia antrenamentul rated
   }
 
   function clearWrongState() {
@@ -512,32 +572,10 @@ export function PuzzlesPage() {
   }, [puzzleState, selectedSquare, playerColor, onPieceDrop])
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
+  const hasRating = puzzleRating != null
 
-  // ---- Gate: testul de plasament ----
-  if (profile && profile.puzzle_rating == null && puzzleRating == null) {
-    return (
-      <div className="max-w-lg mx-auto mt-10">
-        <Card className="p-8 text-center space-y-5">
-          <div className="flex justify-center">
-            <MascotEnPassant mood="encouraging" size={64} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-[#F0F0F0]">Întâi, hai să-ți aflăm nivelul</h1>
-            <p className="text-[#A0A0A0] text-sm mt-2 leading-relaxed">
-              Rezolvi un test de plasament cu 20 de puzzle-uri progresiv mai grele. Pe baza lui primești un
-              <span className="text-[#E2B340] font-medium"> rating de puzzle</span> și începi să joci exact la nivelul tău.
-            </p>
-          </div>
-          <Button size="lg" className="w-full" onClick={() => navigate('/puzzles/placement')}>
-            Începe testul de plasament
-          </Button>
-        </Card>
-      </div>
-    )
-  }
-
-  const bands = puzzleRating != null ? accessibleBands(puzzleRating) : []
-  const currentBand = puzzleRating != null ? bandForRating(puzzleRating) : null
+  const bands = hasRating ? accessibleBands(puzzleRating!) : []
+  const currentBand = hasRating ? bandForRating(puzzleRating!) : null
 
   const boardSquareStyles: Record<string, React.CSSProperties> = {
     ...(wrongMoveFrom && wrongMoveTo ? {
@@ -580,6 +618,7 @@ export function PuzzlesPage() {
         </div>
 
         {/* Rating curent — stil chess.com */}
+        {hasRating && (
         <div className="flex items-center gap-3">
           {winStreak > 0 && (
             <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
@@ -601,9 +640,70 @@ export function PuzzlesPage() {
             )}
           </div>
         </div>
+        )}
       </div>
 
-      {/* Selector pe 3 benzi: inferioară / curentă / superioară */}
+      {/* Provocările zilei — mereu vizibile, fără plasament */}
+      <div>
+        <h2 className="text-sm font-bold text-[#F0F0F0] uppercase tracking-wider mb-3">Provocările zilei</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {(['zi', 'contra', 'satisf'] as DailyKind[]).map(kind => {
+            const p = daily[kind]
+            const Icon = kind === 'zi' ? Calendar : kind === 'contra' ? Lightbulb : Sparkles
+            const active = mode === 'daily' && dailyKind === kind
+            return (
+              <button
+                key={kind}
+                onClick={() => loadDaily(kind)}
+                disabled={!p}
+                className={cn(
+                  'text-left rounded-2xl border p-4 transition-all disabled:opacity-50',
+                  active
+                    ? 'border-[rgba(226,179,64,0.55)] bg-[rgba(226,179,64,0.06)] shadow-[0_0_18px_rgba(226,179,64,0.12)]'
+                    : 'border-[#2A2A2A] bg-[#141414] hover:border-[#3A3A3A] hover:-translate-y-0.5'
+                )}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(226,179,64,0.12)] text-[#E2B340]">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="font-display font-bold text-sm text-[#F0F0F0]">{DAILY_META[kind].title}</span>
+                </div>
+                <p className="text-xs text-[#6B6B6B] leading-relaxed">{DAILY_META[kind].subtitle}</p>
+                <p className="text-[11px] mt-2 font-semibold text-[#E2B340]">
+                  {p ? `Rezolvă · ELO ${p.rating}` : 'Indisponibil azi'}
+                </p>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Banner plasament (dacă nu ai rating) — antrenamentul pe nivelul tău */}
+      {!hasRating && mode === 'rated' && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center rounded-xl border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.06)] p-4">
+          <MascotEnPassant mood="encouraging" size={44} />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[#F0F0F0]">Deblochează antrenamentul pe nivelul tău</p>
+            <p className="text-xs text-[#A0A0A0] mt-0.5">
+              Fă testul de plasament (20 de puzzle-uri) ca să primești un rating și puzzle-uri exact pe măsura ta.
+            </p>
+          </div>
+          <Button size="sm" className="flex-shrink-0" onClick={() => navigate('/puzzles/placement')}>
+            Începe testul de plasament
+          </Button>
+        </div>
+      )}
+
+      {/* Back când rezolvi o provocare zilnică */}
+      {mode === 'daily' && (
+        <button onClick={backToChallenges} className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
+          <ChevronLeft className="h-4 w-4" /> Înapoi la provocări
+        </button>
+      )}
+
+      {/* Selector pe 3 benzi: inferioară / curentă / superioară (doar rated) */}
+      {hasRating && mode === 'rated' && (
       <div className="flex gap-2 flex-wrap">
         {bands.map(({ offset, band, gain, loss }) => (
           <button
@@ -633,6 +733,7 @@ export function PuzzlesPage() {
           <RefreshCw className={`h-4 w-4 ${nextLoading ? 'animate-spin' : ''}`} /> Puzzle nou
         </Button>
       </div>
+      )}
 
       {limitReached && (
         <div className="rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.3)] p-4 text-center">
@@ -724,7 +825,7 @@ export function PuzzlesPage() {
                 <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
                   <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
                   <span className="text-[#4ade80] font-semibold">Corect! Excelent!</span>
-                  <Button size="sm" className="ml-auto" onClick={() => void loadNext(activeOffset)}>Următor</Button>
+                  <Button size="sm" className="ml-auto" onClick={mode === 'daily' ? backToChallenges : () => void loadNext(activeOffset)}>{mode === 'daily' ? 'Înapoi la provocări' : 'Următor'}</Button>
                 </div>
               )}
 
@@ -747,7 +848,7 @@ export function PuzzlesPage() {
                         </div>
                       )}
                     </div>
-                    <Button size="sm" className="ml-auto flex-shrink-0" onClick={() => void loadNext(activeOffset)}>Următor</Button>
+                    <Button size="sm" className="ml-auto flex-shrink-0" onClick={mode === 'daily' ? backToChallenges : () => void loadNext(activeOffset)}>{mode === 'daily' ? 'Înapoi la provocări' : 'Următor'}</Button>
                   </div>
                 </div>
               )}
@@ -776,7 +877,7 @@ export function PuzzlesPage() {
                     </Button>
                   )}
 
-                  <Button size="sm" className="ml-auto" onClick={() => void loadNext(activeOffset)}>Următor</Button>
+                  <Button size="sm" className="ml-auto" onClick={mode === 'daily' ? backToChallenges : () => void loadNext(activeOffset)}>{mode === 'daily' ? 'Înapoi la provocări' : 'Următor'}</Button>
                 </div>
               )}
 
@@ -785,7 +886,12 @@ export function PuzzlesPage() {
               )}
             </div>
           ) : (
-            <div className="flex justify-center py-16 text-[#6B6B6B]">Niciun puzzle încărcat.</div>
+            <div className="flex flex-col items-center gap-3 py-16 text-center text-[#6B6B6B]">
+              <p>{hasRating ? 'Niciun puzzle încărcat.' : 'Alege o provocare de mai sus ca să începi să rezolvi.'}</p>
+              {hasRating && (
+                <Button size="sm" variant="secondary" onClick={() => void loadNext(0)}>Încarcă un puzzle</Button>
+              )}
+            </div>
           )}
         </div>
 
