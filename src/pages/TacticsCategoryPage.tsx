@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
 import { ArrowLeft, Lock } from 'lucide-react'
@@ -17,41 +17,49 @@ const PAGE_SIZE = 20
 export function TacticsCategoryPage() {
   const { categoryId } = useParams<{ categoryId: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { isPro } = useSubscription()
   const { profile } = useAuth()
 
   const [page, setPage] = useState(0)
   const [activeTheme, setActiveTheme] = useState<string | null>(null)
 
+  // Interval de ELO (venit din pagina de intervale): "floor-ceil"
+  const eloParam = searchParams.get('elo')
+  const [eloFloor, eloCeil] = eloParam ? eloParam.split('-').map(Number) : [null, null]
+  const backPath = `/tactics${eloParam ? `?elo=${eloParam}` : ''}`
+
   const category = TACTIC_CATEGORIES.find(c => c.id === categoryId)
 
   const locked = category?.isPro && !isPro
 
   const { data: exercises, isLoading } = useQuery({
-    queryKey: ['tactic-exercises', categoryId, page],
+    queryKey: ['tactic-exercises', categoryId, eloParam, page],
     queryFn: async () => {
       if (!category || locked) return [] as Puzzle[]
       const from = page * PAGE_SIZE
       const to = from + PAGE_SIZE - 1
-      const { data } = await supabase
+      let q = supabase
         .from('puzzles')
         .select('id, fen, rating, themes, moves, game_url')
         .overlaps('themes', category.lichessThemes)
-        .order('rating', { ascending: true })
-        .range(from, to)
+      if (eloFloor != null && eloCeil != null) q = q.gte('rating', eloFloor).lt('rating', eloCeil)
+      const { data } = await q.order('rating', { ascending: true }).range(from, to)
       return (data ?? []) as Puzzle[]
     },
     enabled: !!category && !locked,
   })
 
   const { data: totalCount } = useQuery({
-    queryKey: ['tactic-count', categoryId],
+    queryKey: ['tactic-count', categoryId, eloParam],
     queryFn: async () => {
       if (!category) return 0
-      const { count } = await supabase
+      let q = supabase
         .from('puzzles')
         .select('*', { count: 'exact', head: true })
         .overlaps('themes', category.lichessThemes)
+      if (eloFloor != null && eloCeil != null) q = q.gte('rating', eloFloor).lt('rating', eloCeil)
+      const { count } = await q
       return count ?? 0
     },
     enabled: !!category,
@@ -63,7 +71,7 @@ export function TacticsCategoryPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <p className="text-[#6B6B6B]">Categoria nu a fost găsită.</p>
-        <Button variant="secondary" size="sm" onClick={() => navigate('/tactics')}>
+        <Button variant="secondary" size="sm" onClick={() => navigate(backPath)}>
           ← Înapoi la Tactici
         </Button>
       </div>
@@ -75,7 +83,7 @@ export function TacticsCategoryPage() {
       {/* Header */}
       <div>
         <button
-          onClick={() => navigate('/tactics')}
+          onClick={() => navigate(backPath)}
           className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors mb-3"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -94,7 +102,7 @@ export function TacticsCategoryPage() {
         </div>
         {totalCount !== undefined && totalCount > 0 && (
           <p className="text-xs text-[#6B6B6B] mt-2">
-            {totalCount} exerciții disponibile · ELO estimat: {playerElo}
+            {totalCount} exerciții{eloParam ? ` · interval ELO ${eloParam}` : ''} · nivelul tău ~{playerElo}
           </p>
         )}
       </div>
