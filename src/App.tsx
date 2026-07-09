@@ -5,6 +5,7 @@ import { useAuthInit, useAuth } from '@/hooks/useAuth'
 import { PageLoader } from '@/components/ui/Spinner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Landing } from '@/pages/Landing'
+import { SalesPage } from '@/pages/SalesPage'
 import { Login } from '@/pages/Auth/Login'
 import { Register } from '@/pages/Auth/Register'
 import { Onboarding } from '@/pages/Onboarding/Onboarding'
@@ -55,6 +56,7 @@ function AppRoutes() {
     <Routes>
       {/* Public */}
       <Route path="/" element={<Landing />} />
+      <Route path="/vanzare" element={<SalesPage />} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/pricing" element={<PricingPage />} />
