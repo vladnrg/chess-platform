@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
+import { useStockfish } from '@/hooks/useStockfish'
 import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, hintXpFactor, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
 import { accessibleBands, bandForRating, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
@@ -26,7 +27,7 @@ function offsetColor(o: BandOffset): string {
   return o === -1 ? '#60a5fa' : o === 0 ? '#E2B340' : '#f97316'
 }
 function offsetLabel(o: BandOffset): string {
-  return o === -1 ? 'Inferioară' : o === 0 ? 'Nivelul tău' : 'Superioară'
+  return o === -1 ? 'Sub tine' : o === 0 ? 'Nivelul tău' : 'Peste tine'
 }
 
 // Teme pentru provocările zilnice curate
@@ -106,6 +107,7 @@ export function PuzzlesPage() {
   const navigate = useNavigate()
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
+  const { evalPosition } = useStockfish()
 
   const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(null)
   const [initialPuzzleState, setInitialPuzzleState] = useState<PuzzleState | null>(null)
@@ -155,6 +157,14 @@ export function PuzzlesPage() {
   const [evalBarEnabled, setEvalBarEnabled] = useState(false)
   const boardEval = evalHistory.at(-1) ?? null
   const prevBoardEval = evalHistory.at(-2) ?? null
+
+  // Evaluează o poziție cu Stockfish local (fiabil pe orice poziție) și o adaugă în bară
+  const pushEval = useCallback(async (fen: string) => {
+    try {
+      const { cp, mate } = await evalPosition(fen, 12)
+      setEvalHistory(h => [...h, mate !== undefined ? { mate } : { cp }])
+    } catch { /* engine indisponibil / timeout */ }
+  }, [evalPosition])
 
   const FREE_LIMIT = 10
 
@@ -245,7 +255,7 @@ export function PuzzlesPage() {
       setWinStreak(res.streak)
       setLastDelta(res.delta)
       window.setTimeout(() => setLastDelta(null), 2200)
-      if (res.promoted) toast.success('Promovat! 5 corecte la rând — treci la banda superioară 🎯')
+      if (res.promoted) toast.success('Promovat! 5 corecte la rând — treci la intervalul de Elo superior 🎯')
     })()
   }
 
@@ -489,11 +499,7 @@ export function PuzzlesPage() {
             }
           } catch { /* keep contextual message */ }
           finally { setEvalLoading(false) }
-          if (evalBarEnabled) {
-            void fetchLichessCloudEval(gameCopy.fen(), 1).then(data => {
-              if (data?.pvs?.[0]) setEvalHistory(h => [...h, { cp: data.pvs![0].cp, mate: data.pvs![0].mate }])
-            })
-          }
+          if (evalBarEnabled) void pushEval(gameCopy.fen())
           registerWrong()
           attemptMutation.mutate({ solved: false, timeSeconds: elapsed, xpAmount: 0 })
           applyRating(false)
@@ -513,9 +519,7 @@ export function PuzzlesPage() {
         attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpSolve })
         registerSolve(xpSolve)
         applyRating(true)
-        void fetchLichessCloudEval(gameCopy.fen(), 1).then(data => {
-          if (data?.pvs?.[0]) setEvalHistory(h => [...h, { cp: data.pvs![0].cp, mate: data.pvs![0].mate }])
-        })
+        void pushEval(gameCopy.fen())
         return true
       }
 
@@ -527,11 +531,7 @@ export function PuzzlesPage() {
           const g2 = new Chess(gameCopy.fen())
           g2.move({ from: opponentMove.slice(0, 2), to: opponentMove.slice(2, 4), promotion: opponentMove[4] ?? undefined })
           setPuzzleState(s => s ? { ...s, game: g2, currentMoveIdx: nextIdx + 1, waitingOpponent: false } : null)
-          if (evalBarEnabled) {
-            void fetchLichessCloudEval(g2.fen(), 1).then(data => {
-              if (data?.pvs?.[0]) setEvalHistory(h => [...h, { cp: data.pvs![0].cp, mate: data.pvs![0].mate }])
-            })
-          }
+          if (evalBarEnabled) void pushEval(g2.fen())
         } catch { /* skip */ }
       }, 500)
 
@@ -539,7 +539,7 @@ export function PuzzlesPage() {
     } catch {
       return false
     }
-  }, [puzzleState, currentPuzzle, attemptMutation, evalBarEnabled, setEvalHistory])
+  }, [puzzleState, currentPuzzle, attemptMutation, evalBarEnabled, setEvalHistory, pushEval])
 
   const onSquareClick = useCallback(({ square }: { square: string; piece?: unknown }) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return
@@ -609,7 +609,7 @@ export function PuzzlesPage() {
           <p className="text-[#6B6B6B] text-sm mt-0.5">
             {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
             {currentBand && (
-              <> · <span style={{ color: offsetColor(0) }}>Banda {currentBand.label}</span></>
+              <> · <span style={{ color: offsetColor(0) }}>Interval Elo {currentBand.label}</span></>
             )}
             {currentPuzzle && (
               <> · <span className="text-[#F0F0F0] font-medium">puzzle ELO {currentPuzzle.rating}</span></>
@@ -929,9 +929,9 @@ export function PuzzlesPage() {
           <Card className="p-4">
             <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Cum funcționează rating-ul</p>
             <ul className="space-y-1.5 text-sm text-[#A0A0A0]">
-              <li>• Joci doar din 3 benzi: inferioară, a ta și superioară</li>
-              <li>• Banda ta: <span className="text-[#4ade80]">+5</span> / <span className="text-[#FB7185]">−5</span> · inferioară: <span className="text-[#4ade80]">+3</span> / <span className="text-[#FB7185]">−7</span> · superioară: <span className="text-[#4ade80]">+7</span> / <span className="text-[#FB7185]">−3</span></li>
-              <li>• 5 corecte la rând → promovare automată la banda superioară</li>
+              <li>• Joci doar din 3 intervale de Elo: sub tine, al tău și peste tine</li>
+              <li>• Intervalul tău: <span className="text-[#4ade80]">+5</span> / <span className="text-[#FB7185]">−5</span> · sub tine: <span className="text-[#4ade80]">+3</span> / <span className="text-[#FB7185]">−7</span> · peste tine: <span className="text-[#4ade80]">+7</span> / <span className="text-[#FB7185]">−3</span></li>
+              <li>• 5 corecte la rând → urci automat la intervalul de Elo superior</li>
             </ul>
             <button
               onClick={() => navigate('/puzzles/placement')}
@@ -950,7 +950,11 @@ export function PuzzlesPage() {
               <button
                 role="switch"
                 aria-checked={evalBarEnabled}
-                onClick={() => setEvalBarEnabled(v => !v)}
+                onClick={() => {
+                  const next = !evalBarEnabled
+                  setEvalBarEnabled(next)
+                  if (next && puzzleState) void pushEval(puzzleState.game.fen())
+                }}
                 className={cn(
                   'relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200',
                   evalBarEnabled ? 'bg-[#E2B340]' : 'bg-[#2A2A2A]'

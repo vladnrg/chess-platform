@@ -44,14 +44,15 @@ export function useStockfish() {
     })
   }, [])
 
-  // Analysis mode: get centipawn eval + best move for a position (full strength)
-  const evalPosition = useCallback((fen: string): Promise<{ cp: number; best: string }> => {
+  // Analysis mode: get centipawn eval (+ mate) + best move for a position (full strength)
+  const evalPosition = useCallback((fen: string, depth = 14): Promise<{ cp: number; mate?: number; best: string }> => {
     return new Promise((resolve, reject) => {
       const worker = workerRef.current
       if (!worker) { reject(new Error('Engine not ready')); return }
 
       const timeout = setTimeout(() => reject(new Error('Eval timeout')), 8000)
       let lastCp = 0
+      let lastMate: number | undefined
       let lastBest = ''
 
       const handler = (e: MessageEvent<string>) => {
@@ -59,26 +60,28 @@ export function useStockfish() {
 
         if (msg.includes('score cp')) {
           const m = msg.match(/score cp (-?\d+)/)
-          if (m) lastCp = parseInt(m[1])
+          if (m) { lastCp = parseInt(m[1]); lastMate = undefined }
           const bm = msg.match(/\spv\s(\S+)/)
           if (bm) lastBest = bm[1]
         } else if (msg.includes('score mate')) {
           const m = msg.match(/score mate (-?\d+)/)
-          if (m) lastCp = parseInt(m[1]) > 0 ? 30000 : -30000
+          if (m) { lastMate = parseInt(m[1]); lastCp = lastMate > 0 ? 30000 : -30000 }
+          const bm = msg.match(/\spv\s(\S+)/)
+          if (bm) lastBest = bm[1]
         }
 
         if (msg.startsWith('bestmove')) {
           clearTimeout(timeout)
           worker.removeEventListener('message', handler)
           const bm = msg.split(' ')[1]
-          resolve({ cp: lastCp, best: lastBest || bm || '' })
+          resolve({ cp: lastCp, mate: lastMate, best: lastBest || bm || '' })
         }
       }
 
       worker.addEventListener('message', handler)
       worker.postMessage('setoption name UCI_LimitStrength value false')
       worker.postMessage(`position fen ${fen}`)
-      worker.postMessage('go depth 14')
+      worker.postMessage(`go depth ${depth}`)
     })
   }, [])
 
@@ -110,5 +113,5 @@ export function useStockfish() {
     [evalPosition],
   )
 
-  return { getBestMove, analyzePositions }
+  return { getBestMove, evalPosition, analyzePositions }
 }
