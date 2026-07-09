@@ -55,12 +55,13 @@ function getObjective(theme: string, puzzleThemes: string[]): string {
 
 interface Props {
   theme: string
+  initialPuzzle?: Puzzle   // dacă e dat, se joacă exact această poziție (nu una aleatorie)
   onClose: () => void
 }
 
 const FREE_LIMIT = 10
 
-export function PuzzleModal({ theme, onClose }: Props) {
+export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
 
@@ -168,9 +169,10 @@ export function PuzzleModal({ theme, onClose }: Props) {
     }
   }
 
-  // Load first puzzle on mount
+  // Load first puzzle on mount (poziția specifică, dacă e dată; altfel una aleatorie pe temă)
   useEffect(() => {
-    void fetchNextPuzzle()
+    if (initialPuzzle) loadPuzzle(initialPuzzle)
+    else void fetchNextPuzzle()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -291,9 +293,11 @@ export function PuzzleModal({ theme, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#2A2A2A] shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#F0F0F0]">Exersează: {categoryLabel}</h2>
+            <h2 className="text-base font-semibold text-[#F0F0F0]">
+              {currentPuzzle?.title ?? `Exersează: ${categoryLabel}`}
+            </h2>
             <p className="text-xs text-[#6B6B6B] mt-0.5">
-              {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} puzzle-uri azi`}
+              {categoryLabel} · {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} puzzle-uri azi`}
             </p>
           </div>
           <button

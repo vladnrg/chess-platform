@@ -127,6 +127,7 @@ export interface Puzzle {
   rating: number
   themes: string[]
   game_url: string | null
+  title?: string | null
 }
 
 export interface UserPuzzleAttempt {

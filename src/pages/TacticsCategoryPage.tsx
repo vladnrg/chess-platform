@@ -22,7 +22,7 @@ export function TacticsCategoryPage() {
   const { profile } = useAuth()
 
   const [page, setPage] = useState(0)
-  const [activeTheme, setActiveTheme] = useState<string | null>(null)
+  const [activePuzzle, setActivePuzzle] = useState<Puzzle | null>(null)
 
   // Interval de ELO (venit din pagina de intervale): "floor-ceil"
   const eloParam = searchParams.get('elo')
@@ -41,7 +41,7 @@ export function TacticsCategoryPage() {
       const to = from + PAGE_SIZE - 1
       let q = supabase
         .from('puzzles')
-        .select('id, fen, rating, themes, moves, game_url')
+        .select('id, fen, rating, themes, moves, game_url, title')
         .overlaps('themes', category.lichessThemes)
       if (eloFloor != null && eloCeil != null) q = q.gte('rating', eloFloor).lt('rating', eloCeil)
       const { data } = await q.order('rating', { ascending: true }).range(from, to)
@@ -140,7 +140,7 @@ export function TacticsCategoryPage() {
               <ExerciseCard
                 key={ex.id}
                 puzzle={ex}
-                onSolve={() => setActiveTheme(category.lichessThemes[0])}
+                onSolve={() => setActivePuzzle(ex)}
               />
             ))}
           </div>
@@ -171,8 +171,12 @@ export function TacticsCategoryPage() {
         </>
       )}
 
-      {activeTheme && (
-        <PuzzleModal theme={activeTheme} onClose={() => setActiveTheme(null)} />
+      {activePuzzle && (
+        <PuzzleModal
+          theme={activePuzzle.themes[0] ?? category.lichessThemes[0]}
+          initialPuzzle={activePuzzle}
+          onClose={() => setActivePuzzle(null)}
+        />
       )}
     </div>
   )
@@ -189,7 +193,7 @@ function ExerciseCard({ puzzle, onSolve }: ExerciseCardProps) {
       onClick={onSolve}
       className="group rounded-xl bg-[#141414] border border-[#2A2A2A] overflow-hidden flex flex-col text-left hover:border-[#E2B340] transition-colors"
     >
-      <div className="aspect-square w-full pointer-events-none select-none">
+      <div className="aspect-square w-full pointer-events-none select-none relative">
         <Chessboard
           options={{
             position: puzzle.fen,
@@ -199,9 +203,17 @@ function ExerciseCard({ puzzle, onSolve }: ExerciseCardProps) {
             lightSquareStyle: { backgroundColor: '#f0d9b5' },
           }}
         />
+        {puzzle.title && (
+          <span className="absolute top-1.5 left-1.5 rounded-full bg-[#E2B340] text-black text-[9px] font-black px-2 py-0.5 shadow-lg">
+            ★ ISTORICĂ
+          </span>
+        )}
       </div>
       <div className="px-3 py-2">
-        <span className="text-sm font-semibold text-[#F0F0F0]">{puzzle.rating}</span>
+        {puzzle.title && (
+          <p className="text-[11px] font-semibold text-[#E2B340] leading-tight line-clamp-2 mb-1">{puzzle.title}</p>
+        )}
+        <span className="text-xs text-[#6B6B6B]">ELO {puzzle.rating}</span>
       </div>
     </button>
   )
