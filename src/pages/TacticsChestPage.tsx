@@ -7,16 +7,14 @@ import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { TACTIC_CATEGORIES } from '@/data/tactics'
 import { PUZZLE_BANDS, bandIndex } from '@/lib/puzzle-rating'
-import { FAMOUS_GAMES, PDF_RESOURCES } from '@/data/famousGames'
-import { FamousGameCard } from '@/components/tactics/FamousGameCard'
+import { PDF_RESOURCES } from '@/data/famousGames'
 
-// Etichetă de dificultate pentru un interval de ELO
+// Etichetă de dificultate pentru un interval de ELO (4 niveluri)
 function bandTier(floor: number): string {
-  if (floor < 800) return 'Începător'
-  if (floor < 1200) return 'Ușor'
+  if (floor < 1000) return 'Începător'
   if (floor < 1600) return 'Mediu'
-  if (floor < 2000) return 'Greu'
-  return 'Expert'
+  if (floor < 2200) return 'Avansat'
+  return 'Master'
 }
 
 export function TacticsChestPage() {
@@ -89,21 +87,6 @@ export function TacticsChestPage() {
                   </div>
                   <ChevronRight className="h-5 w-5 text-[#3A3A3A] group-hover:text-[#E2B340] transition-colors" />
                 </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Partide celebre */}
-          <section>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-[#F0F0F0]">Partide Celebre</h2>
-              <p className="text-sm text-[#6B6B6B] mt-0.5">
-                Partide care au intrat în istoria șahului. Fiecare are o lecție tactică sau strategică majoră.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {FAMOUS_GAMES.map(game => (
-                <FamousGameCard key={game.id} game={game} />
               ))}
             </div>
           </section>
