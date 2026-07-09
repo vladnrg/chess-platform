@@ -18,7 +18,7 @@ export const FAMOUS_GAMES: FamousGame[] = [
     year: 1851,
     event: 'Londra, partidă neoficială',
     description:
-      'Anderssen sacrifică ambele turnuri, nebunul și o damă pentru a da mat cu cele trei piese minore rămase. Considerată cea mai spectaculoasă combinație din istoria șahului.',
+      'Anderssen sacrifică ambele ture, nebunul și o damă pentru a da mat cu cele trei piese minore rămase. Considerată cea mai spectaculoasă combinație din istoria șahului.',
     keyLesson: 'Atacul de rege și sacrificiile de material',
     lichessUrl: 'https://lichess.org/study/EaKcWVp7',
     result: '1-0',
@@ -42,7 +42,7 @@ export const FAMOUS_GAMES: FamousGame[] = [
     year: 1852,
     event: 'Berlin, partidă privată',
     description:
-      'Anderssen sacrifică dama și ambii turnuri pentru a ataca regele negru rămas în centru. Finala include celebrul "Qxf7+!" — un sacrificiu ce a rămas în manuale ca exemplu de atac necontenit.',
+      'Anderssen sacrifică dama și ambele ture pentru a ataca regele negru rămas în centru. Finala include celebrul "Qxf7+!" — un sacrificiu ce a rămas în manuale ca exemplu de atac necontenit.',
     keyLesson: 'Pericole regale și control centru',
     lichessUrl: 'https://lichess.org/study/p5CdExRQ',
     result: '1-0',
@@ -66,7 +66,7 @@ export const FAMOUS_GAMES: FamousGame[] = [
     year: 1999,
     event: 'Wijk aan Zee',
     description:
-      'Kasparov avansează regele propriu în mijlocul luptei și sacrifică un turn pentru a crea presiune de atac insurmontabilă. Votată „Partida Secolului" de publicația ChessBase.',
+      'Kasparov avansează regele propriu în mijlocul luptei și sacrifică o tură pentru a crea presiune de atac insurmontabilă. Votată „Partida Secolului" de publicația ChessBase.',
     keyLesson: 'Activarea regelui și sacrificii de material în atac',
     lichessUrl: 'https://lichess.org/study/2Zf7Y4Dp',
     result: '1-0',

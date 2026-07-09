@@ -64,11 +64,11 @@ export const PUZZLE_THEME_RO: Record<string, string> = {
 
   // Finaluri specifice
   pawnEndgame: 'Final de pioni',
-  rookEndgame: 'Final de turn',
+  rookEndgame: 'Final de tură',
   bishopEndgame: 'Final de nebuni',
   knightEndgame: 'Final de cai',
   queenEndgame: 'Final de dame',
-  queenRookEndgame: 'Final damă și turn',
+  queenRookEndgame: 'Final damă și tură',
 
   // Evaluare
   advantage: 'Avantaj',
@@ -107,7 +107,7 @@ export function displayThemes(themes: string[], max = 5): string[] {
     list = list.filter(t => t === keep || (t !== 'mate' && !MATE_IN.has(t) && !NAMED_MATE.has(t)))
   }
 
-  // „Final" generic dispare dacă există un final specific (ex. „Final de turn").
+  // „Final" generic dispare dacă există un final specific (ex. „Final de tură").
   if (list.some(t => SPECIFIC_ENDGAME.has(t))) {
     list = list.filter(t => t !== 'endgame')
   }
