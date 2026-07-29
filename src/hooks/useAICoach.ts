@@ -21,7 +21,7 @@ export function useAICoach() {
       if (data?.error) throw new Error(data.error)
       setAnswer(data?.answer ?? '')
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Nu am putut lua legătura cu En Passant. Mai încearcă.'
+      const msg = e instanceof Error ? e.message : 'Nu am putut lua legătura cu Maestrul Pursânge. Mai încearcă.'
       setError(msg)
     } finally {
       setLoading(false)

@@ -434,7 +434,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                     >
                       {hintLoading
                         ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Gândesc...</>
-                        : <><Lightbulb className="h-3.5 w-3.5" /> Indiciu de la Dl. En Passant</>
+                        : <><Lightbulb className="h-3.5 w-3.5" /> Indiciu de la Maestrul Pursânge</>
                       }
                     </Button>
                     <Button
@@ -453,7 +453,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                 <div className="rounded-xl bg-[rgba(226,179,64,0.07)] border border-[rgba(226,179,64,0.25)] p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Brain className="h-4 w-4 text-[#E2B340]" />
-                    <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Dl. En Passant</p>
+                    <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Maestrul Pursânge</p>
                   </div>
                   <p className="text-sm text-[#C99A2E] leading-relaxed">{hint}</p>
                 </div>

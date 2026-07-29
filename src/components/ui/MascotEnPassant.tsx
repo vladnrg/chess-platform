@@ -1,4 +1,4 @@
-// Dl. En Passant — mascota platformei: un pion cu față, ușor "smirky",
+// Maestrul Pursânge — mascota platformei: un pion cu față, ușor "smirky",
 // sigur pe el. Desenat manual ca SVG, cu expresii care variază după `mood`.
 
 export type MascotMood = 'idle' | 'thinking' | 'happy' | 'encouraging'
@@ -22,7 +22,7 @@ export function MascotEnPassant({ mood = 'idle', size = 40, className = '', anim
       className={className}
       style={animated ? { animation: 'mascot-bob 2.4s ease-in-out infinite' } : undefined}
       role="img"
-      aria-label="Dl. En Passant"
+      aria-label="Maestrul Pursânge"
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
