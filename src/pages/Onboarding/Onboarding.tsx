@@ -150,7 +150,7 @@ export function Onboarding() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
               <span className="text-black font-black">♟</span>
             </div>
-            <span className="font-bold text-[#F0F0F0] text-lg">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-lg">CleanChess</span>
           </div>
           <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1">Evaluare nivel</h1>
           <p className="text-[#A0A0A0] text-sm">

@@ -35,3 +35,6 @@ supabase/.temp/
 
 # Claude Code — setări locale personale
 .claude/settings.local.json
+
+# Artefacte test Playwright
+.playwright-mcp/
