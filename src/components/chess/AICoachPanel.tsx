@@ -65,107 +65,103 @@ export function AICoachPanel({ fen, context = '', onClose }: AICoachPanelProps) 
     : {}
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60" onClick={onClose}>
+    // Panou flotant pe dreapta, centrat vertical — fundal discret ca tabla principală să rămână vizibilă
+    <div className="fixed inset-0 z-50 flex items-center justify-end p-4 sm:p-6 bg-black/20" onClick={onClose}>
       <div
-        className="relative w-full max-w-4xl bg-[#141414] border border-[#2A2A2A] rounded-2xl flex flex-col max-h-[94vh] overflow-hidden"
+        className="w-full max-w-[560px] max-h-[88vh] bg-[#141414] border border-[#2A2A2A] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#2A2A2A] shrink-0">
-          <div className="flex items-center gap-2.5">
-            <MascotEnPassant mood={loading ? 'thinking' : answer ? 'happy' : 'idle'} size={36} animated={loading} />
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#2A2A2A] shrink-0">
+          <div className="flex items-center gap-4">
+            <MascotEnPassant mood={loading ? 'thinking' : answer ? 'happy' : 'idle'} size={68} animated={loading} />
             <div>
-              <h2 className="text-sm font-semibold text-[#F0F0F0]">En Passant</h2>
-              <p className="text-xs text-[#6B6B6B]">
+              <h2 className="text-2xl font-semibold text-[#F0F0F0]">En Passant</h2>
+              <p className="text-base text-[#6B6B6B]">
                 {isPro ? 'Nelimitat' : 'Până la 3 întrebări/zi'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#6B6B6B] hover:text-[#F0F0F0] hover:bg-[#2A2A2A] transition-colors"
+            className="rounded-lg p-2 text-[#6B6B6B] hover:text-[#F0F0F0] hover:bg-[#2A2A2A] transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-7 w-7" />
           </button>
         </div>
 
-        {/* Corp: tabla stânga (mereu vizibilă), conversația dreapta */}
-        <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-          {/* Tabla — nu se mai acoperă cu textul */}
-          <div className="p-4 sm:p-5 flex flex-col items-center gap-2 md:w-[46%] md:border-r border-b md:border-b-0 border-[#2A2A2A] shrink-0">
-            <div className="w-full max-w-[360px] rounded-lg overflow-hidden border border-[#2A2A2A]">
-              <Chessboard
-                options={{
-                  position: fen,
-                  allowDragging: false,
-                  boardStyle: { borderRadius: 0 },
-                  darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                  lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                  squareStyles,
-                }}
-              />
-            </div>
-            <p className="text-[11px] text-[#6B6B6B] text-center leading-relaxed max-w-[320px]">
-              Apasă o coordonată din explicație (ex. <span className="font-mono text-[#E2B340]">e4</span>) ca s-o vezi evidențiată aici.
-            </p>
+        {/* Întrebări + input (fix, sus) */}
+        <div className="px-6 py-5 space-y-4 border-b border-[#2A2A2A] shrink-0">
+          <p className="text-sm text-[#6B6B6B] uppercase tracking-wider">Întreabă-l ceva</p>
+          <div className="flex flex-wrap gap-2.5">
+            {QUICK_QUESTIONS.map(q => (
+              <button
+                key={q}
+                onClick={() => handleAsk(q)}
+                disabled={loading}
+                className="rounded-full px-4 py-2 text-base border border-[#2A2A2A] text-[#A0A0A0] hover:border-[#E2B340] hover:text-[#E2B340] transition-colors disabled:opacity-50 text-left"
+              >
+                {q}
+              </button>
+            ))}
           </div>
+          <div className="flex gap-2.5">
+            <input
+              type="text"
+              value={customQuestion}
+              onChange={e => setCustomQuestion(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && customQuestion.trim()) { handleAsk(customQuestion); setCustomQuestion('') } }}
+              placeholder="Sau scrie orice întrebare..."
+              className="flex-1 min-w-0 rounded-lg bg-[#141414] border border-[#2A2A2A] px-4 py-3 text-lg text-[#F0F0F0] placeholder:text-[#3A3A3A] focus:outline-none focus:border-[#E2B340]"
+            />
+            <Button
+              size="lg"
+              onClick={() => { if (customQuestion.trim()) { handleAsk(customQuestion); setCustomQuestion('') } }}
+              disabled={loading || !customQuestion.trim()}
+            >
+              Întreabă
+            </Button>
+          </div>
+        </div>
 
-          {/* Conversația — dreapta, cu scroll propriu */}
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* Întrebări + input (sus, fix) */}
-            <div className="px-5 py-4 space-y-3 border-b border-[#2A2A2A] shrink-0">
-              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">Întreabă-l ceva</p>
-              <div className="flex flex-wrap gap-2">
-                {QUICK_QUESTIONS.map(q => (
-                  <button
-                    key={q}
-                    onClick={() => handleAsk(q)}
-                    disabled={loading}
-                    className="rounded-full px-3 py-1 text-xs border border-[#2A2A2A] text-[#A0A0A0] hover:border-[#E2B340] hover:text-[#E2B340] transition-colors disabled:opacity-50"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={customQuestion}
-                  onChange={e => setCustomQuestion(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && customQuestion.trim()) { handleAsk(customQuestion); setCustomQuestion('') } }}
-                  placeholder="Sau scrie orice întrebare..."
-                  className="flex-1 min-w-0 rounded-lg bg-[#141414] border border-[#2A2A2A] px-3 py-2 text-sm text-[#F0F0F0] placeholder:text-[#3A3A3A] focus:outline-none focus:border-[#E2B340]"
-                />
-                <Button
-                  size="sm"
-                  onClick={() => { if (customQuestion.trim()) { handleAsk(customQuestion); setCustomQuestion('') } }}
-                  disabled={loading || !customQuestion.trim()}
-                >
-                  Întreabă
-                </Button>
-              </div>
+        {/* Răspuns (scroll propriu) */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {loading ? (
+            <div className="flex items-center gap-2.5 text-lg text-[#6B6B6B]">
+              <Loader2 className="h-6 w-6 animate-spin text-[#E2B340]" />
+              En Passant studiază poziția...
             </div>
-
-            {/* Răspuns (scroll propriu) */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 min-h-[120px]">
-              {loading ? (
-                <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#E2B340]" />
-                  En Passant studiază poziția...
+          ) : error ? (
+            <p className="text-lg text-[#fbbf24]">{error}</p>
+          ) : answer ? (
+            <>
+              <p className="text-lg text-[#F0F0F0] leading-relaxed whitespace-pre-wrap">
+                {renderAnswer(answer)}
+              </p>
+              {/* Mini-tablă: click pe o coordonată din text → o vezi aici */}
+              <div className="mt-4">
+                <p className="text-sm text-[#6B6B6B] mb-2">
+                  Apasă o coordonată din explicație (ex. <span className="font-mono text-[#E2B340]">e4</span>) ca s-o vezi aici.
+                </p>
+                <div className="w-full max-w-[300px] mx-auto rounded-lg overflow-hidden border border-[#2A2A2A]">
+                  <Chessboard
+                    options={{
+                      position: fen,
+                      allowDragging: false,
+                      boardStyle: { borderRadius: 0 },
+                      darkSquareStyle: { backgroundColor: '#3A3A3A' },
+                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                      squareStyles,
+                    }}
+                  />
                 </div>
-              ) : error ? (
-                <p className="text-sm text-[#fbbf24]">{error}</p>
-              ) : answer ? (
-                <p className="text-sm text-[#F0F0F0] leading-relaxed whitespace-pre-wrap">
-                  {renderAnswer(answer)}
-                </p>
-              ) : (
-                <p className="text-sm text-[#6B6B6B] leading-relaxed">
-                  Alege o întrebare de mai sus sau scrie una — îți explic direct, iar coordonatele le poți vedea pe tabla din stânga.
-                </p>
-              )}
-            </div>
-          </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-[#6B6B6B] leading-relaxed">
+              Alege o întrebare de mai sus sau scrie una — îți explic pe scurt, direct.
+            </p>
+          )}
         </div>
       </div>
     </div>
