@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { AgeGateStep } from '@/components/auth/AgeGateStep'
+import { GoogleButton } from '@/components/auth/GoogleButton'
 
 type Step = 'credentials' | 'age' | 'done-minor'
 
@@ -123,10 +124,19 @@ export function Register() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340]">
               <span className="text-black font-black text-xl">♟</span>
             </div>
-            <span className="font-bold text-[#F0F0F0] text-xl">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-xl">CleanChess</span>
           </Link>
           <h1 className="text-2xl font-bold text-[#F0F0F0]">Creează cont gratuit</h1>
           <p className="mt-1 text-sm text-[#A0A0A0]">Începe să înveți șah azi</p>
+        </div>
+
+        <GoogleButton label="Înregistrează-te cu Google" />
+
+        {/* Separator */}
+        <div className="my-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-[#2A2A2A]" />
+          <span className="text-xs text-[#6B6B6B]">sau cu email</span>
+          <span className="h-px flex-1 bg-[#2A2A2A]" />
         </div>
 
         <form onSubmit={handleCredentialsSubmit} className="space-y-4">
