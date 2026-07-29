@@ -2,7 +2,7 @@ import { type CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
 // Tratament cinematic unitar pentru fotografiile de stock, ca toate să intre în
-// aceeași familie vizuală cu brand-ul ChessUp (negru neutru + auriu #E2B340).
+// aceeași familie vizuală cu brand-ul CleanChess (negru neutru + auriu #E2B340).
 // Straturi: fotografia → grade auriu cald → întunecare direcțională (lizibilitate)
 // → vignetă → grain fin. Toate straturile sunt pointer-events-none.
 

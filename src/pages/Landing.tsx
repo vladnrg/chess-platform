@@ -94,7 +94,7 @@ export function Landing() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
               <span className="text-black font-black">♟</span>
             </div>
-            <span className="font-bold text-[#F0F0F0] text-lg">ChessUp</span>
+            <span className="font-bold text-[#F0F0F0] text-lg">CleanChess</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
@@ -245,7 +245,7 @@ export function Landing() {
       {/* Footer */}
       <footer className="border-t border-[#141414] px-6 py-8 text-center text-sm text-[#6B6B6B]">
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span>© 2026 ChessUp. Toate drepturile rezervate.</span>
+          <span>© 2026 CleanChess. Toate drepturile rezervate.</span>
           <div className="flex gap-6">
             <Link to="/terms" className="hover:text-[#A0A0A0]">Termeni</Link>
             <Link to="/privacy" className="hover:text-[#A0A0A0]">Confidențialitate</Link>

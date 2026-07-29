@@ -42,7 +42,7 @@ export function Sidebar({ onClose }: SidebarProps) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
             <span className="text-black font-black text-sm">♟</span>
           </div>
-          <span className="font-bold text-[#F0F0F0] text-lg tracking-tight">ChessUp</span>
+          <span className="font-bold text-[#F0F0F0] text-lg tracking-tight">CleanChess</span>
         </NavLink>
         {onClose && (
           <button onClick={onClose} className="rounded-lg p-1.5 text-[#6B6B6B] hover:text-[#F0F0F0] lg:hidden">

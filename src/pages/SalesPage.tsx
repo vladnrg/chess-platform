@@ -25,7 +25,7 @@ const STEPS = [
   {
     n: '1',
     title: 'Afli exact unde ești',
-    desc: 'Faci testul de plasament pe tablă reală. În câteva minute, ChessUp îți dă un ELO estimat, îți citește stilul de joc (ofensiv, defensiv, pragmatic sau echilibrat) și te așază în prima ligă. De aici știi negru pe alb de unde pornești.',
+    desc: 'Faci testul de plasament pe tablă reală. În câteva minute, CleanChess îți dă un ELO estimat, îți citește stilul de joc (ofensiv, defensiv, pragmatic sau echilibrat) și te așază în prima ligă. De aici știi negru pe alb de unde pornești.',
   },
   {
     n: '2',
@@ -58,7 +58,7 @@ const BENEFITS = [
   {
     icon: Target,
     title: 'Antrenament pe măsura ta',
-    desc: 'ChessUp îți citește nivelul și stilul, apoi îți dă exact cursurile și puzzle-urile potrivite. Nu pierzi timp cu ce e prea ușor sau prea greu pentru tine.',
+    desc: 'CleanChess îți citește nivelul și stilul, apoi îți dă exact cursurile și puzzle-urile potrivite. Nu pierzi timp cu ce e prea ușor sau prea greu pentru tine.',
   },
 ]
 
@@ -106,7 +106,7 @@ const PRICING = [
     name: 'Pro Lunar',
     price: '€9.99',
     period: '/lună',
-    tagline: 'Tot ChessUp, fără limite',
+    tagline: 'Tot CleanChess, fără limite',
     features: [
       'Toate cele 20+ de cursuri de openings',
       'Puzzle-uri nelimitate, cu filtre pe temă și nivel',
@@ -138,15 +138,15 @@ const PRICING = [
 const FAQ = [
   {
     q: 'De ce aș plăti, dacă chess.com și lichess sunt gratuite?',
-    a: 'Pentru că acolo ești pe cont propriu, în engleză, cu milioane de puzzle-uri și niciun fir clar. ChessUp îți dă un drum: știi de unde pornești, ce urmezi și de ce, cu explicații în română pe fiecare poziție. Plătești pentru claritate și pentru un antrenor care îți răspunde, nu pentru volum.',
+    a: 'Pentru că acolo ești pe cont propriu, în engleză, cu milioane de puzzle-uri și niciun fir clar. CleanChess îți dă un drum: știi de unde pornești, ce urmezi și de ce, cu explicații în română pe fiecare poziție. Plătești pentru claritate și pentru un antrenor care îți răspunde, nu pentru volum.',
   },
   {
     q: 'Pot juca partide live cu alți jucători?',
-    a: 'Deocamdată nu direct în platformă. ChessUp e făcut pentru antrenament: openings, tactici, puzzle-uri și explicații. Pentru partide live rămâi pe chess.com sau lichess. Aici vii ca să te faci mai bun, apoi câștigi acolo.',
+    a: 'Deocamdată nu direct în platformă. CleanChess e făcut pentru antrenament: openings, tactici, puzzle-uri și explicații. Pentru partide live rămâi pe chess.com sau lichess. Aici vii ca să te faci mai bun, apoi câștigi acolo.',
   },
   {
     q: 'E pentru nivelul meu?',
-    a: 'Dacă ești între început și nivel intermediar-avansat și vrei să crești, da, exact pentru tine e construit. Dacă ești deja la nivel de Maestru FIDE sau peste, ChessUp o să ți se pară prea ușor. Ne concentrăm pe viitoarele staruri, nu pe jucătorii care sunt deja sus.',
+    a: 'Dacă ești între început și nivel intermediar-avansat și vrei să crești, da, exact pentru tine e construit. Dacă ești deja la nivel de Maestru FIDE sau peste, CleanChess o să ți se pară prea ușor. Ne concentrăm pe viitoarele staruri, nu pe jucătorii care sunt deja sus.',
   },
   {
     q: 'Chiar e totul în română?',
@@ -174,7 +174,7 @@ export function SalesPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
               <span className="font-black text-black">♟</span>
             </div>
-            <span className="text-lg font-bold text-[#F0F0F0]">ChessUp</span>
+            <span className="text-lg font-bold text-[#F0F0F0]">CleanChess</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-sm text-[#A0A0A0] transition-colors hover:text-[#F0F0F0]">
@@ -221,7 +221,7 @@ export function SalesPage() {
             </p>
             <p className="mb-9 max-w-xl text-[15px] leading-relaxed text-[#A0A0A0]">
               Ai încercat probabil chess.com sau lichess. Sunt uriașe, sunt în engleză și te lasă singur
-              în fața tablei. ChessUp e construit altfel: totul în română, fiecare poziție vine cu o
+              în fața tablei. CleanChess e construit altfel: totul în română, fiecare poziție vine cu o
               explicație, iar progresul tău se vede clar, de la testul de plasament până la liga în care
               ajungi. Primul pas e să afli exact unde ești acum.
             </p>
@@ -255,7 +255,7 @@ export function SalesPage() {
                 engleză, într-o limbă în care unui copil de 10 ani îi scapă exact nuanța care contează.
               </p>
               <p className="border-l-2 border-[#E2B340] pl-4 text-[#F0F0F0]">
-                ChessUp pornește de la partea care lipsește:{' '}
+                CleanChess pornește de la partea care lipsește:{' '}
                 <strong className="font-semibold text-[#E2B340]">
                   explicația, pe loc, în română, chiar pe poziția din fața ta.
                 </strong>
@@ -379,7 +379,7 @@ export function SalesPage() {
               Ești părinte? Îl poți lăsa aici fără grijă
             </h2>
             <p className="mb-7 text-[15px] leading-relaxed text-[#A0A0A0]">
-              ChessUp e gândit din start pentru copii, nu adaptat din fugă. Fără reclame dubioase, fără
+              CleanChess e gândit din start pentru copii, nu adaptat din fugă. Fără reclame dubioase, fără
               necunoscuți care dau mesaje, fără capcane de timp nesfârșit. Doar șah, într-un spațiu în
               română pe care îl controlezi.
             </p>
@@ -423,7 +423,7 @@ export function SalesPage() {
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-[15px] text-[#A0A0A0]">
               Testul de plasament și primele cursuri sunt gratuite, fără card. Plătești doar dacă vrei tot
-              ce are ChessUp de oferit.
+              ce are CleanChess de oferit.
             </p>
           </motion.div>
 
@@ -485,7 +485,7 @@ export function SalesPage() {
           <h2 className="mb-4 text-3xl font-bold text-[#F0F0F0]">Riscul e la noi, nu la tine</h2>
           <div className="mx-auto max-w-xl space-y-4 text-[15px] leading-relaxed text-[#A0A0A0]">
             <p>
-              Încearcă ChessUp Pro 30 de zile. Dacă în tot acest timp simți că nu te-a ajutat cu nimic, ne
+              Încearcă CleanChess Pro 30 de zile. Dacă în tot acest timp simți că nu te-a ajutat cu nimic, ne
               scrii și îți dăm banii înapoi. Fără formulare complicate, fără să te punem să explici de zece
               ori.
             </p>
@@ -555,7 +555,7 @@ export function SalesPage() {
         <div className="mx-auto max-w-3xl px-6 py-28 text-center">
           <motion.div {...reveal}>
             <h2 className="mb-6 text-4xl font-bold text-[#F0F0F0] md:text-5xl">
-              Prima ta mutare pe ChessUp e <span className="text-[#E2B340]">gratis</span>
+              Prima ta mutare pe CleanChess e <span className="text-[#E2B340]">gratis</span>
             </h2>
             <p className="mx-auto mb-5 max-w-2xl text-[15px] leading-relaxed text-[#C7C7C7]">
               Șah serios, în română, cu un antrenor care îți explică fiecare poziție. Înveți activ pe tablă,
@@ -579,7 +579,7 @@ export function SalesPage() {
       {/* ——— Footer ——— */}
       <footer className="border-t border-[#141414] px-6 py-8 text-center text-sm text-[#6B6B6B]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <span>© 2026 ChessUp. Toate drepturile rezervate.</span>
+          <span>© 2026 CleanChess. Toate drepturile rezervate.</span>
           <div className="flex gap-6">
             <Link to="/terms" className="hover:text-[#A0A0A0]">Termeni</Link>
             <Link to="/privacy" className="hover:text-[#A0A0A0]">Confidențialitate</Link>

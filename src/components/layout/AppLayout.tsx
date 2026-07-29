@@ -44,7 +44,7 @@ export function AppLayout() {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-bold text-[#E2B340] text-lg">ChessUp</span>
+          <span className="font-bold text-[#E2B340] text-lg">CleanChess</span>
         </header>
 
         {/* Page */}
