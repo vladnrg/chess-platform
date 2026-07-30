@@ -59,8 +59,8 @@ export const PUZZLE_THEME_RO: Record<string, string> = {
 
   // Faze de joc
   opening: 'Deschidere',
-  middlegame: 'Middlegame',
-  endgame: 'Endgame',
+  middlegame: 'Jocul de mijloc',
+  endgame: 'Final',
 
   // Finaluri specifice
   pawnEndgame: 'Final de pioni',

@@ -82,7 +82,7 @@ function buildResumedState(line: OpeningLine, plyIdx: number): TrainerState {
 
 const resumeKey = (lineId: string) => `op-resume:${lineId}`
 
-const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Pre-Middlegame']
+const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Spre jocul de mijloc']
 
 interface Props {
   mode: 'guided' | 'practice'
@@ -258,7 +258,7 @@ export function OpeningTrainerPage({ mode }: Props) {
   }
 
   function handleMiddlegame() {
-    toast('Analizele de Middlegame sunt în pregătire — revino curând!', { icon: '🔥' })
+    toast('Analizele de joc de mijloc sunt în pregătire — revino curând!', { icon: '🔥' })
   }
 
   if (isLoading || !state) {
@@ -474,7 +474,7 @@ export function OpeningTrainerPage({ mode }: Props) {
                   onClick={handleMiddlegame}
                   className="w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
                 >
-                  <span>Parcurge ideile din Middlegame</span>
+                  <span>Parcurge ideile din jocul de mijloc</span>
                   <ChevronRight className="h-4 w-4 flex-shrink-0" />
                 </button>
                 <div className="flex gap-2 pt-1">

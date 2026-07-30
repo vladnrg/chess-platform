@@ -67,6 +67,7 @@ const SUBTYPE_MAP: [RegExp, string][] = [
   [/\bSymmetrical\b/gi, 'Simetrică'],
   [/\bCounterattack\b/gi, 'Contraatac'],
   [/\bEndgame\b/gi, 'Final'],
+  [/\bMiddlegame\b/gi, 'Jocul de mijloc'],
   [/\bOpening\b/gi, 'Deschidere'],
   [/\bVariation\b/gi, 'Varianta'],
   [/\bAttack\b/gi, 'Atac'],
