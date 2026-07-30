@@ -262,7 +262,7 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                   className="w-full flex items-center justify-center gap-2 rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] px-4 py-2.5 text-sm font-semibold text-[#E2B340] hover:bg-[rgba(226,179,64,0.2)] transition-colors"
                 >
                   <Zap className="h-4 w-4" />
-                  Analizează greșelile cu Maestrul Pursânge
+                  Analizează greșelile cu Căluțul savant
                 </button>
               ) : analyzing ? (
                 <div className="space-y-1.5">
@@ -337,13 +337,13 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                         )}
                       </button>
 
-                      {/* Ask Maestrul Pursânge button for player's mistakes */}
+                      {/* Ask Căluțul savant button for player's mistakes */}
                       {ev && isPlayerTurn && (quality === 'mistake' || quality === 'blunder' || quality === 'inaccuracy') && (
                         <button
                           onClick={() => void askExplanation(i)}
                           disabled={isLoadingThis || loadingExplanation !== null}
                           className="flex-shrink-0 rounded-md p-1 text-[#E2B340] hover:bg-[rgba(226,179,64,0.1)] disabled:opacity-40 transition-colors"
-                          title="Explică Maestrul Pursânge"
+                          title="Explică Căluțul savant"
                         >
                           {isLoadingThis
                             ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -358,7 +358,7 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                       <div className="mx-1 mb-1 rounded-lg bg-[rgba(226,179,64,0.07)] border border-[rgba(226,179,64,0.2)] p-3 text-xs text-[#C99A2E] leading-relaxed">
                         <div className="flex items-center gap-1.5 mb-1.5 text-[#E2B340] font-semibold">
                           <Brain className="h-3 w-3" />
-                          Maestrul Pursânge
+                          Căluțul savant
                         </div>
                         {aiExplanations[i]}
                       </div>

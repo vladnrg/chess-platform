@@ -222,7 +222,7 @@ export function RepertoirePage() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Swords className="h-4 w-4 text-[#E2B340]" />
-                  <h3 className="text-sm font-semibold text-[#F0F0F0]">Antrenează-ți slăbiciunile cu Maestrul Pursânge</h3>
+                  <h3 className="text-sm font-semibold text-[#F0F0F0]">Antrenează-ți slăbiciunile cu Căluțul savant</h3>
                 </div>
                 <button
                   onClick={() => setShowPersonalTactics(true)}

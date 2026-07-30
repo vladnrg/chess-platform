@@ -66,8 +66,8 @@ const STEPS = [
   },
   {
     n: '02',
-    title: 'Te antrenezi cu Maestrul Pursânge lângă tine',
-    desc: 'Parcurgi openings-urile direct pe tablă, rezolvi tactici și puzzle-uri potrivite nivelului tău. Ori de câte ori te blochezi, îl întrebi pe Maestrul Pursânge și îți explică poziția pe loc, în română. Nimic memorat pe de rost, totul înțeles.',
+    title: 'Te antrenezi cu Căluțul savant lângă tine',
+    desc: 'Parcurgi openings-urile direct pe tablă, rezolvi tactici și puzzle-uri potrivite nivelului tău. Ori de câte ori te blochezi, îl întrebi pe Căluțul savant și îți explică poziția pe loc, în română. Nimic memorat pe de rost, totul înțeles.',
   },
   {
     n: '03',
@@ -103,7 +103,7 @@ const MATRIX: { label: string; free: string; monthly: string; annual: string }[]
   { label: 'Puzzle-uri', free: '10 / zi', monthly: 'nelimitate', annual: 'nelimitate' },
   { label: 'Filtre pe temă și nivel', free: '—', monthly: '●', annual: '●' },
   { label: 'Sistemul de ligi și streak', free: '●', monthly: '●', annual: '●' },
-  { label: 'Maestrul Pursânge (antrenor AI)', free: 'curs gratuit', monthly: 'peste tot', annual: 'peste tot' },
+  { label: 'Căluțul savant (antrenor AI)', free: 'curs gratuit', monthly: 'peste tot', annual: 'peste tot' },
   { label: 'Statistici avansate + puncte slabe', free: '—', monthly: '●', annual: '●' },
   { label: 'Reminderul săptămânal de memorie', free: '—', monthly: '●', annual: '●' },
   { label: 'Recomandări personalizate', free: '—', monthly: '●', annual: '●' },
@@ -115,7 +115,7 @@ const FAQ = [
   { q: 'De ce aș plăti, dacă chess.com și lichess sunt gratuite?', a: 'Pentru că acolo ești pe cont propriu, în engleză, cu milioane de puzzle-uri și niciun fir clar. CleanChess îți dă un drum: știi de unde pornești, ce urmezi și de ce, cu explicații în română pe fiecare poziție. Plătești pentru claritate și pentru un antrenor care îți răspunde, nu pentru volum.' },
   { q: 'Pot juca partide live cu alți jucători?', a: 'Deocamdată nu direct în platformă. CleanChess e făcut pentru antrenament: openings, tactici, puzzle-uri și explicații. Pentru partide live rămâi pe chess.com sau lichess. Aici vii ca să te faci mai bun, apoi câștigi acolo.' },
   { q: 'E pentru nivelul meu?', a: 'Dacă ești între început și nivel intermediar-avansat și vrei să crești, da, exact pentru tine e construit. Dacă ești deja la nivel de Maestru FIDE sau peste, CleanChess o să ți se pară prea ușor. Ne concentrăm pe viitoarele staruri, nu pe jucătorii care sunt deja sus.' },
-  { q: 'Chiar e totul în română?', a: 'Da. Cursuri, explicații, antrenorul Maestrul Pursânge, tot. Fără momente în care un termen în engleză te lasă blocat.' },
+  { q: 'Chiar e totul în română?', a: 'Da. Cursuri, explicații, antrenorul Căluțul savant, tot. Fără momente în care un termen în engleză te lasă blocat.' },
   { q: 'Pot renunța oricând?', a: 'Da. Anulezi când vrei, fără penalizări. Iar în primele 30 de zile ai garanția: dacă nu te-a ajutat, îți dăm banii înapoi.' },
   { q: 'Antrenorul AI chiar ajută sau e doar un gadget?', a: 'Îl întrebi despre poziția exactă din fața ta și îți răspunde despre ea, nu cu o teorie generală. Îl folosești când te blochezi, cum ai întreba un antrenor care stă lângă tine. Încearcă-l gratis în primele cursuri și vezi singur.' },
 ]
@@ -170,7 +170,7 @@ export function SalesPageBulletin() {
             </div>
             <div className="flex flex-col justify-between border-t border-[#2A2A2A] pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
               <p className="text-[15px] leading-relaxed text-[#A0A0A0]">
-                Rezolvi openings și tactici direct pe tablă, iar Maestrul Pursânge îți spune pe loc de ce o
+                Rezolvi openings și tactici direct pe tablă, iar Căluțul savant îți spune pe loc de ce o
                 mutare ține sau cade. Așa înveți din propriile greșeli cât încă ții minte poziția.
               </p>
               <div className="mt-8">
@@ -215,7 +215,7 @@ export function SalesPageBulletin() {
                   <span className="text-[#E2B340]">explicația, pe loc, în română, chiar pe poziția din fața ta.</span>
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-[#8A8A8A]">
-                  Îl întrebi pe Maestrul Pursânge „de ce nu merge mutarea asta?" și îți răspunde despre poziția ta
+                  Îl întrebi pe Căluțul savant „de ce nu merge mutarea asta?" și îți răspunde despre poziția ta
                   concretă, nu despre o teorie generală. Exersezi openings-urile activ pe tablă, cu abaterile lor
                   cu tot, până le înțelegi logica. Și fiindcă o dată pe săptămână primești înapoi 3 poziții din ce
                   ai învățat, îți rămâne în cap, nu îți scapă până luni.
@@ -467,7 +467,7 @@ export function SalesPageBulletin() {
             </h2>
             <div>
               <p className="text-[15px] leading-relaxed text-black/75">
-                Fă testul de plasament, află-ți nivelul și stilul, încearcă primele cursuri cu Maestrul Pursânge
+                Fă testul de plasament, află-ți nivelul și stilul, încearcă primele cursuri cu Căluțul savant
                 lângă tine. Totul gratuit, fără card. Dacă îți place, mergi mai departe. Dacă nu, ai pierdut cinci
                 minute și ai aflat cât de bun ești.
               </p>

@@ -118,7 +118,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
 
   const statusText = {
     playing: `Rândul tău (${playerColor === 'white' ? '♔ Alb' : '♚ Negru'})`,
-    thinking: `Maestrul Pursânge gândește... (${elo} ELO)`,
+    thinking: `Căluțul savant gândește... (${elo} ELO)`,
     won: '🎉 Ai câștigat!',
     lost: '😔 Ai pierdut. Încearcă din nou!',
     draw: '🤝 Remiză',
@@ -153,7 +153,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Brain className="h-4 w-4 text-[#E2B340]" />
-                <span className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Maestrul Pursânge</span>
+                <span className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Căluțul savant</span>
               </div>
               <h3 className="font-bold text-[#F0F0F0] text-sm leading-snug">{openingName}</h3>
               <p className="text-xs text-[#6B6B6B] mt-0.5">

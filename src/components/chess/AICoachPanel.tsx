@@ -76,7 +76,7 @@ export function AICoachPanel({ fen, context = '', onClose }: AICoachPanelProps) 
           <div className="flex items-center gap-4">
             <MascotEnPassant mood={loading ? 'thinking' : answer ? 'happy' : 'idle'} size={68} animated={loading} />
             <div>
-              <h2 className="text-2xl font-semibold text-[#F0F0F0]">Maestrul Pursânge</h2>
+              <h2 className="text-2xl font-semibold text-[#F0F0F0]">Căluțul savant</h2>
               <p className="text-base text-[#6B6B6B]">
                 {isPro ? 'Nelimitat' : 'Până la 3 întrebări/zi'}
               </p>
@@ -129,7 +129,7 @@ export function AICoachPanel({ fen, context = '', onClose }: AICoachPanelProps) 
           {loading ? (
             <div className="flex items-center gap-2.5 text-lg text-[#6B6B6B]">
               <Loader2 className="h-6 w-6 animate-spin text-[#E2B340]" />
-              Maestrul Pursânge studiază poziția...
+              Căluțul savant studiază poziția...
             </div>
           ) : error ? (
             <p className="text-lg text-[#fbbf24]">{error}</p>
