@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Menu } from 'lucide-react'
 import { useChildSession } from '@/hooks/useChildSession'
@@ -14,6 +14,9 @@ function ChildSessionGuard() {
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  // Pagina de puzzle-uri are 3 zone (explicație | tablă | controale) → container mai lat
+  const { pathname } = useLocation()
+  const wide = pathname === '/puzzles'
 
   return (
     <div className="flex h-screen bg-[#0A0A0A] overflow-hidden">
@@ -48,7 +51,7 @@ export function AppLayout() {
         </header>
 
         {/* Page */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className={`flex-1 p-4 md:p-6 lg:p-8 w-full mx-auto ${wide ? 'max-w-[100rem]' : 'max-w-7xl'}`}>
           <SessionQuip />
           <Outlet />
         </main>
