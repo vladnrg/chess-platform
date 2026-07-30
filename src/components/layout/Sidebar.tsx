@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Crown, LogOut, X, Flame, Sword, Calendar, Users, Library, Trophy,
+  User, Crown, LogOut, X, Flame, Sword, Calendar, Users, Library, Trophy, GraduationCap,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig } from '@/lib/utils'
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/courses', icon: BookOpen, label: 'Cursuri interactive' },
   { to: '/puzzles', icon: Puzzle, label: 'Puzzle-uri' },
   { to: '/tactics', icon: Sword, label: 'Cufărul cu tactici' },
+  { to: '/pentru-incepatori', icon: GraduationCap, label: 'Pentru începători' },
   { to: '/calendar', icon: Calendar, label: 'Calendar competițional' },
   { to: '/community', icon: Users, label: 'Comunitate' },
   { to: '/leagues', icon: Trophy, label: 'Ligi' },

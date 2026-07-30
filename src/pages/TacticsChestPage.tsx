@@ -1,13 +1,12 @@
 import { useMemo } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
-import { Lock, ArrowRight, ExternalLink, FileText, ChevronLeft, ChevronRight, Target } from 'lucide-react'
+import { Lock, ArrowRight, ChevronLeft, ChevronRight, Target } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { TACTIC_CATEGORIES } from '@/data/tactics'
 import { PUZZLE_BANDS, bandIndex } from '@/lib/puzzle-rating'
-import { PDF_RESOURCES } from '@/data/famousGames'
 
 // Etichetă de dificultate pentru un interval de ELO (4 niveluri)
 function bandTier(floor: number): string {
@@ -88,41 +87,6 @@ export function TacticsChestPage() {
                   <ChevronRight className="h-5 w-5 text-[#3A3A3A] group-hover:text-[#E2B340] transition-colors" />
                 </button>
               ))}
-            </div>
-          </section>
-
-          {/* Resurse PDF */}
-          <section>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-[#F0F0F0]">Resurse & PDF-uri</h2>
-              <p className="text-sm text-[#6B6B6B] mt-0.5">Materiale gratuite pentru studiu offline.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {PDF_RESOURCES.map(res => {
-                const cls = 'group flex items-start gap-3 rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#E2B340] transition-colors'
-                const inner = (
-                  <>
-                    <FileText className="h-5 w-5 text-[#E2B340] flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-[#F0F0F0] group-hover:text-[#E2B340] transition-colors">
-                          {res.title}
-                        </p>
-                        <span className="text-xs text-[#6B6B6B] border border-[#2A2A2A] rounded px-1">
-                          {res.language}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#6B6B6B] mt-1 leading-relaxed">{res.description}</p>
-                    </div>
-                    {res.internal
-                      ? <ChevronRight className="h-3.5 w-3.5 text-[#6B6B6B] flex-shrink-0 mt-0.5 group-hover:text-[#E2B340] transition-colors" />
-                      : <ExternalLink className="h-3.5 w-3.5 text-[#6B6B6B] flex-shrink-0 mt-0.5 group-hover:text-[#E2B340] transition-colors" />}
-                  </>
-                )
-                return res.internal
-                  ? <Link key={res.id} to={res.url} className={cls}>{inner}</Link>
-                  : <a key={res.id} href={res.url} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>
-              })}
             </div>
           </section>
         </>

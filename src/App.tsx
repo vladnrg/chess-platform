@@ -18,6 +18,7 @@ const ForgotPassword = lazy(() => import('@/pages/Auth/ForgotPassword').then(m =
 const ResetPassword = lazy(() => import('@/pages/Auth/ResetPassword').then(m => ({ default: m.ResetPassword })))
 const NotationGuide = lazy(() => import('@/pages/Resources/NotationGuide').then(m => ({ default: m.NotationGuide })))
 const ResourcesPage = lazy(() => import('@/pages/Resources/ResourcesPage').then(m => ({ default: m.ResourcesPage })))
+const BeginnersPage = lazy(() => import('@/pages/Resources/BeginnersPage').then(m => ({ default: m.BeginnersPage })))
 const Onboarding = lazy(() => import('@/pages/Onboarding/Onboarding').then(m => ({ default: m.Onboarding })))
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const CoursesPage = lazy(() => import('@/pages/Courses/CoursesPage').then(m => ({ default: m.CoursesPage })))
@@ -100,6 +101,7 @@ function AppRoutes() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tactics" element={<TacticsChestPage />} />
         <Route path="/tactics/:categoryId" element={<TacticsCategoryPage />} />
+        <Route path="/pentru-incepatori" element={<BeginnersPage />} />
         <Route path="/repertoire" element={<RepertoirePage />} />
         <Route path="/leagues" element={<LeaguesPage />} />
       </Route>
