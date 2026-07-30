@@ -16,6 +16,8 @@ const Login = lazy(() => import('@/pages/Auth/Login').then(m => ({ default: m.Lo
 const Register = lazy(() => import('@/pages/Auth/Register').then(m => ({ default: m.Register })))
 const ForgotPassword = lazy(() => import('@/pages/Auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })))
 const ResetPassword = lazy(() => import('@/pages/Auth/ResetPassword').then(m => ({ default: m.ResetPassword })))
+const NotationGuide = lazy(() => import('@/pages/Resources/NotationGuide').then(m => ({ default: m.NotationGuide })))
+const ResourcesPage = lazy(() => import('@/pages/Resources/ResourcesPage').then(m => ({ default: m.ResourcesPage })))
 const Onboarding = lazy(() => import('@/pages/Onboarding/Onboarding').then(m => ({ default: m.Onboarding })))
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const CoursesPage = lazy(() => import('@/pages/Courses/CoursesPage').then(m => ({ default: m.CoursesPage })))
@@ -70,6 +72,8 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/resurse" element={<ResourcesPage />} />
+      <Route path="/resurse/notatie" element={<NotationGuide />} />
       {/* NU e PublicRoute: link-ul de recuperare creează o sesiune, iar PublicRoute ar redirecționa la /dashboard înainte să poți seta parola */}
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/pricing" element={<PricingPage />} />
