@@ -583,7 +583,8 @@ export function PuzzlesPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    // Zoom 10% pe toată pagina de puzzle-uri (mărește uniform tot conținutul).
+    <div className="space-y-6" style={{ zoom: 1.1 }}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#F0F0F0]">Puzzle-uri</h1>
@@ -706,7 +707,9 @@ export function PuzzlesPage() {
         </div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[16rem_minmax(0,1fr)_16rem] min-[1700px]:grid-cols-[22rem_minmax(0,1fr)_22rem]">
+      {/* Coloana din dreapta (acțiuni/rating/interval) e mai lată ca textul butoanelor
+          să intre pe un singur rând; containerul e lărgit ca panoul să folosească marginea din dreapta. */}
+      <div className="grid gap-6 xl:grid-cols-[16rem_minmax(0,1fr)_20rem] min-[1700px]:grid-cols-[22rem_minmax(0,1fr)_26rem]">
         {/* Panou stânga — explicația mutării greșite (sus, în zona liberă din stânga tablei) */}
         <div className="xl:order-1 order-2 space-y-4">
           {puzzleState?.status === 'wrong' && (

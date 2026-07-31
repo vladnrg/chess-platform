@@ -51,7 +51,7 @@ export function AppLayout() {
         </header>
 
         {/* Page */}
-        <main className={`flex-1 p-4 md:p-6 lg:p-8 w-full mx-auto ${wide ? 'max-w-[100rem]' : 'max-w-7xl'}`}>
+        <main className={`flex-1 p-4 md:p-6 lg:p-8 w-full mx-auto ${wide ? 'max-w-[112rem]' : 'max-w-7xl'}`}>
           <SessionQuip />
           <Outlet />
         </main>
