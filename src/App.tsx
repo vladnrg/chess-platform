@@ -100,7 +100,7 @@ function AppRoutes() {
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tactics" element={<TacticsChestPage />} />
-        <Route path="/tactics/:categoryId" element={<TacticsCategoryPage />} />
+        <Route path="/tactics/:categoryId/:tier" element={<TacticsCategoryPage />} />
         <Route path="/pentru-incepatori" element={<BeginnersPage />} />
         <Route path="/repertoire" element={<RepertoirePage />} />
         <Route path="/leagues" element={<LeaguesPage />} />

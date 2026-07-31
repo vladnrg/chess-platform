@@ -57,11 +57,13 @@ interface Props {
   theme: string
   initialPuzzle?: Puzzle   // dacă e dat, se joacă exact această poziție (nu una aleatorie)
   onClose: () => void
+  onSolved?: () => void    // apelat după o rezolvare reușită (ex. pe traseu → actualizează progresul)
+  onNext?: () => void      // dacă e dat, „Următor" avansează pe traseu în loc de un puzzle aleatoriu
 }
 
 const FREE_LIMIT = 10
 
-export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
+export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }: Props) {
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
 
@@ -124,9 +126,16 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
         await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: xp })
         await fetchProfile(user.id)
         setTodayCount(c => c + 1)
+        onSolved?.()
       }
     },
   })
+
+  // „Următor": pe traseu avansează la nodul următor; altfel un puzzle aleatoriu pe temă.
+  function goNext() {
+    if (onNext) onNext()
+    else void fetchNextPuzzle()
+  }
 
   function loadPuzzle(puzzle: Puzzle) {
     setCurrentPuzzle(puzzle)
@@ -398,7 +407,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                     <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
                       <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
                       <span className="text-[#4ade80] font-semibold">Corect! Excelent!</span>
-                      <Button size="sm" className="ml-auto" onClick={() => void fetchNextPuzzle()}>
+                      <Button size="sm" className="ml-auto" onClick={goNext}>
                         <RefreshCw className="h-3.5 w-3.5" /> Următor
                       </Button>
                     </div>
@@ -471,11 +480,11 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                   variant="secondary"
                   size="sm"
                   className="w-full gap-2"
-                  onClick={() => void fetchNextPuzzle()}
+                  onClick={goNext}
                   disabled={loading || limitReached}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                  Puzzle următor
+                  {onNext ? 'Exercițiul următor' : 'Puzzle următor'}
                 </Button>
 
                 <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
