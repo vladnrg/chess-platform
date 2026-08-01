@@ -73,9 +73,12 @@ export function PuzzlesPage() {
   const [coachOpen, setCoachOpen] = useState(false)
   const [showRatingInfo, setShowRatingInfo] = useState(false)
 
-  // Rating de puzzle (sursa de adevăr: profilul; oglindit local pentru update instant)
-  const [puzzleRating, setPuzzleRating] = useState<number | null>(profile?.puzzle_rating ?? null)
-  const [winStreak, setWinStreak] = useState(profile?.puzzle_win_streak ?? 0)
+  // Rating de puzzle: sursa de adevăr e profilul, dar rezultatul unei rezolvări
+  // ajunge aici înaintea reîncărcării profilului. Îl păstrăm local și îi dăm
+  // prioritate — derivat, nu oglindit printr-un efect.
+  const [latestResult, setLatestResult] = useState<{ rating: number; streak: number } | null>(null)
+  const puzzleRating = latestResult?.rating ?? profile?.puzzle_rating ?? null
+  const winStreak = latestResult?.streak ?? profile?.puzzle_win_streak ?? 0
   const [activeOffset, setActiveOffset] = useState<BandOffset>(0)
   const [lastDelta, setLastDelta] = useState<number | null>(null)
   const ratingAppliedRef = useRef(false)
@@ -142,14 +145,6 @@ export function PuzzlesPage() {
     })()
   }, [])
 
-  // Sincronizează rating-ul local cu profilul când acesta se încarcă/schimbă
-  useEffect(() => {
-    if (profile?.puzzle_rating != null) {
-      setPuzzleRating(profile.puzzle_rating)
-      setWinStreak(profile.puzzle_win_streak ?? 0)
-    }
-  }, [profile?.puzzle_rating, profile?.puzzle_win_streak])
-
   // Numără tentativele de azi
   useEffect(() => {
     if (!user) return
@@ -179,8 +174,9 @@ export function PuzzlesPage() {
     },
   })
 
-  // Aplică rezultatul la rating-ul de puzzle (o singură dată per puzzle, server-side)
-  function applyRating(solved: boolean) {
+  // Aplică rezultatul la rating-ul de puzzle (o singură dată per puzzle, server-side).
+  // Memoizat fiindcă e dependență a lui tryMove.
+  const applyRating = useCallback((solved: boolean) => {
     if (modeRef.current === 'daily') return  // provocările zilnice nu schimbă rating-ul
     if (ratingAppliedRef.current || !user || !currentPuzzle) return
     ratingAppliedRef.current = true
@@ -190,13 +186,12 @@ export function PuzzlesPage() {
       })
       if (error || !data || (typeof data === 'object' && 'error' in data)) return
       const res = data as { rating: number; delta: number; promoted: boolean; streak: number }
-      setPuzzleRating(res.rating)
-      setWinStreak(res.streak)
+      setLatestResult({ rating: res.rating, streak: res.streak })
       setLastDelta(res.delta)
       window.setTimeout(() => setLastDelta(null), 2200)
       if (res.promoted) toast.success('Promovat! 5 corecte la rând — treci la intervalul de Elo superior 🎯')
     })()
-  }
+  }, [user, currentPuzzle])
 
   // Penalizare anti-skip: după 3 apăsări pe "Puzzle nou" în 60 min, XP × 1/3
   function skipPenaltyActive(): boolean {
@@ -205,13 +200,14 @@ export function PuzzlesPage() {
     return skipTimestampsRef.current.length > 3
   }
 
-  function computeSolveXp(rating: number): number {
+  // Citește doar din ref-uri, deci nu are dependențe. Memoizat ca dependență a lui tryMove.
+  const computeSolveXp = useCallback((rating: number): number => {
     const base = basePuzzleXp(rating)
     const level = hintLevelRef.current
     const penalty = level >= 3 ? base : (HINT_PENALTY[level] ?? 0)
     const skip = skipPenaltyActive() ? (1 / 3) : 1
     return Math.max(0, Math.round((base - penalty) * skip))
-  }
+  }, [])
 
   function registerSolve(xpAmount: number) {
     setCorrectStreak(prev => {
@@ -532,7 +528,7 @@ export function PuzzlesPage() {
     } catch {
       return false
     }
-  }, [puzzleState, currentPuzzle, playerColor, attemptMutation])
+  }, [puzzleState, currentPuzzle, playerColor, attemptMutation, applyRating, computeSolveXp])
 
   // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
   const onPieceDrop = useCallback(

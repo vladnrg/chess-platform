@@ -132,7 +132,13 @@ export function OpeningTrainerPage({ mode }: Props) {
     }
   }, [isGuided, line, user, fetchProfile])
 
-  // La montare: reia din plyIdx-ul salvat (mod ghidat) + marchează varianta ca fiind cea curentă.
+  // Inițializează tabla când varianta sosește din query (react-query, deci async):
+  // reia din plyIdx-ul salvat în mod ghidat, altfel pornește de la zero.
+  //
+  // Soluția idiomatică ar fi o componentă copil montată cu `key={line.id}`, care
+  // ar putea inițializa starea direct în useState. Ar însemna însă mutarea întregii
+  // logici de antrenament (9 puncte de setState) și nu merită riscul aici.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!line) return
     savedDoneRef.current = false
@@ -145,12 +151,18 @@ export function OpeningTrainerPage({ mode }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [line])
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Efectele de mai jos reacționează la progres/stare, nu la obiectul `state` întreg
+  // (care conține și instanța Chess, schimbată la fiecare mutare).
+  const plyIdx = state?.plyIdx
+  const status = state?.status
 
   // Salvează punctul curent (plyIdx) pentru reluare exactă.
   useEffect(() => {
-    if (!isGuided || !line || !state || state.status === 'line-done') return
-    localStorage.setItem(resumeKey(line.id), String(state.plyIdx))
-  }, [state?.plyIdx, isGuided, line])
+    if (!isGuided || !line || plyIdx == null || status === 'line-done') return
+    localStorage.setItem(resumeKey(line.id), String(plyIdx))
+  }, [plyIdx, status, isGuided, line])
 
   // La finalizarea variantei: marchează complet + curăță punctul de reluare.
   useEffect(() => {
@@ -159,7 +171,7 @@ export function OpeningTrainerPage({ mode }: Props) {
     localStorage.removeItem(resumeKey(line.id))
     void persistProgress(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.status])
+  }, [status])
 
   // Auto-play computer moves
   useEffect(() => {
@@ -190,16 +202,19 @@ export function OpeningTrainerPage({ mode }: Props) {
     }, 600)
 
     return () => clearTimeout(timer)
-  }, [state?.status, state?.plyIdx, line])
+    // Intenționat doar status + plyIdx: `state` conține instanța Chess, care se
+    // schimbă la fiecare mutare și ar reporni cronometrul de 600 ms al calculatorului.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, plyIdx, line])
 
   // Auto-clear wrong feedback after 1.2s in practice mode
   useEffect(() => {
-    if (!state || state.status !== 'wrong') return
+    if (status !== 'wrong') return
     const timer = setTimeout(() => {
       setState(s => s ? { ...s, status: 'user-turn', wrongFrom: null, wrongTo: null } : null)
     }, 1200)
     return () => clearTimeout(timer)
-  }, [state?.status])
+  }, [status])
 
   const handlePieceDrop = useCallback(
     ({ sourceSquare: from, targetSquare: to }: PieceDropHandlerArgs): boolean => {

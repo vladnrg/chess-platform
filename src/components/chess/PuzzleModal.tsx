@@ -67,13 +67,26 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
 
-  const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(null)
-  const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(null)
+  // Când poziția e dată de la părinte (traseu de tactici), o folosim direct ca stare
+  // inițială — altfel primul render ar fi gol, urmat imediat de un setState din efect.
+  const initialState = useState(() => {
+    if (!initialPuzzle) return null
+    try {
+      return initPuzzleState(initialPuzzle.fen, initialPuzzle.moves)
+    } catch {
+      return null
+    }
+  })[0]
+
+  const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(initialState)
+  const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(initialPuzzle ?? null)
   const [loading, setLoading] = useState(false)
   const [todayCount, setTodayCount] = useState(0)
 
   // Orientare fixată la încărcare (nu se mai rotește când mută adversarul)
-  const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
+  const [playerColor, setPlayerColor] = useState<'white' | 'black'>(
+    initialState?.game.turn() === 'b' ? 'black' : 'white'
+  )
   // Indicii
   const [hintFrom, setHintFrom] = useState<string | null>(null)   // evidențiază piesa de mutat
   const [showMove, setShowMove] = useState(false)                 // evidențiază mutarea (from+to)
@@ -178,10 +191,9 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
     }
   }
 
-  // Load first puzzle on mount (poziția specifică, dacă e dată; altfel una aleatorie pe temă)
+  // Poziția specifică e deja în starea inițială; aici încărcăm doar cazul aleatoriu pe temă.
   useEffect(() => {
-    if (initialPuzzle) loadPuzzle(initialPuzzle)
-    else void fetchNextPuzzle()
+    if (!initialPuzzle) void fetchNextPuzzle()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

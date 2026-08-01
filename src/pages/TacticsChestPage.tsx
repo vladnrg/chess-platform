@@ -22,6 +22,11 @@ interface CardData {
   solvedCount: number
 }
 
+// Valori implicite stabile: `?? []` / `?? new Set()` în corpul componentei ar crea
+// referințe noi la fiecare render și ar anula memoizarea de mai jos.
+const NO_ROWS: PuzzleIndexRow[] = []
+const NO_SOLVED: ReadonlySet<string> = new Set()
+
 export function TacticsChestPage() {
   const { isPro } = useSubscription()
   const { user, profile } = useAuth()
@@ -50,8 +55,8 @@ export function TacticsChestPage() {
     enabled: !!user,
   })
 
-  const puzzles = rows ?? []
-  const solved = solvedIds ?? new Set<string>()
+  const puzzles = rows ?? NO_ROWS
+  const solved: ReadonlySet<string> = solvedIds ?? NO_SOLVED
 
   // Traseele + progresul, calculate o singură dată și partajate cu rândurile și hero-ul.
   const tierData = useMemo(() => {

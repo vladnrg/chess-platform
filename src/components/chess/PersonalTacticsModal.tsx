@@ -51,11 +51,6 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
   const current = positions[currentIdx] ?? null
 
   // ── Analysis pipeline ──────────────────────────────────────
-  useEffect(() => {
-    void run()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   async function run() {
     try {
       // 1. Fetch recent games
@@ -165,6 +160,15 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
       setPhase('list')
     }
   }
+
+  // Pornește analiza (Lichess + Stockfish) după commit-ul render-ului: `run` setează
+  // eticheta de progres sincron, iar un setState sincron în corpul efectului
+  // declanșează un render în cascadă. Declarat după `run` ca să prindă versiunea curentă.
+  useEffect(() => {
+    const t = setTimeout(() => void run(), 0)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Puzzle interaction ────────────────────────────────────
   function startSolving(idx: number) {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
@@ -92,10 +92,14 @@ export function LessonPage() {
     },
   })
 
-  const moves = lesson?.pgn ? parsePgn(lesson.pgn) : []
+  // Memoizat: altfel `parsePgn` produce un array nou la fiecare render și strică
+  // memoizarea lui getCurrentFen de mai jos. `pgn` e legat într-o variabilă ca
+  // dependența să fie exact câmpul, nu întregul obiect `lesson`.
+  const pgn = lesson?.pgn
+  const moves = useMemo(() => (pgn ? parsePgn(pgn) : []), [pgn])
 
   const getCurrentFen = useCallback(() => {
-    if (!lesson?.pgn || moves.length === 0) return 'start'
+    if (!pgn || moves.length === 0) return 'start'
     try {
       const g = new Chess()
       for (let i = 0; i < moveIndex; i++) {
@@ -105,7 +109,7 @@ export function LessonPage() {
     } catch {
       return 'start'
     }
-  }, [lesson?.pgn, moves, moveIndex])
+  }, [pgn, moves, moveIndex])
 
   function goBack() { setMoveIndex(i => Math.max(0, i - 1)) }
   function goForward() { setMoveIndex(i => Math.min(moves.length, i + 1)) }

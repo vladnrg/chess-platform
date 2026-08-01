@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
@@ -53,7 +53,16 @@ async function buildPlacementSet(): Promise<Puzzle[]> {
       }
     } catch { /* sărim ținta */ }
   }
-  return chosen
+  // Validăm aici, o singură dată: un puzzle cu FEN sau linie stricată nu are ce
+  // căuta în set, iar pagina nu mai are nevoie de o ramură defensivă la afișare.
+  return chosen.filter(p => {
+    try {
+      initPuzzleState(p.fen, p.moves)
+      return true
+    } catch {
+      return false
+    }
+  })
 }
 
 export function PuzzlePlacement() {
@@ -62,10 +71,14 @@ export function PuzzlePlacement() {
 
   const [puzzles, setPuzzles] = useState<Puzzle[] | null>(null)
   const [idx, setIdx] = useState(0)
-  const [state, setState] = useState<PuzzleState | null>(null)
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const resultsRef = useRef<PlacementResult[]>([])
+
+  // Mutarea jucătorului pentru puzzle-ul curent. Purtăm `idx` cu ea, ca trecerea la
+  // puzzle-ul următor să o invalideze automat — fără efect de resetare.
+  const [played, setPlayed] = useState<
+    { idx: number; game: Chess; feedback: 'correct' | 'wrong' } | null
+  >(null)
 
   // Construiește setul de plasament o singură dată.
   useEffect(() => {
@@ -78,18 +91,16 @@ export function PuzzlePlacement() {
     return () => { cancelled = true }
   }, [])
 
-  // Inițializează tabla pentru puzzle-ul curent.
-  useEffect(() => {
-    if (!puzzles || idx >= puzzles.length) return
-    try {
-      setState(initPuzzleState(puzzles[idx].fen, puzzles[idx].moves))
-      setFeedback(null)
-    } catch {
-      // puzzle invalid → îl tratăm ca nerezolvat și mergem mai departe
-      advance(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Poziția de start a puzzle-ului curent — derivată, nu sincronizată printr-un efect.
+  // Setul e deja validat în buildPlacementSet, deci initPuzzleState nu aruncă aici.
+  const baseState = useMemo<PuzzleState | null>(() => {
+    if (!puzzles || idx >= puzzles.length) return null
+    return initPuzzleState(puzzles[idx].fen, puzzles[idx].moves)
   }, [puzzles, idx])
+
+  const active = played?.idx === idx ? played : null
+  const state = baseState && active ? { ...baseState, game: active.game } : baseState
+  const feedback = active?.feedback ?? null
 
   const total = puzzles?.length ?? 0
   const playerColor: 'white' | 'black' = state?.game.turn() === 'w' ? 'white' : 'black'
@@ -113,8 +124,7 @@ export function PuzzlePlacement() {
       const moved = copy.move({ from: source, to: target, promotion: 'q' })
       if (!moved) return false
       const correct = source + target === expected.slice(0, 4)
-      setState(s => s ? { ...s, game: copy } : null)
-      setFeedback(correct ? 'correct' : 'wrong')
+      setPlayed({ idx, game: copy, feedback: correct ? 'correct' : 'wrong' })
       setTimeout(() => advance(correct), 900)
       return true
     } catch {

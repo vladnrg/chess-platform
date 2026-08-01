@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { Chess } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
 import { X, ChevronLeft, ChevronRight, Zap, Brain, ArrowLeft, Loader2 } from 'lucide-react'
@@ -52,9 +52,10 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
   const { user } = useAuth()
   const { analyzePositions } = useStockfish()
 
-  // Parse game moves
-  const sanMoves = (game.moves ?? '').split(' ').filter(Boolean)
-  const positions = (() => {
+  // Parse game moves. Memoizat: rezultatul e dependență pentru runAnalysis, iar un
+  // obiect nou la fiecare render ar anula memoizarea acestuia.
+  const positions = useMemo(() => {
+    const sanMoves = (game.moves ?? '').split(' ').filter(Boolean)
     const g = new Chess()
     const fens: string[] = [g.fen()]
     const ucis: string[] = []
@@ -67,7 +68,7 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
       } catch { break }
     }
     return { fens, ucis, sans: sanMoves.slice(0, ucis.length) }
-  })()
+  }, [game.moves])
 
   const [cursor, setCursor] = useState(positions.fens.length - 1)
   const [evals, setEvals] = useState<PositionEval[]>([])

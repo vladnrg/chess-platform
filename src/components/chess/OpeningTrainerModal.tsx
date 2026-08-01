@@ -60,11 +60,13 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
     }
   }, [getBestMove, elo, checkGameEnd])
 
-  // Engine moves first if player is Black
+  // Cu negrele, motorul deschide partida. Pornirea e amânată după commit-ul
+  // render-ului: makeEngineMove setează „thinking" sincron, iar un setState sincron
+  // în corpul efectului produce un render în cascadă.
   useEffect(() => {
-    if (playerColor === 'black' && game.moveNumber() === 1 && game.turn() === 'w') {
-      void makeEngineMove(game)
-    }
+    if (playerColor !== 'black' || game.moveNumber() !== 1 || game.turn() !== 'w') return
+    const t = setTimeout(() => void makeEngineMove(game), 0)
+    return () => clearTimeout(t)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function onDrop({ sourceSquare, targetSquare, piece }: PieceDropHandlerArgs) {
