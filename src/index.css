@@ -150,3 +150,12 @@ h1, h2, h3 {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(250%); }
 }
+
+/* Card de tactică — glow colorat pe hover (culoarea vine din --tc, setat inline per card) */
+.tactic-card {
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.tactic-card:hover {
+  border-color: var(--tc, #3A3A3A);
+  box-shadow: 0 14px 34px -12px color-mix(in srgb, var(--tc, #E2B340) 55%, transparent);
+}

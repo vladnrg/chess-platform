@@ -7,9 +7,9 @@ import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES } from '@/data/tactics'
 import { TACTIC_TIERS, pickPath } from '@/lib/tactics-path'
+import { tacticVisual, tierColor } from '@/lib/tactic-visuals'
 import { PuzzleModal } from '@/components/chess/PuzzleModal'
 import { Button } from '@/components/ui/Button'
-import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
 import type { Puzzle } from '@/types'
 
@@ -87,6 +87,9 @@ export function TacticsCategoryPage() {
     )
   }
 
+  const { icon: CatIcon, color: catColor } = tacticVisual(category.id)
+  const tColor = tierColor(tier.id)
+
   return (
     <div className="max-w-3xl space-y-6">
       <button
@@ -98,11 +101,28 @@ export function TacticsCategoryPage() {
       </button>
 
       {/* Header */}
-      <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-semibold text-[#E2B340] bg-[rgba(226,179,64,0.12)] rounded-full px-2.5 py-1">
+      <div
+        className="relative overflow-hidden rounded-xl bg-[#141414] border border-[#2A2A2A] p-6"
+        style={{ ['--tc' as string]: catColor }}
+      >
+        {/* glow discret din culoarea categoriei, sus-dreapta */}
+        <div
+          className="absolute -top-16 -right-16 h-48 w-48 rounded-full pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${catColor}22, transparent 70%)` }}
+        />
+        <div className="relative flex items-start gap-4 mb-2">
+          <span
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: `${catColor}1A`, color: catColor, boxShadow: `0 8px 26px ${catColor}22` }}
+          >
+            <CatIcon className="h-7 w-7" strokeWidth={2} />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <span
+                className="text-xs font-semibold rounded-full px-2.5 py-1"
+                style={{ backgroundColor: `${tColor}1F`, color: tColor }}
+              >
                 {tier.label} · ELO {tier.floor}–{tier.ceil}
               </span>
               {category.isPro && (
@@ -111,8 +131,8 @@ export function TacticsCategoryPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-[#F0F0F0]">{category.title}</h1>
-            <p className="text-[#A0A0A0] text-sm mt-1.5 leading-relaxed border-l-2 border-[#E2B340] pl-3">
+            <h1 className="text-2xl font-bold text-[#F0F0F0] font-display">{category.title}</h1>
+            <p className="text-[#A0A0A0] text-sm mt-1.5 leading-relaxed border-l-2 pl-3" style={{ borderColor: catColor }}>
               {category.description}
             </p>
           </div>
@@ -120,13 +140,18 @@ export function TacticsCategoryPage() {
 
         {!locked && total > 0 && (
           <>
-            <div className="flex justify-between text-xs text-[#6B6B6B] mt-4 mb-1.5">
+            <div className="relative flex justify-between text-xs text-[#6B6B6B] mt-4 mb-1.5">
               <span>Progres</span>
-              <span className={pct === 100 ? 'text-[#4ade80]' : 'text-[#E2B340]'}>
+              <span className={pct === 100 ? 'text-[#4ade80]' : ''} style={pct === 100 ? undefined : { color: catColor }}>
                 {doneCount}/{total} {pct === 100 ? '· ✓ Complet' : `· ${pct}%`}
               </span>
             </div>
-            <Progress value={pct} barClassName={pct === 100 ? 'bg-[#4ade80]' : 'bg-[#E2B340]'} />
+            <div className="h-2 rounded-full bg-[#1C1C1C] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : catColor }}
+              />
+            </div>
 
             <Button size="lg" className="w-full mt-4" onClick={() => setActiveIndex(resumeIndex)}>
               {doneCount === 0 ? 'Începe traseul' : pct === 100 ? 'Reia de la început' : 'Continuă de unde ai rămas'}
@@ -173,28 +198,31 @@ export function TacticsCategoryPage() {
                 <div key={node.id}>
                   <button
                     onClick={() => setActiveIndex(i)}
+                    style={current ? { borderColor: catColor, boxShadow: `0 0 18px ${catColor}26` } : undefined}
                     className={`w-full flex items-center gap-3 rounded-2xl border bg-[#141414] p-3 text-left transition-all hover:-translate-y-0.5 ${
                       current
-                        ? 'border-[rgba(226,179,64,0.55)] shadow-[0_0_18px_rgba(226,179,64,0.15)]'
+                        ? ''
                         : done
                         ? 'border-[rgba(74,222,128,0.35)]'
                         : 'border-[#2A2A2A] hover:border-[#3A3A3A]'
                     }`}
                   >
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 font-display font-bold ${
-                      done
-                        ? 'bg-[#4ade80] text-black'
-                        : current
-                        ? 'bg-[#E2B340] text-black'
-                        : 'bg-[#1C1C1C] text-[#6B6B6B]'
-                    }`}>
+                    <div
+                      style={current && !done ? { backgroundColor: catColor, color: '#000' } : undefined}
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 font-display font-bold ${
+                        done ? 'bg-[#4ade80] text-black' : current ? '' : 'bg-[#1C1C1C] text-[#6B6B6B]'
+                      }`}
+                    >
                       {done ? <CheckCircle2 className="h-6 w-6" /> : i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`font-display font-semibold text-sm ${done ? 'text-[#A0A0A0]' : 'text-[#F0F0F0]'}`}>
                         {node.title ? node.title : `Exercițiul ${i + 1}`}
                       </p>
-                      <p className={`text-xs ${current ? 'text-[#E2B340] font-semibold' : done ? 'text-[#4ade80]' : 'text-[#6B6B6B]'}`}>
+                      <p
+                        className={`text-xs font-semibold ${done ? 'text-[#4ade80]' : !current ? 'text-[#6B6B6B]' : ''}`}
+                        style={current ? { color: catColor } : undefined}
+                      >
                         {current ? 'Ești aici' : done ? 'Rezolvat' : `ELO ${node.rating}`}
                       </p>
                     </div>
@@ -208,7 +236,7 @@ export function TacticsCategoryPage() {
                     <svg width="240" height="38" viewBox="0 0 240 38" fill="none" className="mx-auto block">
                       <path
                         d={i % 2 === 0 ? 'M120 2 C120 15, 66 24, 120 36' : 'M120 2 C120 15, 174 24, 120 36'}
-                        stroke="rgba(226,179,64,0.4)" strokeWidth="2.5" strokeDasharray="2 8" strokeLinecap="round"
+                        stroke={`${catColor}66`} strokeWidth="2.5" strokeDasharray="2 8" strokeLinecap="round"
                       />
                     </svg>
                   )}
@@ -220,7 +248,7 @@ export function TacticsCategoryPage() {
           {/* Legendă mică */}
           <div className="flex items-center justify-center gap-4 text-xs text-[#6B6B6B] mt-6">
             <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-[#4ade80]" /> Rezolvat</span>
-            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-[#E2B340]" /> Ești aici</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ backgroundColor: catColor }} /> Ești aici</span>
             <span className="flex items-center gap-1.5"><Target className="h-3.5 w-3.5" /> De rezolvat</span>
           </div>
         </div>
