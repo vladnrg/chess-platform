@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import type { MovePieceExerciseData } from '@/types'
 
@@ -15,9 +15,10 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
   const [fen, setFen] = useState(exercise.fen)
   const [highlight, setHighlight] = useState<Record<string, React.CSSProperties>>({})
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function onDrop({ sourceSquare, targetSquare }: any): boolean {
+  function onDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
     if (status === 'correct') return false
+    // targetSquare e null când piesa e lăsată în afara tablei — nu e o încercare greșită
+    if (!targetSquare) return false
 
     const expectedFrom = exercise.correct_move.slice(0, 2)
     const expectedTo = exercise.correct_move.slice(2, 4)

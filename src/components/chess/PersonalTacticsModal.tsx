@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { X, Brain, Loader2, ChevronRight, ChevronLeft, Lightbulb, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useStockfish } from '@/hooks/useStockfish'
 import { useAuth } from '@/hooks/useAuth'
@@ -186,9 +186,9 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     setShowBest(false)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onPieceDrop = useCallback(({ sourceSquare: from, targetSquare: to }: { sourceSquare: string; targetSquare: string | null; [k: string]: any }) => {
-    if (!to || !current || moveResult !== null) return false
+  // Logica unei mutări, independentă de sursa ei (drag sau click-to-move).
+  const tryMove = useCallback((from: string, to: string) => {
+    if (!current || moveResult !== null) return false
     try {
       const g = new Chess(current.fen)
       const result = g.move({ from, to, promotion: 'q' })
@@ -201,6 +201,13 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
       return true
     } catch { return false }
   }, [current, moveResult])
+
+  // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
+  const onPieceDrop = useCallback(
+    ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+      targetSquare ? tryMove(sourceSquare, targetSquare) : false,
+    [tryMove]
+  )
 
   const onSquareClick = useCallback(({ square }: { square: string }) => {
     if (!current || moveResult !== null) return
@@ -215,8 +222,8 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     if (square === selectedSquare) { setSelectedSquare(null); return }
     if (isMyPiece) { setSelectedSquare(square); return }
 
-    onPieceDrop({ sourceSquare: selectedSquare, targetSquare: square })
-  }, [current, moveResult, selectedSquare, onPieceDrop])
+    tryMove(selectedSquare, square)
+  }, [current, moveResult, selectedSquare, tryMove])
 
   async function askHint() {
     if (!current || !user) return

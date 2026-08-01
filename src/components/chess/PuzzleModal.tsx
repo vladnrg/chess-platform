@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
@@ -186,10 +186,11 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
   }, [])
 
   const onPieceDrop = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ({ sourceSquare: source, targetSquare: target }: any): boolean => {
+    ({ sourceSquare: source, targetSquare: target }: PieceDropHandlerArgs): boolean => {
       if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
       if (!currentPuzzle) return false
+      // Piesă lăsată în afara tablei — snap-back, fără să conteze ca încercare
+      if (!target) return false
 
       const expectedMove = puzzleState.solutionMoves[puzzleState.currentMoveIdx]
       if (!expectedMove) return false

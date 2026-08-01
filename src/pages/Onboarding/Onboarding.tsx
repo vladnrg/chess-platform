@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -213,7 +213,9 @@ function TacticsQuestion({
         <Chessboard
           options={{
             position: tacticsState.game.fen(),
-            onPieceDrop: ({ sourceSquare, targetSquare }: any) => onDrop(sourceSquare, targetSquare),
+            // targetSquare e null la drop în afara tablei → snap-back
+            onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+              targetSquare ? onDrop(sourceSquare, targetSquare) : false,
             boardStyle: { borderRadius: 8 },
             darkSquareStyle: { backgroundColor: '#3A3A3A' },
             lightSquareStyle: { backgroundColor: '#f0d9b5' },

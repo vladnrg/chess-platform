@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import { CheckCircle2, RefreshCw, Loader2, Info, Target, Flame, Calendar, Lightbulb, Sparkles, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -388,8 +388,8 @@ export function PuzzlesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzleRating])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onPieceDrop = useCallback(({ sourceSquare: source, targetSquare: target }: any) => {
+  // Logica unei mutări, independentă de sursa ei (drag sau click-to-move).
+  const tryMove = useCallback((source: string, target: string) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
     if (!currentPuzzle) return false
     // În timpul derulării poți ajunge la o poziție unde e rândul adversarului — atunci nu se mută.
@@ -534,6 +534,13 @@ export function PuzzlesPage() {
     }
   }, [puzzleState, currentPuzzle, playerColor, attemptMutation])
 
+  // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
+  const onPieceDrop = useCallback(
+    ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+      targetSquare ? tryMove(sourceSquare, targetSquare) : false,
+    [tryMove]
+  )
+
   const onSquareClick = useCallback(({ square }: { square: string; piece?: unknown }) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return
     if (puzzleState.game.turn() !== (playerColor === 'white' ? 'w' : 'b')) return
@@ -556,14 +563,14 @@ export function PuzzlesPage() {
       return
     }
 
-    const ok = onPieceDrop({ sourceSquare: selectedSquare, targetSquare: square })
+    const ok = tryMove(selectedSquare, square)
     const from = selectedSquare
     setSelectedSquare(null)
     if (!ok) {
       setShakingSquare(from)
       setTimeout(() => setShakingSquare(null), 1500)
     }
-  }, [puzzleState, selectedSquare, playerColor, onPieceDrop])
+  }, [puzzleState, selectedSquare, playerColor, tryMove])
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
   const hasRating = puzzleRating != null

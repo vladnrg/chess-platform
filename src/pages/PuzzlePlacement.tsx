@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -189,8 +189,9 @@ export function PuzzlePlacement() {
               <Chessboard
                 options={{
                   position: state.game.fen(),
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  onPieceDrop: ({ sourceSquare, targetSquare }: any) => handleDrop(sourceSquare, targetSquare),
+                  // targetSquare e null la drop în afara tablei → snap-back
+                  onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+                    targetSquare ? handleDrop(sourceSquare, targetSquare) : false,
                   allowDragging: !feedback,
                   boardOrientation: playerColor,
                   boardStyle: { borderRadius: 8 },

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -202,8 +202,10 @@ export function OpeningTrainerPage({ mode }: Props) {
   }, [state?.status])
 
   const handlePieceDrop = useCallback(
-    ({ sourceSquare: from, targetSquare: to }: any): boolean => {
+    ({ sourceSquare: from, targetSquare: to }: PieceDropHandlerArgs): boolean => {
       if (!state || !line || state.status !== 'user-turn') return false
+      // Piesă lăsată în afara tablei — snap-back, nu o marcăm ca mutare greșită
+      if (!to) return false
       const moves = line.moves_uci.split(' ')
       const expected = moves[state.plyIdx]
       if (!expected) return false

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, RefreshCw, BookOpen, Target, Swords, Film, Crosshair } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase'
+import { supabase, type UserOpeningStats as OpeningStat } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
@@ -29,17 +29,6 @@ const ECO_TO_THEME: Record<string, string> = {
   C: 'discoveredAttack',
   D: 'skewer',
   E: 'sacrifice',
-}
-
-interface OpeningStat {
-  id: string
-  eco: string
-  opening_name: string
-  color: 'white' | 'black'
-  wins: number
-  draws: number
-  losses: number
-  last_imported_at: string
 }
 
 function scorePercent(stat: OpeningStat) {
@@ -153,8 +142,8 @@ export function RepertoirePage() {
           {stats && stats.length > 0 && (
             <p className="text-xs text-[#6B6B6B]">
               {total} partide analizate · {filtered.length} deschideri
-              {(stats[0] as any)?.last_imported_at &&
-                ` · Ultima import: ${new Date(stats[0].last_imported_at).toLocaleDateString('ro-RO')}`}
+              {stats[0].last_imported_at &&
+                ` · Ultimul import: ${new Date(stats[0].last_imported_at).toLocaleDateString('ro-RO')}`}
             </p>
           )}
         </CardContent>

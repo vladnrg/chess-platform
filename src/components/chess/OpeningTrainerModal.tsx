@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { X, ChevronLeft, ChevronRight, RotateCcw, Brain } from 'lucide-react'
 import { useStockfish } from '@/hooks/useStockfish'
 import { cn } from '@/lib/utils'
@@ -67,8 +67,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function onDrop({ sourceSquare, targetSquare, piece }: { sourceSquare: string; targetSquare: string | null; piece: any }) {
+  function onDrop({ sourceSquare, targetSquare, piece }: PieceDropHandlerArgs) {
     if (!targetSquare) return false
     if (status !== 'playing') return false
     if ((game.turn() === 'w') !== (playerColor === 'white')) return false
@@ -137,8 +136,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
               position: game.fen(),
               boardOrientation: playerColor,
               allowDragging: status === 'playing',
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onPieceDrop: (args: any) => onDrop(args),
+              onPieceDrop: onDrop,
               squareStyles,
               darkSquareStyle: { backgroundColor: '#3d5c3a' },
               lightSquareStyle: { backgroundColor: '#c8e6c0' },
