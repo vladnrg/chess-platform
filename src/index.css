@@ -59,9 +59,7 @@
    şi lăţimea containerului — de-acolo veneau diferenţele care păreau „de zoom".
    Se reglează AICI, nu în pagini. */
 :root {
-  --app-sidebar: 16rem;        /* sidebar plin (arhetip catalog) */
-  --app-sidebar-rail: 3.5rem;  /* sidebar colapsat la icoane (arhetip focus) */
-  --app-header: 3.5rem;        /* bara de sus, cu titlul paginii */
+  --app-header: 4rem;          /* bara de navigare, sus */
   --app-pad: 1.5rem;           /* padding-ul zonei de conţinut */
   --app-gap: 1.25rem;          /* ritmul vertical dintre secţiuni */
   --app-rail: 20rem;           /* coloana dreaptă pe paginile focus */

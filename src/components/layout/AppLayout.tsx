@@ -1,11 +1,9 @@
-import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { Sidebar } from './Sidebar'
-import { Menu } from 'lucide-react'
+import { TopNav } from './TopNav'
 import { useChildSession } from '@/hooks/useChildSession'
 import { SessionTimer } from '@/components/session/SessionTimer'
 import { SessionQuip } from './SessionQuip'
-import { archetypeFor, pageTitleFor, hasOwnHeader } from '@/lib/navigation'
+import { archetypeFor, shellTitleFor } from '@/lib/navigation'
 
 function ChildSessionGuard() {
   const { minutesLeft, showWarning, dismissWarning, isMinor } = useChildSession()
@@ -14,79 +12,41 @@ function ChildSessionGuard() {
 }
 
 export function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const { pathname } = useLocation()
 
   // Arhetipul vine dintr-un singur loc (lib/navigation), nu dintr-un `pathname ===`
   // scris în layout. Vezi comentariul de acolo pentru ce înseamnă fiecare.
   const archetype = archetypeFor(pathname)
-  const title = pageTitleFor(pathname)
-  const ownHeader = hasOwnHeader(pathname)
+  const title = shellTitleFor(pathname)
 
   return (
-    <div className="flex h-dvh bg-[#0A0A0A] overflow-hidden">
-      {/* Overlay mobile */}
-      {sidebarOpen && (
+    <div className="flex h-dvh flex-col bg-[#0A0A0A] overflow-hidden">
+      <TopNav />
+
+      {/* Zona de pagină. Are exact înălțimea rămasă; scroll-ul e intern, ca bara
+          de navigare să rămână fixă. O pagină care vrea să umple ecranul cere
+          `height: var(--app-page-h)` şi îşi împarte singură spațiul. */}
+      <main className="min-h-0 flex-1 overflow-y-auto" data-archetype={archetype}>
         <div
-          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed inset-y-0 left-0 z-30 transform transition-transform duration-200
-          lg:relative lg:translate-x-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
-        style={{ width: 'var(--app-sidebar)' }}
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </aside>
-
-      {/* Coloana de conținut — înălțime fixă, scroll doar înăuntru */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Bara de sus, cu titlul paginii. Pe paginile care îşi poartă singure
-            titlul rămâne doar varianta mobilă — acolo e nevoie de butonul de meniu,
-            dar pe desktop bara ar dubla titlul şi ar fura din înălţime degeaba. */}
-        <header
-          className={`flex flex-shrink-0 items-center gap-3 border-b border-[#2A2A2A] px-4 ${ownHeader ? 'lg:hidden' : ''}`}
-          style={{ height: 'var(--app-header)' }}
+          className="mx-auto flex min-h-full w-full flex-col"
+          style={{
+            // Paginile focus au nevoie de lăţime pentru tablă şi coloanele ei.
+            maxWidth: archetype === 'focus' ? '112rem' : 'var(--app-max)',
+            padding: 'var(--app-pad)',
+            gap: 'var(--app-gap)',
+          }}
         >
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 text-[#A0A0A0] transition-colors hover:bg-[#141414] hover:text-[#F0F0F0] lg:hidden"
-            aria-label="Deschide meniul"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <h1 className="truncate font-display text-base font-bold tracking-tight text-[#F0F0F0]">
-            {ownHeader ? 'CleanChess' : title}
-          </h1>
-        </header>
-
-        {/* Zona de pagină. Are exact înălțimea rămasă; scroll-ul e intern, ca
-            shell-ul să nu se miște niciodată. O pagină care vrea să încapă fix
-            în ecran cere `h-full` şi îşi împarte singură spațiul. */}
-        <main
-          className="min-h-0 flex-1 overflow-y-auto"
-          data-archetype={archetype}
-        >
-          <div
-            className="mx-auto flex min-h-full w-full flex-col"
-            style={{
-              // Paginile focus au nevoie de lăţime pentru tablă şi cele două coloane.
-              maxWidth: archetype === 'focus' ? '112rem' : 'var(--app-max)',
-              padding: 'var(--app-pad)',
-              gap: 'var(--app-gap)',
-            }}
-          >
-            <SessionQuip />
-            <Outlet />
-          </div>
-        </main>
-      </div>
+          {/* Titlul paginii stă în conţinut, nu în bara de sus — aceea e rezervată
+              navigării. Paginile cu antet propriu şi-l randează singure. */}
+          {title && (
+            <h1 className="flex-shrink-0 font-display text-2xl font-bold tracking-tight text-[#F0F0F0]">
+              {title}
+            </h1>
+          )}
+          <SessionQuip />
+          <Outlet />
+        </div>
+      </main>
 
       <ChildSessionGuard />
     </div>
