@@ -311,18 +311,21 @@ export function OpeningTrainerPage({ mode }: Props) {
   const isPlaying = state.status === 'user-turn' || state.status === 'computer-thinking' || state.status === 'wrong'
 
   return (
-    <div className="max-w-4xl space-y-4">
+    // Pagina umple ecranul: antetul rămâne sus, iar tabla primeşte toată înălţimea
+    // rămasă. Înainte, un `max-w-4xl` plafona totul la 896px şi tabla lua 2/3 din
+    // atât — pe un ecran lat rezulta o tablă mică într-o mare de negru.
+    <div className="flex flex-col gap-4" style={{ height: 'var(--app-page-h)' }}>
       {/* Back */}
       <Link
         to={`/courses/${slug}`}
-        className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors"
+        className="flex flex-shrink-0 items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
         Înapoi la curs
       </Link>
 
       {/* Title row */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-shrink-0 items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#F0F0F0]">{line.variation_name}</h1>
           <p className="text-sm text-[#6B6B6B] mt-0.5">
@@ -351,17 +354,19 @@ export function OpeningTrainerPage({ mode }: Props) {
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
+      <div className="h-1.5 flex-shrink-0 bg-[#2A2A2A] rounded-full overflow-hidden">
         <div
           className="h-full bg-[#E2B340] rounded-full transition-all duration-500"
           style={{ width: `${progressPct}%` }}
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Board — always visible */}
-        <div className="lg:col-span-2">
-          <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
+        {/* Tabla — pătrată, dimensionată din înălţimea rămasă şi centrată.
+            `aspect-square h-full` îi dă lăţimea din înălţime; `max-w-full` o
+            împiedică să depăşească pe ecrane mai înguste decât înalte. */}
+        <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
+          <div className="aspect-square h-full max-h-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A]">
             <Chessboard
               options={{
                 position: state.game.fen(),
@@ -377,8 +382,11 @@ export function OpeningTrainerPage({ mode }: Props) {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-3">
+        {/* Coloana dreaptă — lăţime fixă, cu scroll propriu dacă e nevoie, ca
+            înălţimea ei să nu influenţeze niciodată dimensiunea tablei. */}
+        <div
+          className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[var(--app-rail)]"
+        >
           {/* Status + explanation card */}
           <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
             {state.status === 'user-turn' && (

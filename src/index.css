@@ -70,6 +70,11 @@
   /* Înălţimea utilă, sub bara de sus. `dvh`, nu `vh`: pe mobil bara browserului
      se retrage, iar `vh` rămâne la valoarea veche şi taie conţinutul. */
   --app-content-h: calc(100dvh - var(--app-header));
+
+  /* Înălţimea exactă a unei pagini care umple ecranul (arhetipul focus). Trebuie
+     să fie fermă, nu `min-height`: doar aşa tabla poate fi dimensionată din
+     înălţimea rămasă, în loc să împingă pagina în jos. */
+  --app-page-h: calc(var(--app-content-h) - 2 * var(--app-pad));
 }
 
 @media (max-width: 1023px) {
