@@ -45,9 +45,11 @@ export function BreakPage() {
         .from('child_sessions')
         .select('last_seen_at, break_ends_at')
         .eq('id', sessionId)
-        .single() as any
+        .single()
 
-      if (!data) return
+      // Fără last_seen_at nu putem calcula inactivitatea; ieșim mai degrabă decât
+      // să tratăm null ca epoch 1970 și să anulăm din greșeală pauza.
+      if (!data?.last_seen_at) return
 
       const lastSeen = new Date(data.last_seen_at)
       const now = new Date()
@@ -58,7 +60,7 @@ export function BreakPage() {
         const minsLeft = Math.max(0, Math.ceil((newBreakEnd.getTime() - now.getTime()) / 60000))
         setSecondsLeft(minsLeft * 60)
         if (minsLeft <= 0) setCanResume(true)
-        await supabase.from('child_sessions').update({ break_ends_at: newBreakEnd.toISOString() }).eq('id', sessionId) as any
+        await supabase.from('child_sessions').update({ break_ends_at: newBreakEnd.toISOString() }).eq('id', sessionId)
       }
     }
 

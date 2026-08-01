@@ -97,7 +97,7 @@ export function OpeningTrainerPage({ mode }: Props) {
   const { data: line, isLoading } = useQuery({
     queryKey: ['opening-line', lineId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('opening_lines')
         .select('*')
         .eq('id', lineId!)
@@ -112,13 +112,13 @@ export function OpeningTrainerPage({ mode }: Props) {
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
   const persistProgress = useCallback(async (markDone: boolean) => {
     if (!isGuided || !line || !user) return
-    const { data: existing } = await (supabase as any)
+    const { data: existing } = await supabase
       .from('user_course_progress')
       .select('completed_lesson_ids, xp_earned')
       .eq('user_id', user.id).eq('course_id', line.course_id).single()
     const prev: string[] = existing?.completed_lesson_ids ?? []
     const already = prev.includes(line.id)
-    await (supabase as any).from('user_course_progress').upsert({
+    await supabase.from('user_course_progress').upsert({
       user_id: user.id,
       course_id: line.course_id,
       completed_lesson_ids: markDone && !already ? [...prev, line.id] : prev,
@@ -126,7 +126,7 @@ export function OpeningTrainerPage({ mode }: Props) {
       xp_earned: (existing?.xp_earned ?? 0) + (markDone && !already ? 30 : 0),
     })
     if (markDone && !already) {
-      await (supabase as any).rpc('award_xp', { p_user_id: user.id, p_amount: 30 })
+      await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 30 })
       await fetchProfile(user.id)
       toast.success('+30 XP — Variantă stăpânită!')
     }

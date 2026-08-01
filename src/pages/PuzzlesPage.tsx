@@ -26,6 +26,16 @@ function offsetColor(o: BandOffset): string {
   return o === -1 ? '#60a5fa' : o === 0 ? '#E2B340' : '#f97316'
 }
 
+// Helperi cu efect (aleator / ceas), ținuți la nivel de modul — nu în corpul componentei.
+// Sunt apelați doar din handlere și efecte, niciodată în timpul render-ului.
+function pickRandom<T>(pool: T[]): T {
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+function nowMs(): number {
+  return Date.now()
+}
+
 // Penalizarea fixă de XP pentru fiecare indiciu (scăzută din recompensa puzzle-ului).
 // Nivel 3 („arată mutarea") = pierzi toată recompensa. Eșec după un indiciu = −1 XP.
 const HINT_PENALTY: Record<number, number> = { 1: 2, 2: 3 }
@@ -106,8 +116,10 @@ export function PuzzlesPage() {
   // ---- Provocările zilei (puzzle-uri curate, fără plasament) ----
   const [daily, setDaily] = useState<Partial<Record<DailyKind, Puzzle>>>({})
   const [mode, setMode] = useState<'rated' | 'daily'>('rated')
+  // Oglindă a lui `mode` citibilă din callback-uri async (evaluări Stockfish care se întorc
+  // târziu). Ținut sincron manual în loadDaily / backToChallenges — singurele locuri care
+  // schimbă modul — ca să nu scriem în ref în timpul render-ului.
   const modeRef = useRef<'rated' | 'daily'>('rated')
-  modeRef.current = mode
   const [dailyKind, setDailyKind] = useState<DailyKind | null>(null)
 
   // Alege puzzle-urile zilnice determinist (seed = data), din tabela locală
@@ -150,14 +162,6 @@ export function PuzzlesPage() {
       .then(({ count }: { count: number | null }) => setTodayCount(count ?? 0))
   }, [user])
 
-  // Încarcă primul puzzle când avem rating (banda curentă)
-  useEffect(() => {
-    if (puzzleRating != null && !currentPuzzle) {
-      void loadNext(0)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzleRating])
-
   const attemptMutation = useMutation({
     mutationFn: async ({ solved, timeSeconds, xpAmount }: { solved: boolean; timeSeconds: number; xpAmount: number }) => {
       if (!user || !currentPuzzle) return
@@ -196,7 +200,7 @@ export function PuzzlesPage() {
 
   // Penalizare anti-skip: după 3 apăsări pe "Puzzle nou" în 60 min, XP × 1/3
   function skipPenaltyActive(): boolean {
-    const cutoff = Date.now() - 60 * 60 * 1000
+    const cutoff = nowMs() - 60 * 60 * 1000
     skipTimestampsRef.current = skipTimestampsRef.current.filter(t => t > cutoff)
     return skipTimestampsRef.current.length > 3
   }
@@ -225,7 +229,7 @@ export function PuzzlesPage() {
     setCorrectStreak(0)
   }
 
-  function useHint(level: number) {
+  function revealHint(level: number) {
     setHintLevel(level)
     hintLevelRef.current = level
     puzzlePerfectRef.current = false
@@ -234,7 +238,7 @@ export function PuzzlesPage() {
 
   function handleSkipPuzzle() {
     if (puzzleState && puzzleState.status === 'playing') {
-      skipTimestampsRef.current.push(Date.now())
+      skipTimestampsRef.current.push(nowMs())
       setCorrectStreak(0)
     }
     void loadNext(activeOffset)
@@ -357,7 +361,7 @@ export function PuzzlesPage() {
         .limit(40)
       const pool = (data ?? []) as Puzzle[]
       if (pool.length >= 1) {
-        loadPuzzle(pool[Math.floor(Math.random() * pool.length)])
+        loadPuzzle(pickRandom(pool))
         return
       }
       // Fallback Lichess (mijlocul benzii)
@@ -374,6 +378,15 @@ export function PuzzlesPage() {
       setNextLoading(false)
     }
   }
+
+  // Încarcă primul puzzle când avem rating (banda curentă).
+  // Declarat după `loadNext` ca efectul să prindă versiunea din render-ul curent.
+  useEffect(() => {
+    if (puzzleRating != null && !currentPuzzle) {
+      void loadNext(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleRating])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onPieceDrop = useCallback(({ sourceSquare: source, targetSquare: target }: any) => {
@@ -895,13 +908,13 @@ export function PuzzlesPage() {
               <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">Acțiuni</p>
               {hintLevel === 0 ? (
                 <>
-                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => useHint(1)}>
+                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => revealHint(1)}>
                     Dă-mi un indiciu <span className="opacity-60 ml-auto">−2 XP</span>
                   </Button>
-                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => useHint(2)}>
+                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => revealHint(2)}>
                     Arată ce trebuie să mut <span className="opacity-60 ml-auto">−3 XP</span>
                   </Button>
-                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => useHint(3)}>
+                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => revealHint(3)}>
                     Nu mă prind, arată mutarea <span className="opacity-60 ml-auto">fără XP</span>
                   </Button>
                 </>

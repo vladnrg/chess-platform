@@ -21,6 +21,14 @@ export interface Profile {
   county: string | null
   lichess_username: string | null
   created_at: string
+  // Conturi de copil (migrarea 003). `is_minor` se calculează în cod din birth_year.
+  birth_year: number | null
+  parental_email: string | null
+  parental_consent_token: string | null
+  parental_consent_given: boolean
+  parental_consent_expires_at: string | null
+  account_frozen: boolean
+  account_frozen_reason: 'awaiting_parental_consent' | 'rejected' | null
 }
 
 export type TournamentType = 'platform' | 'external'

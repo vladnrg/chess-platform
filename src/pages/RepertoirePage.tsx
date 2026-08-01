@@ -71,7 +71,7 @@ export function RepertoirePage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
-  const [lichessInput, setLichessInput] = useState((profile as any)?.lichess_username ?? '')
+  const [lichessInput, setLichessInput] = useState(profile?.lichess_username ?? '')
   const [colorFilter, setColorFilter] = useState<'white' | 'black' | 'all'>('all')
   const [showPersonalTactics, setShowPersonalTactics] = useState(false)
   const [trainerElo, setTrainerElo] = useState(1800)

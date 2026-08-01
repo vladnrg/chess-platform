@@ -33,7 +33,8 @@ export function LessonPage() {
   const { data: lesson, isLoading } = useQuery({
     queryKey: ['lesson', lessonId],
     queryFn: async () => {
-      const { data } = await supabase.from('lessons').select('*').eq('id', lessonId).single()
+      const { data, error } = await supabase.from('lessons').select('*').eq('id', lessonId!).single()
+      if (error) throw error
       return data as Lesson
     },
     enabled: !!lessonId,
@@ -42,7 +43,8 @@ export function LessonPage() {
   const { data: course } = useQuery({
     queryKey: ['course', slug],
     queryFn: async () => {
-      const { data } = await supabase.from('courses').select('*').eq('slug', slug).single()
+      const { data, error } = await supabase.from('courses').select('*').eq('slug', slug!).single()
+      if (error) throw error
       return data as Course
     },
     enabled: !!slug,

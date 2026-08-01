@@ -21,13 +21,13 @@ export function ParentalConfirmPage() {
         .from('parental_links')
         .select('*, profiles(username, birth_year)')
         .eq('token', token)
-        .single() as any
+        .single()
 
       if (!link) { setState('expired'); return }
       if (link.used_at) { setState('already-used'); return }
       if (new Date(link.expires_at) < new Date()) { setState('expired'); return }
 
-      const profile = link.profiles as any
+      const profile = link.profiles
       setChildName(profile?.username ?? 'copilul tău')
 
       // Auto-action if action param present
@@ -50,18 +50,18 @@ export function ParentalConfirmPage() {
           account_frozen: false,
           account_frozen_reason: null,
           parental_consent_given: true,
-        }).eq('id', userId) as any
+        }).eq('id', userId)
         setState('done-confirm')
       } else {
         await supabase.from('profiles').update({
           account_frozen: true,
           account_frozen_reason: 'rejected',
           parental_consent_given: false,
-        }).eq('id', userId) as any
+        }).eq('id', userId)
         setState('done-reject')
       }
 
-      await supabase.from('parental_links').update({ used_at: new Date().toISOString() }).eq('id', linkId) as any
+      await supabase.from('parental_links').update({ used_at: new Date().toISOString() }).eq('id', linkId)
     } finally {
       setSubmitting(false)
     }

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { noise } from '@/lib/utils'
 
 // Celebrare tematică de șah (NU confetti): un pion urcă și se transformă
 // într-o damă, în timp ce piese de șah plutesc în sus în jurul lui.
@@ -21,17 +22,23 @@ export function PawnPromotionCelebration({ accentColor = '#E2B340', duration = 2
     return () => clearTimeout(t)
   }, [duration, onDone])
 
-  if (!visible) return null
+  // Piese plutitoare cu poziții/întârzieri variate, dar deterministe: calculate o
+  // singură dată, ca să nu se reașeze la fiecare render în mijlocul animației.
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        i,
+        left: 8 + noise(i) * 84,
+        delay: noise(i + 100) * 0.5,
+        dur: 1.3 + noise(i + 200) * 0.9,
+        spin: `${(noise(i + 300) * 80 - 40).toFixed(0)}deg`,
+        sizeP: 14 + noise(i + 400) * 16,
+        glyph: FLOATING_PIECES[i % FLOATING_PIECES.length],
+      })),
+    []
+  )
 
-  // Generăm piese plutitoare cu poziții/întârzieri randomizate
-  const pieces = Array.from({ length: 14 }, (_, i) => {
-    const left = 8 + Math.random() * 84
-    const delay = Math.random() * 0.5
-    const dur = 1.3 + Math.random() * 0.9
-    const spin = `${(Math.random() * 80 - 40).toFixed(0)}deg`
-    const sizeP = 14 + Math.random() * 16
-    return { i, left, delay, dur, spin, sizeP, glyph: FLOATING_PIECES[i % FLOATING_PIECES.length] }
-  })
+  if (!visible) return null
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden flex items-center justify-center">

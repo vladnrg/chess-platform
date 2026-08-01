@@ -27,7 +27,7 @@ export function CourseDetail() {
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', slug],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('courses').select('*').eq('slug', slug!).single()
+      const { data } = await supabase.from('courses').select('*').eq('slug', slug!).single()
       return data as Course
     },
     enabled: !!slug,
@@ -36,7 +36,7 @@ export function CourseDetail() {
   const { data: openingLines } = useQuery({
     queryKey: ['opening-lines', course?.id],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('opening_lines')
         .select('*')
         .eq('course_id', course!.id)
@@ -49,7 +49,7 @@ export function CourseDetail() {
   const { data: lessons } = useQuery({
     queryKey: ['lessons', course?.id],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('lessons')
         .select('*')
         .eq('course_id', course!.id)
@@ -62,7 +62,7 @@ export function CourseDetail() {
   const { data: progress } = useQuery({
     queryKey: ['course-progress', user?.id, course?.id],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('user_course_progress')
         .select('*')
         .eq('user_id', user!.id)

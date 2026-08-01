@@ -1,22 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { supabase, type ChildSession } from '@/lib/supabase'
 import { useAuth } from './useAuth'
 
 const SESSION_MINUTES = 60
 const WARNING_AT_MINUTES = 50
-
-interface ChildSession {
-  id: string
-  session_number: number
-  started_at: string
-  expires_at: string
-  break_duration_minutes: number
-  break_starts_at: string | null
-  break_ends_at: string | null
-  last_seen_at: string
-  warning_sent: boolean
-}
 
 export function useChildSession() {
   const { user, profile } = useAuth()
@@ -26,7 +14,7 @@ export function useChildSession() {
   const [showWarning, setShowWarning] = useState(false)
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const birthYear = (profile as any)?.birth_year as number | null | undefined
+  const birthYear = profile?.birth_year
   const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
 
   const loadOrCreateSession = useCallback(async () => {
@@ -39,7 +27,7 @@ export function useChildSession() {
       .eq('user_id', user.id)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
-      .limit(1) as any
+      .limit(1)
 
     const existing = existingSessions?.[0] as ChildSession | undefined
 
@@ -65,7 +53,7 @@ export function useChildSession() {
           break_duration_minutes: breakMins,
           break_starts_at: breakStart.toISOString(),
           break_ends_at: breakEnd.toISOString(),
-        }).eq('id', existing.id) as any
+        }).eq('id', existing.id)
 
         navigate(`/break?minutes=${breakMins}&sessionId=${existing.id}`)
         return
@@ -79,7 +67,7 @@ export function useChildSession() {
         .select('session_number')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
-        .limit(1) as any
+        .limit(1)
 
       const nextNumber = (lastSession?.[0]?.session_number ?? 0) + 1
       const now = new Date()
@@ -94,7 +82,7 @@ export function useChildSession() {
           break_duration_minutes: calcBreakDuration(nextNumber),
         })
         .select()
-        .single() as any
+        .single()
 
       setSession(newSession)
     }
@@ -112,12 +100,12 @@ export function useChildSession() {
       setMinutesLeft(minsLeft)
 
       // Update last_seen
-      await supabase.from('child_sessions').update({ last_seen_at: now.toISOString() }).eq('id', session.id) as any
+      await supabase.from('child_sessions').update({ last_seen_at: now.toISOString() }).eq('id', session.id)
 
       // Warning at 10 min left
       if (minsLeft <= SESSION_MINUTES - WARNING_AT_MINUTES && !session.warning_sent) {
         setShowWarning(true)
-        await supabase.from('child_sessions').update({ warning_sent: true }).eq('id', session.id) as any
+        await supabase.from('child_sessions').update({ warning_sent: true }).eq('id', session.id)
         setSession(s => s ? { ...s, warning_sent: true } : s)
       }
 
@@ -131,7 +119,7 @@ export function useChildSession() {
           break_duration_minutes: breakMins,
           break_starts_at: now.toISOString(),
           break_ends_at: breakEnd.toISOString(),
-        }).eq('id', session.id) as any
+        }).eq('id', session.id)
 
         navigate(`/break?minutes=${breakMins}&sessionId=${session.id}`)
       }

@@ -7,7 +7,6 @@ interface ChildStats {
   current_league: string
   xp: number
   streak_days: number
-  birth_year: number
 }
 
 interface WeekStat {
@@ -31,7 +30,7 @@ export function ParentalStatsPage() {
         .from('parental_links')
         .select('user_id, expires_at, type')
         .eq('token', token)
-        .single() as any
+        .single()
 
       if (!link || link.type !== 'stats' || new Date(link.expires_at) < new Date()) {
         setState('error')
@@ -39,8 +38,8 @@ export function ParentalStatsPage() {
       }
 
       const [profileRes, xpRes] = await Promise.all([
-        supabase.from('profiles').select('username, current_league, xp, streak_days, birth_year').eq('id', link.user_id).single() as any,
-        supabase.from('user_weekly_xp').select('week_start, xp_earned').eq('user_id', link.user_id).order('week_start', { ascending: false }).limit(8) as any,
+        supabase.from('profiles').select('username, current_league, xp, streak_days').eq('id', link.user_id).single(),
+        supabase.from('user_weekly_xp').select('week_start, xp_earned').eq('user_id', link.user_id).order('week_start', { ascending: false }).limit(8),
       ])
 
       if (!profileRes.data) { setState('error'); return }

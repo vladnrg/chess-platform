@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
+import { noise } from '@/lib/utils'
 
 interface RewardBurstProps {
   /** Cantitatea de XP afișată (ex. 70 → "+70 XP"). */
@@ -22,14 +23,14 @@ export function RewardBurst({ xp, particles = 12, onComplete }: RewardBurstProps
   const bits = useMemo(
     () =>
       Array.from({ length: particles }).map((_, i) => {
-        const angle = (Math.PI * 2 * i) / particles + Math.random() * 0.4
-        const dist = 60 + Math.random() * 50
+        const angle = (Math.PI * 2 * i) / particles + noise(i) * 0.4
+        const dist = 60 + noise(i + 100) * 50
         return {
           id: i,
           x: Math.cos(angle) * dist,
           y: Math.sin(angle) * dist,
-          rotate: (Math.random() - 0.5) * 240,
-          delay: Math.random() * 0.08,
+          rotate: (noise(i + 200) - 0.5) * 240,
+          delay: noise(i + 300) * 0.08,
         }
       }),
     [particles]
