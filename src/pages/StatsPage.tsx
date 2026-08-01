@@ -190,10 +190,8 @@ export function StatsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Statistici personale</h1>
-        <p className="text-[#6B6B6B] text-sm mt-0.5">Progresul tău în timp</p>
-      </div>
+      {/* Titlul stă în bara shell-ului; aici rămâne doar subtitlul */}
+      <p className="text-[#6B6B6B] text-sm">Progresul tău în timp</p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

@@ -32,10 +32,8 @@ export function CalendarPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#F0F0F0]">Calendar competițional</h1>
-          <p className="text-[#6B6B6B] text-sm mt-0.5">Turnee și competiții — pe platformă și în comunitate</p>
-        </div>
+        {/* Titlul stă în bara shell-ului; aici rămâne doar subtitlul */}
+        <p className="text-[#6B6B6B] text-sm">Turnee și competiții — pe platformă și în comunitate</p>
 
         {/* View toggle */}
         <div className="flex rounded-lg bg-[#141414] border border-[#2A2A2A] p-1 gap-1 w-fit">

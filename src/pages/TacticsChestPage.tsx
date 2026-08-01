@@ -98,8 +98,8 @@ export function TacticsChestPage() {
           <MascotEnPassant size={132} mood="happy" />
         </div>
         <div className="relative px-6 py-7 max-w-[36rem]">
-          <h1 className="text-3xl font-black text-[#F0F0F0] tracking-tight font-display">Cufărul cu tactici</h1>
-          <p className="text-[#A0A0A0] mt-2 text-sm">
+          {/* Titlul stă în bara shell-ului; hero-ul păstrează doar descrierea şi statisticile */}
+          <p className="text-[#A0A0A0] text-sm">
             Antrenează-te pe niveluri — de la începător la maestru. Alege un tip de tactică
             și parcurge traseul de exerciții, exact ca la cursuri.
           </p>

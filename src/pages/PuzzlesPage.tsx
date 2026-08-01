@@ -599,12 +599,14 @@ export function PuzzlesPage() {
   ]
 
   return (
-    // Zoom 10% pe toată pagina de puzzle-uri (mărește uniform tot conținutul).
+    // TEMPORAR: zoom 10%, ca tabla să nu fie şi mai mică decât e. Se scoate odată cu
+    // arhetipul „focus" (sidebar colapsat la bară de icoane), care eliberează ~200px
+    // lăţime şi face compensarea prin scalare inutilă. Vezi lib/navigation.ts.
     <div className="space-y-6" style={{ zoom: 1.1 }}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        {/* Titlul stă în bara shell-ului; aici rămâne doar linia de context */}
         <div>
-          <h1 className="text-2xl font-bold text-[#F0F0F0]">Puzzle-uri</h1>
-          <p className="text-[#6B6B6B] text-sm mt-0.5">
+          <p className="text-[#6B6B6B] text-sm">
             {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
             {currentBand && (
               <> · <span style={{ color: offsetColor(0) }}>Interval Elo {currentBand.label}</span></>

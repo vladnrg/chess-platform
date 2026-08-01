@@ -22,13 +22,10 @@ export function LeaguesPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 py-2">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Sistemul de ligi</h1>
-        <p className="text-[#6B6B6B] mt-1 text-sm">
-          Acumulează XP rezolvând puzzle-uri și parcurgând cursuri pentru a avansa în ligi.
-        </p>
-      </div>
+      {/* Titlul stă în bara shell-ului; aici rămâne doar subtitlul */}
+      <p className="text-[#6B6B6B] text-sm">
+        Acumulează XP rezolvând puzzle-uri și parcurgând cursuri pentru a avansa în ligi.
+      </p>
 
       {/* Current league card */}
       {profile && currentLeagueConfig && (

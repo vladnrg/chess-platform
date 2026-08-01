@@ -106,13 +106,10 @@ export function RepertoirePage() {
   return (
     <>
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Studiază-ți partidele</h1>
-        <p className="text-[#6B6B6B] text-sm mt-1 max-w-xl">
-          Conectează-ți contul Lichess pentru a vedea cum performezi cu fiecare deschidere și ce trebuie să antrenezi.
-        </p>
-      </div>
+      {/* Titlul stă în bara shell-ului; aici rămâne doar subtitlul */}
+      <p className="text-[#6B6B6B] text-sm max-w-xl">
+        Conectează-ți contul Lichess pentru a vedea cum performezi cu fiecare deschidere și ce trebuie să antrenezi.
+      </p>
 
       {/* Import panel */}
       <Card>

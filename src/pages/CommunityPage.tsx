@@ -25,11 +25,8 @@ export function CommunityPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Comunitate</h1>
-        <p className="text-[#6B6B6B] text-sm mt-0.5">Descoperă jucători din comunitatea ta</p>
-      </div>
+      {/* Titlul stă în bara shell-ului; aici rămâne doar subtitlul */}
+      <p className="text-[#6B6B6B] text-sm">Descoperă jucători din comunitatea ta</p>
 
       {/* Banner locație lipsă */}
       {!hasLocation && (

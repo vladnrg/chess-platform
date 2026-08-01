@@ -1,25 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Crown, LogOut, X, Flame, Sword, Calendar, Users, Library, Trophy, GraduationCap,
-} from 'lucide-react'
+import { Crown, LogOut, X, Flame } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Bârlogul șahistului' },
-  { to: '/courses', icon: BookOpen, label: 'Cursuri interactive' },
-  { to: '/puzzles', icon: Puzzle, label: 'Puzzle-uri' },
-  { to: '/tactics', icon: Sword, label: 'Cufărul cu tactici' },
-  { to: '/pentru-incepatori', icon: GraduationCap, label: 'Pentru începători' },
-  { to: '/calendar', icon: Calendar, label: 'Calendar competițional' },
-  { to: '/community', icon: Users, label: 'Comunitate' },
-  { to: '/leagues', icon: Trophy, label: 'Ligi' },
-  { to: '/stats', icon: BarChart2, label: 'Statistici personale' },
-  { to: '/repertoire', icon: Library, label: 'Studiază-ți partidele' },
-  { to: '/profile', icon: User, label: 'Profil' },
-]
+import { NAV_ITEMS } from '@/lib/navigation'
 
 interface SidebarProps {
   onClose?: () => void
@@ -37,8 +21,11 @@ export function Sidebar({ onClose }: SidebarProps) {
 
   return (
     <div className="flex h-full flex-col bg-[#141414] border-r border-[#2A2A2A]">
-      {/* Logo + close */}
-      <div className="flex items-center justify-between px-5 py-5">
+      {/* Logo + close — aceeași înălțime ca bara de sus, ca cele două să se alinieze */}
+      <div
+        className="flex flex-shrink-0 items-center justify-between border-b border-[#2A2A2A] px-5"
+        style={{ height: 'var(--app-header)' }}
+      >
         <NavLink to="/dashboard" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
             <span className="text-black font-black text-sm">♟</span>
@@ -54,7 +41,7 @@ export function Sidebar({ onClose }: SidebarProps) {
 
       {/* User info */}
       {profile && (
-        <div className="mx-3 mb-3 rounded-xl bg-[#1C1C1C] border border-[#2A2A2A] p-3">
+        <div className="mx-3 mt-3 mb-3 flex-shrink-0 rounded-xl bg-[#1C1C1C] border border-[#2A2A2A] p-3">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2A2A2A] text-sm font-bold text-[#E2B340]">
               {profile.username.slice(0, 2).toUpperCase()}
@@ -81,7 +68,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3">
+      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3">
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -101,7 +88,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="space-y-1 px-3 pb-4">
+      <div className="flex-shrink-0 space-y-1 px-3 pb-4 pt-2">
         <NavLink
           to="/pricing"
           onClick={onClose}

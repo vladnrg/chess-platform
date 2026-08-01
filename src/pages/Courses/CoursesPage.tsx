@@ -122,48 +122,26 @@ export function CoursesPage() {
     return pct === 1
   }).length
 
+  const showFundamentals = !isLoading && fundamentals.length > 0 && levelFilter === 'all' && !search
+
   return (
-    <div className="space-y-8">
+    // Înălţime fermă (`--app-page-h`), nu `min-height`: abia aşa rândurile de mai
+    // jos au la ce să se comprime. Cu `min-h-full` containerul creşte odată cu
+    // conţinutul şi flex-ul nu mai are motiv să micşoreze nimic — pagina scrollează.
+    <div
+      className="flex flex-col overflow-y-auto"
+      style={{ height: 'var(--app-page-h)', gap: 'var(--app-gap)' }}
+    >
 
-      {/* Hero header */}
-      <div className="relative rounded-2xl overflow-hidden border border-[#2A2A2A]"
-        style={{ background: 'linear-gradient(135deg, #0A0A0A 0%, #1C1C1C 50%, #0A0A0A 100%)' }}>
-        <div className="absolute inset-0 opacity-5 text-[200px] flex items-center justify-end pr-8 select-none pointer-events-none leading-none">
-          ♛
-        </div>
-        <div className="relative px-6 py-8">
-          <h1 className="text-3xl font-black text-[#F0F0F0] tracking-tight">Cursuri interactive</h1>
-          <p className="text-[#A0A0A0] mt-2 text-sm max-w-md">
-            Stăpânește deschiderile preferate. Fiecare curs îți construiește repertoriul cu poziții reale și explicații clare.
-          </p>
-          <div className="flex gap-6 mt-5">
-            <div>
-              <p className="text-2xl font-black text-[#E2B340]">{totalCourses}</p>
-              <p className="text-xs text-[#6B6B6B]">cursuri disponibile</p>
-            </div>
-            {completedCourses > 0 && (
-              <div>
-                <p className="text-2xl font-black text-[#4ade80]">{completedCourses}</p>
-                <p className="text-xs text-[#6B6B6B]">finalizate</p>
-              </div>
-            )}
-            <div>
-              <p className="text-2xl font-black text-[#F0F0F0]">{isPro ? '∞' : '3'}</p>
-              <p className="text-xs text-[#6B6B6B]">acces {isPro ? 'complet' : 'gratuit'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
+      {/* Bara de filtre — titlul e în bara shell-ului, aici rămân doar comenzile */}
+      <div className="flex flex-shrink-0 flex-wrap items-center gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B6B6B]" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Caută deschidere..."
-            className="h-9 rounded-lg border border-[#2A2A2A] bg-[#141414] pl-9 pr-3 text-sm text-[#F0F0F0] placeholder-[#6B6B6B] focus:outline-none focus:border-[#E2B340] w-48 transition-colors"
+            className="h-9 w-48 rounded-lg border border-[#2A2A2A] bg-[#141414] pl-9 pr-3 text-sm text-[#F0F0F0] placeholder-[#6B6B6B] transition-colors focus:border-[#E2B340] focus:outline-none"
           />
         </div>
         <div className="h-5 w-px bg-[#2A2A2A]" />
@@ -175,52 +153,56 @@ export function CoursesPage() {
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                 levelFilter === l.value
                   ? 'bg-[#E2B340] text-black shadow-[0_0_12px_rgba(226,179,64,0.4)]'
-                  : 'bg-[#141414] border border-[#2A2A2A] text-[#6B6B6B] hover:text-[#A0A0A0] hover:border-[#3A3A3A]'
+                  : 'border border-[#2A2A2A] bg-[#141414] text-[#6B6B6B] hover:border-[#3A3A3A] hover:text-[#A0A0A0]'
               }`}
             >
               {l.label}
             </button>
           ))}
         </div>
+
+        {/* Statisticile care stăteau în hero — acum pe acelaşi rând, la capăt */}
+        <div className="ml-auto flex items-center gap-4 text-xs text-[#6B6B6B]">
+          <span><span className="font-bold text-[#E2B340]">{totalCourses}</span> cursuri</span>
+          {completedCourses > 0 && (
+            <span><span className="font-bold text-[#4ade80]">{completedCourses}</span> finalizate</span>
+          )}
+          <span>acces <span className="font-bold text-[#F0F0F0]">{isPro ? 'complet' : 'gratuit'}</span></span>
+        </div>
       </div>
 
-      {/* Fundamentals — special wide cards */}
-      {!isLoading && fundamentals.length > 0 && levelFilter === 'all' && !search && (
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-[#141414]" />
-            <span className="text-xs font-bold text-[#E2B340] uppercase tracking-widest">Înainte de orice altceva — Gratuit</span>
-            <div className="h-px flex-1 bg-[#141414]" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {fundamentals.map(course => (
-              <CourseCard key={course.id} course={course} isPro={isPro} featured />
-            ))}
-          </div>
-        </section>
+      {/* Hint: fă testul de plasament pentru recomandări */}
+      {!hasPlacement && !isLoading && (
+        <Link
+          to="/puzzles/placement"
+          className="flex flex-shrink-0 items-center gap-3 rounded-xl border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-4 py-2.5 text-sm transition-colors hover:bg-[rgba(226,179,64,0.14)]"
+        >
+          <Sparkles className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />
+          <span className="text-[#F0F0F0]">
+            Fă <span className="font-semibold text-[#E2B340]">testul de plasament</span> ca să primești cursuri recomandate pentru nivelul și stilul tău.
+          </span>
+          <ChevronRight className="ml-auto h-4 w-4 flex-shrink-0 text-[#E2B340]" />
+        </Link>
       )}
 
-      {/* Carusele pe culoare */}
       {isLoading ? (
-        <div className="flex justify-center py-20"><Spinner className="h-8 w-8" /></div>
-      ) : filtered.length === 0 ? (
-        <p className="text-center text-[#6B6B6B] py-20">Niciun curs nu corespunde filtrelor selectate.</p>
+        <div className="flex flex-1 items-center justify-center"><Spinner className="h-8 w-8" /></div>
+      ) : filtered.length === 0 && !showFundamentals ? (
+        <p className="flex flex-1 items-center justify-center text-[#6B6B6B]">
+          Niciun curs nu corespunde filtrelor selectate.
+        </p>
       ) : (
-        <div className="space-y-8">
-          {/* Hint: fă testul de plasament pentru recomandări */}
-          {!hasPlacement && (
-            <Link
-              to="/puzzles/placement"
-              className="flex items-center gap-3 rounded-xl border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-4 py-3 text-sm hover:bg-[rgba(226,179,64,0.14)] transition-colors"
-            >
-              <Sparkles className="h-4 w-4 text-[#E2B340] flex-shrink-0" />
-              <span className="text-[#F0F0F0]">
-                Fă <span className="font-semibold text-[#E2B340]">testul de plasament</span> ca să primești cursuri recomandate pentru nivelul și stilul tău.
-              </span>
-              <ChevronRight className="h-4 w-4 text-[#E2B340] ml-auto flex-shrink-0" />
-            </Link>
+        <div className="flex min-h-0 flex-1 flex-col" style={{ gap: 'var(--app-gap)' }}>
+          {showFundamentals && (
+            <CourseCarousel
+              title="Înainte de orice altceva"
+              badge="Gratuit"
+              courses={fundamentals}
+              isPro={isPro}
+              profile={profile}
+              featured
+            />
           )}
-
           {whiteCourses.length > 0 && (
             <CourseCarousel title="Deschideri cu Albul" courses={whiteCourses} isPro={isPro} profile={profile} />
           )}
@@ -234,18 +216,32 @@ export function CoursesPage() {
 }
 
 // Carusel orizontal cu derulare prin săgeți (stil Chessly).
-function CourseCarousel({ title, courses, isPro, profile }: {
-  title: string; courses: Course[]; isPro: boolean; profile: Profile | null
+//
+// Rândul e `flex-1 min-h-0`: îşi ia înălţimea din spaţiul rămas al paginii, iar
+// cardurile se întind pe cât primesc (`h-full`). Aşa două sau patru carusele
+// încap la fel de bine, fără înălţimi fixe scrise de mână.
+function CourseCarousel({ title, badge, courses, isPro, profile, featured = false }: {
+  title: string
+  badge?: string
+  courses: Course[]
+  isPro: boolean
+  profile: Profile | null
+  featured?: boolean
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const scroll = (dir: number) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-[#F0F0F0] uppercase tracking-wider flex items-center gap-2">
+    <section className="flex flex-1 flex-col" style={{ minHeight: 'var(--app-row-min)' }}>
+      <div className="mb-2 flex flex-shrink-0 items-center justify-between">
+        <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-[#F0F0F0]">
           {title}
-          <span className="text-xs text-[#6B6B6B] font-normal normal-case">· {courses.length}</span>
+          {badge && (
+            <span className="rounded-full bg-[rgba(226,179,64,0.15)] px-2 py-0.5 text-[10px] font-black tracking-widest text-[#E2B340]">
+              {badge}
+            </span>
+          )}
+          <span className="text-xs font-normal normal-case text-[#6B6B6B]">· {courses.length}</span>
         </h3>
         <div className="flex gap-1.5">
           {[-1, 1].map(dir => (
@@ -253,7 +249,7 @@ function CourseCarousel({ title, courses, isPro, profile }: {
               key={dir}
               onClick={() => scroll(dir)}
               aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#141414] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:bg-[#1C1C1C] hover:text-[#F0F0F0]"
             >
               {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
@@ -262,11 +258,19 @@ function CourseCarousel({ title, courses, isPro, profile }: {
       </div>
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex min-h-0 flex-1 snap-x gap-4 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {courses.map(course => (
-          <div key={course.id} className="w-64 sm:w-72 shrink-0 snap-start">
-            <CourseCard course={course} isPro={isPro} recommended={isRecommended(course, profile)} />
+          <div
+            key={course.id}
+            className={`h-full shrink-0 snap-start ${featured ? 'w-[26rem]' : 'w-64 sm:w-72'}`}
+          >
+            <CourseCard
+              course={course}
+              isPro={isPro}
+              featured={featured}
+              recommended={!featured && isRecommended(course, profile)}
+            />
           </div>
         ))}
       </div>
@@ -307,7 +311,7 @@ function CourseCard({ course, isPro, featured = false, recommended = false }: { 
   // Iconul cursului — tile pătrat decupat curat (object-cover + zoom ușor care taie
   // marginea transparentă / haloul exterior), colțuri rotunjite ca pe Chessly
   const tokenIcon = (sizeClass: string) => (
-    <div className={`relative ${sizeClass} ${LOGO_RADIUS} overflow-hidden shrink-0 bg-[#141414] shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}>
+    <div className={`course-card-icon relative ${sizeClass} ${LOGO_RADIUS} overflow-hidden shrink-0 bg-[#141414] shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}>
       <img
         src={`/openings/${course.slug}.png`}
         alt={course.title}
@@ -334,7 +338,7 @@ function CourseCard({ course, isPro, featured = false, recommended = false }: { 
         )}
       </div>
       {completedLessons > 0 && (
-        <div className="h-1.5 rounded-full bg-[#1C1C1C] overflow-hidden">
+        <div className="course-card-progress h-1.5 rounded-full bg-[#1C1C1C] overflow-hidden">
           <div className="h-full rounded-full transition-all"
             style={{ width: `${pct}%`, backgroundColor: pct === 100 ? '#4ade80' : theme.accent }} />
         </div>
@@ -343,7 +347,7 @@ function CourseCard({ course, isPro, featured = false, recommended = false }: { 
   )
 
   const styleTags = course.playing_styles.length > 0 && (
-    <div className="flex gap-2 flex-wrap">
+    <div className="course-card-tags flex gap-2 flex-wrap">
       {course.playing_styles.map(style => (
         <span key={style}
           className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#1C1C1C] border border-[#2A2A2A] text-[#6B6B6B]">
@@ -369,48 +373,54 @@ function CourseCard({ course, isPro, featured = false, recommended = false }: { 
   // Layout orizontal pentru cardurile featured (icon stânga + conținut dreapta), stil Chessly
   if (featured) {
     return (
-      <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-        <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex gap-5 p-5 ${cardShell}`}>
+      <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block h-full">
+        <div className={`flex h-full gap-5 overflow-hidden rounded-2xl border bg-[#141414] p-5 transition-all duration-200 ${cardShell}`}>
           {tokenIcon(LOGO_SIZE_FEATURED)}
-          <div className="flex flex-col flex-1 min-w-0 gap-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="text-lg font-bold text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <div className="flex flex-shrink-0 items-start justify-between gap-2">
+              <h3 className="truncate text-lg font-bold leading-tight text-[#F0F0F0] transition-colors group-hover:text-[#E2B340]">
                 {familyName}
               </h3>
               {levelBadge}
             </div>
             {course.description && (
-              <p className="text-sm text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
+              <p className="line-clamp-2 text-sm leading-relaxed text-[#A0A0A0]">{course.description}</p>
             )}
             {styleTags}
-            {metaFooter}
+            <div className="mt-auto flex-shrink-0">{metaFooter}</div>
           </div>
         </div>
       </Link>
     )
   }
 
-  // Layout vertical (grila principală) — icon sus-stânga, descriere dedesubt
+  // Layout vertical (carusele) — icon sus-stânga, descriere dedesubt.
+  // `h-full` + `overflow-hidden`: cardul se întinde pe înălţimea rândului, iar
+  // dacă rândul e scund conţinutul se taie curat în loc să iasă din card.
   return (
-    <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block">
-      <div className={`rounded-2xl border bg-[#141414] transition-all duration-200 h-full flex flex-col gap-4 p-5 ${cardShell}`}>
-        <div className="flex items-start justify-between gap-2">
-          {tokenIcon(LOGO_SIZE)}
-          <div className="flex flex-col items-end gap-1.5">
-            {recBadge}
-            {levelBadge}
+    <Link to={locked ? '/pricing' : `/courses/${course.slug}`} className="group block h-full">
+      <div className={`course-card h-full overflow-hidden rounded-2xl border bg-[#141414] transition-all duration-200 ${cardShell}`}>
+        <div className="course-card-body flex h-full flex-col gap-3 p-5">
+          <div className="flex flex-shrink-0 items-start justify-between gap-2">
+            {tokenIcon(LOGO_SIZE)}
+            <div className="flex flex-col items-end gap-1.5">
+              {recBadge}
+              {levelBadge}
+            </div>
           </div>
+          <div className="min-w-0 flex-shrink-0">
+            <h3 className="truncate text-lg font-bold leading-tight text-[#F0F0F0] transition-colors group-hover:text-[#E2B340]">
+              {familyName}
+            </h3>
+            {course.description && (
+              <p className="course-card-desc mt-1.5 line-clamp-2 text-sm leading-relaxed text-[#A0A0A0]">
+                {course.description}
+              </p>
+            )}
+          </div>
+          {styleTags}
+          <div className="mt-auto flex-shrink-0">{metaFooter}</div>
         </div>
-        <div className="min-w-0">
-          <h3 className="font-bold text-lg text-[#F0F0F0] leading-tight truncate group-hover:text-[#E2B340] transition-colors">
-            {familyName}
-          </h3>
-          {course.description && (
-            <p className="mt-1.5 text-sm text-[#A0A0A0] leading-relaxed line-clamp-2">{course.description}</p>
-          )}
-        </div>
-        {styleTags}
-        {metaFooter}
       </div>
     </Link>
   )
