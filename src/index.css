@@ -75,6 +75,11 @@
      să fie fermă, nu `min-height`: doar aşa tabla poate fi dimensionată din
      înălţimea rămasă, în loc să împingă pagina în jos. */
   --app-page-h: calc(var(--app-content-h) - 2 * var(--app-pad));
+
+  /* Cât se poate alungi un conector din traseul de curs (stil Duolingo). Traseul
+     umple înălţimea rămasă, dar cu plafon: la 3 variante pe un ecran înalt,
+     golurile nelimitate ar rupe senzaţia de traseu continuu. */
+  --path-link-max: 9rem;
 }
 
 @media (max-width: 1023px) {

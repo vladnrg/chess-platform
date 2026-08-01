@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { BookOpen, CheckCircle2, Lock, ChevronLeft, ChevronRight, Clock, TrendingUp, Dumbbell } from 'lucide-react'
@@ -103,14 +104,20 @@ export function CourseDetail() {
   const resumeStep = steps.find(s => s.id === resumeId)
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <Link to="/courses" className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
+    // Centrată pe ecran şi pe toată înălţimea: cardul rămâne sus, iar traseul
+    // primeşte spaţiul rămas. Înainte, `max-w-3xl` fără `mx-auto` împingea totul
+    // în stânga-sus şi lăsa restul ecranului gol.
+    <div
+      className="mx-auto flex w-full max-w-5xl flex-col gap-6"
+      style={{ height: 'var(--app-page-h)' }}
+    >
+      <Link to="/courses" className="flex flex-shrink-0 items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
         <ChevronLeft className="h-4 w-4" />
         Toate cursurile
       </Link>
 
       {/* Header — iconiță + titlu + descriere */}
-      <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
+      <div className="flex-shrink-0 rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
         <div className="flex items-start gap-4 mb-4">
           <img
             src={`/openings/${course.slug}.png`}
@@ -197,22 +204,34 @@ export function CourseDetail() {
 
       {/* Conținutul cursului — traseu stil Duolingo */}
       {steps.length > 0 ? (
-        <div>
-          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-1">Conținutul cursului</h2>
-          <p className="text-xs text-[#6B6B6B] mb-4">{doneCount} din {totalSteps} parcurse</p>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <h2 className="flex-shrink-0 text-lg font-semibold text-[#F0F0F0] mb-1">Conținutul cursului</h2>
+          <p className="flex-shrink-0 text-xs text-[#6B6B6B] mb-4">{doneCount} din {totalSteps} parcurse</p>
 
-          <div className="max-w-md mx-auto">
+          {/* Traseul umple înălţimea rămasă prin conectorii dintre casete, care se
+              întind — dar nu peste `--path-link-max`. Când ating plafonul, spaţiul
+              rămas se împarte egal sus/jos (`justify-center`), ca traseul să stea
+              centrat în loc să fie răsfirat absurd la 3 variante pe un ecran înalt. */}
+          {/* `safe center`, nu `center`: pe ecrane prea scunde pentru traseu,
+              centrarea obişnuită ar tăia primele casete sus, fără cale de a ajunge
+              la ele prin scroll. */}
+          <div
+            className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-y-auto"
+            style={{ justifyContent: 'safe center' }}
+          >
             {steps.map((step, i) => {
               const done = completedIds.includes(step.id)
               const current = !done && step.id === resumeId
               const locked = isLocked || (step.premium && !isPro)
               return (
-                <div key={step.id}>
+                // Fragment, nu <div>: casetele şi conectorii trebuie să fie copii
+                // direcţi ai flex-ului, altfel conectorii nu se pot întinde.
+                <Fragment key={step.id}>
                   {/* Caseta cursului — titlu lizibil în interior */}
                   <Link
                     to={locked ? '/pricing' : step.href}
                     title={step.title}
-                    className={`flex items-center gap-3 rounded-2xl border bg-[#141414] p-3 transition-all hover:-translate-y-0.5 ${
+                    className={`flex flex-shrink-0 items-center gap-4 rounded-2xl border bg-[#141414] p-4 transition-all hover:-translate-y-0.5 ${
                       current
                         ? 'border-[rgba(226,179,64,0.55)] shadow-[0_0_18px_rgba(226,179,64,0.15)]'
                         : done
@@ -220,36 +239,47 @@ export function CourseDetail() {
                         : 'border-[#2A2A2A] hover:border-[#3A3A3A]'
                     }`}
                   >
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl shrink-0 ${
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl shrink-0 ${
                       done ? 'bg-[#4ade80] text-black'
                         : current ? 'bg-[#E2B340] text-black'
                         : 'bg-[#1C1C1C] text-[#6B6B6B]'
                     }`}>
-                      {done ? <CheckCircle2 className="h-6 w-6" />
-                        : locked ? <Lock className="h-5 w-5" />
-                        : <BookOpen className="h-6 w-6" />}
+                      {done ? <CheckCircle2 className="h-7 w-7" />
+                        : locked ? <Lock className="h-6 w-6" />
+                        : <BookOpen className="h-7 w-7" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-display font-semibold text-sm truncate ${done ? 'text-[#A0A0A0]' : 'text-[#F0F0F0]'}`}>
+                      <p className={`font-display font-semibold text-base truncate ${done ? 'text-[#A0A0A0]' : 'text-[#F0F0F0]'}`}>
                         {step.title}
                       </p>
-                      <p className={`text-xs ${current ? 'text-[#E2B340] font-semibold' : done ? 'text-[#4ade80]' : 'text-[#6B6B6B]'}`}>
+                      <p className={`text-sm ${current ? 'text-[#E2B340] font-semibold' : done ? 'text-[#4ade80]' : 'text-[#6B6B6B]'}`}>
                         {current ? 'Ești aici' : done ? 'Terminat' : step.sub}
                       </p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-[#6B6B6B] shrink-0" />
+                    <ChevronRight className="h-5 w-5 text-[#6B6B6B] shrink-0" />
                   </Link>
 
-                  {/* Linie discontinuă șerpuită între casete (în gol, nu peste titluri) */}
+                  {/* Linie discontinuă șerpuită între casete. Se întinde pe spaţiul
+                      liber, până la plafonul de mai jos. `preserveAspectRatio="none"`
+                      lasă curba să se alungească pe verticală, iar
+                      `vector-effect="non-scaling-stroke"` păstrează grosimea liniei
+                      şi punctele nedeformate la alungire. */}
                   {i < steps.length - 1 && (
-                    <svg width="240" height="38" viewBox="0 0 240 38" fill="none" className="mx-auto block">
+                    <svg
+                      viewBox="0 0 240 38"
+                      preserveAspectRatio="none"
+                      fill="none"
+                      className="mx-auto block w-[240px] min-h-[38px] flex-1"
+                      style={{ maxHeight: 'var(--path-link-max)' }}
+                    >
                       <path
                         d={i % 2 === 0 ? 'M120 2 C120 15, 66 24, 120 36' : 'M120 2 C120 15, 174 24, 120 36'}
                         stroke="rgba(226,179,64,0.4)" strokeWidth="2.5" strokeDasharray="2 8" strokeLinecap="round"
+                        vectorEffect="non-scaling-stroke"
                       />
                     </svg>
                   )}
-                </div>
+                </Fragment>
               )
             })}
           </div>
