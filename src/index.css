@@ -70,17 +70,6 @@
   /* Înălţimea utilă, sub bara de sus. `dvh`, nu `vh`: pe mobil bara browserului
      se retrage, iar `vh` rămâne la valoarea veche şi taie conţinutul. */
   --app-content-h: calc(100dvh - var(--app-header));
-
-  /* Înălţimea exactă a unei pagini care vrea să încapă în ecran, fără scroll.
-     O pagină o cere explicit (`height: var(--app-page-h)`); nu e suficient
-     `min-height: 100%` pe container, fiindcă acela creşte odată cu conţinutul
-     şi atunci rândurile flex nu mai au la ce înălţime fermă să se comprime. */
-  --app-page-h: calc(var(--app-content-h) - 2 * var(--app-pad));
-
-  /* Sub această înălţime un rând de carusel devine ilizibil. Rândurile se comprimă
-     până aici ca pagina să încapă în ecran; dacă nici atât nu ajunge (ecrane foarte
-     scunde), preferăm un scroll scurt în locul unor carduri ciuntite. */
-  --app-row-min: 12.4rem;
 }
 
 @media (max-width: 1023px) {
@@ -88,45 +77,6 @@
     --app-pad: 1rem;
     --app-gap: 1rem;
   }
-}
-
-/* Cardul de curs din carusel se adaptează la înălţimea rândului care i-a fost dată:
-   pe ecrane scunde renunţă la detalii, în ordinea importanţei, în loc să taie un
-   text la jumătate de rând. Praguri măsurate pe cardul real, nu ghicite.
-
-   `.course-card` e doar containerul (fără padding propriu), iar conţinutul stă în
-   `.course-card-body`. Separarea e obligatorie: un container query nu poate schimba
-   proprietăţi care afectează dimensiunea *propriului* container — ar fi circular,
-   iar browserul ignoră regula în tăcere. */
-.course-card {
-  container-type: size;
-  container-name: coursecard;
-}
-
-/* Iconul (144px la dimensiune plină) domină înălţimea cardului, deci scade primul.
-   Pragurile de mai jos sunt calibrate pe înălţimea reală de care are nevoie fiecare
-   configuraţie, măsurată în browser — nu aproximate:
-     icon 144 + tot        → 370px      icon 72, fără descriere → 252px
-     icon 96  + tot        → 322px      icon 56, doar esenţial  → 178px
-                                        icon 40, doar esenţial  → 148px          */
-@container coursecard (max-height: 370px) {
-  .course-card-icon { height: 6rem; width: 6rem; }
-}
-
-@container coursecard (max-height: 320px) {
-  .course-card-icon { height: 4.5rem; width: 4.5rem; }
-  .course-card-desc { display: none; }
-}
-
-@container coursecard (max-height: 250px) {
-  .course-card-icon { height: 3.5rem; width: 3.5rem; }
-  .course-card-body { padding: 1rem; gap: 0.5rem; }
-  .course-card-tags { display: none; }
-}
-
-@container coursecard (max-height: 175px) {
-  .course-card-icon { height: 2.5rem; width: 2.5rem; }
-  .course-card-progress { display: none; }
 }
 
 * {

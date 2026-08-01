@@ -48,8 +48,21 @@ export function archetypeFor(pathname: string): PageArchetype {
 }
 
 /**
- * Titlul afișat în bara de sus. Paginile nu-și mai poartă propriul hero cu titlu —
- * de-aia diferea înălțimea „de deasupra conținutului" de la o pagină la alta.
+ * Pagini care îşi poartă singure titlul (hero propriu sau antet cu context lângă
+ * el). Pentru ele shell-ul nu randează bara de sus — altfel titlul s-ar dubla şi
+ * pagina ar pierde degeaba înălţime.
+ *
+ * Lista e o excepţie asumată, nu norma: pe termen lung aceste pagini ar trebui
+ * aduse la acelaşi antet ca restul. Până atunci rămân aşa cum erau.
+ */
+const OWN_HEADER_ROUTES = new Set(['/courses', '/puzzles'])
+
+export function hasOwnHeader(pathname: string): boolean {
+  return OWN_HEADER_ROUTES.has(pathname)
+}
+
+/**
+ * Titlul afișat în bara de sus, pentru paginile care nu-şi poartă unul propriu.
  */
 const EXTRA_TITLES: Record<string, string> = {
   '/pricing': 'Abonament Pro',

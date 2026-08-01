@@ -5,7 +5,7 @@ import { Menu } from 'lucide-react'
 import { useChildSession } from '@/hooks/useChildSession'
 import { SessionTimer } from '@/components/session/SessionTimer'
 import { SessionQuip } from './SessionQuip'
-import { archetypeFor, pageTitleFor } from '@/lib/navigation'
+import { archetypeFor, pageTitleFor, hasOwnHeader } from '@/lib/navigation'
 
 function ChildSessionGuard() {
   const { minutesLeft, showWarning, dismissWarning, isMinor } = useChildSession()
@@ -21,6 +21,7 @@ export function AppLayout() {
   // scris în layout. Vezi comentariul de acolo pentru ce înseamnă fiecare.
   const archetype = archetypeFor(pathname)
   const title = pageTitleFor(pathname)
+  const ownHeader = hasOwnHeader(pathname)
 
   return (
     <div className="flex h-dvh bg-[#0A0A0A] overflow-hidden">
@@ -46,10 +47,11 @@ export function AppLayout() {
 
       {/* Coloana de conținut — înălțime fixă, scroll doar înăuntru */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Bara de sus: aceeași înălțime pe toate paginile. Titlul stă aici, nu
-            într-un hero pe care fiecare pagină şi-l dimensiona singură. */}
+        {/* Bara de sus, cu titlul paginii. Pe paginile care îşi poartă singure
+            titlul rămâne doar varianta mobilă — acolo e nevoie de butonul de meniu,
+            dar pe desktop bara ar dubla titlul şi ar fura din înălţime degeaba. */}
         <header
-          className="flex flex-shrink-0 items-center gap-3 border-b border-[#2A2A2A] px-4"
+          className={`flex flex-shrink-0 items-center gap-3 border-b border-[#2A2A2A] px-4 ${ownHeader ? 'lg:hidden' : ''}`}
           style={{ height: 'var(--app-header)' }}
         >
           <button
@@ -60,7 +62,7 @@ export function AppLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <h1 className="truncate font-display text-base font-bold tracking-tight text-[#F0F0F0]">
-            {title}
+            {ownHeader ? 'CleanChess' : title}
           </h1>
         </header>
 
@@ -74,8 +76,8 @@ export function AppLayout() {
           <div
             className="mx-auto flex min-h-full w-full flex-col"
             style={{
-              // Paginile focus iau toată lățimea — tabla e cea care are nevoie de ea.
-              maxWidth: archetype === 'focus' ? 'none' : 'var(--app-max)',
+              // Paginile focus au nevoie de lăţime pentru tablă şi cele două coloane.
+              maxWidth: archetype === 'focus' ? '112rem' : 'var(--app-max)',
               padding: 'var(--app-pad)',
               gap: 'var(--app-gap)',
             }}
