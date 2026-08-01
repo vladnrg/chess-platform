@@ -17,8 +17,14 @@ export function useChildSession() {
   const birthYear = profile?.birth_year
   const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
 
-  const loadOrCreateSession = useCallback(async () => {
-    if (!user || !isMinor) return
+  /**
+   * Întoarce sesiunea activă (creând una nouă dacă e cazul), sau `null` dacă nu e
+   * nimic de afișat — copilul e în pauză și a fost redirecționat, sau nu e minor.
+   * Nu scrie direct în state: decizia dacă rezultatul mai e relevant aparține
+   * efectului care o apelează, altfel un răspuns întârziat suprascrie unul nou.
+   */
+  const loadOrCreateSession = useCallback(async (): Promise<ChildSession | null> => {
+    if (!user || !isMinor) return null
 
     // Check if currently in a break
     const { data: existingSessions } = await supabase
@@ -39,7 +45,7 @@ export function useChildSession() {
       if (breakEndsAt && now < breakEndsAt) {
         const breakMinsLeft = Math.ceil((breakEndsAt.getTime() - now.getTime()) / 60000)
         navigate(`/break?minutes=${breakMinsLeft}&sessionId=${existing.id}`)
-        return
+        return null
       }
 
       // Session expired → start break
@@ -56,10 +62,10 @@ export function useChildSession() {
         }).eq('id', existing.id)
 
         navigate(`/break?minutes=${breakMins}&sessionId=${existing.id}`)
-        return
+        return null
       }
 
-      setSession(existing)
+      return existing
     } else {
       // Create new session
       const { data: lastSession } = await supabase
@@ -73,7 +79,7 @@ export function useChildSession() {
       const now = new Date()
       const expiresAt = new Date(now.getTime() + SESSION_MINUTES * 60000)
 
-      const { data: newSession } = await supabase
+      const { data: newSession, error } = await supabase
         .from('child_sessions')
         .insert({
           user_id: user.id,
@@ -84,7 +90,8 @@ export function useChildSession() {
         .select()
         .single()
 
-      setSession(newSession)
+      if (error) throw error
+      return newSession
     }
   }, [user, isMinor, navigate])
 
@@ -131,7 +138,11 @@ export function useChildSession() {
   }, [user, isMinor, session, navigate])
 
   useEffect(() => {
-    loadOrCreateSession()
+    let cancelled = false
+    void loadOrCreateSession()
+      .then(loaded => { if (!cancelled && loaded) setSession(loaded) })
+      .catch(() => { /* fără sesiune: aplicația rămâne utilizabilă, doar netemporizată */ })
+    return () => { cancelled = true }
   }, [loadOrCreateSession])
 
   return { minutesLeft, showWarning, dismissWarning: () => setShowWarning(false), isMinor }

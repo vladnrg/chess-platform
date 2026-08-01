@@ -1,28 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { Subscription } from '@/types'
 import { useAuth } from './useAuth'
 
 export function useSubscription() {
   const { user } = useAuth()
-  const [subscription, setSubscription] = useState<Subscription | null>(null)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!user) { setLoading(false); return }
-
-    void supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }) => {
-        setSubscription(data as Subscription | null)
-        setLoading(false)
-      })
-  }, [user])
+  const { data: subscription, isLoading } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user!.id)
+        .maybeSingle()
+      // maybeSingle → lipsa abonamentului nu e eroare, doar `null`
+      if (error) throw error
+      return data as Subscription | null
+    },
+    enabled: !!user,
+  })
 
   const isPro = subscription?.status === 'active' || subscription?.status === 'trialing'
 
-  return { subscription, isPro, loading }
+  return { subscription: subscription ?? null, isPro, loading: !!user && isLoading }
 }
