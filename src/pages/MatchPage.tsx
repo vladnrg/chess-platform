@@ -4,9 +4,9 @@ import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import { ChevronLeft, Flag, Handshake, Trophy } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase'
+import { supabase, type Match } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { useMatch, formatClock } from '@/hooks/useMatch'
+import { useMatch, formatClock, timeLeft, useTicker } from '@/hooks/useMatch'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -23,7 +23,7 @@ const MOVE_ERRORS: Record<string, string> = {
 export function MatchPage() {
   const { matchId } = useParams<{ matchId: string }>()
   const { user } = useAuth()
-  const { match, isLoading, myColor, isMyTurn, clocks, playMove } = useMatch(matchId)
+  const { match, isLoading, myColor, isMyTurn, playMove } = useMatch(matchId)
 
   // Poziţia arătată imediat după mutarea proprie, până confirmă serverul. Fără ea,
   // piesa ar sări înapoi pentru câteva sute de milisecunde la fiecare mutare.
@@ -31,15 +31,11 @@ export function MatchPage() {
   // Reţine şi poziţia de la care a pornit: când serverul confirmă, `match.fen` se
   // schimbă, potrivirea cade şi poziţia provizorie e ignorată. Aşa nu mai e nevoie
   // de un efect care s-o şteargă după fiecare actualizare.
+  // Fereastra de final se poate închide ca să vezi tabla. Reţine partida pentru
+  // care s-a închis, ca să reapară dacă intri în alta.
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null)
   const [optimistic, setOptimistic] = useState<{ fen: string; basedOn: string } | null>(null)
   const optimisticFen = optimistic && optimistic.basedOn === match?.fen ? optimistic.fen : null
-
-  // Când cade steagul, cineva trebuie să spună serverului. Serverul verifică singur
-  // dacă timpul chiar a expirat, deci nu se poate revendica din greşeală.
-  useEffect(() => {
-    if (!matchId || !clocks.flagged || match?.status !== 'active') return
-    void supabase.rpc('claim_timeout', { p_match_id: matchId })
-  }, [matchId, clocks.flagged, match?.status])
 
   const onPieceDrop = useCallback(({ sourceSquare, targetSquare }: PieceDropHandlerArgs) => {
     if (!targetSquare || !match || !isMyTurn) return false
@@ -81,12 +77,17 @@ export function MatchPage() {
   }
 
   const opponentId = myColor === 'w' ? match.black_id : match.white_id
-  const myTime = myColor === 'w' ? clocks.whiteMs : clocks.blackMs
-  const oppTime = myColor === 'w' ? clocks.blackMs : clocks.whiteMs
+  const oppColor: 'w' | 'b' = myColor === 'w' ? 'b' : 'w'
   const isOver = match.status !== 'active'
 
   return (
     <div className="flex flex-col gap-4" style={{ height: 'var(--app-page-h)' }}>
+      <TimeoutWatcher match={match} />
+
+      {isOver && dismissedFor !== match.id && (
+        <ResultOverlay match={match} meId={user?.id} onClose={() => setDismissedFor(match.id)} />
+      )}
+
       <Link
         to="/clasament"
         className="flex flex-shrink-0 items-center gap-1.5 text-sm text-[#A0A0A0] transition-colors hover:text-[#F0F0F0]"
@@ -114,7 +115,7 @@ export function MatchPage() {
         </div>
 
         <div className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[var(--app-rail)]">
-          <PlayerClock userId={opponentId} ms={oppTime} running={!isOver && match.turn !== myColor} />
+          <PlayerClock userId={opponentId} match={match} color={oppColor} />
 
           {isOver ? (
             <MatchOutcome
@@ -140,7 +141,7 @@ export function MatchPage() {
             </Card>
           )}
 
-          <PlayerClock userId={user?.id} ms={myTime} running={!isOver && match.turn === myColor} isMe />
+          <PlayerClock userId={user?.id} match={match} color={myColor} isMe />
 
           {!isOver && <MatchActions matchId={match.id} drawOfferedByMe={match.draw_offer_by === user?.id} />}
 
@@ -151,13 +152,20 @@ export function MatchPage() {
   )
 }
 
-function PlayerClock({ userId, ms, running, isMe }: {
+/**
+ * Ceasul unui jucător. Îşi porneşte propriul ticker, ca actualizarea lui de zece
+ * ori pe secundă să nu redeseneze şi tabla.
+ */
+function PlayerClock({ userId, match, color, isMe }: {
   userId: string | undefined
-  ms: number
-  running: boolean
+  match: Match
+  color: 'w' | 'b'
   isMe?: boolean
 }) {
   const [name, setName] = useState<string>('—')
+  const running = match.status === 'active' && match.turn === color
+  const now = useTicker(running)
+  const ms = timeLeft(match, color, now)
 
   useEffect(() => {
     if (!userId) return
@@ -186,6 +194,71 @@ function PlayerClock({ userId, ms, running, isMe }: {
         {formatClock(ms)}
       </p>
     </Card>
+  )
+}
+
+/**
+ * Când cade steagul, cineva trebuie să spună serverului — altfel partida rămâne
+ * activă la nesfârşit. Serverul verifică singur dacă timpul chiar a expirat, deci
+ * nu se poate revendica din greşeală.
+ *
+ * Componentă separată, care nu randează nimic: aşa tick-ul ei nu redesenează tabla.
+ */
+function TimeoutWatcher({ match }: { match: Match }) {
+  const active = match.status === 'active'
+  const now = useTicker(active, 1000)
+  const expired = active && (timeLeft(match, match.turn, now) <= 0)
+
+  useEffect(() => {
+    if (!expired) return
+    void supabase.rpc('claim_timeout', { p_match_id: match.id })
+  }, [expired, match.id])
+
+  return null
+}
+
+/** Fereastra de final — în mijlocul ecranului, nu într-un colţ. */
+function ResultOverlay({ match, meId, onClose }: {
+  match: Match
+  meId: string | undefined
+  onClose: () => void
+}) {
+  const isDraw = match.result === 'draw'
+  const iWon = match.winner_id === meId
+  const title = isDraw ? 'Remiză' : iWon ? 'Ai câștigat!' : 'Ai pierdut'
+  const color = isDraw ? '#A0A0A0' : iWon ? '#4ade80' : '#FB7185'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div
+        className="w-full max-w-sm rounded-2xl border bg-[#141414] p-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+        style={{ borderColor: `${color}66`, animation: 'pop-in 0.35s ease-out' }}
+      >
+        <Trophy className="mx-auto mb-3 h-12 w-12" style={{ color }} />
+        <p className="font-display text-3xl font-black" style={{ color }}>{title}</p>
+        {match.result_reason && (
+          <p className="mt-1 text-sm text-[#A0A0A0]">prin {REASONS[match.result_reason] ?? match.result_reason}</p>
+        )}
+
+        {match.xp_awarded > 0 && (iWon || isDraw) && (
+          <p className="mt-4 text-xl font-bold text-[#E2B340]">+{match.xp_awarded} XP</p>
+        )}
+        {match.rated && match.xp_awarded === 0 && iWon && (
+          <p className="mt-4 text-xs text-[#6B6B6B]">
+            Fără XP — ai jucat deja 3 partide clasate cu acest adversar azi.
+          </p>
+        )}
+
+        <div className="mt-6 flex gap-2">
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
+            Vezi tabla
+          </Button>
+          <Link to="/clasament" className="flex-1">
+            <Button className="w-full">Clasament</Button>
+          </Link>
+        </div>
+      </div>
+    </div>
   )
 }
 

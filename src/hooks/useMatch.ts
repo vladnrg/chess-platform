@@ -42,17 +42,6 @@ export function useMatch(matchId: string | undefined) {
     return () => { void supabase.removeChannel(channel) }
   }, [matchId, qc])
 
-  // Ticker pentru ceas. `setState` stă într-un callback de interval, nu în corpul
-  // efectului — altfel ar declanşa randări în cascadă.
-  const [tick, setTick] = useState(() => Date.now())
-  useEffect(() => {
-    if (match?.status !== 'active') return
-    const id = setInterval(() => setTick(Date.now()), 200)
-    return () => clearInterval(id)
-  }, [match?.status])
-
-  const clocks = computeClocks(match, tick)
-
   const myColor: 'w' | 'b' | null = !match || !user
     ? null
     : match.white_id === user.id ? 'w'
@@ -75,35 +64,39 @@ export function useMatch(matchId: string | undefined) {
     isLoading,
     myColor,
     isMyTurn: !!match && match.status === 'active' && myColor === match.turn,
-    clocks,
     playMove,
   }
 }
 
-export interface Clocks {
-  whiteMs: number
-  blackMs: number
-  /** Cine a rămas fără timp, dacă e cazul — clientul poate revendica finalul. */
-  flagged: 'w' | 'b' | null
-}
-
-function computeClocks(match: Match | undefined, now: number): Clocks {
-  if (!match) return { whiteMs: 0, blackMs: 0, flagged: null }
-
+/**
+ * Timpul rămas al unei culori, la momentul `now`.
+ *
+ * Funcţie pură, nu hook: cine are nevoie de un ceas care curge îşi porneşte
+ * propriul ticker, ca actualizarea lui să nu redeseneze şi tabla. Un ticker în
+ * pagină ar fi însemnat cinci randări pe secundă ale întregii table — exact
+ * genul de lucru care face mutările să pară că vin cu întârziere.
+ */
+export function timeLeft(match: Match | undefined, color: 'w' | 'b', now: number): number {
+  if (!match) return 0
+  const stored = color === 'w' ? match.white_time_ms : match.black_time_ms
   // Partidă încheiată: ceasurile îngheaţă la valorile finale
-  if (match.status !== 'active') {
-    return { whiteMs: match.white_time_ms, blackMs: match.black_time_ms, flagged: null }
-  }
+  if (match.status !== 'active' || match.turn !== color) return Math.max(0, stored)
 
   const elapsed = Math.max(0, now - new Date(match.last_move_at).getTime())
-  const whiteMs = match.turn === 'w' ? match.white_time_ms - elapsed : match.white_time_ms
-  const blackMs = match.turn === 'b' ? match.black_time_ms - elapsed : match.black_time_ms
+  return Math.max(0, stored - elapsed)
+}
 
-  return {
-    whiteMs: Math.max(0, whiteMs),
-    blackMs: Math.max(0, blackMs),
-    flagged: whiteMs <= 0 ? 'w' : blackMs <= 0 ? 'b' : null,
-  }
+/** Un ceas care curge, izolat în componenta care îl afişează. */
+export function useTicker(active: boolean, everyMs = 100) {
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (!active) return
+    const id = setInterval(() => setNow(Date.now()), everyMs)
+    return () => clearInterval(id)
+  }, [active, everyMs])
+
+  return now
 }
 
 /** `mm:ss`, iar sub 20 de secunde şi zecimea — ca la ceasurile de blitz. */

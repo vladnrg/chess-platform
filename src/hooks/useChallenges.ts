@@ -99,6 +99,49 @@ export function useRespondChallenge() {
 }
 
 /**
+ * Urmăreşte provocările pe care le-am trimis şi intră în partidă imediat ce
+ * adversarul acceptă.
+ *
+ * Fără asta, cel care provoacă rămâne pe pagina lui şi află abia dacă observă
+ * bannerul „ai o partidă în desfăşurare" — timp în care ceasul îi curge deja.
+ *
+ * Stă în shell, nu într-o pagină anume, ca să funcţioneze indiferent unde eşti
+ * când vine răspunsul.
+ */
+export function useAcceptedChallengeRedirect() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!user) return
+
+    const channel = supabase
+      .channel(`my-challenges:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'match_challenges',
+          filter: `from_user=eq.${user.id}`,
+        },
+        payload => {
+          const ch = payload.new as MatchChallenge
+          if (ch.status === 'accepted' && ch.match_id) {
+            toast.success('Provocarea a fost acceptată!')
+            navigate(`/partida/${ch.match_id}`)
+          } else if (ch.status === 'declined') {
+            toast('Provocarea a fost refuzată.')
+          }
+        }
+      )
+      .subscribe()
+
+    return () => { void supabase.removeChannel(channel) }
+  }, [user, navigate])
+}
+
+/**
  * Partidele mele active — ca să pot reveni într-una lăsată în urmă.
  * Cine închide fila şi se întoarce trebuie să găsească partida acolo unde a lăsat-o.
  */
