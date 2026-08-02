@@ -383,6 +383,44 @@ grant execute on function public.league_rank(text) to authenticated;
 revoke execute on function public.finish_match(uuid, text, text) from authenticated;
 
 -- ============================================================
+-- CLASAMENTE DE VICTORII şi PALMARES
+-- ============================================================
+-- Numărătoarea se face în baza de date, nu în client: altfel ar trebui aduse
+-- toate partidele şi grupate în browser, ceea ce nu ţine la creştere.
+
+-- `p_since` null = din totdeauna; altfel doar de la data dată (săptămâna curentă).
+create or replace function public.wins_leaderboard(p_since timestamptz default null)
+returns table (user_id uuid, username text, current_league text, wins bigint)
+language sql stable security definer as $$
+  select m.winner_id, p.username, p.current_league, count(*)::bigint
+  from public.matches m
+  join public.profiles p on p.id = m.winner_id
+  where m.status = 'finished'
+    and m.winner_id is not null
+    and m.rated
+    and (p_since is null or m.finished_at >= p_since)
+  group by m.winner_id, p.username, p.current_league
+  order by count(*) desc, p.username
+  limit 50;
+$$;
+
+-- Palmaresul unui jucător: victorii, remize, înfrângeri.
+create or replace function public.player_record(p_user_id uuid)
+returns table (wins bigint, draws bigint, losses bigint)
+language sql stable security definer as $$
+  select
+    count(*) filter (where winner_id = p_user_id)::bigint,
+    count(*) filter (where result = 'draw')::bigint,
+    count(*) filter (where winner_id is not null and winner_id <> p_user_id)::bigint
+  from public.matches
+  where status = 'finished'
+    and (white_id = p_user_id or black_id = p_user_id);
+$$;
+
+grant execute on function public.wins_leaderboard(timestamptz) to authenticated;
+grant execute on function public.player_record(uuid) to authenticated;
+
+-- ============================================================
 -- Realtime: clienţii se abonează la schimbările propriei partide
 -- ============================================================
 alter publication supabase_realtime add table public.matches;

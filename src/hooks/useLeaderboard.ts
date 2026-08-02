@@ -87,3 +87,43 @@ export function hoursUntilWeekEnd(): number {
   const end = getCurrentWeekStart().getTime() + 7 * 24 * 60 * 60 * 1000
   return Math.max(0, Math.ceil((end - Date.now()) / (60 * 60 * 1000)))
 }
+
+export interface WinsRow {
+  user_id: string
+  username: string
+  current_league: League
+  wins: number
+}
+
+/**
+ * Clasamentul după victorii. `period: 'week'` numără doar din săptămâna curentă,
+ * `'all'` din totdeauna. Numărătoarea se face în baza de date — a aduce toate
+ * partidele în browser ca să le grupăm acolo n-ar ţine la creştere.
+ */
+export function useWinsLeaderboard(period: 'week' | 'all') {
+  const since = period === 'week' ? getCurrentWeekStart().toISOString() : null
+
+  return useQuery({
+    queryKey: ['wins-leaderboard', period, since],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('wins_leaderboard', { p_since: since })
+      if (error) throw error
+      return (data ?? []) as WinsRow[]
+    },
+    staleTime: 60_000,
+  })
+}
+
+/** Palmaresul unui jucător: victorii, remize, înfrângeri. */
+export function usePlayerRecord(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['player-record', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('player_record', { p_user_id: userId! })
+      if (error) throw error
+      return (data?.[0] ?? { wins: 0, draws: 0, losses: 0 })
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+  })
+}

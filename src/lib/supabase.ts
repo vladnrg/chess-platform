@@ -252,6 +252,15 @@ export type Database = {
         Args: { p_match_id: string }
         Returns: void
       }
+      wins_leaderboard: {
+        /** `p_since` null = din totdeauna; altfel doar de la data dată. */
+        Args: { p_since: string | null }
+        Returns: { user_id: string; username: string; current_league: League; wins: number }[]
+      }
+      player_record: {
+        Args: { p_user_id: string }
+        Returns: { wins: number; draws: number; losses: number }[]
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

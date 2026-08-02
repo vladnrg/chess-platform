@@ -30,6 +30,7 @@ const PuzzlePlacement = lazy(() => import('@/pages/PuzzlePlacement').then(m => (
 const StatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const PricingPage = lazy(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
+const MatchPage = lazy(() => import('@/pages/MatchPage').then(m => ({ default: m.MatchPage })))
 const LeaderboardPage = lazy(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
 const CalendarPage = lazy(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
 const TacticsChestPage = lazy(() => import('@/pages/TacticsChestPage').then(m => ({ default: m.TacticsChestPage })))
@@ -98,6 +99,7 @@ function AppRoutes() {
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/clasament" element={<LeaderboardPage />} />
+        <Route path="/partida/:matchId" element={<MatchPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tactics" element={<TacticsChestPage />} />
         <Route path="/tactics/:categoryId/:tier" element={<TacticsCategoryPage />} />

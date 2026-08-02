@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Clock, Flame, MapPin, Search, Star, Trophy, Users } from 'lucide-react'
+import { Clock, Flame, MapPin, Search, Star, Swords, Trophy, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import {
-  useWeeklyLeaderboard, useTotalLeaderboard, hoursUntilWeekEnd, type RankedPlayer,
+  useWeeklyLeaderboard, useTotalLeaderboard, useWinsLeaderboard, usePlayerRecord,
+  hoursUntilWeekEnd, type RankedPlayer,
 } from '@/hooks/useLeaderboard'
 import { useCommunity, type CommunitySortKey } from '@/hooks/useCommunity'
 import { PlayerCard } from '@/components/community/PlayerCard'
+import { Button } from '@/components/ui/Button'
+import {
+  useIncomingChallenges, useRespondChallenge, useSendChallenge, useActiveMatches,
+} from '@/hooks/useChallenges'
 import { Spinner } from '@/components/ui/Spinner'
 import { getLeagueConfig, formatXp, cn } from '@/lib/utils'
 
-type Tab = 'weekly' | 'total' | 'players'
+type Tab = 'weekly' | 'total' | 'winsWeek' | 'winsAll' | 'players'
 
 export function LeaderboardPage() {
   const { profile } = useAuth()
@@ -26,10 +31,15 @@ export function LeaderboardPage() {
           : 'Cum stai față de ceilalți jucători.'}
       </p>
 
+      <ActiveMatches />
+      <IncomingChallenges />
+
       <div className="flex w-fit flex-wrap gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] p-1">
         {([
-          { key: 'weekly' as Tab, label: 'Săptămâna aceasta', icon: Trophy },
+          { key: 'weekly' as Tab, label: 'XP săptămâna asta', icon: Trophy },
           { key: 'total' as Tab, label: 'XP total', icon: Star },
+          { key: 'winsWeek' as Tab, label: 'Victorii, săptămâna asta', icon: Swords },
+          { key: 'winsAll' as Tab, label: 'Victorii, din totdeauna', icon: Swords },
           { key: 'players' as Tab, label: 'Caută jucători', icon: Users },
         ]).map(({ key, label, icon: Icon }) => (
           <button
@@ -48,6 +58,8 @@ export function LeaderboardPage() {
 
       {tab === 'weekly' && <WeeklyTable />}
       {tab === 'total' && <TotalTable />}
+      {tab === 'winsWeek' && <WinsTable period="week" />}
+      {tab === 'winsAll' && <WinsTable period="all" />}
       {tab === 'players' && <PlayerBrowser />}
     </div>
   )
@@ -161,12 +173,102 @@ function TotalTable() {
   )
 }
 
+/** Clasamentul după victorii — peste toate ligile, nu doar a ta. */
+function WinsTable({ period }: { period: 'week' | 'all' }) {
+  const { profile } = useAuth()
+  const { data: rows, isLoading } = useWinsLeaderboard(period)
+  const { data: record } = usePlayerRecord(profile?.id)
+
+  if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
+
+  return (
+    <div className="space-y-3">
+      {record && (
+        <p className="text-sm text-[#A0A0A0]">
+          Palmaresul tău:{' '}
+          <span className="font-semibold text-[#4ade80]">{record.wins}</span> victorii,{' '}
+          <span className="font-semibold text-[#A0A0A0]">{record.draws}</span> remize,{' '}
+          <span className="font-semibold text-[#FB7185]">{record.losses}</span> înfrângeri.
+        </p>
+      )}
+
+      {!rows?.length ? (
+        <div className="flex flex-col items-center py-16 text-center">
+          <Swords className="mb-3 h-12 w-12 text-[#2A2A2A]" />
+          <p className="text-[#6B6B6B]">
+            {period === 'week'
+              ? 'Nicio partidă câștigată săptămâna asta încă.'
+              : 'Încă nu s-a jucat nicio partidă clasată.'}
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-[#2A2A2A]">
+          {rows.map((row, i) => {
+            const medal = medalColor(i + 1)
+            const isMe = row.user_id === profile?.id
+            return (
+              <div
+                key={row.user_id}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3',
+                  i !== rows.length - 1 && 'border-b border-[#2A2A2A]',
+                  isMe && 'bg-[rgba(226,179,64,0.08)]'
+                )}
+              >
+                <span
+                  className="w-7 flex-shrink-0 text-center text-sm font-bold tabular-nums"
+                  style={{ color: medal ?? (isMe ? '#E2B340' : '#6B6B6B') }}
+                >
+                  {i + 1}
+                </span>
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#2A2A2A] text-xs font-bold text-[#E2B340]">
+                  {row.username.slice(0, 2).toUpperCase()}
+                </div>
+                <p className={cn('min-w-0 flex-1 truncate text-sm font-medium', isMe ? 'text-[#E2B340]' : 'text-[#F0F0F0]')}>
+                  {row.username}
+                  {isMe && <span className="ml-2 text-xs font-normal text-[#6B6B6B]">(tu)</span>}
+                </p>
+                <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-[#F0F0F0]">
+                  {row.wins}
+                  <span className="ml-1 text-xs font-normal text-[#6B6B6B]">
+                    {row.wins === 1 ? 'victorie' : 'victorii'}
+                  </span>
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Culoarea medaliei pentru primele trei locuri; `null` în rest. */
 function medalColor(rank: number): string | null {
   if (rank === 1) return '#FFD700'
   if (rank === 2) return '#C0C0C0'
   if (rank === 3) return '#CD7F32'
   return null
+}
+
+/**
+ * Butonul de provocare. Apare doar pe rândurile altora — regula ligilor e
+ * verificată pe server, aici doar trimitem.
+ */
+function ChallengeButton({ userId }: { userId: string }) {
+  const send = useSendChallenge()
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      disabled={send.isPending}
+      onClick={() => send.mutate({ toUser: userId, rated: true, minutes: 5, increment: 0 })}
+    >
+      <Swords className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">Provoacă</span>
+    </Button>
+  )
 }
 
 function PlayerRow({ player, isMe, isLast }: { player: RankedPlayer; isMe: boolean; isLast: boolean }) {
@@ -212,6 +314,74 @@ function PlayerRow({ player, isMe, isLast }: { player: RankedPlayer; isMe: boole
         {formatXp(player.xp)}
         <span className="ml-1 text-xs font-normal text-[#6B6B6B]">XP</span>
       </span>
+
+      {!isMe && <ChallengeButton userId={player.id} />}
+    </div>
+  )
+}
+
+/** Provocările primite, în capul paginii — sunt valabile doar 10 minute. */
+function IncomingChallenges() {
+  const { data: challenges } = useIncomingChallenges()
+  const respond = useRespondChallenge()
+
+  if (!challenges?.length) return null
+
+  return (
+    <div className="space-y-2">
+      {challenges.map(ch => (
+        <div
+          key={ch.id}
+          className="flex flex-wrap items-center gap-3 rounded-xl border border-[rgba(226,179,64,0.35)] bg-[rgba(226,179,64,0.08)] px-4 py-3"
+        >
+          <Swords className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />
+          <p className="min-w-0 flex-1 text-sm text-[#F0F0F0]">
+            Ai primit o provocare — {ch.minutes} minute
+            {ch.rated ? ', partidă clasată' : ', amicală'}.
+          </p>
+          <div className="flex flex-shrink-0 gap-2">
+            <Button
+              size="sm"
+              disabled={respond.isPending}
+              onClick={() => respond.mutate({ challengeId: ch.id, accept: true })}
+            >
+              Acceptă
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={respond.isPending}
+              onClick={() => respond.mutate({ challengeId: ch.id, accept: false })}
+            >
+              Refuză
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Partidele lăsate în urmă — ca să te poţi întoarce la ele. */
+function ActiveMatches() {
+  const { data: matches } = useActiveMatches()
+  if (!matches?.length) return null
+
+  return (
+    <div className="space-y-2">
+      {matches.map(m => (
+        <Link
+          key={m.id}
+          to={`/partida/${m.id}`}
+          className="flex items-center gap-3 rounded-xl border border-[rgba(45,212,191,0.35)] bg-[rgba(45,212,191,0.08)] px-4 py-3 transition-colors hover:bg-[rgba(45,212,191,0.14)]"
+        >
+          <Swords className="h-4 w-4 flex-shrink-0 text-[#2DD4BF]" />
+          <p className="min-w-0 flex-1 text-sm text-[#F0F0F0]">
+            Ai o partidă în desfășurare — {m.minutes} minute
+          </p>
+          <span className="flex-shrink-0 text-xs font-semibold text-[#2DD4BF]">Continuă →</span>
+        </Link>
+      ))}
     </div>
   )
 }
