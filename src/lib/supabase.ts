@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import type {
   Profile, Course, Lesson, Puzzle, UserPuzzleAttempt, UserCourseProgress,
-  Subscription, AssessmentResult, UserWeeklyXp, Tournament, OpeningLine,
+  Subscription, AssessmentResult, UserWeeklyXp, Tournament, OpeningLine, League,
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -103,6 +103,54 @@ export interface TournamentParticipant {
   registered_at: string
 }
 
+export type ChallengeStatus = 'pending' | 'accepted' | 'declined' | 'cancelled' | 'expired'
+
+export interface MatchChallenge {
+  id: string
+  from_user: string
+  to_user: string
+  rated: boolean
+  minutes: number
+  increment_seconds: number
+  status: ChallengeStatus
+  match_id: string | null
+  created_at: string
+  expires_at: string
+}
+
+export type MatchStatus = 'active' | 'finished' | 'aborted'
+export type MatchResult = 'white' | 'black' | 'draw'
+export type MatchReason =
+  | 'checkmate' | 'resign' | 'timeout' | 'stalemate'
+  | 'insufficient' | 'repetition' | 'fifty' | 'agreement' | 'abandon'
+
+export interface Match {
+  id: string
+  white_id: string
+  black_id: string
+  rated: boolean
+  /** Ligile de la începutul partidei — XP-ul se calculează din diferenţa lor. */
+  white_league: League
+  black_league: League
+  minutes: number
+  increment_seconds: number
+  fen: string
+  /** Mutările în notaţie UCI, separate prin spaţiu. */
+  moves: string
+  turn: 'w' | 'b'
+  white_time_ms: number
+  black_time_ms: number
+  last_move_at: string
+  draw_offer_by: string | null
+  status: MatchStatus
+  result: MatchResult | null
+  result_reason: MatchReason | null
+  winner_id: string | null
+  xp_awarded: number
+  started_at: string
+  finished_at: string | null
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -142,6 +190,24 @@ export type Database = {
       >
       puzzle_rating_history: TableDef<PuzzleRatingHistory, Generated>
       user_opening_stats: TableDef<UserOpeningStats, 'id' | 'last_imported_at'>
+      match_challenges: TableDef<MatchChallenge, 'id' | 'created_at' | 'expires_at' | 'status' | 'match_id'>
+      matches: TableDef<
+        Match,
+        'id' | 'started_at' | 'last_move_at' | 'fen' | 'moves' | 'turn' | 'status' | 'xp_awarded',
+        [{
+          foreignKeyName: 'matches_white_id_fkey'
+          columns: ['white_id']
+          isOneToOne: false
+          referencedRelation: 'profiles'
+          referencedColumns: ['id']
+        }, {
+          foreignKeyName: 'matches_black_id_fkey'
+          columns: ['black_id']
+          isOneToOne: false
+          referencedRelation: 'profiles'
+          referencedColumns: ['id']
+        }]
+      >
     }
     Views: Record<string, never>
     Functions: {
@@ -160,6 +226,31 @@ export type Database = {
         Returns:
           | { rating: number; delta: number; promoted: boolean; streak: number; offset: number }
           | { error: string; offset?: number }
+      }
+      league_rank: {
+        Args: { p_league: string }
+        Returns: number
+      }
+      create_challenge: {
+        Args: { p_to_user: string; p_rated: boolean; p_minutes: number; p_increment: number }
+        Returns: string
+      }
+      respond_challenge: {
+        Args: { p_challenge_id: string; p_accept: boolean }
+        /** Id-ul partidei create la acceptare; `null` la refuz. */
+        Returns: string | null
+      }
+      resign_match: {
+        Args: { p_match_id: string }
+        Returns: void
+      }
+      offer_or_accept_draw: {
+        Args: { p_match_id: string }
+        Returns: 'offered' | 'accepted'
+      }
+      claim_timeout: {
+        Args: { p_match_id: string }
+        Returns: void
       }
     }
     Enums: Record<string, never>
