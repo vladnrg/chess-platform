@@ -30,7 +30,7 @@ const PuzzlePlacement = lazy(() => import('@/pages/PuzzlePlacement').then(m => (
 const StatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const PricingPage = lazy(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
-const CommunityPage = lazy(() => import('@/pages/CommunityPage').then(m => ({ default: m.CommunityPage })))
+const LeaderboardPage = lazy(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
 const CalendarPage = lazy(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
 const TacticsChestPage = lazy(() => import('@/pages/TacticsChestPage').then(m => ({ default: m.TacticsChestPage })))
 const TacticsCategoryPage = lazy(() => import('@/pages/TacticsCategoryPage').then(m => ({ default: m.TacticsCategoryPage })))
@@ -97,7 +97,7 @@ function AppRoutes() {
         <Route path="/puzzles/placement" element={<PuzzlePlacement />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/clasament" element={<LeaderboardPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tactics" element={<TacticsChestPage />} />
         <Route path="/tactics/:categoryId/:tier" element={<TacticsCategoryPage />} />

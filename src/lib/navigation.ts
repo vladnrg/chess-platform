@@ -80,9 +80,9 @@ export const NAV: NavEntry[] = [
         icon: Trophy,
       },
       {
-        to: '/community',
-        label: 'Comunitate',
-        description: 'Jucători din orașul tău și din toată țara.',
+        to: '/clasament',
+        label: 'Clasament',
+        description: 'Cum stai față de ceilalți jucători din liga ta.',
         icon: Users,
       },
       {

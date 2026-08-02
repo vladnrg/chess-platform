@@ -63,77 +63,83 @@ export function DailyMissions() {
         </p>
       </div>
 
-      <Card className="divide-y divide-[#2A2A2A]">
+      {/* Pe orizontală, nu în listă: cele trei misiuni se văd dintr-o privire,
+          fără scroll. Pe ecrane înguste revin una sub alta. */}
+      <div className="grid gap-3 md:grid-cols-3">
         {SAMPLE_MISSIONS.map(mission => (
-          <MissionRow key={mission.id} mission={mission} />
+          <MissionCard key={mission.id} mission={mission} />
         ))}
+      </div>
 
-        {/* Bonusul pentru toate trei */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <p className="text-sm text-[#A0A0A0]">
-            Termină toate trei și primești un bonus de{' '}
-            <span className="font-semibold text-[#E2B340]">{MISSION_ALL_BONUS} XP</span>
-          </p>
-          <p className="flex-shrink-0 text-xs font-semibold text-[#6B6B6B]">
-            {completed} / {MISSION_SLOTS}
-          </p>
-        </div>
-      </Card>
+      {/* Bonusul pentru toate trei */}
+      <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-2.5">
+        <p className="text-sm text-[#A0A0A0]">
+          Termină toate trei și primești un bonus de{' '}
+          <span className="font-semibold text-[#E2B340]">{MISSION_ALL_BONUS} XP</span>
+        </p>
+        <p className="flex-shrink-0 text-xs font-semibold text-[#6B6B6B]">
+          {completed} / {MISSION_SLOTS}
+        </p>
+      </div>
     </section>
   )
 }
 
-function MissionRow({ mission }: { mission: Mission }) {
+function MissionCard({ mission }: { mission: Mission }) {
   const Icon = mission.icon
   const isDone = mission.status === 'done'
   const isCooling = mission.status === 'cooldown'
   const pct = mission.total > 0 ? Math.round((mission.done / mission.total) * 100) : 0
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div
-        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
-          isDone ? 'bg-[rgba(74,222,128,0.15)]' : 'bg-[#1C1C1C]'
-        }`}
-      >
-        {isDone
-          ? <Check className="h-4 w-4 text-[#4ade80]" />
-          : <Icon className={`h-4 w-4 ${isCooling ? 'text-[#3A3A3A]' : 'text-[#E2B340]'}`} />}
+    <Card className={`flex h-full flex-col gap-3 p-4 ${isDone ? 'border-[rgba(74,222,128,0.35)]' : ''}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div
+          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+            isDone ? 'bg-[rgba(74,222,128,0.15)]' : 'bg-[#1C1C1C]'
+          }`}
+        >
+          {isDone
+            ? <Check className="h-5 w-5 text-[#4ade80]" />
+            : <Icon className={`h-4 w-4 ${isCooling ? 'text-[#3A3A3A]' : 'text-[#E2B340]'}`} />}
+        </div>
+
+        <div className="flex flex-shrink-0 items-center gap-1">
+          <span className={`text-xs font-semibold ${isDone ? 'text-[#4ade80]' : 'text-[#6B6B6B]'}`}>
+            {isDone ? `+${MISSION_XP} XP` : `${MISSION_XP} XP`}
+          </span>
+          {/* Schimbarea misiunii — dezactivată cât e în pauză sau deja terminată */}
+          <button
+            type="button"
+            disabled={isDone || isCooling}
+            title={isCooling ? `Disponibil peste ${mission.cooldownLeft}h` : 'Schimbă misiunea'}
+            aria-label={isCooling ? `Disponibil peste ${mission.cooldownLeft} ore` : 'Schimbă misiunea'}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-[#6B6B6B] transition-colors enabled:hover:bg-[#1C1C1C] enabled:hover:text-[#F0F0F0] disabled:opacity-30"
+          >
+            {isCooling ? <Clock className="h-3.5 w-3.5" /> : <RefreshCw className="h-3.5 w-3.5" />}
+          </button>
+        </div>
       </div>
 
-      <div className="min-w-0 flex-1">
-        <p className={`text-sm ${isDone ? 'text-[#6B6B6B] line-through' : isCooling ? 'text-[#6B6B6B]' : 'text-[#F0F0F0]'}`}>
-          {mission.text}
-        </p>
-        {/* Bara e limitată în lăţime: întinsă pe tot rândul, un progres de 3/5 ar
-            arăta ca o bandă de câţiva zeci de centimetri pe ecranele late. */}
+      {/* Terminată = bifă, nu text tăiat: tăierea sugerează „anulat", nu „reușit" */}
+      <p className={`text-sm leading-snug ${isDone ? 'text-[#A0A0A0]' : isCooling ? 'text-[#6B6B6B]' : 'text-[#F0F0F0]'}`}>
+        {mission.text}
+      </p>
+
+      <div className="mt-auto">
+        {isDone && <p className="text-xs font-semibold text-[#4ade80]">Terminată</p>}
+        {isCooling && (
+          <p className="text-xs text-[#6B6B6B]">
+            Schimbată — din nou peste {mission.cooldownLeft}h
+          </p>
+        )}
         {!isDone && !isCooling && (
-          <div className="mt-1.5 flex max-w-xs items-center gap-2">
+          <div className="flex items-center gap-2">
             <Progress value={pct} className="h-1" barClassName="bg-[#E2B340]" />
             <span className="flex-shrink-0 text-xs text-[#6B6B6B]">{mission.done}/{mission.total}</span>
           </div>
         )}
-        {isCooling && (
-          <p className="mt-0.5 text-xs text-[#6B6B6B]">
-            Schimbată — o poți schimba din nou peste {mission.cooldownLeft}h
-          </p>
-        )}
       </div>
-
-      <span className={`flex-shrink-0 text-xs font-semibold ${isDone ? 'text-[#4ade80]' : 'text-[#6B6B6B]'}`}>
-        {isDone ? `+${MISSION_XP} XP` : `${MISSION_XP} XP`}
-      </span>
-
-      {/* Schimbarea misiunii — dezactivată cât e în pauză sau deja terminată */}
-      <button
-        type="button"
-        disabled={isDone || isCooling}
-        title={isCooling ? `Disponibil peste ${mission.cooldownLeft}h` : 'Schimbă misiunea'}
-        aria-label={isCooling ? `Disponibil peste ${mission.cooldownLeft} ore` : 'Schimbă misiunea'}
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[#6B6B6B] transition-colors enabled:hover:bg-[#1C1C1C] enabled:hover:text-[#F0F0F0] disabled:opacity-30"
-      >
-        {isCooling ? <Clock className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />}
-      </button>
-    </div>
+    </Card>
   )
 }
