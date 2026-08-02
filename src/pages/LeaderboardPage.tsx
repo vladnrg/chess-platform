@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flame, MapPin, Search, Trophy, Users } from 'lucide-react'
+import { Clock, Flame, MapPin, Search, Star, Trophy, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { useLeagueLeaderboard, type RankedPlayer } from '@/hooks/useLeaderboard'
+import {
+  useWeeklyLeaderboard, useTotalLeaderboard, hoursUntilWeekEnd, type RankedPlayer,
+} from '@/hooks/useLeaderboard'
 import { useCommunity, type CommunitySortKey } from '@/hooks/useCommunity'
 import { PlayerCard } from '@/components/community/PlayerCard'
 import { Spinner } from '@/components/ui/Spinner'
 import { getLeagueConfig, formatXp, cn } from '@/lib/utils'
 
-type Tab = 'league' | 'players'
+type Tab = 'weekly' | 'total' | 'players'
 
 export function LeaderboardPage() {
   const { profile } = useAuth()
-  const [tab, setTab] = useState<Tab>('league')
+  const [tab, setTab] = useState<Tab>('weekly')
 
   const league = profile ? getLeagueConfig(profile.current_league) : null
 
@@ -24,10 +26,10 @@ export function LeaderboardPage() {
           : 'Cum stai față de ceilalți jucători.'}
       </p>
 
-      {/* Comutator între clasament şi răsfoirea jucătorilor */}
-      <div className="flex w-fit gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] p-1">
+      <div className="flex w-fit flex-wrap gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] p-1">
         {([
-          { key: 'league' as Tab, label: 'Clasamentul ligii', icon: Trophy },
+          { key: 'weekly' as Tab, label: 'Săptămâna aceasta', icon: Trophy },
+          { key: 'total' as Tab, label: 'XP total', icon: Star },
           { key: 'players' as Tab, label: 'Caută jucători', icon: Users },
         ]).map(({ key, label, icon: Icon }) => (
           <button
@@ -44,14 +46,85 @@ export function LeaderboardPage() {
         ))}
       </div>
 
-      {tab === 'league' ? <LeagueTable /> : <PlayerBrowser />}
+      {tab === 'weekly' && <WeeklyTable />}
+      {tab === 'total' && <TotalTable />}
+      {tab === 'players' && <PlayerBrowser />}
     </div>
   )
 }
 
-function LeagueTable() {
+function WeeklyTable() {
   const { profile } = useAuth()
-  const { data: players, isLoading } = useLeagueLeaderboard(profile?.current_league)
+  const { data: players, isLoading } = useWeeklyLeaderboard(profile?.current_league)
+  const hoursLeft = hoursUntilWeekEnd()
+  const league = profile ? getLeagueConfig(profile.current_league) : null
+
+  if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
+
+  const me = players?.find(p => p.id === profile?.id)
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-[#A0A0A0]">
+          {me
+            ? <>Ești pe locul <span className="font-semibold text-[#E2B340]">{me.rank}</span> din {players!.length}.</>
+            : 'Încă n-ai strâns XP săptămâna asta.'}
+          {league && (
+            <span className="text-[#6B6B6B]">
+              {' '}Minimul ca să nu retrogradezi: {league.weeklyMinXp} XP.
+            </span>
+          )}
+        </p>
+        <p className="flex items-center gap-1.5 text-sm text-[#6B6B6B]">
+          <Clock className="h-4 w-4" />
+          Se resetează în {hoursLeft}h
+        </p>
+      </div>
+
+      {!players?.length ? (
+        <div className="flex flex-col items-center py-16 text-center">
+          <Trophy className="mb-3 h-12 w-12 text-[#2A2A2A]" />
+          <p className="text-[#6B6B6B]">Nimeni din liga ta n-a strâns XP săptămâna asta încă.</p>
+          <p className="mt-1 text-sm text-[#6B6B6B]">Fii primul — orice puzzle rezolvat contează.</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-[#2A2A2A]">
+          {players.map((player, i) => (
+            <PlayerRow
+              key={player.id}
+              player={player}
+              isMe={player.id === profile?.id}
+              isLast={i === players.length - 1 && !!me}
+            />
+          ))}
+
+          {/* Dacă n-ai XP săptămâna asta, n-ai rând în tabelă — te arătăm oricum,
+              la coadă, ca să-ți vezi situația. */}
+          {!me && profile && (
+            <PlayerRow
+              player={{
+                rank: players.length + 1,
+                id: profile.id,
+                username: profile.username,
+                xp: 0,
+                streak_days: profile.streak_days,
+                playing_style: profile.playing_style,
+                city: profile.city,
+              }}
+              isMe
+              isLast
+            />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TotalTable() {
+  const { profile } = useAuth()
+  const { data: players, isLoading } = useTotalLeaderboard(profile?.current_league)
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
 

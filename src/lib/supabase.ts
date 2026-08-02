@@ -114,7 +114,17 @@ export type Database = {
       user_course_progress: TableDef<UserCourseProgress, 'started_at' | 'completed_at'>
       subscriptions: TableDef<Subscription, Generated>
       assessment_results: TableDef<AssessmentResult, 'id' | 'taken_at'>
-      user_weekly_xp: TableDef<UserWeeklyXp, 'id'>
+      user_weekly_xp: TableDef<
+        UserWeeklyXp,
+        'id',
+        [{
+          foreignKeyName: 'user_weekly_xp_user_id_fkey'
+          columns: ['user_id']
+          isOneToOne: false
+          referencedRelation: 'profiles'
+          referencedColumns: ['id']
+        }]
+      >
       tournaments: TableDef<Tournament, Generated>
       tournament_participants: TableDef<TournamentParticipant, 'registered_at'>
       opening_lines: TableDef<OpeningLine, Generated>
