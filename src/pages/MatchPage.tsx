@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/lib/utils'
-import { matchMessage } from '@/lib/match-messages'
+import { matchMessage, materialBalance, type MatchShape } from '@/lib/match-messages'
 
 const MOVE_ERRORS: Record<string, string> = {
   not_your_turn: 'Nu e rândul tău.',
@@ -148,6 +148,26 @@ export function MatchPage() {
 }
 
 /**
+ * Cum s-a terminat partida, din perspectiva unui jucător: rezultat, mecanism,
+ * cât material avea în plus sau în minus la final şi cât timp îi rămăsese.
+ * De aici se alege mesajul.
+ */
+function shapeOf(match: Match, meId: string | undefined): MatchShape {
+  const iAmWhite = match.white_id === meId
+  const material = materialBalance(match.fen)
+  const myMaterial = iAmWhite ? material.white : material.black
+  const oppMaterial = iAmWhite ? material.black : material.white
+
+  return {
+    outcome: match.result === 'draw' ? 'draw' : match.winner_id === meId ? 'win' : 'loss',
+    reason: match.result_reason,
+    materialDiff: myMaterial - oppMaterial,
+    timeLeftMs: iAmWhite ? match.white_time_ms : match.black_time_ms,
+    initialMs: match.minutes * 60 * 1000,
+  }
+}
+
+/**
  * Ceasul unui jucător. Îşi porneşte propriul ticker, ca actualizarea lui de zece
  * ori pe secundă să nu redeseneze şi tabla.
  */
@@ -220,12 +240,11 @@ function ResultOverlay({ match, meId, onClose }: {
 }) {
   const isDraw = match.result === 'draw'
   const iWon = match.winner_id === meId
-  const outcome = isDraw ? 'draw' : iWon ? 'win' : 'loss'
   const color = isDraw ? '#A0A0A0' : iWon ? '#4ade80' : '#FB7185'
 
   // Mesajul depinde de cum s-a încheiat partida şi din perspectiva cui. Textele
   // stau în lib/match-messages.ts; aici doar le afişăm.
-  const { title, line } = matchMessage(outcome, match.result_reason, match.id)
+  const { label, text } = matchMessage(shapeOf(match, meId), match.id)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -234,10 +253,10 @@ function ResultOverlay({ match, meId, onClose }: {
         style={{ borderColor: `${color}66`, animation: 'pop-in 0.35s ease-out' }}
       >
         <Trophy className="mx-auto mb-3 h-12 w-12" style={{ color }} />
-        <p className="font-display text-3xl font-black" style={{ color }}>{title}</p>
-        {/* Motivul nu se mai repetă dedesubt: mesajele sunt scrise pe fiecare
-            situaţie, deci „Victorie la timp" spunea deja „prin timp expirat". */}
-        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[#A0A0A0]">{line}</p>
+        {/* Eticheta factuală rămâne deasupra glumei: din „Apă călâie" singură
+            nu se înţelege că partida s-a terminat remiză. */}
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color }}>{label}</p>
+        <p className="mt-1.5 font-display text-2xl font-black leading-tight text-[#F0F0F0]">{text}</p>
 
         {match.xp_awarded > 0 && (iWon || isDraw) && (
           <p className="mt-4 text-xl font-bold text-[#E2B340]">+{match.xp_awarded} XP</p>
@@ -298,18 +317,17 @@ function MatchActions({ matchId, drawOfferedByMe }: { matchId: string; drawOffer
 function MatchOutcome({ match, meId }: { match: Match; meId: string | undefined }) {
   const isDraw = match.result === 'draw'
   const iWon = match.winner_id === meId
-  const outcome = isDraw ? 'draw' : iWon ? 'win' : 'loss'
   const color = isDraw ? '#A0A0A0' : iWon ? '#4ade80' : '#FB7185'
 
   // Acelaşi mesaj ca în fereastră — altfel cele două ar spune lucruri diferite
   // despre aceeaşi partidă.
-  const { title, line } = matchMessage(outcome, match.result_reason, match.id)
+  const { label, text } = matchMessage(shapeOf(match, meId), match.id)
 
   return (
     <Card className="p-4 text-center" style={{ borderColor: `${color}55` }}>
       <Trophy className="mx-auto mb-2 h-6 w-6" style={{ color }} />
-      <p className="font-display text-lg font-bold" style={{ color }}>{title}</p>
-      <p className="mt-1 text-xs leading-relaxed text-[#A0A0A0]">{line}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color }}>{label}</p>
+      <p className="mt-1 font-display text-base font-bold leading-snug text-[#F0F0F0]">{text}</p>
       {match.xp_awarded > 0 && (iWon || isDraw) && (
         <p className="mt-2 text-sm font-semibold text-[#E2B340]">+{match.xp_awarded} XP</p>
       )}

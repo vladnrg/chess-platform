@@ -3,132 +3,174 @@ import type { MatchReason } from '@/lib/supabase'
 /**
  * Mesajele de la finalul partidei.
  *
+ * Voce unitară: metafora spălatului, legată de numele platformei. Mesajul e gluma;
+ * deasupra lui rămâne o etichetă factuală („Ai câștigat" / „Ai pierdut" / „Remiză"),
+ * fiindcă din „Apă călâie" un copil de 10 ani n-are cum să deducă rezultatul.
+ *
  * ── AICI SE EDITEAZĂ TEXTELE ──────────────────────────────────────────────────
- * Fiecare situaţie are mai multe variante; se alege una în funcţie de partidă.
- * Poţi adăuga sau şterge variante liber — nu trebuie nimic altundeva.
+ * Fiecare situaţie are mai multe variante. Se pot adăuga sau şterge liber — nu
+ * trebuie atins nimic altundeva.
  *
- * Alegerea e determinată de id-ul partidei, nu aleatorie: aceeaşi partidă arată
- * mereu acelaşi mesaj. Altfel textul s-ar schimba la fiecare redesenare, iar dacă
- * revii peste o oră la partidă ai citi altceva decât prima dată.
- *
- * Tonul: la victorie sărbătorim fără emfază, la înfrângere rămânem calzi — sunt
- * şi copii pe platformă, iar o partidă pierdută nu trebuie să sune ca un verdict.
+ * Alegerea variantei e determinată de id-ul partidei, nu aleatorie: aceeaşi
+ * partidă arată mereu acelaşi mesaj. Altfel textul s-ar schimba la fiecare
+ * redesenare, iar revenind peste o oră ai citi altceva decât prima dată.
  */
 
-export interface MatchMessage {
-  title: string
-  line: string
-}
-
-type Bucket = MatchMessage[]
-
 // ── VICTORII ────────────────────────────────────────────────────────────────
-const WIN_CHECKMATE: Bucket = [
-  { title: 'Mat!', line: 'L-ai încolțit și n-a mai avut unde să fugă.' },
-  { title: 'Mat!', line: 'Exact așa arată o partidă dusă până la capăt.' },
-  { title: 'Ai câștigat!', line: 'Regele advers n-a mai avut nicio scăpare.' },
+
+/** Victorie strânsă, fără strălucire. */
+const WIN_MODEST: string[] = [
+  'Curățenie de rutină',
+  'L-ai șters de pe tablă',
+  'Încă o pată scoasă',
+  'Spălat la program scurt',
+  'Ai făcut doar puțină ordine',
+  'Curat, dar nu lună',
+  'L-ai clătit ușor',
+  'Detergent standard, rezultat standard',
 ]
 
-const WIN_RESIGN: Bucket = [
-  { title: 'Ai câștigat!', line: 'Adversarul a abandonat — a văzut unde duce poziția.' },
-  { title: 'Victorie', line: 'A cedat înainte de final. Presiunea și-a spus cuvântul.' },
+/**
+ * Victorie zdrobitoare — material mult peste adversar la final.
+ *
+ * SCRISE DE MINE, de înlocuit: categoria n-avea texte, dar acum e detectabilă,
+ * iar „Curat, dar nu lună" după o demolare ar suna fals.
+ */
+const WIN_CRUSHING: string[] = [
+  'L-ai băgat la 90 de grade',
+  'Program intensiv, cu prespălare',
+  'Nu doar l-ai spălat — l-ai și călcat',
+  'Curățenie generală',
 ]
 
-const WIN_TIMEOUT: Bucket = [
-  { title: 'Ai câștigat!', line: 'I-a expirat timpul. Și ceasul face parte din joc.' },
-  { title: 'Victorie la timp', line: 'Ai gândit mai repede când a contat.' },
+/** Victorie cu ceasul aproape gol. */
+const WIN_TIME_SCRAMBLE: string[] = [
+  'Spălat rapid, la secundă',
+  'Program scurt de 30 de secunde',
+  'Ai stors totul în ultima clipă',
+  'Curățenie contra cronometru',
+  'L-ai uscat fix înainte să sune alarma',
 ]
 
-const WIN_ABANDON: Bucket = [
-  { title: 'Ai câștigat!', line: 'Adversarul a părăsit partida.' },
+/** Adversarul a rămas fără timp. */
+const WIN_TIMEOUT: string[] = [
+  'S-a înecat singur în lighean',
+  'L-ai lăsat la înmuiat prea mult',
+  'Uscat de timp',
+  'A uitat rufele în mașină',
+  'A ținut să iasă cu degetele încrețite',
 ]
 
 // ── ÎNFRÂNGERI ──────────────────────────────────────────────────────────────
-const LOSS_CHECKMATE: Bucket = [
-  { title: 'Ai pierdut', line: 'Uită-te încă o dată la poziție — unde s-a rupt firul?' },
-  { title: 'Mat', line: 'S-a terminat urât, dar de-aici se învață cel mai mult.' },
-  { title: 'Ai pierdut', line: 'Reia partida în minte. A doua oară o vezi venind.' },
+
+/** Înfrângere la limită, nu usturătoare. */
+const LOSS_TOLERABLE: string[] = [
+  'Te-a cam săpunit',
+  'Ai ieșit puțin șifonat',
+  'O pată mică pe palmares',
+  'Te-a băgat la spălat, dar la 30 de grade',
+  'Nimic ce nu iese la prima spălare',
+  'Te-a stors, dar doar pe jumătate',
 ]
 
-const LOSS_RESIGN: Bucket = [
-  { title: 'Ai abandonat', line: 'Uneori e cea mai bună decizie. Data viitoare, altfel.' },
-  { title: 'Partidă cedată', line: 'Mai bine o partidă nouă decât una fără speranță.' },
-]
-
-const LOSS_TIMEOUT: Bucket = [
-  { title: 'Timp expirat', line: 'Poziția era încă a ta. Doar ceasul n-a mai fost.' },
-  { title: 'Ai pierdut la timp', line: 'Încearcă să te hotărăști mai repede în pozițiile simple.' },
-]
-
-const LOSS_ABANDON: Bucket = [
-  { title: 'Partidă părăsită', line: 'Ai ieșit din partidă și s-a încheiat.' },
+/**
+ * Înfrângere grea — material mult sub adversar la final.
+ *
+ * SCRISE DE MINE, de înlocuit: aceeaşi situaţie ca la victoria zdrobitoare.
+ */
+const LOSS_HEAVY: string[] = [
+  'Te-a băgat la fiert',
+  'Program lung, la temperatură mare',
+  'Ai ieșit din mașină cu tot cu culoare',
 ]
 
 // ── REMIZE ──────────────────────────────────────────────────────────────────
-const DRAW_AGREEMENT: Bucket = [
-  { title: 'Remiză', line: 'V-ați înțeles. Un punct împărțit cinstit.' },
+const DRAW_DULL: string[] = [
+  'Apă călâie',
+  'Ambii ați ieșit curați',
+  'Ați împărțit detergentul frățește',
+  'Spălare pe uscat',
+  'Program eco: consum minim, rezultat minim',
+  'Scorul a rămas imaculat, ca la început',
+  'Zero pete, zero emoții',
+  'V-ați îmbăiat în ape calme',
 ]
 
-const DRAW_STALEMATE: Bucket = [
-  { title: 'Pat', line: 'Regele n-are unde muta, dar nu e în șah. Remiză.' },
-  { title: 'Pat — remiză', line: 'Atenție la pat când ai avantaj: se pierd victorii așa.' },
-]
+// ── PRAGURI ─────────────────────────────────────────────────────────────────
 
-const DRAW_REPETITION: Bucket = [
-  { title: 'Remiză prin repetiție', line: 'Aceeași poziție de trei ori. Niciunul n-a vrut să cedeze.' },
-]
+/** Peste atâta material în plus, victoria nu mai e „de rutină". */
+const CRUSHING_MATERIAL = 5
+/** Sub atâta timp rămas, victoria a fost la limita ceasului. */
+const SCRAMBLE_MS = 20_000
+/** Sau sub atâta parte din timpul iniţial — pentru partidele lungi. */
+const SCRAMBLE_RATIO = 0.08
 
-const DRAW_INSUFFICIENT: Bucket = [
-  { title: 'Remiză', line: 'N-a mai rămas material cu care să se dea mat.' },
-]
-
-const DRAW_FIFTY: Bucket = [
-  { title: 'Remiză', line: '50 de mutări fără captură și fără pion mutat.' },
-]
-
-const DRAW_FALLBACK: Bucket = [
-  { title: 'Remiză', line: 'Partidă egală.' },
-]
-
-/** Mesajul potrivit pentru cum s-a încheiat partida şi din perspectiva cui. */
-export function matchMessage(
-  outcome: 'win' | 'loss' | 'draw',
-  reason: MatchReason | null,
-  seed: string
-): MatchMessage {
-  const bucket = bucketFor(outcome, reason)
-  return bucket[hash(seed) % bucket.length]
+/** Ce ştim despre cum s-a terminat partida, din perspectiva unui jucător. */
+export interface MatchShape {
+  outcome: 'win' | 'loss' | 'draw'
+  reason: MatchReason | null
+  /** Diferenţa de material la final, din perspectiva jucătorului. */
+  materialDiff: number
+  /** Timpul rămas al jucătorului, în milisecunde. */
+  timeLeftMs: number
+  /** Timpul de la începutul partidei, ca să putem raporta. */
+  initialMs: number
 }
 
-function bucketFor(outcome: 'win' | 'loss' | 'draw', reason: MatchReason | null): Bucket {
-  if (outcome === 'draw') {
-    switch (reason) {
-      case 'agreement': return DRAW_AGREEMENT
-      case 'stalemate': return DRAW_STALEMATE
-      case 'repetition': return DRAW_REPETITION
-      case 'insufficient': return DRAW_INSUFFICIENT
-      case 'fifty': return DRAW_FIFTY
-      default: return DRAW_FALLBACK
-    }
+export interface MatchMessage {
+  /** Eticheta factuală, ca rezultatul să fie limpede. */
+  label: string
+  /** Gluma — titlul mare. */
+  text: string
+}
+
+export function matchMessage(shape: MatchShape, seed: string): MatchMessage {
+  const bucket = bucketFor(shape)
+  const label = shape.outcome === 'draw' ? 'Remiză' : shape.outcome === 'win' ? 'Ai câștigat' : 'Ai pierdut'
+  return { label, text: bucket[hash(seed) % bucket.length] }
+}
+
+function bucketFor(shape: MatchShape): string[] {
+  if (shape.outcome === 'draw') return DRAW_DULL
+
+  if (shape.outcome === 'win') {
+    // Mecanismul are întâietate: dacă adversarul a căzut la timp, asta e povestea
+    if (shape.reason === 'timeout') return WIN_TIMEOUT
+
+    const scramble =
+      shape.timeLeftMs < SCRAMBLE_MS ||
+      (shape.initialMs > 0 && shape.timeLeftMs < shape.initialMs * SCRAMBLE_RATIO)
+    if (scramble) return WIN_TIME_SCRAMBLE
+
+    return shape.materialDiff >= CRUSHING_MATERIAL ? WIN_CRUSHING : WIN_MODEST
   }
 
-  if (outcome === 'win') {
-    switch (reason) {
-      case 'checkmate': return WIN_CHECKMATE
-      case 'resign': return WIN_RESIGN
-      case 'timeout': return WIN_TIMEOUT
-      case 'abandon': return WIN_ABANDON
-      default: return WIN_CHECKMATE
-    }
+  return shape.materialDiff <= -CRUSHING_MATERIAL ? LOSS_HEAVY : LOSS_TOLERABLE
+}
+
+// ── Măsurarea partidei ──────────────────────────────────────────────────────
+
+const PIECE_VALUES: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9 }
+
+/**
+ * Materialul rămas pe tablă, citit direct din poziţia finală.
+ *
+ * Poziţia e primul câmp din FEN: literele mari sunt piesele albe, cele mici ale
+ * negrului. Nu e nevoie de motor de şah pentru o numărătoare.
+ */
+export function materialBalance(fen: string): { white: number; black: number } {
+  const placement = fen.split(' ')[0] ?? ''
+  let white = 0
+  let black = 0
+
+  for (const ch of placement) {
+    const value = PIECE_VALUES[ch.toLowerCase()]
+    if (!value) continue
+    if (ch === ch.toLowerCase()) black += value
+    else white += value
   }
 
-  switch (reason) {
-    case 'checkmate': return LOSS_CHECKMATE
-    case 'resign': return LOSS_RESIGN
-    case 'timeout': return LOSS_TIMEOUT
-    case 'abandon': return LOSS_ABANDON
-    default: return LOSS_CHECKMATE
-  }
+  return { white, black }
 }
 
 /**
