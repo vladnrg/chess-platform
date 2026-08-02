@@ -7,9 +7,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { LeagueWidget } from '@/components/dashboard/LeagueWidget'
 import { AppMap } from '@/components/dashboard/AppMap'
+import { DailyMissions } from '@/components/dashboard/DailyMissions'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
+import { levelProgress, MAX_LEVEL } from '@/lib/levels'
+import { formatXp } from '@/lib/utils'
 import type { Course } from '@/types'
 import { LEVEL_LABELS } from '@/types'
 
@@ -105,14 +109,12 @@ export function Dashboard() {
             value={`${todayPuzzleCount ?? 0}`}
             sub="din 10 gratuite"
           />
-          <StatCard
-            icon={<span className="text-xl">📊</span>}
-            label="Elo estimat"
-            value={`~${profile.estimated_elo}`}
-            sub="după evaluare"
-          />
+          <LevelCard xp={profile.xp} />
         </div>
       </div>
+
+      {/* Misiunile zilei — deocamdată doar înfăţişarea, cu date fixe */}
+      <DailyMissions />
 
       {/* Harta aplicaţiei */}
       <AppMap />
@@ -147,8 +149,10 @@ export function Dashboard() {
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub: string }) {
   return (
-    <Card>
-      <CardContent className="flex items-start gap-3 p-4">
+    // `h-full` + centrare pe verticală: altfel conţinutul stă lipit de marginea
+    // de sus, iar caseta pare goală lângă vecina ei mai înaltă.
+    <Card className="h-full">
+      <CardContent className="flex h-full items-center gap-3 p-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#141414] flex-shrink-0">
           {icon}
         </div>
@@ -157,6 +161,40 @@ function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: s
           <p className="text-xl font-bold text-[#F0F0F0]">{value}</p>
           <p className="text-xs text-[#A0A0A0]">{sub}</p>
         </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+/**
+ * Nivelul jucătorului. A luat locul casetei „Elo estimat", care afişa un număr
+ * dintr-un chestionar scurt de la înregistrare — se putea sări peste el, iar
+ * rezultatul contrazicea rating-ul din testul serios de puzzle-uri.
+ *
+ * Nivelul e onest: vine din XP-ul pe care chiar l-ai adunat şi nu scade niciodată.
+ */
+function LevelCard({ xp }: { xp: number }) {
+  const { level, xpToNext, percent, isMax } = levelProgress(xp)
+
+  return (
+    <Card className="h-full">
+      <CardContent className="flex h-full flex-col justify-center gap-2 p-4">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <p className="text-xs text-[#6B6B6B]">Nivelul tău</p>
+            <p className="text-xl font-bold text-[#F0F0F0]">
+              {level}
+              <span className="ml-1 text-xs font-normal text-[#6B6B6B]">din {MAX_LEVEL}</span>
+            </p>
+          </div>
+          <p className="text-xs text-[#6B6B6B]">{formatXp(xp)} XP</p>
+        </div>
+
+        <Progress value={percent} barClassName="bg-[#2DD4BF]" />
+
+        <p className="text-xs text-[#A0A0A0]">
+          {isMax ? 'Nivel maxim ✦' : `Încă ${xpToNext} XP până la nivelul ${level + 1}`}
+        </p>
       </CardContent>
     </Card>
   )

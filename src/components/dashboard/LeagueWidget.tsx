@@ -41,38 +41,47 @@ export function LeagueWidget() {
         </div>
       </div>
 
-      {/* Progres spre liga următoare */}
+      {/* Progres spre liga următoare. Ţinta stă sub bară, într-o propoziţie
+          întreagă: „Avansat în 510 XP" se citea ca o stare a jucătorului, nu ca
+          numele ligii următoare. */}
       <div className="mb-3">
-        <div className="flex justify-between text-xs text-[#6B6B6B] mb-1.5">
-          <span>{leagueConfig.label}</span>
-          {nextLeague ? (
-            <span>{getLeagueConfig(nextLeague).label} în {xpToNext} XP</span>
-          ) : (
-            <span className="text-[#E2B340]">Ligă maximă ✦</span>
-          )}
-        </div>
         <Progress value={progress} barClassName="bg-[#E2B340]" />
+        <p className="mt-1.5 text-xs text-[#6B6B6B]">
+          {nextLeague ? (
+            <>
+              Încă <span className="font-semibold text-[#E2B340]">{xpToNext} XP</span>
+              {' '}până la liga{' '}
+              <span className="font-semibold" style={{ color: getLeagueConfig(nextLeague).color }}>
+                {getLeagueConfig(nextLeague).label}
+              </span>
+            </>
+          ) : (
+            <span className="text-[#E2B340]">Ești în liga supremă ✦</span>
+          )}
+        </p>
       </div>
 
-      {/* XP săptămânal */}
+      {/* XP săptămânal. Nu e un plafon — e pragul minim sub care retrogradezi.
+          Vechiul „470 / 100" arăta exact ca o bară către un maxim, deşi XP-ul
+          săptămânal e nelimitat. Acum cifra stă singură, iar pragul e explicat. */}
       <div className={`rounded-lg p-3 ${weeklyShort ? 'bg-[rgba(251,113,133,0.08)] border border-[rgba(251,113,133,0.2)]' : 'bg-[#141414] border border-[#2A2A2A]'}`}>
         <div className="flex justify-between text-xs mb-1.5">
-          <span className={weeklyShort ? 'text-[#FB7185]' : 'text-[#6B6B6B]'}>
-            {weeklyShort ? '⚠ XP săptămânal insuficient' : 'XP săptămâna aceasta'}
-          </span>
-          <span className={weeklyShort ? 'text-[#FB7185]' : 'text-[#A0A0A0]'}>
-            {weeklyLoading ? '...' : `${weeklyXp} / ${weeklyMin}`}
+          <span className="text-[#6B6B6B]">XP săptămâna aceasta</span>
+          <span className={`font-semibold ${weeklyShort ? 'text-[#FB7185]' : 'text-[#4ade80]'}`}>
+            {weeklyLoading ? '...' : weeklyXp}
           </span>
         </div>
         <Progress
           value={weeklyPct}
           barClassName={weeklyShort ? 'bg-[#FB7185]' : 'bg-[#4ade80]'}
         />
-        {weeklyShort && (
-          <p className="text-xs text-[#FB7185] mt-1.5">
-            Fă cel puțin {weeklyMin - weeklyXp} XP până duminică pentru a nu retrograda.
-          </p>
-        )}
+        <p className={`text-xs mt-1.5 ${weeklyShort ? 'text-[#FB7185]' : 'text-[#6B6B6B]'}`}>
+          {weeklyLoading
+            ? ' '
+            : weeklyShort
+              ? `Îți mai trebuie ${weeklyMin - weeklyXp} XP până duminică, ca să nu retrogradezi.`
+              : `Minimul de ${weeklyMin} XP e atins — nu retrogradezi ✓`}
+        </p>
       </div>
 
       {/* Streak */}

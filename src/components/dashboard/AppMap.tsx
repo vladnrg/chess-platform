@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Card } from '@/components/ui/Card'
 import { getLeagueConfig } from '@/lib/utils'
+import { levelFromXp } from '@/lib/levels'
 import { MAP_ZONES, type NavLeaf } from '@/lib/navigation'
 import type { Profile } from '@/types'
 
@@ -41,7 +42,7 @@ function stateFor(zone: NavLeaf, profile: Profile, coursesStarted: number | null
     }
 
     case '/stats':
-      return { text: `Elo estimat ~${profile.estimated_elo}` }
+      return { text: `nivelul ${levelFromXp(profile.xp)}`, color: '#2DD4BF' }
 
     case '/repertoire':
       return profile.lichess_username
