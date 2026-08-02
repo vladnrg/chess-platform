@@ -6,14 +6,12 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { LeagueWidget } from '@/components/dashboard/LeagueWidget'
+import { AppMap } from '@/components/dashboard/AppMap'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-import { cn } from '@/lib/utils'
-import { getLeagueConfig, getXpToNextLeague, getNextLeague } from '@/lib/utils'
 import type { Course } from '@/types'
-import { LEVEL_LABELS, LEAGUES } from '@/types'
+import { LEVEL_LABELS } from '@/types'
 
 export function Dashboard() {
   const { profile } = useAuth()
@@ -81,19 +79,13 @@ export function Dashboard() {
 
   if (!profile) return null
 
-  const xpToNext = getXpToNextLeague(profile.xp, profile.current_league)
-  const nextLeague = getNextLeague(profile.current_league)
-  const nextLeagueConfig = nextLeague ? getLeagueConfig(nextLeague) : null
-  const currentLeagueConfig = getLeagueConfig(profile.current_league)
-
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Salut — titlul paginii e randat de shell, aici rămâne doar adresarea */}
       <div>
-        <p className="text-xs text-[#6B6B6B] uppercase tracking-widest mb-1">Bârlogul Șahistului</p>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">
+        <h2 className="text-lg font-semibold text-[#F0F0F0]">
           Salut, {profile.username}!
-        </h1>
+        </h2>
         <p className="text-[#6B6B6B] text-sm mt-0.5">Continuă să înveți și să avansezi.</p>
       </div>
 
@@ -104,19 +96,14 @@ export function Dashboard() {
           <LeagueWidget />
         </div>
 
-        {/* Stats rapide — coloana dreaptă */}
-        <div className="lg:col-span-2 grid gap-4 sm:grid-cols-3">
+        {/* Stats rapide — coloana dreaptă. Streak-ul lipseşte intenţionat: e deja
+            în LeagueWidget, alături, şi în bara de sus. */}
+        <div className="lg:col-span-2 grid gap-4 sm:grid-cols-2">
           <StatCard
             icon={<Puzzle className="h-5 w-5 text-[#E2B340]" />}
             label="Puzzle-uri azi"
             value={`${todayPuzzleCount ?? 0}`}
             sub="din 10 gratuite"
-          />
-          <StatCard
-            icon={<span className="text-xl">🔥</span>}
-            label="Streak"
-            value={`${profile.streak_days}`}
-            sub="zile consecutive"
           />
           <StatCard
             icon={<span className="text-xl">📊</span>}
@@ -127,79 +114,8 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Ligile platformei */}
-      <section>
-        <h2 className="text-lg font-semibold text-[#F0F0F0] mb-4">Ligile platformei</h2>
-
-        {/* Liga curentă + mesaj avansare */}
-        <div
-          className="rounded-xl border-2 p-4 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-          style={{ borderColor: currentLeagueConfig.color, backgroundColor: `${currentLeagueConfig.color}12` }}
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: currentLeagueConfig.color }} />
-              <span className="font-bold text-lg" style={{ color: currentLeagueConfig.color }}>
-                {currentLeagueConfig.label}
-              </span>
-              <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${currentLeagueConfig.color}25`, color: currentLeagueConfig.color }}>
-                Liga ta
-              </span>
-            </div>
-            {xpToNext !== null && nextLeagueConfig ? (
-              <p className="text-sm text-[#A0A0A0]">
-                Câștigă încă{' '}
-                <span className="text-[#E2B340] font-semibold">{xpToNext} XP</span>
-                {' '}pentru a avansa în liga{' '}
-                <span className="font-semibold" style={{ color: nextLeagueConfig.color }}>{nextLeagueConfig.label}</span>
-              </p>
-            ) : (
-              <p className="text-sm text-[#E2B340] font-medium">Ești în liga supremă ✦</p>
-            )}
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-[#F0F0F0]">{profile.xp}</p>
-            <p className="text-xs text-[#6B6B6B]">XP total</p>
-          </div>
-        </div>
-
-        {/* Lista tuturor ligilor */}
-        <div className="rounded-xl border border-[#2A2A2A] overflow-hidden">
-          {LEAGUES.map((league, idx) => {
-            const isCurrent = league.name === profile.current_league
-            const isPassed = profile.xp >= league.minXp
-            return (
-              <div
-                key={league.name}
-                className={cn(
-                  'flex items-center justify-between px-4 py-3 transition-colors',
-                  idx !== LEAGUES.length - 1 && 'border-b border-[#2A2A2A]',
-                  isCurrent ? 'bg-[#141414]' : 'bg-transparent'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: isPassed ? league.color : '#2A2A2A' }}
-                  />
-                  <span className={cn('font-medium text-sm', isCurrent ? 'text-[#F0F0F0]' : isPassed ? 'text-[#A0A0A0]' : 'text-[#3A3A3A]')}>
-                    {league.label}
-                  </span>
-                  {isCurrent && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: `${league.color}20`, color: league.color }}>
-                      ← ești aici
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-6 text-xs text-[#6B6B6B]">
-                  <span>{league.minXp} – {league.maxXp !== null ? league.maxXp : '∞'} XP</span>
-                  <span className="hidden sm:block w-20 text-right">{league.weeklyMinXp} XP/săpt.</span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
+      {/* Harta aplicaţiei */}
+      <AppMap />
 
       {/* Cursuri recomandate */}
       <section>
@@ -225,23 +141,6 @@ export function Dashboard() {
         )}
       </section>
 
-      {/* CTA puzzle zilnic */}
-      <section>
-        <Card className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(226,179,64,0.12)] text-2xl">
-              ♟
-            </div>
-            <div>
-              <h3 className="font-semibold text-[#F0F0F0]">Puzzle zilnic Lichess</h3>
-              <p className="text-sm text-[#6B6B6B]">Antrenează-ți abilitățile tactice zilnic</p>
-            </div>
-          </div>
-          <Link to="/puzzles">
-            <Button variant="outline">Rezolvă puzzle-ul <ChevronRight className="h-4 w-4" /></Button>
-          </Link>
-        </Card>
-      </section>
     </div>
   )
 }

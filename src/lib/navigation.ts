@@ -4,12 +4,19 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-/** O pagină din navigare. `label` e eticheta din bară (scurtă); `title` e antetul
- *  paginii, când acesta merită să fie mai explicit. */
+/**
+ * O pagină din navigare.
+ *
+ * `label` — eticheta din bară (scurtă)
+ * `title` — antetul paginii, când merită să fie mai explicit decât eticheta
+ * `description` — ce faci concret acolo. Prezenţa ei e chiar mecanismul prin care
+ *   pagina intră în harta de pe Bârlog; cele fără descriere nu apar acolo.
+ */
 export interface NavLeaf {
   to: string
   label: string
   title?: string
+  description?: string
   icon: LucideIcon
 }
 
@@ -33,29 +40,75 @@ export function isGroup(entry: NavEntry): entry is NavGroup {
  */
 export const NAV: NavEntry[] = [
   { to: '/dashboard', label: 'Bârlog', title: 'Bârlogul șahistului', icon: LayoutDashboard },
-  { to: '/courses', label: 'Cursuri', title: 'Cursuri interactive', icon: BookOpen },
+  {
+    to: '/courses',
+    label: 'Cursuri',
+    title: 'Cursuri interactive',
+    description: 'Deschideri explicate mutare cu mutare, cu antrenament pe tablă.',
+    icon: BookOpen,
+  },
   {
     label: 'Antrenament',
     items: [
-      { to: '/puzzles', label: 'Puzzle-uri', icon: Puzzle },
-      { to: '/tactics', label: 'Cufărul cu tactici', icon: Sword },
-      { to: '/pentru-incepatori', label: 'Pentru începători', icon: GraduationCap },
+      {
+        to: '/puzzles',
+        label: 'Puzzle-uri',
+        description: 'Exerciții tactice la nivelul tău, cu rating care se ajustează după fiecare.',
+        icon: Puzzle,
+      },
+      {
+        to: '/tactics',
+        label: 'Cufărul cu tactici',
+        description: 'Trasee pe categorii — furculiță, țintuire, sacrificiu — de la începător la maestru.',
+        icon: Sword,
+      },
+      {
+        to: '/pentru-incepatori',
+        label: 'Pentru începători',
+        description: 'Regulile jocului, notația și primele tipare, dacă pornești de la zero.',
+        icon: GraduationCap,
+      },
     ],
   },
   {
     label: 'Comunitate',
     items: [
-      { to: '/leagues', label: 'Ligi', icon: Trophy },
-      { to: '/community', label: 'Comunitate', icon: Users },
-      { to: '/calendar', label: 'Calendar competițional', icon: Calendar },
+      {
+        to: '/leagues',
+        label: 'Ligi',
+        description: 'Câștigi XP din tot ce faci și avansezi prin cele șapte ligi.',
+        icon: Trophy,
+      },
+      {
+        to: '/community',
+        label: 'Comunitate',
+        description: 'Jucători din orașul tău și din toată țara.',
+        icon: Users,
+      },
+      {
+        to: '/calendar',
+        label: 'Calendar competițional',
+        description: 'Turnee pe platformă și competiții pe tablă reală.',
+        icon: Calendar,
+      },
     ],
   },
 ]
 
 /** Paginile care ţin de cont — stau în meniul de sub avatar, nu în navigarea principală. */
 export const ACCOUNT_ITEMS: NavLeaf[] = [
-  { to: '/stats', label: 'Statistici personale', icon: BarChart2 },
-  { to: '/repertoire', label: 'Studiază-ți partidele', icon: Library },
+  {
+    to: '/stats',
+    label: 'Statistici personale',
+    description: 'Cum ți-a evoluat rating-ul și unde greșești cel mai des.',
+    icon: BarChart2,
+  },
+  {
+    to: '/repertoire',
+    label: 'Studiază-ți partidele',
+    description: 'Îți importă partidele din Lichess și arată la ce deschideri pierzi.',
+    icon: Library,
+  },
   { to: '/profile', label: 'Profil', icon: User },
 ]
 
@@ -64,6 +117,13 @@ export const ALL_PAGES: NavLeaf[] = [
   ...NAV.flatMap(e => (isGroup(e) ? e.items : [e])),
   ...ACCOUNT_ITEMS,
 ]
+
+/**
+ * Zonele din harta de pe Bârlog — exact paginile care şi-au declarat o descriere.
+ * Bârlogul însuşi şi Profilul nu au, deci nu apar: harta arată unde poţi merge,
+ * nu unde eşti deja.
+ */
+export const MAP_ZONES: NavLeaf[] = ALL_PAGES.filter(p => p.description)
 
 /**
  * Arhetipul de pagină — decide cum se comportă shell-ul.
