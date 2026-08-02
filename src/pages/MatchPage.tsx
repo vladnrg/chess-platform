@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/lib/utils'
+import { matchMessage } from '@/lib/match-messages'
 
 const MOVE_ERRORS: Record<string, string> = {
   not_your_turn: 'Nu e rândul tău.',
@@ -118,13 +119,7 @@ export function MatchPage() {
           <PlayerClock userId={opponentId} match={match} color={oppColor} />
 
           {isOver ? (
-            <MatchOutcome
-              result={match.result}
-              reason={match.result_reason}
-              iWon={match.winner_id === user?.id}
-              isDraw={match.result === 'draw'}
-              xp={match.xp_awarded}
-            />
+            <MatchOutcome match={match} meId={user?.id} />
           ) : (
             <Card className="p-4">
               <p className="text-xs uppercase tracking-wider text-[#6B6B6B]">
@@ -225,8 +220,12 @@ function ResultOverlay({ match, meId, onClose }: {
 }) {
   const isDraw = match.result === 'draw'
   const iWon = match.winner_id === meId
-  const title = isDraw ? 'Remiză' : iWon ? 'Ai câștigat!' : 'Ai pierdut'
+  const outcome = isDraw ? 'draw' : iWon ? 'win' : 'loss'
   const color = isDraw ? '#A0A0A0' : iWon ? '#4ade80' : '#FB7185'
+
+  // Mesajul depinde de cum s-a încheiat partida şi din perspectiva cui. Textele
+  // stau în lib/match-messages.ts; aici doar le afişăm.
+  const { title, line } = matchMessage(outcome, match.result_reason, match.id)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -236,8 +235,9 @@ function ResultOverlay({ match, meId, onClose }: {
       >
         <Trophy className="mx-auto mb-3 h-12 w-12" style={{ color }} />
         <p className="font-display text-3xl font-black" style={{ color }}>{title}</p>
+        <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[#A0A0A0]">{line}</p>
         {match.result_reason && (
-          <p className="mt-1 text-sm text-[#A0A0A0]">prin {REASONS[match.result_reason] ?? match.result_reason}</p>
+          <p className="mt-2 text-xs text-[#6B6B6B]">prin {REASONS[match.result_reason] ?? match.result_reason}</p>
         )}
 
         {match.xp_awarded > 0 && (iWon || isDraw) && (
@@ -301,25 +301,26 @@ const REASONS: Record<string, string> = {
   agreement: 'înțelegere', abandon: 'părăsire',
 }
 
-function MatchOutcome({ result, reason, iWon, isDraw, xp }: {
-  result: string | null
-  reason: string | null
-  iWon: boolean
-  isDraw: boolean
-  xp: number
-}) {
-  const title = isDraw ? 'Remiză' : iWon ? 'Ai câștigat!' : 'Ai pierdut'
+/** Rezumatul din coloana laterală, după ce fereastra de final a fost închisă. */
+function MatchOutcome({ match, meId }: { match: Match; meId: string | undefined }) {
+  const isDraw = match.result === 'draw'
+  const iWon = match.winner_id === meId
+  const outcome = isDraw ? 'draw' : iWon ? 'win' : 'loss'
   const color = isDraw ? '#A0A0A0' : iWon ? '#4ade80' : '#FB7185'
+
+  // Acelaşi mesaj ca în fereastră — altfel cele două ar spune lucruri diferite
+  // despre aceeaşi partidă.
+  const { title, line } = matchMessage(outcome, match.result_reason, match.id)
 
   return (
     <Card className="p-4 text-center" style={{ borderColor: `${color}55` }}>
       <Trophy className="mx-auto mb-2 h-6 w-6" style={{ color }} />
       <p className="font-display text-lg font-bold" style={{ color }}>{title}</p>
-      {reason && <p className="mt-0.5 text-xs text-[#6B6B6B]">prin {REASONS[reason] ?? reason}</p>}
-      {xp > 0 && iWon && (
-        <p className="mt-2 text-sm font-semibold text-[#E2B340]">+{xp} XP</p>
+      <p className="mt-1 text-xs leading-relaxed text-[#A0A0A0]">{line}</p>
+      {match.xp_awarded > 0 && (iWon || isDraw) && (
+        <p className="mt-2 text-sm font-semibold text-[#E2B340]">+{match.xp_awarded} XP</p>
       )}
-      {result && xp === 0 && !isDraw && iWon && (
+      {match.rated && match.xp_awarded === 0 && iWon && (
         <p className="mt-2 text-xs text-[#6B6B6B]">
           Fără XP — ai jucat deja 3 partide clasate cu acest adversar azi.
         </p>
