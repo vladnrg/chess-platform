@@ -28,12 +28,18 @@ export interface Unlock {
 }
 
 /** Capabilităţile care se verifică undeva în aplicaţie. */
-export type FeatureKey = 'analysis' | 'wide-challenge' | 'hall-of-fame'
+export type FeatureKey = 'analysis' | 'wide-challenge' | 'experienced' | 'hall-of-fame'
 
 /** La ce nivel se deblochează fiecare capabilitate. Sursa adevărului. */
 export const FEATURE_LEVELS: Record<FeatureKey, number> = {
   analysis: 10,
   'wide-challenge': 40,
+  /**
+   * „Jucător experimentat": 5 partide clasate pe zi cu acelaşi adversar îţi dau
+   * XP, în loc de 3. Limita se aplică în baza de date (`daily_xp_limit`), fiindcă
+   * acolo se acordă XP-ul — clientul n-are ce verifica.
+   */
+  experienced: 50,
   'hall-of-fame': 100,
 }
 
@@ -66,7 +72,7 @@ export const UNLOCKS: Unlock[] = [
   { level: 35, kind: 'title', label: 'Titlul „Neclintit"', description: 'Un titlu nou pentru profil.' },
   { level: 40, kind: 'feature', key: 'wide-challenge', label: 'Provocări mai departe', description: 'Poți provoca jucători până la două ligi distanță.' },
   { level: 45, kind: 'title', label: 'Titlul „Vulpe bătrână"', description: 'Un titlu nou pentru profil.' },
-  { level: 50, kind: 'prestige', label: 'Maestru al platformei', description: 'Titlu de prestigiu și al treilea scut. Jumătatea drumului.' },
+  { level: 50, kind: 'prestige', key: 'experienced', label: 'Maestru al platformei', description: 'Titlu de prestigiu, al treilea scut și „Jucător experimentat": 5 partide pe zi cu același adversar îți dau XP, în loc de 3.' },
   { level: 55, kind: 'title', label: 'Titlul „Ochi de vultur"', description: 'Un titlu nou pentru profil.' },
   { level: 60, kind: 'shield', label: 'Al patrulea scut', description: 'Încă o plasă de siguranță.' },
   { level: 65, kind: 'title', label: 'Titlul „Mână de fier"', description: 'Un titlu nou pentru profil.' },
