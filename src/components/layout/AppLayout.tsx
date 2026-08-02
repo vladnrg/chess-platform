@@ -5,6 +5,7 @@ import { SessionTimer } from '@/components/session/SessionTimer'
 import { SessionQuip } from './SessionQuip'
 import { archetypeFor, shellTitleFor } from '@/lib/navigation'
 import { useAcceptedChallengeRedirect } from '@/hooks/useChallenges'
+import { useMatchWatcher } from '@/hooks/useMatchWatcher'
 
 function ChildSessionGuard() {
   const { minutesLeft, showWarning, dismissWarning, isMinor } = useChildSession()
@@ -17,6 +18,8 @@ export function AppLayout() {
 
   // Intră automat în partidă când cineva îţi acceptă provocarea, oriunde ai fi
   useAcceptedChallengeRedirect()
+  // Închide partidele cu timpul expirat şi anunţă finalurile, oriunde ai fi
+  useMatchWatcher()
 
   // Arhetipul vine dintr-un singur loc (lib/navigation), nu dintr-un `pathname ===`
   // scris în layout. Vezi comentariul de acolo pentru ce înseamnă fiecare.

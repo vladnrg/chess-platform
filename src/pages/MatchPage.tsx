@@ -235,10 +235,9 @@ function ResultOverlay({ match, meId, onClose }: {
       >
         <Trophy className="mx-auto mb-3 h-12 w-12" style={{ color }} />
         <p className="font-display text-3xl font-black" style={{ color }}>{title}</p>
+        {/* Motivul nu se mai repetă dedesubt: mesajele sunt scrise pe fiecare
+            situaţie, deci „Victorie la timp" spunea deja „prin timp expirat". */}
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-[#A0A0A0]">{line}</p>
-        {match.result_reason && (
-          <p className="mt-2 text-xs text-[#6B6B6B]">prin {REASONS[match.result_reason] ?? match.result_reason}</p>
-        )}
 
         {match.xp_awarded > 0 && (iWon || isDraw) && (
           <p className="mt-4 text-xl font-bold text-[#E2B340]">+{match.xp_awarded} XP</p>
@@ -294,12 +293,6 @@ function MatchActions({ matchId, drawOfferedByMe }: { matchId: string; drawOffer
   )
 }
 
-const REASONS: Record<string, string> = {
-  checkmate: 'mat', resign: 'abandon', timeout: 'timp expirat',
-  stalemate: 'pat', insufficient: 'material insuficient',
-  repetition: 'repetiție', fifty: 'regula celor 50 de mutări',
-  agreement: 'înțelegere', abandon: 'părăsire',
-}
 
 /** Rezumatul din coloana laterală, după ce fereastra de final a fost închisă. */
 function MatchOutcome({ match, meId }: { match: Match; meId: string | undefined }) {
