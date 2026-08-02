@@ -34,6 +34,8 @@ export interface Profile {
   title: string | null
   /** Câte scuturi de retrogradare a consumat. Câte are se deduce din nivel. */
   shields_used: number
+  /** Câte promovări onorifice a consumat. La fel, câte are se deduce din nivel. */
+  honorary_used: number
 }
 
 export type TournamentType = 'platform' | 'external'

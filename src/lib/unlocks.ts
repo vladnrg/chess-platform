@@ -67,23 +67,34 @@ export const UNLOCKS: Unlock[] = [
   { level: 10, kind: 'feature', key: 'analysis', label: 'Analiza partidei', description: 'După fiecare partidă, motorul îți arată unde ai greșit.' },
   { level: 15, kind: 'title', label: 'Titlul „Tenace"', description: 'Ai revenit destule zile la rând ca să-l meriți.' },
   { level: 20, kind: 'shield', label: 'Scut de retrogradare', description: 'Te salvează o dată dacă ratezi minimul săptămânal.' },
-  { level: 25, kind: 'title', label: 'Titlul „Calculat"', description: 'Un titlu nou pentru profil.' },
+  { level: 25, kind: 'title', label: 'Promovare onorifică + titlul „Calculat"', description: 'Un titlu nou, plus o promovare onorifică: la egalitate de XP cu ultimul promovat, urci și tu.' },
   { level: 30, kind: 'shield', label: 'Al doilea scut', description: 'Încă o săptămână în care poți lipsi fără să cobori.' },
   { level: 35, kind: 'title', label: 'Titlul „Neclintit"', description: 'Un titlu nou pentru profil.' },
   { level: 40, kind: 'feature', key: 'wide-challenge', label: 'Provocări mai departe', description: 'Poți provoca jucători până la două ligi distanță.' },
-  { level: 45, kind: 'title', label: 'Titlul „Vulpe bătrână"', description: 'Un titlu nou pentru profil.' },
+  { level: 45, kind: 'title', label: 'Promovare onorifică + titlul „Vulpe bătrână"', description: 'Un titlu nou, plus o promovare onorifică: la egalitate de XP cu ultimul promovat, urci și tu.' },
   { level: 50, kind: 'prestige', key: 'experienced', label: 'Maestru al platformei', description: 'Titlu de prestigiu, al treilea scut și „Jucător experimentat": 5 partide pe zi cu același adversar îți dau XP, în loc de 3.' },
   { level: 55, kind: 'title', label: 'Titlul „Ochi de vultur"', description: 'Un titlu nou pentru profil.' },
   { level: 60, kind: 'shield', label: 'Al patrulea scut', description: 'Încă o plasă de siguranță.' },
-  { level: 65, kind: 'title', label: 'Titlul „Mână de fier"', description: 'Un titlu nou pentru profil.' },
+  { level: 65, kind: 'title', label: 'Promovare onorifică + titlul „Mână de fier"', description: 'Un titlu nou, plus o promovare onorifică: la egalitate de XP cu ultimul promovat, urci și tu.' },
   { level: 70, kind: 'shield', label: 'Al cincilea scut', description: 'Încă o plasă de siguranță.' },
   { level: 75, kind: 'title', label: 'Titlul „Strateg"', description: 'Un titlu nou pentru profil.' },
   { level: 80, kind: 'shield', label: 'Al șaselea scut', description: 'Încă o plasă de siguranță.' },
-  { level: 85, kind: 'title', label: 'Titlul „Neînduplecat"', description: 'Un titlu nou pentru profil.' },
+  { level: 85, kind: 'title', label: 'Promovare onorifică + titlul „Neînduplecat"', description: 'Un titlu nou, plus o promovare onorifică: la egalitate de XP cu ultimul promovat, urci și tu.' },
   { level: 90, kind: 'shield', label: 'Al șaptelea scut', description: 'Încă o plasă de siguranță.' },
   { level: 95, kind: 'title', label: 'Titlul „Aproape de vârf"', description: 'Ultimul titlu dinaintea vârfului.' },
   { level: 100, kind: 'prestige', label: 'Legendă', description: 'Titlul suprem și un loc permanent în Sala Faimei.' },
 ]
+
+/**
+ * Nivelurile care dau „Promovare onorifică": dacă termini săptămâna la egalitate
+ * de XP cu ultimul promovat, urci şi tu. Trebuie să corespundă cu funcţia
+ * `honorary_earned` din migrarea 029.
+ */
+export const HONORARY_LEVELS = [25, 45, 65, 85]
+
+export function honoraryEarnedBy(level: number): number {
+  return HONORARY_LEVELS.filter(l => l <= level).length
+}
 
 /** Câte scuturi ar fi trebuit să primească cineva până la nivelul dat. */
 export function shieldsEarnedBy(level: number): number {

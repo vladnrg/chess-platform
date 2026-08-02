@@ -1,6 +1,7 @@
 import { LEAGUES } from '@/types'
 import { useAuth } from '@/hooks/useAuth'
-import { getLeagueConfig, getLeagueProgress, getXpToNextLeague } from '@/lib/utils'
+import { getLeagueConfig } from '@/lib/utils'
+import { useLeagueStanding } from '@/hooks/useLeagueStanding'
 import { CheckCircle2, Lock, Star, Zap, ChevronRight } from 'lucide-react'
 
 const LEAGUE_DESCRIPTIONS = [
@@ -17,8 +18,7 @@ export function LeaguesPage() {
   const { profile } = useAuth()
 
   const currentLeagueConfig = profile ? getLeagueConfig(profile.current_league) : null
-  const progress = profile ? getLeagueProgress(profile.xp, profile.current_league) : 0
-  const xpToNext = profile ? getXpToNextLeague(profile.xp, profile.current_league) : null
+  const { data: standing } = useLeagueStanding()
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 py-2">
@@ -54,33 +54,36 @@ export function LeaguesPage() {
               <p className="text-sm text-[#A0A0A0] mt-0.5">{profile.xp} XP total</p>
             </div>
             <div className="text-right">
-              {xpToNext !== null ? (
+              {standing ? (
                 <>
-                  <p className="text-xs text-[#6B6B6B]">până la liga următoare</p>
-                  <p className="text-lg font-bold text-[#F0F0F0] mt-0.5">{xpToNext} XP</p>
+                  <p className="text-xs text-[#6B6B6B]">locul săptămâna asta</p>
+                  <p className="text-lg font-bold text-[#F0F0F0] mt-0.5">
+                    {standing.rank}
+                    <span className="ml-1 text-xs font-normal text-[#6B6B6B]">
+                      din {Math.max(standing.eligible, standing.rank)}
+                    </span>
+                  </p>
                 </>
               ) : (
                 <p className="text-sm font-semibold" style={{ color: currentLeagueConfig.color }}>
-                  Ligă maximă
+                  —
                 </p>
               )}
             </div>
           </div>
 
-          {xpToNext !== null && (
-            <div className="mt-4">
-              <div className="flex justify-between text-xs text-[#6B6B6B] mb-1.5">
-                <span>{currentLeagueConfig.minXp} XP</span>
-                <span>{currentLeagueConfig.maxXp} XP</span>
-              </div>
-              <div className="h-2 rounded-full bg-[#141414] overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%`, backgroundColor: currentLeagueConfig.color }}
-                />
-              </div>
-              <p className="text-xs text-[#6B6B6B] mt-1.5 text-right">{Math.round(progress)}% completat</p>
-            </div>
+          {/* Liga se câştigă acum prin clasament, nu prin praguri de XP total —
+              deci aici nu mai are ce căuta o bară „cât mai am până la următoarea". */}
+          {standing && (
+            <p className="mt-4 text-sm text-[#A0A0A0]">
+              {standing.in_promotion_zone ? (
+                <span className="text-[#4ade80]">Ești în zona de promovare. Ține-o tot așa până duminică.</span>
+              ) : standing.weekly_xp < standing.weekly_min ? (
+                <>Strânge cel puțin <span className="font-semibold text-[#E2B340]">{standing.weekly_min} XP</span> săptămâna asta ca să intri în competiție și să nu retrogradezi.</>
+              ) : (
+                <>Urcă primii <span className="font-semibold text-[#E2B340]">{standing.promote_slots}</span> din ligă. Mai ai timp până duminică.</>
+              )}
+            </p>
           )}
         </div>
       )}
@@ -193,9 +196,7 @@ export function LeaguesPage() {
                     {LEAGUE_DESCRIPTIONS[idx]}
                   </p>
                   <p className="text-lg mt-2 font-mono" style={{ color: isFuture ? '#2A2A2A' : '#6B6B6B' }}>
-                    {league.maxXp !== null ? `${league.minXp} – ${league.maxXp} XP` : `${league.minXp}+ XP`}
-                    <span className="mx-1.5 opacity-40">·</span>
-                    {league.weeklyMinXp} XP/săpt.
+                    minim {league.weeklyMinXp} XP/săpt.
                   </p>
                 </div>
 
@@ -215,11 +216,14 @@ export function LeaguesPage() {
 
       {/* Relegation rules */}
       <div className="rounded-xl border border-[#141414] bg-[#141414] p-5 text-sm text-[#6B6B6B]">
-        <h3 className="text-[#A0A0A0] font-semibold mb-3">Reguli retrogradare</h3>
+        <h3 className="text-[#A0A0A0] font-semibold mb-3">Cum urci și cum cobori</h3>
         <ul className="space-y-1.5 list-disc list-inside">
-          <li>Dacă acumulezi mai puțin XP decât minimul săptămânal, ești retrogradat o ligă.</li>
+          <li>În fiecare săptămână se face un clasament al ligii tale, după XP-ul strâns în acea săptămână.</li>
+          <li><span className="text-[#4ade80]">Urcă primii 20%</span> dintre cei care au atins minimul săptămânal.</li>
+          <li><span className="text-[#FB7185]">Coboară</span> cine rămâne sub minimul săptămânal — indiferent de locul în clasament.</li>
+          <li>Deci dacă ești activ, nu cobori niciodată, oricât de tare ar fi concurența.</li>
           <li>Verificarea se face în fiecare duminică la 23:59.</li>
-          <li>XP-ul total nu se pierde — poți repromova rapid.</li>
+          <li>XP-ul total și nivelul nu se pierd niciodată — doar liga se poate schimba.</li>
           <li>Liga <span className="text-[#8B6914]">Inițiat</span> nu are retrogradare.</li>
         </ul>
       </div>

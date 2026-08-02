@@ -59,8 +59,11 @@ serve(async (_req) => {
     }
   }
 
+  // Promovarile se aplica dupa retrogradari, pe clasamentul saptamanii incheiate
+  const { data: promo } = await supabase.rpc('apply_weekly_promotions', { p_week_start: weekStartStr })
+
   return new Response(
-    JSON.stringify({ checked, relegated, shielded, week: weekStartStr }),
+    JSON.stringify({ checked, relegated, shielded, promotions: promo, week: weekStartStr }),
     { headers: { 'Content-Type': 'application/json' } },
   )
 })

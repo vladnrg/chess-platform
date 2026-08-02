@@ -252,6 +252,17 @@ export type Database = {
         Args: { p_match_id: string }
         Returns: void
       }
+      my_league_standing: {
+        Args: { p_week_start: string }
+        Returns: {
+          rank: number
+          weekly_xp: number
+          weekly_min: number
+          promote_slots: number
+          eligible: number
+          in_promotion_zone: boolean
+        } | null
+      }
       set_title: {
         /** `null` scoate titlul. Serverul verifică dacă e deblocat. */
         Args: { p_title: string | null }
