@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase, type Match } from '@/lib/supabase'
-import { matchMessage, materialBalance } from '@/lib/match-messages'
 import { useAuth } from './useAuth'
 
 /**
@@ -80,18 +79,7 @@ export function useMatchWatcher() {
 
       const isDraw = m.result === 'draw'
       const iWon = m.winner_id === user.id
-      const iAmWhite = m.white_id === user.id
-      const material = materialBalance(m.fen)
-
-      const { label, text } = matchMessage({
-        outcome: isDraw ? 'draw' : iWon ? 'win' : 'loss',
-        reason: m.result_reason,
-        materialDiff: iAmWhite
-          ? material.white - material.black
-          : material.black - material.white,
-        timeLeftMs: iAmWhite ? m.white_time_ms : m.black_time_ms,
-        initialMs: m.minutes * 60 * 1000,
-      }, m.id)
+      const title = isDraw ? 'Remiză' : iWon ? 'Ai câștigat' : 'Ai pierdut'
 
       toast(
         t => (
@@ -99,7 +87,7 @@ export function useMatchWatcher() {
             className="cursor-pointer"
             onClick={() => { toast.dismiss(t.id); navigate(`/partida/${m.id}`) }}
           >
-            <strong>{label}</strong> — {text}
+            <strong>{title}</strong> — apasă ca să vezi partida
           </span>
         ),
         { duration: 8000, icon: isDraw ? '🤝' : iWon ? '🏆' : '♟' }
