@@ -11,6 +11,8 @@ export interface RankedPlayer {
   streak_days: number
   playing_style: PlayingStyle | null
   city: string | null
+  /** Titlul ales, dacă are unul deblocat. */
+  title: string | null
 }
 
 /**
@@ -33,7 +35,7 @@ export function useWeeklyLeaderboard(league: League | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_weekly_xp')
-        .select('user_id, xp_earned, profiles(username, city, streak_days, playing_style)')
+        .select('user_id, xp_earned, profiles(username, city, streak_days, playing_style, title)')
         .eq('week_start', weekStart)
         .eq('league_at_week_start', league!)
         .order('xp_earned', { ascending: false })
@@ -51,6 +53,7 @@ export function useWeeklyLeaderboard(league: League | undefined) {
           streak_days: row.profiles!.streak_days,
           playing_style: row.profiles!.playing_style,
           city: row.profiles!.city,
+          title: row.profiles!.title,
         })) as RankedPlayer[]
     },
     enabled: !!league,
@@ -68,7 +71,7 @@ export function useTotalLeaderboard(league: League | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, xp, streak_days, playing_style, city')
+        .select('id, username, xp, streak_days, playing_style, city, title')
         .eq('current_league', league!)
         .order('xp', { ascending: false })
         .limit(50)

@@ -29,6 +29,11 @@ export interface Profile {
   parental_consent_expires_at: string | null
   account_frozen: boolean
   account_frozen_reason: 'awaiting_parental_consent' | 'rejected' | null
+  // Deblocări pe niveluri (migrarea 027)
+  /** Titlul ales dintre cele deblocate; `null` = niciunul. */
+  title: string | null
+  /** Câte scuturi de retrogradare a consumat. Câte are se deduce din nivel. */
+  shields_used: number
 }
 
 export type TournamentType = 'platform' | 'external'

@@ -1,8 +1,10 @@
-import { Flame } from 'lucide-react'
+import { Flame, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getLeagueConfig, getLeagueProgress, getXpToNextLeague, getNextLeague, formatXp } from '@/lib/utils'
 import { Progress } from '@/components/ui/Progress'
 import { useWeeklyXp } from '@/hooks/useWeeklyXp'
+import { levelFromXp } from '@/lib/levels'
+import { shieldsEarnedBy } from '@/lib/unlocks'
 import type { LeagueConfig } from '@/types'
 
 export function LeagueWidget() {
@@ -17,6 +19,8 @@ export function LeagueWidget() {
   const weeklyMin = leagueConfig.weeklyMinXp
   const weeklyPct = weeklyLoading ? 0 : Math.min(100, Math.round((weeklyXp / weeklyMin) * 100))
   const weeklyShort = !weeklyLoading && weeklyXp < weeklyMin
+  // Scuturile rămase: câte a câştigat prin nivel, minus câte a consumat deja.
+  const shields = Math.max(0, shieldsEarnedBy(levelFromXp(profile.xp)) - (profile.shields_used ?? 0))
 
   return (
     <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
@@ -79,10 +83,23 @@ export function LeagueWidget() {
           {weeklyLoading
             ? ' '
             : weeklyShort
-              ? `Îți mai trebuie ${weeklyMin - weeklyXp} XP până duminică, ca să nu retrogradezi.`
+              ? shields > 0
+                ? `Îți mai trebuie ${weeklyMin - weeklyXp} XP. Dacă nu ajungi, un scut te salvează.`
+                : `Îți mai trebuie ${weeklyMin - weeklyXp} XP până duminică, ca să nu retrogradezi.`
               : `Minimul de ${weeklyMin} XP e atins — nu retrogradezi ✓`}
         </p>
       </div>
+
+      {/* Scuturi de retrogradare */}
+      {shields > 0 && (
+        <div className="mt-3 flex items-center gap-1.5 text-sm text-[#2DD4BF]">
+          <Shield className="h-4 w-4" />
+          <span className="font-semibold">{shields}</span>
+          <span className="text-[#6B6B6B]">
+            {shields === 1 ? 'scut de retrogradare' : 'scuturi de retrogradare'}
+          </span>
+        </div>
+      )}
 
       {/* Streak */}
       {profile.streak_days > 0 && (

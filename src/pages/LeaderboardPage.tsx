@@ -123,6 +123,7 @@ function WeeklyTable() {
                 streak_days: profile.streak_days,
                 playing_style: profile.playing_style,
                 city: profile.city,
+                title: profile.title,
               }}
               isMe
               isLast
@@ -298,9 +299,12 @@ function PlayerRow({ player, isMe, isLast }: { player: RankedPlayer; isMe: boole
           {player.username}
           {isMe && <span className="ml-2 text-xs font-normal text-[#6B6B6B]">(tu)</span>}
         </p>
-        {player.city && (
+        {/* Titlul deblocat trece înaintea oraşului: e ce a câştigat jucătorul */}
+        {player.title ? (
+          <p className="truncate text-xs font-medium text-[#E2B340]">{player.title}</p>
+        ) : player.city ? (
           <p className="truncate text-xs text-[#6B6B6B]">{player.city}</p>
-        )}
+        ) : null}
       </div>
 
       {player.streak_days > 0 && (

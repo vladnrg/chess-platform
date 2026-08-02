@@ -1,7 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const LEAGUE_ORDER = ['cherestea', 'tinichea', 'bronz', 'argint', 'aur', 'smarald', 'diamant']
 const WEEKLY_MINIMUMS: Record<string, number> = {
   cherestea: 30, tinichea: 50, bronz: 75, argint: 100, aur: 150, smarald: 200, diamant: 250,
 }
@@ -31,6 +30,7 @@ serve(async (_req) => {
   }
 
   let relegated = 0
+  let shielded = 0
   let checked = 0
 
   for (const profile of profiles) {
@@ -49,22 +49,18 @@ serve(async (_req) => {
     checked++
 
     if (weeklyXp < minimum) {
-      // Retrogradare
-      const currentIdx = LEAGUE_ORDER.indexOf(profile.current_league)
-      const newLeague = currentIdx > 0 ? LEAGUE_ORDER[currentIdx - 1] : 'cherestea'
+      // Retrogradarea trece prin funcţia din baza de date: aceasta consumă întâi
+      // un scut, dacă jucătorul are unul, şi abia apoi coboară liga.
+      const { data: outcome } = await supabase.rpc('apply_relegation', { p_user_id: profile.id })
+      if (outcome === 'shielded') shielded++
+      else if (outcome === 'relegated') relegated++
 
-      await supabase
-        .from('profiles')
-        .update({ current_league: newLeague })
-        .eq('id', profile.id)
-
-      relegated++
-      console.log(`Retrogradat: ${profile.username} din ${profile.current_league} → ${newLeague} (${weeklyXp}/${minimum} XP)`)
+      console.log(`${profile.username}: ${weeklyXp}/${minimum} XP → ${outcome}`)
     }
   }
 
   return new Response(
-    JSON.stringify({ checked, relegated, week: weekStartStr }),
+    JSON.stringify({ checked, relegated, shielded, week: weekStartStr }),
     { headers: { 'Content-Type': 'application/json' } },
   )
 })

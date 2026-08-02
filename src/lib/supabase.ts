@@ -252,6 +252,11 @@ export type Database = {
         Args: { p_match_id: string }
         Returns: void
       }
+      set_title: {
+        /** `null` scoate titlul. Serverul verifică dacă e deblocat. */
+        Args: { p_title: string | null }
+        Returns: void
+      }
       wins_leaderboard: {
         /** `p_since` null = din totdeauna; altfel doar de la data dată. */
         Args: { p_since: string | null }

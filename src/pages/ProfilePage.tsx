@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { TitlePicker } from '@/components/profile/TitlePicker'
 import { getLeagueConfig } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -52,6 +53,8 @@ export function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      <TitlePicker />
 
       {/* Editare */}
       <Card>

@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/lib/utils'
+import { MatchAnalysis } from '@/components/chess/MatchAnalysis'
+import { qualityOf, QUALITY_COLOR, QUALITY_LABEL } from '@/lib/move-quality'
+import type { PositionEval } from '@/hooks/useStockfish'
 
 const REASONS: Record<string, string> = {
   checkmate: 'mat', resign: 'abandon', timeout: 'timp expirat',
@@ -41,6 +44,9 @@ export function MatchPage() {
   // Fereastra de final se poate închide ca să vezi tabla. Reţine partida pentru
   // care s-a închis, ca să reapară dacă intri în alta.
   const [dismissedFor, setDismissedFor] = useState<string | null>(null)
+  // Rezultatul analizei, dacă a fost cerută. Nu se salvează nicăieri: rulează
+  // în browser şi ţine cât stai pe pagină.
+  const [evals, setEvals] = useState<PositionEval[] | null>(null)
   const [optimistic, setOptimistic] = useState<{ fen: string; basedOn: string } | null>(null)
   const optimisticFen = optimistic && optimistic.basedOn === match?.fen ? optimistic.fen : null
 
@@ -146,7 +152,11 @@ export function MatchPage() {
 
           {!isOver && <MatchActions matchId={match.id} drawOfferedByMe={match.draw_offer_by === user?.id} />}
 
-          <MoveList moves={match.moves} />
+          {isOver && (
+            <MatchAnalysis moves={match.moves} onResult={setEvals} hasResult={!!evals} />
+          )}
+
+          <MoveList moves={match.moves} evals={evals} />
         </div>
       </div>
     </div>
@@ -164,6 +174,7 @@ function PlayerClock({ userId, match, color, isMe }: {
   isMe?: boolean
 }) {
   const [name, setName] = useState<string>('—')
+  const [title, setTitle] = useState<string | null>(null)
   const running = match.status === 'active' && match.turn === color
   const now = useTicker(running)
   const ms = timeLeft(match, color, now)
@@ -171,8 +182,12 @@ function PlayerClock({ userId, match, color, isMe }: {
   useEffect(() => {
     if (!userId) return
     let cancelled = false
-    void supabase.from('profiles').select('username').eq('id', userId).maybeSingle()
-      .then(({ data }) => { if (!cancelled && data) setName(data.username) })
+    void supabase.from('profiles').select('username, title').eq('id', userId).maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        setName(data.username)
+        setTitle(data.title)
+      })
     return () => { cancelled = true }
   }, [userId])
 
@@ -184,9 +199,12 @@ function PlayerClock({ userId, match, color, isMe }: {
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#2A2A2A] text-xs font-bold text-[#E2B340]">
           {name.slice(0, 2).toUpperCase()}
         </div>
-        <p className="truncate text-sm font-medium text-[#F0F0F0]">
-          {name}{isMe && <span className="ml-1.5 text-xs font-normal text-[#6B6B6B]">(tu)</span>}
-        </p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-[#F0F0F0]">
+            {name}{isMe && <span className="ml-1.5 text-xs font-normal text-[#6B6B6B]">(tu)</span>}
+          </p>
+          {title && <p className="truncate text-xs text-[#E2B340]">{title}</p>}
+        </div>
       </div>
       <p className={cn(
         'flex-shrink-0 font-display text-xl font-bold tabular-nums',
@@ -330,8 +348,24 @@ function MatchOutcome({ match, meId }: { match: Match; meId: string | undefined 
   )
 }
 
-/** Mutările, în perechi alb/negru. */
-function MoveList({ moves }: { moves: string }) {
+/** O mutare din listă, colorată după cât de bună a fost — dacă s-a analizat. */
+function Move({ uci, evaluation }: { uci: string; evaluation: PositionEval | undefined }) {
+  if (!evaluation) return <span className="w-16">{uci}</span>
+
+  const quality = qualityOf(evaluation.drop)
+  return (
+    <span
+      className="w-16 font-medium"
+      style={{ color: QUALITY_COLOR[quality] }}
+      title={QUALITY_LABEL[quality]}
+    >
+      {uci}
+    </span>
+  )
+}
+
+/** Mutările, în perechi alb/negru. După analiză, fiecare primeşte o culoare. */
+function MoveList({ moves, evals }: { moves: string; evals: PositionEval[] | null }) {
   const list = moves ? moves.split(' ') : []
   if (!list.length) return null
 
@@ -345,8 +379,8 @@ function MoveList({ moves }: { moves: string }) {
         {pairs.map((pair, i) => (
           <div key={i} className="flex gap-3 text-[#A0A0A0]">
             <span className="w-6 flex-shrink-0 text-right text-[#6B6B6B]">{i + 1}.</span>
-            <span className="w-16">{pair[0]}</span>
-            {pair[1] && <span className="w-16">{pair[1]}</span>}
+            <Move uci={pair[0]} evaluation={evals?.[i * 2]} />
+            {pair[1] && <Move uci={pair[1]} evaluation={evals?.[i * 2 + 1]} />}
           </div>
         ))}
       </div>
