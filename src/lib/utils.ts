@@ -41,6 +41,19 @@ export function getLeagueProgress(xp: number, league: League): number {
   return Math.min(100, Math.round((earned / range) * 100))
 }
 
+/**
+ * Poţi juca doar cu cineva din liga ta, una mai jos sau una mai sus.
+ *
+ * Regula e impusă pe server (funcţia `create_challenge`); aici o repetăm doar ca
+ * să nu arătăm un buton care oricum ar fi refuzat.
+ */
+export function canChallenge(mine: League, theirs: League): boolean {
+  const a = LEAGUES.findIndex(l => l.name === mine)
+  const b = LEAGUES.findIndex(l => l.name === theirs)
+  if (a < 0 || b < 0) return false
+  return Math.abs(a - b) <= 1
+}
+
 export function getCurrentWeekStart(): Date {
   const now = new Date()
   const day = now.getUTCDay()
