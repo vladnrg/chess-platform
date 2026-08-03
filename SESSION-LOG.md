@@ -4,6 +4,86 @@ Jurnal de sesiuni de lucru - cele mai recente primele.
 
 ---
 
+## 2026-08-03 → 08-04 - Evenimente, tablă de analiză, curățenie vizuală
+
+### Ce s-a făcut
+
+**Evenimente sezoniere** (migrările 030–036)
+- O singură temelie pentru toate: interval de timp, sarcini care se deschid pe
+  rând, recompense. Nu cinci sisteme paralele.
+- Cosmetice noi: 6 insigne + 5 teme de tablă. Nu exista nimic de dăruit, iar
+  calendarul de Crăciun exact asta cere.
+- Conținut: 24 de uși de calendar, chessathon de iarnă, 15 zile de mari jucători
+  (inclusiv Florin Gheorghiu), vânătoarea de ouă de Paști.
+- **Provocarea deschiderilor**: bancă de 60 de întrebări, calupuri de 5, luni ·
+  miercuri · vineri · duminică. Un singur răspuns, definitiv. XP la final:
+  +8 corect, −3 greșit, +15 dacă le iei pe toate.
+- Fiecare întrebare are tabla, nu doar notația — cine nu citește notația din cap
+  nu învăța nimic dintr-un șir de litere.
+
+**Ligile, refăcute** (migrarea 038)
+- Prima treime urcă, ultima coboară, restul rămân. Dispare orice prag de XP.
+- Decizia se ia acum într-un singur loc. Înainte retrogradarea era în TypeScript
+  (edge function, cu propriul tabel de praguri) și promovarea în SQL.
+
+**Tabla de analiză** — pagină nouă, sub Antrenament. Muți liber, Stockfish
+evaluează în timp real și arată primele trei continuări.
+
+**Refutarea din puzzle-uri** — după o mutare greșită poți vedea cum cade,
+mutare cu mutare, cu note de la Călușul savant. Un singur apel AI pentru toată
+linia, fiindcă planul gratuit are 3 întrebări pe zi.
+
+**Bârlogul** redus la trei lucruri: liga, nivelul, harta aplicației.
+
+### Bug-uri găsite și reparate
+
+- **Stockfish nu pornise niciodată.** `public/stockfish.js` e doar încărcătorul
+  de 20KB; fișierul `.wasm` de 7MB lipsea din proiect. Analiza partidei,
+  analiza din Lichess și refutarea eșuau tăcut. Se copiază acum din
+  node_modules la instalare și înainte de build.
+- **Puzzle-urile se repetau**: selecția nu citea ce ai rezolvat deja, iar
+  `limit(40)` fără ordonare întorcea mereu aceleași rânduri. Banca are 565 de
+  puzzle-uri, nu 128 — numărătoarea inițială rata id-urile cu majuscule.
+- **Un mat era considerat greșit** dacă îl dădeai cu altă piesă decât cea din
+  soluție. Plasa pentru mutări echivalente era dezactivată explicit tocmai în
+  pozițiile de mat.
+- Regresii proprii, prinse și reparate în aceeași zi: tabla micșorată cu 20%
+  de un plafon inutil, culorile tablei schimbate fără să ceară nimeni (și doar
+  pe jumătate dintre ele), pagina de puzzle-uri lăsată fără nicio cale de
+  încărcare după ce am scos-o pe cea veche.
+
+### Ce rămâne
+
+- [ ] **Rating pentru deschideri** — singurul punct din lista inițială nefăcut.
+      Nu e clar ce ar trebui să măsoare; fără asta ar fi un număr fără sens.
+- [ ] Sub-meniurile se deschid la click, nu la hover (cerut în stil chess.com)
+- [ ] Zilele marilor jucători dau un puzzle pe măsura ta, nu o poziție din
+      partida lor memorabilă
+- [ ] Misiunile zilei sunt tot machetă cu date fixe
+- [ ] Proiectul nu are niciun test automat
+
+### Commits
+
+`9c01659` evenimente sezoniere · `38dce5d` tablă la „Numește deschiderea" ·
+`1e5bd24` calupuri de 5 · `68d4933` `a01aef6` reparații la bancă ·
+`7abcc0f` puzzle-uri care nu se mai repetă · `17d7333` `2b45ac8` `c6ec79c`
+`9af57ba` `c9bc4a0` `7162485` așezarea în pagină · `4edf8fd` ligi pe treimi ·
+`503e69f` Bârlog curat · `512e26c` refutarea · `7aae610` tablă de analiză +
+motorul reparat · `52e6b7e` matul recunoscut
+
+### Decizii importante
+
+- **Motorul dă linia, AI-ul o explică.** Modelele calculează prost variante de
+  șah; Stockfish spune ce se întâmplă, Călușul savant de ce doare.
+- **O singură valoare decide latura oricărei table** (`--board-max`), altfel
+  fiecare pagină își alege regula ei și ies mărimi diferite.
+- **Un mat e un mat.** Verificarea unei mutări se face pe rezultat, nu pe
+  potrivire de șiruri.
+- **Deciziile de ligă se strâng înainte de a se aplica** — altfel cineva
+  promovat din Bronz ar intra în clasamentul Argintului înainte să fie calculat.
+
+---
+
 ## 2026-08-02 → 08-03 - Partide între jucători + sistem de niveluri
 
 ### Ce s-a făcut
