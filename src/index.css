@@ -75,7 +75,17 @@
      activau pe orice ecran mai înalt de ~1020px şi micşorau tabla cu vreo 20%
      faţă de cât încăpea. Cine foloseşte tokenul îl trece oricum prin
      `min(..., 100%)`, deci o coloană îngustă tot are ultimul cuvânt. */
-  --board-max: 72vh;
+  --board-max: min(72vh, calc(100dvh - var(--board-chrome)));
+
+  /* Cât ocupă pe verticală tot ce nu e tabla, pe pagina cea mai încărcată
+     (Puzzle-uri): bara de sus, provocările zilei, linia „Mutarea ta" şi
+     butoanele de navigare prin mutări. Măsurat pe build, nu ghicit: 330px, de
+     unde 21rem cu puţin loc de respiraţie.
+
+     Fără scăderea asta, pe ecrane scunde tabla ieşea din pagină şi trebuia
+     derulat ca să vezi butoanele de sub ea. Se scade la fel peste tot, ca
+     tablele să rămână egale între ele — pe ecrane înalte tot `72vh` decide. */
+  --board-chrome: 21rem;
 
   /* Înălţimea utilă, sub bara de sus. `dvh`, nu `vh`: pe mobil bara browserului
      se retrage, iar `vh` rămâne la valoarea veche şi taie conţinutul. */

@@ -679,47 +679,48 @@ export function PuzzlesPage() {
     // Zoom 10% pe toată pagina de puzzle-uri (mărește uniform tot conținutul).
     // `zoom: 1.1` a stat aici de la o ajustare veche şi făcea pagina asta cu 10%
     // mai mare decât toate celelalte — inclusiv tabla, faţă de Cufărul cu tactici.
-    <div className="space-y-6">
-      {/* Fără antet de pagină: „Puzzle-uri" repeta intrarea deja evidenţiată în
-          bara de sus, intervalul de Elo e chiar selectorul din şina dreaptă, iar
-          rating-ul puzzle-ului curent apare tot acolo. Rămâne doar ce nu se vede
-          în altă parte: câte puzzle-uri ţi-au mai rămas azi, pe planul gratuit. */}
-      <div className="flex items-center justify-end gap-3">
-        {!isPro && (
-          <span className="text-sm text-[#6B6B6B]">
-            {todayCount} / {FREE_LIMIT} azi
-          </span>
-        )}
+    <div className="space-y-4">
+      {/* Provocările zilei, cu rating-ul pe acelaşi rând.
+          Stăteau pe rânduri separate şi împingeau tabla sub marginea ecranului;
+          caseta de rating e oricum mai înaltă decât titlul, deci alăturarea lor
+          nu costă niciun pixel în plus. */}
+      <div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-base font-bold text-[#F0F0F0] uppercase tracking-wider">Provocările zilei</h2>
 
-        {/* Rating curent — stil chess.com */}
-        {hasRating && (
-        <>
-          {winStreak > 0 && (
-            <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
-              <Flame className="h-4 w-4" /> {winStreak}
-            </span>
-          )}
-          <div className="relative rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-2 text-center">
-            <p className="text-[10px] uppercase tracking-wider text-[#6B6B6B] flex items-center justify-center gap-1">
-              <Target className="h-3 w-3" /> Rating-ul tău
-            </p>
-            <p className="text-2xl font-black text-[#F0F0F0] leading-tight tabular-nums">{puzzleRating}</p>
-            {lastDelta !== null && lastDelta !== 0 && (
-              <span
-                className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#FB7185] text-black'}`}
-                style={{ animation: 'xp-float 2.2s ease-out forwards' }}
-              >
-                {lastDelta > 0 ? `+${lastDelta}` : lastDelta}
+          <div className="flex items-center gap-3">
+            {!isPro && (
+              <span className="text-sm text-[#6B6B6B]">
+                {todayCount} / {FREE_LIMIT} azi
               </span>
             )}
-          </div>
-        </>
-        )}
-      </div>
 
-      {/* Provocările zilei — mereu vizibile, fără plasament */}
-      <div>
-        <h2 className="text-base font-bold text-[#F0F0F0] uppercase tracking-wider mb-4">Provocările zilei</h2>
+            {/* Rating curent — stil chess.com */}
+            {hasRating && (
+            <>
+              {winStreak > 0 && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
+                  <Flame className="h-4 w-4" /> {winStreak}
+                </span>
+              )}
+              <div className="relative rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-1.5 text-center">
+                <p className="text-[10px] uppercase tracking-wider text-[#6B6B6B] flex items-center justify-center gap-1">
+                  <Target className="h-3 w-3" /> Rating-ul tău
+                </p>
+                <p className="text-xl font-black text-[#F0F0F0] leading-tight tabular-nums">{puzzleRating}</p>
+                {lastDelta !== null && lastDelta !== 0 && (
+                  <span
+                    className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#FB7185] text-black'}`}
+                    style={{ animation: 'xp-float 2.2s ease-out forwards' }}
+                  >
+                    {lastDelta > 0 ? `+${lastDelta}` : lastDelta}
+                  </span>
+                )}
+              </div>
+            </>
+            )}
+          </div>
+        </div>
         <div className="grid gap-3 sm:grid-cols-3">
           {(['zi', 'contra', 'satisf'] as DailyKind[]).map(kind => {
             const p = daily[kind]
@@ -777,19 +778,6 @@ export function PuzzlesPage() {
         <button onClick={backToChallenges} className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
           <ChevronLeft className="h-4 w-4" /> Înapoi la provocări
         </button>
-      )}
-
-      {/* Buton „Cum funcționează rating-ul" — stânga sus; explicația apare ca popover peste tablă */}
-      {hasRating && mode === 'rated' && (
-      <div>
-        <button
-          onClick={() => setShowRatingInfo(v => !v)}
-          className="flex items-center gap-2 rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-2.5 text-sm text-[#A0A0A0] hover:text-[#E2B340] hover:border-[#3A3A3A] transition-colors"
-        >
-          <Info className="h-4 w-4" /> Cum funcționează rating-ul
-          <ChevronDown className={`h-4 w-4 transition-transform ${showRatingInfo ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
       )}
 
       {limitReached && (
@@ -1074,6 +1062,17 @@ export function PuzzlesPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Explicaţia stă aici, lângă intervalele pe care le explică.
+                  Era un buton separat deasupra tablei şi o împingea în jos cu
+                  vreo 65px, degeaba. */}
+              <button
+                onClick={() => setShowRatingInfo(v => !v)}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 text-xs text-[#6B6B6B] transition-colors hover:text-[#E2B340]"
+              >
+                <Info className="h-3.5 w-3.5" /> Cum funcționează rating-ul
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showRatingInfo ? 'rotate-180' : ''}`} />
+              </button>
             </Card>
           )}
 
