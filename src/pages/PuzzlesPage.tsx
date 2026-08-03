@@ -9,10 +9,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
+import { useStockfish } from '@/hooks/useStockfish'
+import { useRefutation } from '@/hooks/useAICoach'
 import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
 import { accessibleBands, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
 import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
+import { translateNotation } from '@/lib/chess-translations'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
@@ -170,6 +173,24 @@ export function PuzzlesPage() {
   const [expectedMoveUci, setExpectedMoveUci] = useState<string | null>(null)
   const [wrongFen, setWrongFen] = useState<string | null>(null)
   const [playerMoveSan, setPlayerMoveSan] = useState<string | null>(null)
+
+  // Parcurgerea refutării: poziţiile prin care trece linia motorului după
+  // mutarea greşită, plus mutarea care duce la fiecare.
+  const [refutation, setRefutation] = useState<{
+    fens: string[]
+    sans: string[]
+    from: string[]
+    to: string[]
+  } | null>(null)
+  const [refuPly, setRefuPly] = useState(0)
+  const [refuLoading, setRefuLoading] = useState(false)
+  const { getLine } = useStockfish()
+  const {
+    explain: explainRefutation,
+    data: refuCoach,
+    loading: refuCoachLoading,
+    reset: resetRefutation,
+  } = useRefutation()
 
   // Click-to-move state
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
@@ -335,6 +356,74 @@ export function PuzzlesPage() {
     setSecondHint(null)
     setSelectedSquare(null)
     setShakingSquare(null)
+    setRefutation(null)
+    setRefuPly(0)
+    setRefuLoading(false)
+    resetRefutation()
+  }
+
+  /**
+   * „Arată de ce nu merge": motorul calculează cum cade mutarea greşită, iar
+   * Căluţul savant comentează linia mutare cu mutare.
+   *
+   * Fără asta, un exerciţiu greşit te învaţă doar că ai greşit. Ca să treci de
+   * un anumit nivel, trebuie să vezi refutarea, nu doar verdictul.
+   */
+  async function startRefutation() {
+    if (!wrongFen || !wrongMoveFrom || !wrongMoveTo || !playerMoveSan) return
+    setRefuLoading(true)
+    try {
+      // Poziţia de după mutarea greşită — de acolo pleacă refutarea.
+      const after = new Chess(wrongFen)
+      after.move({ from: wrongMoveFrom, to: wrongMoveTo, promotion: 'q' })
+
+      const { pv } = await getLine(after.fen(), 14, 6)
+      if (!pv.length) {
+        toast.error('Nu am putut calcula continuarea. Mai încearcă.')
+        return
+      }
+
+      // Replay: fiecare semi-mutare devine o poziţie de arătat pe tablă.
+      const board = new Chess(after.fen())
+      const fens: string[] = [after.fen()]
+      const sans: string[] = []
+      const from: string[] = []
+      const to: string[] = []
+
+      for (const uci of pv) {
+        const mv = board.move({
+          from: uci.slice(0, 2),
+          to: uci.slice(2, 4),
+          promotion: uci.length > 4 ? uci[4] : undefined,
+        })
+        // Motorul poate întoarce o variaţie mai lungă decât e legală de la un
+        // punct încolo; ne oprim acolo, cu ce am adunat.
+        if (!mv) break
+        sans.push(mv.san)
+        from.push(mv.from)
+        to.push(mv.to)
+        fens.push(board.fen())
+      }
+
+      if (!sans.length) {
+        toast.error('Nu am putut calcula continuarea. Mai încearcă.')
+        return
+      }
+
+      setRefutation({ fens, sans, from, to })
+      setRefuPly(0)
+
+      void explainRefutation({
+        fen: wrongFen,
+        playerMoveSan,
+        bestMoveSan: moveExplanation?.bestMoveSan ?? '',
+        lineSan: sans,
+      })
+    } catch {
+      toast.error('Motorul nu a răspuns. Mai încearcă.')
+    } finally {
+      setRefuLoading(false)
+    }
   }
 
   function loadPuzzle(puzzle: Puzzle) {
@@ -651,7 +740,19 @@ export function PuzzlesPage() {
   // selectorul „Interval de Elo" din şina dreaptă, care o şi evidenţiază.
   const bands = hasRating ? accessibleBands(puzzleRating!) : []
 
-  const boardSquareStyles: Record<string, React.CSSProperties> = {
+  // Cât timp parcurgem refutarea, tabla arată linia motorului, nu poziţia
+  // puzzle-ului. Ieşirea din parcurgere readuce totul de unde a rămas.
+  const inRefutation = refutation !== null
+  const refuMoveIdx = refuPly - 1   // mutarea care a dus la poziţia curentă
+
+  const boardSquareStyles: Record<string, React.CSSProperties> = inRefutation
+    ? (refuMoveIdx >= 0 && refutation
+        ? {
+            [refutation.from[refuMoveIdx]]: { backgroundColor: 'rgba(226,179,64,0.35)' },
+            [refutation.to[refuMoveIdx]]: { backgroundColor: 'rgba(226,179,64,0.6)' },
+          }
+        : {})
+    : {
     ...(wrongMoveFrom && wrongMoveTo ? {
       [wrongMoveFrom]: { backgroundColor: 'rgba(251, 191, 36, 0.35)' },
       [wrongMoveTo]: { backgroundColor: 'rgba(249, 115, 22, 0.55)' },
@@ -670,15 +771,20 @@ export function PuzzlesPage() {
     } : {}),
   }
 
-  const boardArrows = [
-    ...(wrongMoveFrom && wrongMoveTo ? [{ startSquare: wrongMoveFrom, endSquare: wrongMoveTo, color: '#f97316' }] : []),
-    ...(hintLevel >= 3 && expectedMoveUci ? [{ startSquare: expectedMoveUci.slice(0, 2), endSquare: expectedMoveUci.slice(2, 4), color: '#E2B340' }] : []),
-  ]
+  const boardArrows = inRefutation
+    ? (refuMoveIdx >= 0 && refutation
+        ? [{
+            startSquare: refutation.from[refuMoveIdx],
+            endSquare: refutation.to[refuMoveIdx],
+            color: '#E2B340',
+          }]
+        : [])
+    : [
+        ...(wrongMoveFrom && wrongMoveTo ? [{ startSquare: wrongMoveFrom, endSquare: wrongMoveTo, color: '#f97316' }] : []),
+        ...(hintLevel >= 3 && expectedMoveUci ? [{ startSquare: expectedMoveUci.slice(0, 2), endSquare: expectedMoveUci.slice(2, 4), color: '#E2B340' }] : []),
+      ]
 
   return (
-    // Zoom 10% pe toată pagina de puzzle-uri (mărește uniform tot conținutul).
-    // `zoom: 1.1` a stat aici de la o ajustare veche şi făcea pagina asta cu 10%
-    // mai mare decât toate celelalte — inclusiv tabla, faţă de Cufărul cu tactici.
     <div className="space-y-4">
       {/* Provocările zilei, cu rating-ul pe acelaşi rând.
           Stăteau pe rânduri separate şi împingeau tabla sub marginea ecranului;
@@ -807,16 +913,112 @@ export function PuzzlesPage() {
                 <p className="text-sm font-bold text-[#fbbf24]">Mai gândește-te</p>
               </div>
               {/* Feedback inițial DOAR până apeși un indiciu (hintLevel 0). L1 = întrebare orientativă.
-                  L2+ = doar highlight pe piesă, fără niciun text. */}
+                  L2+ = doar highlight pe piesă, fără niciun text.
+                  Verdictul Căluțului savant, când există, îl înlocuiește pe cel
+                  euristic: e scris pe poziția reală, nu pe tiparul tacticii. */}
               {evalLoading ? (
                 <p className="text-sm text-[#A0A0A0]">Se analizează poziția...</p>
-              ) : hintLevel === 0 && moveExplanation ? (
-                <p className="text-sm text-[#F0F0F0] leading-relaxed">{moveExplanation.message}</p>
+              ) : hintLevel === 0 && (refuCoach?.verdict || moveExplanation) ? (
+                <p className="text-sm text-[#F0F0F0] leading-relaxed">
+                  {refuCoach?.verdict || moveExplanation?.message}
+                </p>
               ) : hintLevel === 1 && secondHint ? (
                 <div className="rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] p-2.5">
                   <p className="text-sm text-[#F0C85A]">{secondHint}</p>
                 </div>
               ) : null}
+
+              {/* „De ce nu merge" — motorul calculează refutarea, antrenorul o
+                  comentează. Fără asta, o greșeală te învață doar că ai greșit. */}
+              {!inRefutation && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="w-full"
+                  disabled={refuLoading}
+                  onClick={() => void startRefutation()}
+                >
+                  {refuLoading
+                    ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Calculez…</>
+                    : <>Arată de ce nu merge</>}
+                </Button>
+              )}
+            </Card>
+          )}
+
+          {/* Parcurgerea refutării */}
+          {inRefutation && refutation && (
+            <Card className="space-y-3 border-[rgba(226,179,64,0.35)] p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-[#E2B340]">Ce urmează după mutarea ta</p>
+                <button
+                  onClick={() => { setRefutation(null); setRefuPly(0) }}
+                  title="Închide"
+                  className="rounded p-1 text-[#6B6B6B] transition-colors hover:bg-[#2A2A2A] hover:text-[#F0F0F0]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Mutările liniei, ca butoane — poți sări direct unde vrei */}
+              <div className="flex flex-wrap gap-1.5">
+                {refutation.sans.map((san, i) => (
+                  <button
+                    key={`${san}-${i}`}
+                    onClick={() => setRefuPly(i + 1)}
+                    className={[
+                      'rounded px-2 py-1 font-mono text-sm transition-colors',
+                      refuPly === i + 1
+                        ? 'bg-[rgba(226,179,64,0.2)] text-[#E2B340]'
+                        : 'text-[#A0A0A0] hover:bg-[#1F1F1F] hover:text-[#F0F0F0]',
+                    ].join(' ')}
+                  >
+                    {translateNotation(san)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Nota Căluțului savant pentru mutarea curentă */}
+              <div className="min-h-16 rounded-lg border border-[#2A2A2A] bg-[#141414] p-3">
+                {refuCoachLoading ? (
+                  <p className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Căluțul savant se uită la linie…
+                  </p>
+                ) : refuPly === 0 ? (
+                  <p className="text-sm text-[#A0A0A0]">
+                    Poziția de după mutarea ta. Mergi înainte ca să vezi cum răspunde adversarul.
+                  </p>
+                ) : refuCoach?.notes?.[refuMoveIdx] ? (
+                  <p className="text-sm leading-relaxed text-[#F0F0F0]">
+                    {refuCoach.notes[refuMoveIdx]}
+                  </p>
+                ) : (
+                  <p className="text-sm text-[#6B6B6B]">
+                    {translateNotation(refutation.sans[refuMoveIdx])} — urmărește ce se schimbă pe tablă.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setRefuPly(p => Math.max(0, p - 1))}
+                  disabled={refuPly === 0}
+                  className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Înapoi
+                </button>
+                <button
+                  onClick={() => setRefuPly(p => Math.min(refutation.sans.length, p + 1))}
+                  disabled={refuPly >= refutation.sans.length}
+                  className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Înainte <ChevronRight className="h-4 w-4" />
+                </button>
+                <span className="ml-auto text-xs tabular-nums text-[#6B6B6B]">
+                  {refuPly} / {refutation.sans.length}
+                </span>
+              </div>
             </Card>
           )}
         </div>
@@ -860,10 +1062,12 @@ export function PuzzlesPage() {
                 >
                   <Chessboard
                     options={{
-                      position: puzzleState.game.fen(),
+                      position: inRefutation && refutation
+                        ? refutation.fens[refuPly]
+                        : puzzleState.game.fen(),
                       onPieceDrop,
                       onSquareClick,
-                      allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b'),
+                      allowDragging: !inRefutation && puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b'),
                       boardOrientation: playerColor,
                       boardStyle: { borderRadius: 0 },
                       darkSquareStyle,

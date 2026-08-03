@@ -85,6 +85,63 @@ export function useStockfish() {
     })
   }, [])
 
+  /**
+   * Linia principală completă dintr-o poziţie, nu doar prima mutare.
+   *
+   * `evalPosition` întoarce un singur `best`, ceea ce ar însemna un apel la motor
+   * pentru fiecare semi-mutare — câteva secunde bucata. Motorul trimite însă
+   * toată variaţia în linia `info ... pv ...`, aşa că o citim dintr-o singură
+   * căutare: de aici vine refutarea arătată după o mutare greşită.
+   */
+  const getLine = useCallback((
+    fen: string, depth = 14, maxPlies = 6,
+  ): Promise<{ cp: number; mate?: number; pv: string[] }> => {
+    return new Promise((resolve, reject) => {
+      const worker = workerRef.current
+      if (!worker) { reject(new Error('Engine not ready')); return }
+
+      const timeout = setTimeout(() => reject(new Error('Line timeout')), 10000)
+      let lastCp = 0
+      let lastMate: number | undefined
+      let lastPv: string[] = []
+
+      const handler = (e: MessageEvent<string>) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data)
+
+        if (msg.startsWith('info') && msg.includes(' pv ')) {
+          const cp = msg.match(/score cp (-?\d+)/)
+          const mate = msg.match(/score mate (-?\d+)/)
+          if (mate) {
+            lastMate = parseInt(mate[1])
+            lastCp = lastMate > 0 ? 30000 : -30000
+          } else if (cp) {
+            lastCp = parseInt(cp[1])
+            lastMate = undefined
+          }
+          // Tot ce urmează după „ pv " e variaţia, mutare cu mutare.
+          const pv = msg.split(' pv ')[1]
+          if (pv) lastPv = pv.trim().split(/\s+/).slice(0, maxPlies)
+        }
+
+        if (msg.startsWith('bestmove')) {
+          clearTimeout(timeout)
+          worker.removeEventListener('message', handler)
+          const bm = msg.split(' ')[1]
+          resolve({
+            cp: lastCp,
+            mate: lastMate,
+            pv: lastPv.length ? lastPv : (bm && bm !== '(none)' ? [bm] : []),
+          })
+        }
+      }
+
+      worker.addEventListener('message', handler)
+      worker.postMessage('setoption name UCI_LimitStrength value false')
+      worker.postMessage(`position fen ${fen}`)
+      worker.postMessage(`go depth ${depth}`)
+    })
+  }, [])
+
   // Analyze a sequence of (fen, playedUci) pairs, return per-position evaluations
   const analyzePositions = useCallback(
     async (
@@ -113,5 +170,5 @@ export function useStockfish() {
     [evalPosition],
   )
 
-  return { getBestMove, evalPosition, analyzePositions }
+  return { getBestMove, evalPosition, getLine, analyzePositions }
 }
