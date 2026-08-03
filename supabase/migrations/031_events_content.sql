@@ -6,8 +6,11 @@
 --
 -- Regulă respectată peste tot: nu inventez poziţii de şah. Sarcinile de tip
 -- `puzzle` au `puzzle_id = null`, ceea ce înseamnă „un puzzle pe măsura ta",
--- ales dintre cele 128 verificate care există deja în bază. Când vom avea
--- poziţii reale din partidele fiecărui jucător, se completează cu un update.
+-- ales dintre cele care există deja în bază. Când vom avea poziţii reale din
+-- partidele fiecărui jucător, se completează cu un update.
+--
+-- (Comentariul spunea iniţial „cele 128 verificate". Numărul era greşit —
+-- sunt 565; numărătoarea rata id-urile Lichess cu majuscule.)
 -- ============================================================
 
 

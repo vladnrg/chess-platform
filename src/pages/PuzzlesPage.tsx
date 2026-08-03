@@ -27,14 +27,54 @@ function offsetColor(o: BandOffset): string {
   return o === -1 ? '#60a5fa' : o === 0 ? '#E2B340' : '#f97316'
 }
 
-// Helperi cu efect (aleator / ceas), ținuți la nivel de modul — nu în corpul componentei.
+// Helperi cu efect (ceas), ținuți la nivel de modul — nu în corpul componentei.
 // Sunt apelați doar din handlere și efecte, niciodată în timpul render-ului.
-function pickRandom<T>(pool: T[]): T {
-  return pool[Math.floor(Math.random() * pool.length)]
-}
-
+//
+// `pickRandom` a dispărut odată cu alegerea în client: acum serverul alege,
+// fiindcă doar el ştie ce ai rezolvat deja.
 function nowMs(): number {
   return Date.now()
+}
+
+// ---- Completarea benzii din Lichess ----
+// Sub atâtea puzzle-uri nevăzute rămase în bandă, aducem altele. Pragul e
+// deasupra lui zero intenţionat: dacă am aştepta să se golească, ai apuca să
+// vezi ultimele câteva de mai multe ori.
+const TOP_UP_THRESHOLD = 8
+const TOP_UP_BATCH = 5
+// Lichess nu ţinteşte exact o bandă, deci unele aduse pot cădea alături. Fără
+// răcire, o bandă greu de umplut ar declanşa cereri la fiecare puzzle.
+const TOP_UP_COOLDOWN_MS = 60_000
+let lastTopUp = 0
+
+/** Aduce un puzzle de la Lichess şi îl salvează în banca noastră. */
+async function fetchAndStore(band: PuzzleBand): Promise<Puzzle> {
+  const lp = await fetchLichessPuzzleNext(eloToDifficulty(band.floor + 100))
+  const puzzle = lichessPuzzleToLocal(lp)
+  // Prin RPC, nu prin insert direct: `puzzles` e tabel comun şi n-are politică
+  // de scriere — vechiul `upsert` din client era respins în tăcere.
+  await supabase.rpc('store_lichess_puzzle', {
+    p_id: puzzle.id,
+    p_fen: puzzle.fen,
+    p_moves: puzzle.moves,
+    p_rating: puzzle.rating,
+    p_themes: puzzle.themes,
+    p_game_url: puzzle.game_url ?? null,
+  })
+  return puzzle
+}
+
+/** Îmbogăţeşte banda în fundal. Eşecurile se ignoră — e doar o completare. */
+async function topUpBand(band: PuzzleBand): Promise<void> {
+  if (nowMs() - lastTopUp < TOP_UP_COOLDOWN_MS) return
+  lastTopUp = nowMs()
+  for (let i = 0; i < TOP_UP_BATCH; i++) {
+    try {
+      await fetchAndStore(band)
+    } catch {
+      return
+    }
+  }
 }
 
 // Penalizarea fixă de XP pentru fiecare indiciu (scăzută din recompensa puzzle-ului).
@@ -353,23 +393,25 @@ export function PuzzlesPage() {
 
     setNextLoading(true)
     try {
-      const { data } = await supabase.from('puzzles').select('*')
-        .gte('rating', band.floor)
-        .lt('rating', band.ceil)
-        .limit(40)
-      const pool = (data ?? []) as Puzzle[]
-      if (pool.length >= 1) {
-        loadPuzzle(pickRandom(pool))
+      // Serverul alege unul pe care nu l-ai mai văzut. Înainte luam primele 40
+      // rânduri din bandă, fără ordonare — adică mereu aceleaşi.
+      const { data, error } = await supabase.rpc('next_puzzle_for', {
+        p_floor: band.floor,
+        p_ceil: band.ceil,
+      })
+      if (error) throw error
+      const res = data as { puzzle: Puzzle | null; unseen_left: number; band_total: number }
+
+      if (res.puzzle) {
+        loadPuzzle(res.puzzle)
+        // Se apropie de fundul benzii: aducem altele în fundal, ca data
+        // viitoare să existe din ce alege.
+        if (res.unseen_left <= TOP_UP_THRESHOLD) void topUpBand(band)
         return
       }
-      // Fallback Lichess (mijlocul benzii)
-      const lp = await fetchLichessPuzzleNext(eloToDifficulty(band.floor + 100))
-      const puzzle = lichessPuzzleToLocal(lp)
-      await supabase.from('puzzles').upsert(
-        { id: puzzle.id, fen: puzzle.fen, moves: puzzle.moves, rating: puzzle.rating, themes: puzzle.themes, game_url: puzzle.game_url },
-        { onConflict: 'id' }
-      )
-      loadPuzzle(puzzle)
+
+      // Banda e goală de tot — aducem unul acum, cu aşteptare.
+      loadPuzzle(await fetchAndStore(band))
     } catch {
       toast.error('Nu am putut încărca un puzzle nou.')
     } finally {

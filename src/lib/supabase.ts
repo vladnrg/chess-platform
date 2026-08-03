@@ -422,6 +422,22 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: OpeningSessionSummary
       }
+      next_puzzle_for: {
+        Args: { p_floor: number; p_ceil: number }
+        /** `unseen_left` spune când merită completată banda de la Lichess. */
+        Returns: { puzzle: Puzzle | null; unseen_left: number; band_total: number }
+      }
+      store_lichess_puzzle: {
+        Args: {
+          p_id: string; p_fen: string; p_moves: string
+          p_rating: number; p_themes: string[]; p_game_url: string | null
+        }
+        Returns: void
+      }
+      puzzle_band_counts: {
+        Args: Record<string, never>
+        Returns: { floor_rating: number; total: number }[]
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
