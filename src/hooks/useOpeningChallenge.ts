@@ -13,7 +13,11 @@ const ERRORS: Record<string, string> = {
   session_finished: 'Calupul e deja închis.',
   session_complete: 'Ai răspuns la toate întrebările.',
   session_incomplete: 'Mai ai întrebări fără răspuns.',
-  not_enough_questions: 'Nu sunt destule întrebări în bază. Anunță-ne.',
+  // Banca de întrebări e goală. Nu e o lipsă de conţinut — conţinutul există în
+  // migrarea 034; înseamnă că n-a fost aplicată. Mesajul spune asta direct,
+  // fiindcă vechiul „nu sunt destule întrebări" trimitea pe pistă greşită.
+  question_bank_empty: 'Banca de întrebări e goală — migrarea 034 nu a fost rulată.',
+  not_enough_questions: 'Banca de întrebări e goală — migrarea 034 nu a fost rulată.',
   not_authenticated: 'Trebuie să fii conectat.',
 }
 
