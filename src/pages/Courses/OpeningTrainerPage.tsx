@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import type { OpeningLine } from '@/types'
@@ -91,6 +92,7 @@ interface Props {
 export function OpeningTrainerPage({ mode }: Props) {
   const { slug, lineId } = useParams<{ slug: string; lineId: string }>()
   const { user, fetchProfile } = useAuth()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const isGuided = mode === 'guided'
   const savedDoneRef = useRef(false)
 
@@ -375,8 +377,8 @@ export function OpeningTrainerPage({ mode }: Props) {
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
                 boardStyle: { borderRadius: 0 },
-                darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                darkSquareStyle,
+                lightSquareStyle,
               }}
             />
           </div>

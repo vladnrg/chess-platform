@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Sword, Calendar, Users, Library, Trophy, GraduationCap,
+  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -84,6 +84,12 @@ export const NAV: NavEntry[] = [
         label: 'Clasament',
         description: 'Cum stai față de ceilalți jucători din liga ta.',
         icon: Users,
+      },
+      {
+        to: '/evenimente',
+        label: 'Evenimente',
+        description: 'Sărbători, zile ale marilor jucători și provocări cu termen.',
+        icon: Sparkles,
       },
       {
         to: '/calendar',

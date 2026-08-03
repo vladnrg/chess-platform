@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { TitlePicker } from '@/components/profile/TitlePicker'
+import { CosmeticPicker } from '@/components/profile/CosmeticPicker'
 import { getLeagueConfig } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -55,6 +56,8 @@ export function ProfilePage() {
       </Card>
 
       <TitlePicker />
+
+      <CosmeticPicker />
 
       {/* Editare */}
       <Card>

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { LeagueWidget } from '@/components/dashboard/LeagueWidget'
 import { AppMap } from '@/components/dashboard/AppMap'
 import { DailyMissions } from '@/components/dashboard/DailyMissions'
+import { ActiveEvents } from '@/components/dashboard/ActiveEvents'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
@@ -115,6 +116,9 @@ export function Dashboard() {
 
       {/* Misiunile zilei — deocamdată doar înfăţişarea, cu date fixe */}
       <DailyMissions />
+
+      {/* Evenimentele în desfăşurare. Nu randează nimic când nu e niciunul. */}
+      <ActiveEvents />
 
       {/* Harta aplicaţiei */}
       <AppMap />

@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { FundamentalLessonPage } from './FundamentalLessonPage'
@@ -26,6 +27,7 @@ function parsePgn(pgn: string): string[] {
 export function LessonPage() {
   const { slug, lessonId } = useParams<{ slug: string; lessonId: string }>()
   const { user, fetchProfile } = useAuth()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const qc = useQueryClient()
 
   const [moveIndex, setMoveIndex] = useState(0)
@@ -154,8 +156,8 @@ export function LessonPage() {
                 position: getCurrentFen(),
                 allowDragging: false,
                 boardStyle: { borderRadius: 0 },
-                darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                darkSquareStyle,
+                lightSquareStyle,
               }}
             />
           </div>

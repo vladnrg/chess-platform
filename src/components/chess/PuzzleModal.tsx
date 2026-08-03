@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
 import { initPuzzleState, type PuzzleState } from '@/lib/puzzle-utils'
 import { Button } from '@/components/ui/Button'
@@ -66,6 +67,7 @@ const FREE_LIMIT = 10
 export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }: Props) {
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
   // Când poziția e dată de la părinte (traseu de tactici), o folosim direct ca stare
   // inițială — altfel primul render ar fi gol, urmat imediat de un setState din efect.
@@ -365,8 +367,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
                         allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
                         boardOrientation: playerColor,
                         boardStyle: { borderRadius: 0 },
-                        darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                        darkSquareStyle,
+                        lightSquareStyle,
                         squareStyles,
                         arrows: boardArrows,
                       }}

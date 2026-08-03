@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import type {
   Profile, Course, Lesson, Puzzle, UserPuzzleAttempt, UserCourseProgress,
   Subscription, AssessmentResult, UserWeeklyXp, Tournament, OpeningLine, League,
+  CosmeticKind, CosmeticRarity, EventKind, EventTaskType,
+  SeasonalEvent, SeasonalEventDetail, TaskResult, ChessathonProgress, OwnedCosmetic,
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -151,6 +153,74 @@ export interface Match {
   finished_at: string | null
 }
 
+// ============================================================
+// Evenimente şi cosmetice (migrările 030–031)
+// ============================================================
+// Rândurile brute. În aplicaţie se citesc aproape exclusiv prin RPC-uri, fiindcă
+// `event_tasks` nu are politică de select — payload-ul conţine răspunsul corect.
+
+export interface CosmeticRow {
+  id: string
+  kind: CosmeticKind
+  name: string
+  description: string | null
+  rarity: CosmeticRarity
+  payload: Record<string, unknown>
+  created_at: string
+}
+
+export interface UserCosmeticRow {
+  user_id: string
+  cosmetic_id: string
+  earned_at: string
+  source: string | null
+}
+
+export interface EventRow {
+  id: string
+  slug: string
+  kind: EventKind
+  title: string
+  tagline: string | null
+  description: string | null
+  starts_at: string
+  ends_at: string
+  config: Record<string, unknown>
+  accent_color: string
+  icon: string
+  is_published: boolean
+  created_at: string
+}
+
+export interface EventTaskRow {
+  id: string
+  event_id: string
+  order_index: number
+  available_at: string | null
+  title: string
+  prompt: string | null
+  task_type: EventTaskType
+  puzzle_id: string | null
+  payload: Record<string, unknown>
+  xp_reward: number
+  cosmetic_reward: string | null
+}
+
+export interface UserEventTaskRow {
+  user_id: string
+  task_id: string
+  completed_at: string
+  correct: boolean
+}
+
+export interface XpLedgerRow {
+  id: number
+  user_id: string
+  amount: number
+  source: string | null
+  created_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -208,11 +278,28 @@ export type Database = {
           referencedColumns: ['id']
         }]
       >
+      cosmetics: TableDef<CosmeticRow, 'created_at'>
+      user_cosmetics: TableDef<
+        UserCosmeticRow,
+        'earned_at',
+        [{
+          foreignKeyName: 'user_cosmetics_cosmetic_id_fkey'
+          columns: ['cosmetic_id']
+          isOneToOne: false
+          referencedRelation: 'cosmetics'
+          referencedColumns: ['id']
+        }]
+      >
+      events: TableDef<EventRow, Generated | 'config' | 'accent_color' | 'icon' | 'is_published'>
+      event_tasks: TableDef<EventTaskRow, 'id' | 'payload' | 'xp_reward'>
+      user_event_tasks: TableDef<UserEventTaskRow, 'completed_at' | 'correct'>
+      xp_ledger: TableDef<XpLedgerRow, Generated>
     }
     Views: Record<string, never>
     Functions: {
       award_xp: {
-        Args: { p_user_id: string; p_amount: number }
+        /** `p_source` etichetează rândul din jurnal ('puzzle', 'event:slug'...). */
+        Args: { p_user_id: string; p_amount: number; p_source?: string | null }
         Returns: void
       }
       set_puzzle_placement: {
@@ -276,6 +363,43 @@ export type Database = {
       player_record: {
         Args: { p_user_id: string }
         Returns: { wins: number; draws: number; losses: number }[]
+      }
+      list_events: {
+        Args: Record<string, never>
+        Returns: SeasonalEvent[]
+      }
+      event_detail: {
+        Args: { p_slug: string }
+        Returns: SeasonalEventDetail | null
+      }
+      complete_event_task: {
+        /** `p_answer` e indexul variantei alese; null pentru sarcini fără quiz. */
+        Args: { p_task_id: string; p_answer?: number | null }
+        Returns: TaskResult
+      }
+      event_task_puzzle: {
+        Args: { p_task_id: string }
+        Returns: Puzzle | null
+      }
+      chessathon_progress: {
+        Args: { p_slug: string }
+        Returns: ChessathonProgress | null
+      }
+      claim_chessathon_reward: {
+        Args: { p_slug: string }
+        Returns: { cosmetic: string; cosmetic_is_new: boolean }
+      }
+      my_cosmetics: {
+        Args: Record<string, never>
+        Returns: OwnedCosmetic[]
+      }
+      equip_cosmetic: {
+        Args: { p_cosmetic_id: string }
+        Returns: void
+      }
+      unequip_cosmetic: {
+        Args: { p_kind: CosmeticKind }
+        Returns: void
       }
     }
     Enums: Record<string, never>

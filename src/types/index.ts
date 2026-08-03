@@ -36,7 +36,144 @@ export interface Profile {
   shields_used: number
   /** Câte promovări onorifice a consumat. La fel, câte are se deduce din nivel. */
   honorary_used: number
+  // Cosmetice (migrarea 030)
+  /** Id-ul badge-ului afişat lângă nume; `null` = niciunul. */
+  equipped_badge: string | null
+  /** Id-ul temei de tablă; `null` = tema implicită. */
+  equipped_board: string | null
 }
+
+// ============================================================
+// Evenimente sezoniere şi cosmetice (migrările 030–031)
+// ============================================================
+
+export type CosmeticKind = 'badge' | 'board'
+export type CosmeticRarity = 'common' | 'rare' | 'epic' | 'legendary'
+
+/** Culorile câmpurilor pentru o temă de tablă. */
+export interface BoardPayload {
+  light: string
+  dark: string
+}
+
+/** Emoji-ul şi culoarea unui badge de profil. */
+export interface BadgePayload {
+  emoji: string
+  color: string
+}
+
+export interface Cosmetic {
+  id: string
+  kind: CosmeticKind
+  name: string
+  description: string | null
+  rarity: CosmeticRarity
+  payload: BoardPayload | BadgePayload | Record<string, never>
+}
+
+/** Un cosmetic pe care îl deţin, cu momentul şi evenimentul din care a venit. */
+export interface OwnedCosmetic extends Cosmetic {
+  earned_at: string
+  source: string | null
+}
+
+export type EventKind = 'chessathon' | 'player_day' | 'name_opening' | 'advent' | 'promo'
+export type EventStatus = 'upcoming' | 'live' | 'ended'
+export type EventTaskType = 'puzzle' | 'quiz' | 'info'
+
+/**
+ * Datele unei sarcini. Câmpurile `answer` şi `explanation` lipsesc până când
+ * răspunzi — serverul le taie din `event_detail`, ca răspunsul să nu poată fi
+ * citit din consola browserului.
+ */
+export interface EventTaskPayload {
+  options?: string[]
+  answer?: number
+  explanation?: string
+}
+
+export interface EventTask {
+  id: string
+  order_index: number
+  title: string
+  prompt: string | null
+  task_type: EventTaskType
+  puzzle_id: string | null
+  xp_reward: number
+  cosmetic_reward: string | null
+  available_at: string | null
+  /** Fereastra sarcinii s-a deschis (uşile de calendar nu se deschid mai devreme). */
+  is_open: boolean
+  done: boolean
+  payload: EventTaskPayload
+}
+
+/** Un eveniment aşa cum apare în listă — fără sarcini, doar cu progresul. */
+export interface SeasonalEvent {
+  slug: string
+  kind: EventKind
+  title: string
+  tagline: string | null
+  description: string | null
+  starts_at: string
+  ends_at: string
+  config: Record<string, unknown>
+  accent_color: string
+  /** Numele unui icon lucide-react, rezolvat în client. */
+  icon: string
+  status: EventStatus
+  total_tasks: number
+  done_tasks: number
+}
+
+export type SeasonalEventDetail = Omit<SeasonalEvent, 'total_tasks' | 'done_tasks'> & {
+  tasks: EventTask[]
+}
+
+export interface ChessathonProgress {
+  target_xp: number
+  my_xp: number
+  community_xp: number
+  participants: number
+  reached: boolean
+}
+
+/** Ce s-a întâmplat după ce ai rezolvat o sarcină. */
+export interface TaskResult {
+  correct: boolean
+  xp: number
+  already_done?: boolean
+  cosmetic?: string | null
+  cosmetic_is_new?: boolean
+  answer?: number
+  explanation?: string | null
+}
+
+export const COSMETIC_RARITY_LABELS: Record<CosmeticRarity, string> = {
+  common: 'Obişnuit',
+  rare: 'Rar',
+  epic: 'Epic',
+  legendary: 'Legendar',
+}
+
+/** Culoarea ramei, pe raritate. */
+export const COSMETIC_RARITY_COLORS: Record<CosmeticRarity, string> = {
+  common: '#6B6B6B',
+  rare: '#2DD4BF',
+  epic: '#8B5CF6',
+  legendary: '#E2B340',
+}
+
+export const EVENT_KIND_LABELS: Record<EventKind, string> = {
+  chessathon: 'Chessathon',
+  player_day: 'Ziua unui jucător',
+  name_opening: 'Quiz de deschideri',
+  advent: 'Calendar',
+  promo: 'Promoţie',
+}
+
+/** Tema implicită a tablei, când nu e echipată niciuna. */
+export const DEFAULT_BOARD: BoardPayload = { light: '#EBECD0', dark: '#739552' }
 
 export type TournamentType = 'platform' | 'external'
 export type TournamentCategory = 'online' | 'over_the_board' | 'workshop'

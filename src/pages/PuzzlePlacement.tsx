@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { fetchLichessPuzzleNext, eloToDifficulty } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, type PuzzleState } from '@/lib/puzzle-utils'
 import {
@@ -68,6 +69,7 @@ async function buildPlacementSet(): Promise<Puzzle[]> {
 export function PuzzlePlacement() {
   const navigate = useNavigate()
   const { user, fetchProfile } = useAuth()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
   const [puzzles, setPuzzles] = useState<Puzzle[] | null>(null)
   const [idx, setIdx] = useState(0)
@@ -205,8 +207,8 @@ export function PuzzlePlacement() {
                   allowDragging: !feedback,
                   boardOrientation: playerColor,
                   boardStyle: { borderRadius: 8 },
-                  darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                  lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                  darkSquareStyle,
+                  lightSquareStyle,
                 }}
               />
             </div>

@@ -6,6 +6,7 @@ import { ChevronLeft, Flag, Handshake, Trophy } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase, type Match } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useMatch, formatClock, timeLeft, useTicker } from '@/hooks/useMatch'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -34,6 +35,7 @@ export function MatchPage() {
   const { matchId } = useParams<{ matchId: string }>()
   const { user } = useAuth()
   const { match, isLoading, myColor, isMyTurn, playMove } = useMatch(matchId)
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
   // Poziţia arătată imediat după mutarea proprie, până confirmă serverul. Fără ea,
   // piesa ar sări înapoi pentru câteva sute de milisecunde la fiecare mutare.
@@ -120,8 +122,8 @@ export function MatchPage() {
                 allowDragging: isMyTurn && !isOver,
                 boardOrientation: myColor === 'w' ? 'white' : 'black',
                 boardStyle: { borderRadius: 0 },
-                darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                darkSquareStyle,
+                lightSquareStyle,
               }}
             />
           </div>

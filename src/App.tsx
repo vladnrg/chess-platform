@@ -37,6 +37,8 @@ const TacticsChestPage = lazy(() => import('@/pages/TacticsChestPage').then(m =>
 const TacticsCategoryPage = lazy(() => import('@/pages/TacticsCategoryPage').then(m => ({ default: m.TacticsCategoryPage })))
 const RepertoirePage = lazy(() => import('@/pages/RepertoirePage').then(m => ({ default: m.RepertoirePage })))
 const LeaguesPage = lazy(() => import('@/pages/LeaguesPage').then(m => ({ default: m.LeaguesPage })))
+const EventsPage = lazy(() => import('@/pages/EventsPage').then(m => ({ default: m.EventsPage })))
+const EventDetailPage = lazy(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
 const BreakPage = lazy(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
 const ParentalConfirmPage = lazy(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
 const ParentalStatsPage = lazy(() => import('@/pages/ParentalStatsPage').then(m => ({ default: m.ParentalStatsPage })))
@@ -106,6 +108,8 @@ function AppRoutes() {
         <Route path="/pentru-incepatori" element={<BeginnersPage />} />
         <Route path="/repertoire" element={<RepertoirePage />} />
         <Route path="/leagues" element={<LeaguesPage />} />
+        <Route path="/evenimente" element={<EventsPage />} />
+        <Route path="/evenimente/:slug" element={<EventDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -7,6 +7,7 @@ import { CheckCircle2, RefreshCw, Loader2, Info, Target, Flame, Calendar, Lightb
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
 import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
@@ -63,6 +64,7 @@ export function PuzzlesPage() {
   const navigate = useNavigate()
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
   const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(null)
   // Cea mai avansată semi-mutare atinsă în linia curentă = poziția „actuală" spre care duce săgeata dreapta
@@ -792,8 +794,8 @@ export function PuzzlesPage() {
                       allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b'),
                       boardOrientation: playerColor,
                       boardStyle: { borderRadius: 0 },
-                      darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                      darkSquareStyle,
+                      lightSquareStyle,
                       squareStyles: boardSquareStyles,
                       arrows: boardArrows,
                     }}
