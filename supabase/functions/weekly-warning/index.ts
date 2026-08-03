@@ -1,10 +1,15 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const WEEKLY_MINIMUMS: Record<string, number> = {
-  cherestea: 30, tinichea: 50, bronz: 75, argint: 100, aur: 150, smarald: 200, diamant: 250,
-}
-
+/**
+ * Avertismentul de la mijlocul săptămânii, pentru cine e în zona de
+ * retrogradare.
+ *
+ * Înainte compara XP-ul cu jumătate din pragul ligii. Pragurile au dispărut
+ * odată cu migrarea 038 — liga se decide numai pe clasament — deci singurul
+ * răspuns la „cine riscă să coboare" e chiar clasamentul, iar el se calculează
+ * în baza de date (`relegation_zone_users`), unde stă şi regula.
+ */
 serve(async (_req) => {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -19,48 +24,47 @@ serve(async (_req) => {
   weekStart.setUTCHours(0, 0, 0, 0)
   const weekStartStr = weekStart.toISOString().split('T')[0]
 
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, current_league, username')
-    .neq('current_league', 'cherestea')
+  const { data: atRisk, error } = await supabase.rpc('relegation_zone_users', {
+    p_week_start: weekStartStr,
+  })
 
-  if (!profiles) return new Response('No profiles', { status: 500 })
+  if (error) {
+    console.error('relegation_zone_users a eşuat:', error.message)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
 
   let warned = 0
 
-  for (const profile of profiles) {
-    const minimum = WEEKLY_MINIMUMS[profile.current_league] ?? 0
-    const halfMinimum = Math.floor(minimum / 2)
-
-    const { data: weeklyData } = await supabase
+  for (const row of atRisk ?? []) {
+    // Doar o dată pe săptămână, per om
+    const { data: existing } = await supabase
       .from('user_weekly_xp')
       .select('xp_earned, relegation_warning_sent')
-      .eq('user_id', profile.id)
+      .eq('user_id', row.user_id)
       .eq('week_start', weekStartStr)
       .single()
 
-    const weeklyXp = weeklyData?.xp_earned ?? 0
-    const alreadySent = weeklyData?.relegation_warning_sent ?? false
+    if (existing?.relegation_warning_sent) continue
 
-    if (weeklyXp < halfMinimum && !alreadySent) {
-      // Marchează avertismentul ca trimis (in-app notification la next login)
-      await supabase
-        .from('user_weekly_xp')
-        .upsert({
-          user_id: profile.id,
-          week_start: weekStartStr,
-          xp_earned: weeklyXp,
-          league_at_week_start: profile.current_league,
-          relegation_warning_sent: true,
-        })
+    await supabase
+      .from('user_weekly_xp')
+      .upsert({
+        user_id: row.user_id,
+        week_start: weekStartStr,
+        xp_earned: existing?.xp_earned ?? 0,
+        league_at_week_start: row.league,
+        relegation_warning_sent: true,
+      })
 
-      warned++
-      console.log(`Avertisment: ${profile.username} — ${weeklyXp}/${minimum} XP (sub 50%)`)
-    }
+    warned++
+    console.log(`Avertisment: ${row.user_id} — locul ${row.place} din ${row.members} (${row.league})`)
   }
 
   return new Response(
-    JSON.stringify({ warned }),
+    JSON.stringify({ warned, at_risk: atRisk?.length ?? 0, week: weekStartStr }),
     { headers: { 'Content-Type': 'application/json' } },
   )
 })

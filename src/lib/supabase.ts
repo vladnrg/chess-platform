@@ -345,10 +345,12 @@ export type Database = {
         Returns: {
           rank: number
           weekly_xp: number
-          weekly_min: number
+          members: number
           promote_slots: number
-          eligible: number
+          relegate_slots: number
           in_promotion_zone: boolean
+          in_relegation_zone: boolean
+          shields_left: number
         } | null
       }
       set_title: {

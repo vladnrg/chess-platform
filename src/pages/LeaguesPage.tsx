@@ -60,7 +60,7 @@ export function LeaguesPage() {
                   <p className="text-lg font-bold text-[#F0F0F0] mt-0.5">
                     {standing.rank}
                     <span className="ml-1 text-xs font-normal text-[#6B6B6B]">
-                      din {Math.max(standing.eligible, standing.rank)}
+                      din {standing.members}
                     </span>
                   </p>
                 </>
@@ -78,10 +78,15 @@ export function LeaguesPage() {
             <p className="mt-4 text-sm text-[#A0A0A0]">
               {standing.in_promotion_zone ? (
                 <span className="text-[#4ade80]">Ești în zona de promovare. Ține-o tot așa până duminică.</span>
-              ) : standing.weekly_xp < standing.weekly_min ? (
-                <>Strânge cel puțin <span className="font-semibold text-[#E2B340]">{standing.weekly_min} XP</span> săptămâna asta ca să intri în competiție și să nu retrogradezi.</>
-              ) : (
+              ) : standing.in_relegation_zone ? (
+                <span className="text-[#FB7185]">
+                  Ești în zona de retrogradare. Treci peste locul{' '}
+                  <span className="font-semibold">{standing.members - standing.relegate_slots}</span> ca să scapi.
+                </span>
+              ) : standing.promote_slots > 0 ? (
                 <>Urcă primii <span className="font-semibold text-[#E2B340]">{standing.promote_slots}</span> din ligă. Mai ai timp până duminică.</>
+              ) : (
+                <>Prea puțini jucători în ligă ca să se miște cineva săptămâna asta.</>
               )}
             </p>
           )}
@@ -195,8 +200,8 @@ export function LeaguesPage() {
                   <p className="text-xl mt-1.5" style={{ color: isFuture ? '#3A3A3A' : '#6B6B6B' }}>
                     {LEAGUE_DESCRIPTIONS[idx]}
                   </p>
-                  <p className="text-lg mt-2 font-mono" style={{ color: isFuture ? '#2A2A2A' : '#6B6B6B' }}>
-                    minim {league.weeklyMinXp} XP/săpt.
+                  <p className="text-lg mt-2" style={{ color: isFuture ? '#2A2A2A' : '#6B6B6B' }}>
+                    prima treime urcă · ultima coboară
                   </p>
                 </div>
 
@@ -219,12 +224,15 @@ export function LeaguesPage() {
         <h3 className="text-[#A0A0A0] font-semibold mb-3">Cum urci și cum cobori</h3>
         <ul className="space-y-1.5 list-disc list-inside">
           <li>În fiecare săptămână se face un clasament al ligii tale, după XP-ul strâns în acea săptămână.</li>
-          <li><span className="text-[#4ade80]">Urcă primii 20%</span> dintre cei care au atins minimul săptămânal.</li>
-          <li><span className="text-[#FB7185]">Coboară</span> cine rămâne sub minimul săptămânal — indiferent de locul în clasament.</li>
-          <li>Deci dacă ești activ, nu cobori niciodată, oricât de tare ar fi concurența.</li>
+          <li><span className="text-[#4ade80]">Urcă prima treime</span> din ligă.</li>
+          <li>Treimea de la mijloc rămâne pe loc.</li>
+          <li><span className="text-[#FB7185]">Coboară ultima treime</span>.</li>
+          <li>Într-o ligă de 30 de oameni: 10 urcă, 10 rămân, 10 coboară.</li>
+          <li>Nu există niciun prag de XP — contează doar locul în clasament.</li>
           <li>Verificarea se face în fiecare duminică la 23:59.</li>
           <li>XP-ul total și nivelul nu se pierd niciodată — doar liga se poate schimba.</li>
-          <li>Liga <span className="text-[#8B6914]">Inițiat</span> nu are retrogradare.</li>
+          <li>Liga <span className="text-[#8B6914]">Inițiat</span> nu are retrogradare, iar din <span className="text-[#B9F2FF]">Legendar</span> nu se mai urcă.</li>
+          <li>Sub 3 jucători într-o ligă nu se mișcă nimeni — n-ai pe cine clasa.</li>
         </ul>
       </div>
     </div>

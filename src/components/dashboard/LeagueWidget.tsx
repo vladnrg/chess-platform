@@ -1,6 +1,6 @@
 import { ArrowUp, Flame, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { getLeagueConfig, getLeagueProgress, getNextLeague, formatXp } from '@/lib/utils'
+import { getLeagueConfig, getNextLeague, formatXp } from '@/lib/utils'
 import { Progress } from '@/components/ui/Progress'
 import { useWeeklyXp } from '@/hooks/useWeeklyXp'
 import { useLeagueStanding } from '@/hooks/useLeagueStanding'
@@ -8,6 +8,14 @@ import { levelFromXp } from '@/lib/levels'
 import { shieldsEarnedBy, honoraryEarnedBy } from '@/lib/unlocks'
 import type { LeagueConfig } from '@/types'
 
+/**
+ * Liga ta, pe Bârlog.
+ *
+ * De la migrarea 038 liga se decide numai pe clasament: în fiecare ligă, primii
+ * o treime urcă, ultimii o treime coboară, restul rămân. Nu mai există niciun
+ * prag de XP — de aceea widget-ul nu mai arată bare către un „minim", ci locul
+ * şi zona în care te afli.
+ */
 export function LeagueWidget() {
   const { profile } = useAuth()
   const { weeklyXp, loading: weeklyLoading } = useWeeklyXp()
@@ -15,12 +23,14 @@ export function LeagueWidget() {
   if (!profile) return null
 
   const leagueConfig: LeagueConfig = getLeagueConfig(profile.current_league)
-  const progress = getLeagueProgress(profile.xp, profile.current_league)
   const nextLeague = getNextLeague(profile.current_league)
-  const weeklyMin = leagueConfig.weeklyMinXp
-  const weeklyPct = weeklyLoading ? 0 : Math.min(100, Math.round((weeklyXp / weeklyMin) * 100))
-  const weeklyShort = !weeklyLoading && weeklyXp < weeklyMin
-  // Scuturile rămase: câte a câştigat prin nivel, minus câte a consumat deja.
+
+  // Cât de sus eşti în ligă: 100% pe primul loc, 0% pe ultimul.
+  const zonePct = standing && standing.members > 1
+    ? Math.round(((standing.members - standing.rank) / (standing.members - 1)) * 100)
+    : 100
+
+  // Scuturile şi promovările rămase: câte a câştigat prin nivel, minus consumul.
   const shields = Math.max(0, shieldsEarnedBy(levelFromXp(profile.xp)) - (profile.shields_used ?? 0))
   const honorary = Math.max(0, honoraryEarnedBy(levelFromXp(profile.xp)) - (profile.honorary_used ?? 0))
 
@@ -47,69 +57,67 @@ export function LeagueWidget() {
         </div>
       </div>
 
-      {/* Poziţia în competiţia săptămânală.
-          Aici scria „încă N XP până la liga următoare", ceea ce era adevărat cât
-          promovarea se făcea pe prag de XP total. De la migrarea 029 liga se
-          câştigă prin clasament, deci ce contează e pe ce loc eşti. */}
+      {/* Locul în ligă — singurul lucru care decide unde ajungi duminică */}
       <div className="mb-3">
-        {nextLeague ? (
-          <>
-            <div className="mb-1.5 flex items-baseline justify-between text-xs">
-              <span className="text-[#6B6B6B]">Locul în ligă</span>
-              <span className={`font-semibold ${standing?.in_promotion_zone ? 'text-[#4ade80]' : 'text-[#A0A0A0]'}`}>
-                {standing ? `${standing.rank} din ${Math.max(standing.eligible, standing.rank)}` : '—'}
-              </span>
-            </div>
-            <Progress
-              value={standing?.in_promotion_zone ? 100 : progress}
-              barClassName={standing?.in_promotion_zone ? 'bg-[#4ade80]' : 'bg-[#E2B340]'}
-            />
-            <p className="mt-1.5 text-xs text-[#6B6B6B]">
-              {standing?.in_promotion_zone ? (
-                <>
-                  Ești în zona de promovare spre{' '}
-                  <span className="font-semibold" style={{ color: getLeagueConfig(nextLeague).color }}>
-                    {getLeagueConfig(nextLeague).label}
-                  </span>
-                </>
-              ) : standing && standing.promote_slots > 0 ? (
-                <>Urcă primii {standing.promote_slots} la finalul săptămânii.</>
-              ) : (
-                <>Strânge cel puțin {weeklyMin} XP ca să intri în competiție.</>
-              )}
-            </p>
-          </>
-        ) : (
-          <>
-            <Progress value={100} barClassName="bg-[#E2B340]" />
-            <p className="mt-1.5 text-xs text-[#E2B340]">Ești în liga supremă ✦</p>
-          </>
-        )}
-      </div>
-
-      {/* XP săptămânal. Nu e un plafon — e pragul minim sub care retrogradezi.
-          Vechiul „470 / 100" arăta exact ca o bară către un maxim, deşi XP-ul
-          săptămânal e nelimitat. Acum cifra stă singură, iar pragul e explicat. */}
-      <div className={`rounded-lg p-3 ${weeklyShort ? 'bg-[rgba(251,113,133,0.08)] border border-[rgba(251,113,133,0.2)]' : 'bg-[#141414] border border-[#2A2A2A]'}`}>
-        <div className="flex justify-between text-xs mb-1.5">
-          <span className="text-[#6B6B6B]">XP săptămâna aceasta</span>
-          <span className={`font-semibold ${weeklyShort ? 'text-[#FB7185]' : 'text-[#4ade80]'}`}>
-            {weeklyLoading ? '...' : weeklyXp}
+        <div className="mb-1.5 flex items-baseline justify-between text-xs">
+          <span className="text-[#6B6B6B]">Locul în ligă</span>
+          <span
+            className={`font-semibold ${
+              standing?.in_promotion_zone ? 'text-[#4ade80]'
+                : standing?.in_relegation_zone ? 'text-[#FB7185]'
+                  : 'text-[#A0A0A0]'
+            }`}
+          >
+            {standing ? `${standing.rank} din ${standing.members}` : '—'}
           </span>
         </div>
+
         <Progress
-          value={weeklyPct}
-          barClassName={weeklyShort ? 'bg-[#FB7185]' : 'bg-[#4ade80]'}
+          value={zonePct}
+          barClassName={
+            standing?.in_promotion_zone ? 'bg-[#4ade80]'
+              : standing?.in_relegation_zone ? 'bg-[#FB7185]'
+                : 'bg-[#E2B340]'
+          }
         />
-        <p className={`text-xs mt-1.5 ${weeklyShort ? 'text-[#FB7185]' : 'text-[#6B6B6B]'}`}>
-          {weeklyLoading
-            ? ' '
-            : weeklyShort
-              ? shields > 0
-                ? `Îți mai trebuie ${weeklyMin - weeklyXp} XP. Dacă nu ajungi, un scut te salvează.`
-                : `Îți mai trebuie ${weeklyMin - weeklyXp} XP până duminică, ca să nu retrogradezi.`
-              : `Minimul de ${weeklyMin} XP e atins — nu retrogradezi ✓`}
+
+        <p className="mt-1.5 text-xs text-[#6B6B6B]">
+          {!standing ? ' '
+            : standing.in_promotion_zone && nextLeague ? (
+              <span className="text-[#4ade80]">
+                Urci în{' '}
+                <span className="font-semibold" style={{ color: getLeagueConfig(nextLeague).color }}>
+                  {getLeagueConfig(nextLeague).label}
+                </span>
+                {' '}dacă rămâi aici până duminică.
+              </span>
+            ) : standing.in_relegation_zone ? (
+              shields > 0 ? (
+                <span className="text-[#FB7185]">
+                  Ești în zona de retrogradare, dar un scut te salvează.
+                </span>
+              ) : (
+                <span className="text-[#FB7185]">
+                  Ești în zona de retrogradare. Treci peste locul {standing.members - standing.relegate_slots}.
+                </span>
+              )
+            ) : standing.promote_slots > 0 ? (
+              <>Urcă primii {standing.promote_slots} — mai ai {standing.rank - standing.promote_slots} locuri.</>
+            ) : !nextLeague ? (
+              <span className="text-[#E2B340]">Ești în liga supremă ✦</span>
+            ) : (
+              <>Prea puțini jucători în ligă ca să se miște cineva.</>
+            )}
         </p>
+      </div>
+
+      {/* XP-ul săptămânii, ca simplă cifră. Avea o bară către un „minim de N XP",
+          prag care nu mai există: o bară fără destinaţie n-ar arăta nimic. */}
+      <div className="flex items-baseline justify-between rounded-lg border border-[#2A2A2A] bg-[#141414] p-3">
+        <span className="text-xs text-[#6B6B6B]">XP săptămâna aceasta</span>
+        <span className="font-display text-lg font-bold text-[#4ade80]">
+          {weeklyLoading ? '…' : weeklyXp}
+        </span>
       </div>
 
       {/* Scuturi de retrogradare */}

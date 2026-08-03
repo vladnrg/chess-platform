@@ -69,7 +69,6 @@ function WeeklyTable() {
   const { profile } = useAuth()
   const { data: players, isLoading } = useWeeklyLeaderboard(profile?.current_league)
   const hoursLeft = hoursUntilWeekEnd()
-  const league = profile ? getLeagueConfig(profile.current_league) : null
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
 
@@ -82,11 +81,9 @@ function WeeklyTable() {
           {me
             ? <>Ești pe locul <span className="font-semibold text-[#E2B340]">{me.rank}</span> din {players!.length}.</>
             : 'Încă n-ai strâns XP săptămâna asta.'}
-          {league && (
-            <span className="text-[#6B6B6B]">
-              {' '}Minimul ca să nu retrogradezi: {league.weeklyMinXp} XP.
-            </span>
-          )}
+          <span className="text-[#6B6B6B]">
+            {' '}Prima treime urcă, ultima coboară.
+          </span>
         </p>
         <p className="flex items-center gap-1.5 text-sm text-[#6B6B6B]">
           <Clock className="h-4 w-4" />

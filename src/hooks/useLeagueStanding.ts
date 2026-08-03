@@ -6,20 +6,24 @@ import { useAuth } from './useAuth'
 export interface LeagueStanding {
   rank: number
   weekly_xp: number
-  weekly_min: number
-  /** Câţi urcă din liga ta la finalul săptămânii. */
+  /** Câţi oameni sunt în ligă, cu tot cu cei inactivi. */
+  members: number
+  /** Câţi urcă la finalul săptămânii. 0 în liga supremă. */
   promote_slots: number
-  /** Câţi au atins minimul, deci intră în competiţie. */
-  eligible: number
+  /** Câţi coboară la finalul săptămânii. 0 în prima ligă. */
+  relegate_slots: number
   in_promotion_zone: boolean
+  in_relegation_zone: boolean
+  /** Câte scuturi de retrogradare îi mai rămân. */
+  shields_left: number
 }
 
 /**
- * Unde stau în competiţia săptămânală a ligii mele.
+ * Unde stau în clasamentul ligii mele.
  *
- * De când promovarea e competitivă (migrarea 029), liga nu mai depinde de XP-ul
- * total — deci „încă N XP până la liga următoare" nu mai are sens. Ce contează
- * e pe ce loc eşti şi câţi urcă.
+ * De la migrarea 038, liga se decide numai pe clasament: primii o treime urcă,
+ * ultimii o treime coboară, restul rămân. Nu mai există prag minim de XP, deci
+ * ce contează e exclusiv pe ce loc eşti.
  */
 export function useLeagueStanding() {
   const { user } = useAuth()

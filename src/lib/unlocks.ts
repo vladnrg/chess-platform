@@ -66,7 +66,7 @@ export const UNLOCKS: Unlock[] = [
   { level: 5, kind: 'title', label: 'Titlul „Curios"', description: 'Primul titlu care apare lângă numele tău.' },
   { level: 10, kind: 'feature', key: 'analysis', label: 'Analiza partidei', description: 'După fiecare partidă, motorul îți arată unde ai greșit.' },
   { level: 15, kind: 'title', label: 'Titlul „Tenace"', description: 'Ai revenit destule zile la rând ca să-l meriți.' },
-  { level: 20, kind: 'shield', label: 'Scut de retrogradare', description: 'Te salvează o dată dacă ratezi minimul săptămânal.' },
+  { level: 20, kind: 'shield', label: 'Scut de retrogradare', description: 'Te salvează o dată dacă termini săptămâna în ultima treime a ligii.' },
   { level: 25, kind: 'title', label: 'Promovare onorifică + titlul „Calculat"', description: 'Un titlu nou, plus o promovare onorifică: la egalitate de XP cu ultimul promovat, urci și tu.' },
   { level: 30, kind: 'shield', label: 'Al doilea scut', description: 'Încă o săptămână în care poți lipsi fără să cobori.' },
   { level: 35, kind: 'title', label: 'Titlul „Neclintit"', description: 'Un titlu nou pentru profil.' },
