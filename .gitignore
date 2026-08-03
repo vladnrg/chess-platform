@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Motorul de şah: 7MB, copiat din node_modules de scripts/copy-engine.mjs
+# la instalare şi înainte de build. Nu are ce căuta în istoric.
+public/stockfish.wasm
+
 # Environment variables
 .env
 .env.local

@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Target,
+  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Target, Cpu,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -68,6 +68,12 @@ export const NAV: NavEntry[] = [
         label: 'Cufărul cu tactici',
         description: 'Trasee pe categorii — furculiță, țintuire, sacrificiu — de la începător la maestru.',
         icon: Sword,
+      },
+      {
+        to: '/analiza',
+        label: 'Tabla de analiză',
+        description: 'Mută liber și vezi pe loc cum evaluează motorul fiecare variantă.',
+        icon: Cpu,
       },
       {
         to: '/pentru-incepatori',
@@ -149,6 +155,7 @@ export type PageArchetype = 'focus' | 'catalog'
 
 const FOCUS_PATTERNS: RegExp[] = [
   /^\/puzzles(\/|$)/,
+  /^\/analiza$/,
   /^\/courses\/[^/]+\/(lessons|guided|practice)\//,
   /^\/tactics\/[^/]+\/[^/]+$/,
 ]

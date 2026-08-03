@@ -1,5 +1,17 @@
 import { useEffect, useRef, useCallback } from 'react'
 
+/** O variantă întoarsă de motor în timpul analizei continue. */
+export interface EngineLine {
+  /** Al câtelea loc în clasamentul variantelor (1 = cea mai bună). */
+  multipv: number
+  depth: number
+  /** Evaluare în sutimi de pion, din perspectiva celui la mutare. */
+  cp?: number
+  /** Mat în N mutări; când e prezent, `cp` nu contează. */
+  mate?: number
+  pv: string[]
+}
+
 export interface PositionEval {
   fen: string
   cp: number       // centipawns from White's perspective
@@ -142,6 +154,77 @@ export function useStockfish() {
     })
   }, [])
 
+  /**
+   * Analiză continuă a unei poziţii, cu mai multe variante deodată.
+   *
+   * Spre deosebire de `evalPosition`, care întoarce un rezultat şi se opreşte,
+   * asta trimite rezultate pe măsură ce motorul coboară în adâncime — exact ce
+   * are nevoie o tablă de analiză, unde vrei să vezi evaluarea mişcându-se, nu
+   * să aştepţi cu ecranul gol.
+   *
+   * Întoarce o funcţie de oprire. Cine o foloseşte trebuie s-o apeleze la
+   * schimbarea poziţiei, altfel două căutări ar scrie una peste alta.
+   */
+  const analyze = useCallback((
+    fen: string,
+    opts: { multiPv?: number; depth?: number },
+    onUpdate: (lines: EngineLine[], depth: number) => void,
+  ): (() => void) => {
+    const worker = workerRef.current
+    if (!worker) return () => {}
+
+    const multiPv = opts.multiPv ?? 3
+    const depth = opts.depth ?? 18
+    // Indexat după numărul variantei (1..multiPv), ca o linie nouă s-o
+    // înlocuiască pe cea veche de pe acelaşi loc.
+    const lines = new Map<number, EngineLine>()
+    let stopped = false
+
+    const handler = (e: MessageEvent<string>) => {
+      if (stopped) return
+      const msg = typeof e.data === 'string' ? e.data : String(e.data)
+      if (!msg.startsWith('info') || !msg.includes(' pv ')) return
+
+      const d = msg.match(/ depth (\d+)/)
+      const idx = msg.match(/ multipv (\d+)/)
+      const cp = msg.match(/score cp (-?\d+)/)
+      const mate = msg.match(/score mate (-?\d+)/)
+      const pv = msg.split(' pv ')[1]
+      if (!pv) return
+
+      const line: EngineLine = {
+        multipv: idx ? parseInt(idx[1]) : 1,
+        depth: d ? parseInt(d[1]) : 0,
+        cp: cp ? parseInt(cp[1]) : undefined,
+        mate: mate ? parseInt(mate[1]) : undefined,
+        pv: pv.trim().split(/\s+/).slice(0, 12),
+      }
+      lines.set(line.multipv, line)
+
+      onUpdate(
+        [...lines.values()].sort((a, b) => a.multipv - b.multipv),
+        line.depth,
+      )
+    }
+
+    worker.addEventListener('message', handler)
+    // `stop` înainte de orice: dacă mai rula o căutare, rezultatele ei ar
+    // continua să curgă peste cele noi.
+    worker.postMessage('stop')
+    worker.postMessage('setoption name UCI_LimitStrength value false')
+    worker.postMessage(`setoption name MultiPV value ${multiPv}`)
+    worker.postMessage(`position fen ${fen}`)
+    worker.postMessage(`go depth ${depth}`)
+
+    return () => {
+      stopped = true
+      worker.removeEventListener('message', handler)
+      worker.postMessage('stop')
+      // MultiPV rămâne setat pentru cine vine după, deci îl punem la loc.
+      worker.postMessage('setoption name MultiPV value 1')
+    }
+  }, [])
+
   // Analyze a sequence of (fen, playedUci) pairs, return per-position evaluations
   const analyzePositions = useCallback(
     async (
@@ -170,5 +253,5 @@ export function useStockfish() {
     [evalPosition],
   )
 
-  return { getBestMove, evalPosition, getLine, analyzePositions }
+  return { getBestMove, evalPosition, getLine, analyze, analyzePositions }
 }

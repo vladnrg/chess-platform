@@ -39,6 +39,7 @@ const RepertoirePage = lazy(() => import('@/pages/RepertoirePage').then(m => ({ 
 const LeaguesPage = lazy(() => import('@/pages/LeaguesPage').then(m => ({ default: m.LeaguesPage })))
 const EventsPage = lazy(() => import('@/pages/EventsPage').then(m => ({ default: m.EventsPage })))
 const MissionsPage = lazy(() => import('@/pages/MissionsPage').then(m => ({ default: m.MissionsPage })))
+const AnalysisPage = lazy(() => import('@/pages/AnalysisPage').then(m => ({ default: m.AnalysisPage })))
 const EventDetailPage = lazy(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
 const BreakPage = lazy(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
 const ParentalConfirmPage = lazy(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
@@ -110,6 +111,7 @@ function AppRoutes() {
         <Route path="/repertoire" element={<RepertoirePage />} />
         <Route path="/leagues" element={<LeaguesPage />} />
         <Route path="/misiuni" element={<MissionsPage />} />
+        <Route path="/analiza" element={<AnalysisPage />} />
         <Route path="/evenimente" element={<EventsPage />} />
         <Route path="/evenimente/:slug" element={<EventDetailPage />} />
       </Route>
