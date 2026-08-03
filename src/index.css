@@ -65,6 +65,15 @@
   --app-rail: 20rem;           /* coloana dreaptă pe paginile focus */
   --app-max: 96rem;            /* lăţimea maximă a conţinutului */
 
+  /* Latura maximă a unei table de şah, oriunde se antrenează cineva: pagina de
+     puzzle-uri, Cufărul cu tactici, sarcinile de eveniment.
+
+     O singură valoare, folosită de toate — altfel fiecare pagină îşi alege
+     propria regulă şi tablele ies de mărimi diferite de la o pagină la alta.
+     `72vh` ţine tabla în ecran fără derulare; `46rem` o opreşte să devină
+     absurd de mare pe monitoare înalte. */
+  --board-max: min(72vh, 46rem);
+
   /* Înălţimea utilă, sub bara de sus. `dvh`, nu `vh`: pe mobil bara browserului
      se retrage, iar `vh` rămâne la valoarea veche şi taie conţinutul. */
   --app-content-h: calc(100dvh - var(--app-header));

@@ -104,10 +104,12 @@ const COUNTER_THEMES = ['quietMove', 'zugzwang', 'defensiveMove', 'interference'
 const SATISFYING_THEMES = ['smotheredMate', 'doubleCheck', 'discoveredAttack', 'attraction', 'sacrifice', 'backRankMate', 'operaMate']
 
 type DailyKind = 'zi' | 'contra' | 'satisf'
-const DAILY_META: Record<DailyKind, { title: string; subtitle: string }> = {
-  zi: { title: 'Puzzle-ul zilei', subtitle: 'Provocarea de azi, aceeași pentru toți.' },
-  contra: { title: 'Cel mai contraintuitiv', subtitle: 'Mutarea pe care n-o vezi venind.' },
-  satisf: { title: 'Cel mai satisfăcător', subtitle: 'Un final de combinație delicios.' },
+// Doar titlul: subtitlurile („Provocarea de azi, aceeaşi pentru toţi") repetau
+// ce spunea deja numele şi ocupau înălţime înaintea tablei.
+const DAILY_META: Record<DailyKind, { title: string }> = {
+  zi: { title: 'Puzzle-ul zilei' },
+  contra: { title: 'Cel mai contraintuitiv' },
+  satisf: { title: 'Cel mai satisfăcător' },
 }
 
 interface MoveExplanation {
@@ -674,7 +676,9 @@ export function PuzzlesPage() {
 
   return (
     // Zoom 10% pe toată pagina de puzzle-uri (mărește uniform tot conținutul).
-    <div className="space-y-6" style={{ zoom: 1.1 }}>
+    // `zoom: 1.1` a stat aici de la o ajustare veche şi făcea pagina asta cu 10%
+    // mai mare decât toate celelalte — inclusiv tabla, faţă de Cufărul cu tactici.
+    <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#F0F0F0]">Puzzle-uri</h1>
@@ -724,27 +728,30 @@ export function PuzzlesPage() {
             const Icon = kind === 'zi' ? Calendar : kind === 'contra' ? Lightbulb : Sparkles
             const active = mode === 'daily' && dailyKind === kind
             return (
+              // Fără subtitlu: „Provocarea de azi, aceeaşi pentru toţi" nu spunea
+              // nimic ce nu se vedea deja din titlu, şi împingea tabla în jos.
               <button
                 key={kind}
                 onClick={() => loadDaily(kind)}
                 disabled={!p}
                 className={cn(
-                  'text-left rounded-2xl border p-5 transition-all disabled:opacity-50',
+                  'flex items-center gap-3 text-left rounded-xl border p-3 transition-all disabled:opacity-50',
                   active
                     ? 'border-[rgba(226,179,64,0.55)] bg-[rgba(226,179,64,0.06)] shadow-[0_0_18px_rgba(226,179,64,0.12)]'
                     : 'border-[#2A2A2A] bg-[#141414] hover:border-[#3A3A3A] hover:-translate-y-0.5'
                 )}
               >
-                <div className="flex items-center gap-3 mb-2.5">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(226,179,64,0.12)] text-[#E2B340]">
-                    <Icon className="h-6 w-6" />
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(226,179,64,0.12)] text-[#E2B340]">
+                  <Icon className="h-4.5 w-4.5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold text-[#F0F0F0]">
+                    {DAILY_META[kind].title}
                   </span>
-                  <span className="font-display font-bold text-lg text-[#F0F0F0]">{DAILY_META[kind].title}</span>
-                </div>
-                <p className="text-sm text-[#A0A0A0] leading-relaxed">{DAILY_META[kind].subtitle}</p>
-                <p className="text-sm mt-3 font-semibold text-[#E2B340]">
-                  {p ? `Rezolvă · ELO ${p.rating}` : 'Indisponibil azi'}
-                </p>
+                  <span className="block text-xs font-semibold text-[#E2B340]">
+                    {p ? `Rezolvă · ELO ${p.rating}` : 'Indisponibil azi'}
+                  </span>
+                </span>
               </button>
             )
           })}
@@ -856,8 +863,12 @@ export function PuzzlesPage() {
                   : <>Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
                 }
               </div>
+              {/* Aceeaşi latură ca în Cufărul cu tactici — vezi --board-max */}
               <div className="flex gap-2 items-stretch">
-                <div className="relative flex-1 rounded-xl overflow-hidden border border-[#2A2A2A]">
+                <div
+                  className="relative w-full rounded-xl overflow-hidden border border-[#2A2A2A]"
+                  style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+                >
                   <Chessboard
                     options={{
                       position: puzzleState.game.fen(),

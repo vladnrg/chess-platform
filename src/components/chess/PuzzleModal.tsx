@@ -357,8 +357,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
                   </span>
                 </div>
 
-                {/* Tablă mare pătrată, încadrată în înălțimea ecranului */}
-                <div className="relative w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
+                {/* Aceeaşi latură ca pe pagina de puzzle-uri — vezi --board-max */}
+                <div className="relative w-full" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
                   <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
                     <Chessboard
                       options={{
