@@ -513,15 +513,6 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
                   {onNext ? 'Exercițiul următor' : 'Puzzle următor'}
                 </Button>
 
-                <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
-                  <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Cum funcționează</p>
-                  <ol className="space-y-1.5 text-xs text-[#A0A0A0]">
-                    <li>1. Ultima mutare a fost a adversarului — acum e rândul tău</li>
-                    <li>2. Mută piesa cu drag & drop spre pătratul dorit</li>
-                    <li>3. Blocat? „Dă-mi un indiciu" îți arată piesa, „Arată mutarea" îți arată mutarea</li>
-                    <li>4. La tacticile cu mai multe mutări, „Arată secvența" redă toată soluția</li>
-                  </ol>
-                </div>
               </div>
             </div>
           ) : (

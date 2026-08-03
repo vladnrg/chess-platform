@@ -11,7 +11,7 @@ import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
 import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
-import { accessibleBands, bandForRating, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
+import { accessibleBands, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
 import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -647,8 +647,9 @@ export function PuzzlesPage() {
   const limitReached = !isPro && todayCount >= FREE_LIMIT
   const hasRating = puzzleRating != null
 
+  // `currentBand` a dispărut odată cu antetul: banda curentă se vede în
+  // selectorul „Interval de Elo" din şina dreaptă, care o şi evidenţiază.
   const bands = hasRating ? accessibleBands(puzzleRating!) : []
-  const currentBand = hasRating ? bandForRating(puzzleRating!) : null
 
   const boardSquareStyles: Record<string, React.CSSProperties> = {
     ...(wrongMoveFrom && wrongMoveTo ? {
@@ -679,23 +680,20 @@ export function PuzzlesPage() {
     // `zoom: 1.1` a stat aici de la o ajustare veche şi făcea pagina asta cu 10%
     // mai mare decât toate celelalte — inclusiv tabla, faţă de Cufărul cu tactici.
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#F0F0F0]">Puzzle-uri</h1>
-          <p className="text-[#6B6B6B] text-sm mt-0.5">
-            {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
-            {currentBand && (
-              <> · <span style={{ color: offsetColor(0) }}>Interval Elo {currentBand.label}</span></>
-            )}
-            {currentPuzzle && (
-              <> · <span className="text-[#F0F0F0] font-medium">puzzle ELO {currentPuzzle.rating}</span></>
-            )}
-          </p>
-        </div>
+      {/* Fără antet de pagină: „Puzzle-uri" repeta intrarea deja evidenţiată în
+          bara de sus, intervalul de Elo e chiar selectorul din şina dreaptă, iar
+          rating-ul puzzle-ului curent apare tot acolo. Rămâne doar ce nu se vede
+          în altă parte: câte puzzle-uri ţi-au mai rămas azi, pe planul gratuit. */}
+      <div className="flex items-center justify-end gap-3">
+        {!isPro && (
+          <span className="text-sm text-[#6B6B6B]">
+            {todayCount} / {FREE_LIMIT} azi
+          </span>
+        )}
 
         {/* Rating curent — stil chess.com */}
         {hasRating && (
-        <div className="flex items-center gap-3">
+        <>
           {winStreak > 0 && (
             <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
               <Flame className="h-4 w-4" /> {winStreak}
@@ -715,7 +713,7 @@ export function PuzzlesPage() {
               </span>
             )}
           </div>
-        </div>
+        </>
         )}
       </div>
 
