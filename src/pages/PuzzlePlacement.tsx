@@ -197,7 +197,7 @@ export function PuzzlePlacement() {
           </div>
 
           {state && (
-            <div className="mx-auto" style={{ maxWidth: 'min(78vh, 100%)' }}>
+            <div className="mx-auto" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
               <Chessboard
                 options={{
                   position: state.game.fen(),
@@ -215,7 +215,7 @@ export function PuzzlePlacement() {
           )}
 
           {!feedback && (
-            <div className="mx-auto mt-5" style={{ maxWidth: 'min(78vh, 100%)' }}>
+            <div className="mx-auto mt-5" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
               <Button
                 variant="secondary"
                 size="lg"

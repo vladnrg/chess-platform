@@ -347,7 +347,11 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
               <Spinner className="h-7 w-7" />
             </div>
           ) : puzzleState ? (
-            <div className="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
+            /* Fără `max-w-[1400px] mx-auto`: pe un ecran lat, cutia aia centrată
+               lăsa sute de pixeli goi la dreapta panourilor. Acum rândul ţine
+               toată lăţimea (corpul are deja padding), bara laterală ajunge la
+               margine, iar tabla se centrează în ce rămâne. */
+            <div className="flex flex-col lg:flex-row gap-6 h-full">
               {/* Board */}
               <div className="flex-1 flex flex-col items-center gap-3 min-w-0">
                 <div className="flex items-center gap-2 text-sm text-[#A0A0A0] self-start lg:self-center">
@@ -404,7 +408,9 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
                   </div>
                 )}
 
-                <div className="w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
+                {/* Panoul de sub tablă. Aceeaşi lăţime ca ea, altfel butoanele
+                    nu mai stau aliniate cu marginile tablei. */}
+                <div className="w-full" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
                   {seqPlaying && (
                     <p className="text-sm text-[#E2B340] text-center">Se redă secvența...</p>
                   )}

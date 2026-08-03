@@ -154,7 +154,11 @@ export function PuzzleTask({ task, slug, onSolved }: PuzzleTaskProps) {
       {task.prompt && <p className="text-[#A0A0A0]">{task.prompt}</p>}
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-        <div className="relative mx-auto w-full max-w-[min(70vh,32rem)] min-w-0">
+        {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
+        <div
+          className="relative mx-auto w-full min-w-0"
+          style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+        >
           <div
             className={[
               'overflow-hidden rounded-xl border-2 transition-colors',
