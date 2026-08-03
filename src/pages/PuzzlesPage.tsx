@@ -64,6 +64,23 @@ async function fetchAndStore(band: PuzzleBand): Promise<Puzzle> {
   return puzzle
 }
 
+/**
+ * Plasă de siguranţă: un puzzle din bandă, ales în client.
+ *
+ * Se foloseşte doar când `next_puzzle_for` nu răspunde — de obicei fiindcă
+ * migrarea 037 n-a fost aplicată. Nu ştie ce ai rezolvat deja, deci se pot
+ * repeta; dar o pagină care repetă e mai bună decât una care nu încarcă nimic.
+ */
+async function loadFromBand(band: PuzzleBand): Promise<Puzzle | null> {
+  const { data } = await supabase.from('puzzles').select('*')
+    .gte('rating', band.floor)
+    .lt('rating', band.ceil)
+    .limit(200)
+  const pool = (data ?? []) as Puzzle[]
+  if (pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
 /** Îmbogăţeşte banda în fundal. Eşecurile se ignoră — e doar o completare. */
 async function topUpBand(band: PuzzleBand): Promise<void> {
   if (nowMs() - lastTopUp < TOP_UP_COOLDOWN_MS) return
@@ -399,20 +416,33 @@ export function PuzzlesPage() {
         p_floor: band.floor,
         p_ceil: band.ceil,
       })
-      if (error) throw error
-      const res = data as { puzzle: Puzzle | null; unseen_left: number; band_total: number }
 
-      if (res.puzzle) {
-        loadPuzzle(res.puzzle)
-        // Se apropie de fundul benzii: aducem altele în fundal, ca data
-        // viitoare să existe din ce alege.
-        if (res.unseen_left <= TOP_UP_THRESHOLD) void topUpBand(band)
+      if (!error) {
+        const res = data as { puzzle: Puzzle | null; unseen_left: number; band_total: number }
+        if (res.puzzle) {
+          loadPuzzle(res.puzzle)
+          // Se apropie de fundul benzii: aducem altele în fundal, ca data
+          // viitoare să existe din ce alege.
+          if (res.unseen_left <= TOP_UP_THRESHOLD) void topUpBand(band)
+          return
+        }
+        // Banda e goală de tot — aducem unul de la Lichess, cu aşteptare.
+        loadPuzzle(await fetchAndStore(band))
         return
       }
 
-      // Banda e goală de tot — aducem unul acum, cu aşteptare.
+      // RPC-ul lipseşte (migrarea 037 neaplicată) sau a eşuat. Nu lăsăm pagina
+      // moartă din cauza asta: încărcăm din bandă ca înainte. Se pot repeta
+      // puzzle-uri, dar măcar există puzzle-uri.
+      console.warn('[puzzles] next_puzzle_for a eşuat, folosesc varianta simplă:', error)
+      const fallback = await loadFromBand(band)
+      if (fallback) {
+        loadPuzzle(fallback)
+        return
+      }
       loadPuzzle(await fetchAndStore(band))
-    } catch {
+    } catch (e) {
+      console.error('[puzzles] încărcare eşuată:', e)
       toast.error('Nu am putut încărca un puzzle nou.')
     } finally {
       setNextLoading(false)

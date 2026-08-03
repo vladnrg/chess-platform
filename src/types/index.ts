@@ -252,8 +252,15 @@ export const EVENT_KIND_LABELS: Record<EventKind, string> = {
   promo: 'Promoţie',
 }
 
-/** Tema implicită a tablei, când nu e echipată niciuna. */
-export const DEFAULT_BOARD: BoardPayload = { light: '#EBECD0', dark: '#739552' }
+/**
+ * Tema implicită a tablei, când nu e echipată niciuna.
+ *
+ * Sunt exact culorile pe care le-a avut aplicaţia dintotdeauna. Când am adăugat
+ * temele de tablă am pus aici, din reflex, verdele de pe chess.com — ceea ce a
+ * schimbat înfăţişarea fiecărei table fără să ceară nimeni, şi doar pe jumătate
+ * dintre ele. Implicitul nu e locul unde se schimbă designul.
+ */
+export const DEFAULT_BOARD: BoardPayload = { light: '#f0d9b5', dark: '#3A3A3A' }
 
 export type TournamentType = 'platform' | 'external'
 export type TournamentCategory = 'online' | 'over_the_board' | 'workshop'
