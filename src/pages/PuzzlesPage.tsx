@@ -11,11 +11,12 @@ import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useStockfish } from '@/hooks/useStockfish'
 import { useRefutation } from '@/hooks/useAICoach'
-import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
+import { fetchLichessPuzzleNext, eloToDifficulty } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
 import { accessibleBands, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
 import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import { translateNotation } from '@/lib/chess-translations'
+import { isAtLeastAsGood, acceptanceMessage } from '@/lib/puzzle-equivalence'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
@@ -184,7 +185,7 @@ export function PuzzlesPage() {
   } | null>(null)
   const [refuPly, setRefuPly] = useState(0)
   const [refuLoading, setRefuLoading] = useState(false)
-  const { getLine } = useStockfish()
+  const { getLine, evalPosition } = useStockfish()
   const {
     explain: explainRefutation,
     data: refuCoach,
@@ -565,12 +566,44 @@ export function PuzzlesPage() {
       const gameCopy = new Chess(puzzleState.game.fen())
       gameCopy.move({ from: source, to: target, promotion: 'q' })
 
-      const isCorrect = myMove === expectedMove.slice(0, 4)
+      const fenBeforeMove = puzzleState.game.fen()
+      const correctUci = expectedMove.slice(0, 4)
+
+      // Poziţia la care duce soluţia — pentru comparaţiile de mai jos.
+      const scripted = new Chess(fenBeforeMove)
+      scripted.move({
+        from: correctUci.slice(0, 2),
+        to: correctUci.slice(2, 4),
+        promotion: expectedMove[4] ?? 'q',
+      })
+
+      // Aceeaşi poziţie, altă notaţie: rocada se poate scrie e1g1 sau e1h1, iar
+      // promovarea diferă prin ultima literă. Nu e altă mutare, e aceeaşi.
+      const sameOutcome = gameCopy.fen() === scripted.fen()
+
+      const isCorrect = myMove === correctUci || sameOutcome
+
+      // Matul dat cu altă piesă decât cea din soluţie rămâne mat. Verificarea
+      // veche compara şiruri, deci îl respingea — de aici pornise problema.
+      // Nu întrebăm motorul: partida s-a terminat, n-are ce să adauge.
+      if (!isCorrect && gameCopy.isCheckmate()) {
+        const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
+        setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'correct' } : null)
+        setMaxPly(puzzleState.currentMoveIdx)
+        setMoveExplanation({
+          type: 'near-equal',
+          message: acceptanceMessage('mate', uciToSan(fenBeforeMove, correctUci)),
+        })
+        toast.success('Corect!')
+        const xpMate = computeSolveXp(currentPuzzle.rating)
+        attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpMate })
+        registerSolve(xpMate)
+        applyRating(true)
+        return true
+      }
 
       if (!isCorrect) {
-        const fenBeforeMove = puzzleState.game.fen()
         const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
-        const correctUci = expectedMove.slice(0, 4)
 
         const contextMessage = analyzeWrongMove(
           fenBeforeMove, myMove, correctUci, currentPuzzle.themes
@@ -594,58 +627,39 @@ export function PuzzlesPage() {
         setEvalLoading(true)
         void (async () => {
           try {
-            const evalData = await fetchLichessCloudEval(fenBeforeMove, 5)
-            if (evalData?.pvs?.length) {
-              const bestPv = evalData.pvs[0]
-              const bestCp = bestPv.cp
-              const playerPv = evalData.pvs.find(pv => pv.moves.startsWith(myMove))
-              const playerCp = playerPv?.cp
-              const isNearEqual =
-                bestCp !== undefined && playerCp !== undefined &&
-                bestPv.mate === undefined && playerPv?.mate === undefined &&
-                Math.abs(bestCp - playerCp) <= 20
+            // Motorul local, nu baza Lichess: aceea are doar poziţiile pe care
+            // le-a căutat cineva înainte, deci pe majoritatea puzzle-urilor
+            // răspundea „nu ştiu" şi verificarea nu se făcea deloc.
+            //
+            // Comparăm poziţiile REZULTATE: una după mutarea ta, una după cea
+            // din soluţie. Amândouă evaluate cu adversarul la mutare, deci
+            // direct comparabile.
+            const [playedEval, expectedEval] = await Promise.all([
+              evalPosition(gameCopy.fen(), 12),
+              evalPosition(scripted.fen(), 12),
+            ])
 
-              if (isNearEqual) {
-                const bestMoveUci = bestPv.moves.split(' ')[0]
-                const playerIsBest = myMove === bestMoveUci
-
-                const nearEqualAlternatives = evalData.pvs
-                  .filter(pv => {
-                    const pvFirst = pv.moves.split(' ')[0]
-                    return pvFirst !== myMove &&
-                      pv.cp !== undefined && bestCp !== undefined &&
-                      pv.mate === undefined &&
-                      Math.abs(bestCp - pv.cp) <= 20
-                  })
-                  .map(pv => uciToSan(fenBeforeMove, pv.moves.split(' ')[0]))
-
-                let message: string
-                if (playerIsBest) {
-                  message = nearEqualAlternatives.length > 0
-                    ? `Excelent! Ai ales cea mai bună mutare. Mai există ${nearEqualAlternatives.length === 1 ? 'o variantă la fel de bună' : `${nearEqualAlternatives.length} variante la fel de bune`} în această poziție — descoperă alternativele.`
-                    : 'Excelent! Ai ales cea mai bună mutare din această poziție!'
-                } else {
-                  const bestSan = uciToSan(fenBeforeMove, bestMoveUci)
-                  message = `Mutarea ta este bună! Motorul preferă ${bestSan}, dar diferența este neglijabilă.`
-                }
-
-                setMoveExplanation({
-                  type: 'near-equal',
-                  message,
-                  nearEqualAlternatives: nearEqualAlternatives.length > 0 ? nearEqualAlternatives : undefined,
-                })
-                setPuzzleState(s => s ? { ...s, status: 'correct' } : null)
-                setWrongMoveFrom(null)
-                setWrongMoveTo(null)
-                setExpectedMoveUci(null)
-                const xpNear = computeSolveXp(currentPuzzle.rating)
-                attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpNear })
-                registerSolve(xpNear)
-                applyRating(true)
-                return
-              }
+            if (isAtLeastAsGood(playedEval, expectedEval)) {
+              setMoveExplanation({
+                type: 'near-equal',
+                message: acceptanceMessage('equal', uciToSan(fenBeforeMove, correctUci)),
+              })
+              setPuzzleState(s => s ? { ...s, status: 'correct' } : null)
+              setWrongMoveFrom(null)
+              setWrongMoveTo(null)
+              setExpectedMoveUci(null)
+              setEvalLoading(false)
+              toast.success('Corect!')
+              const xpNear = computeSolveXp(currentPuzzle.rating)
+              attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpNear })
+              registerSolve(xpNear)
+              applyRating(true)
+              return
             }
-          } catch { /* keep contextual message */ }
+          } catch {
+            // Motorul n-a răspuns: rămâne verdictul euristic de mai sus.
+            console.warn('[puzzles] verificarea de echivalenţă a eşuat')
+          }
           finally { setEvalLoading(false) }
           registerWrong()
           // Dacă ai folosit un indiciu (nivel 1/2) și tot ai greșit → −1 XP, o singură dată.
@@ -693,7 +707,7 @@ export function PuzzlesPage() {
     } catch {
       return false
     }
-  }, [puzzleState, currentPuzzle, playerColor, attemptMutation, applyRating, computeSolveXp])
+  }, [puzzleState, currentPuzzle, playerColor, attemptMutation, applyRating, computeSolveXp, evalPosition])
 
   // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
   const onPieceDrop = useCallback(
