@@ -90,3 +90,18 @@ export function taskProgress(tasks: EventTask[]): { done: number; open: number; 
 export function doorDay(task: EventTask): number {
   return task.order_index
 }
+
+const WEEKDAY_FMT = new Intl.DateTimeFormat('ro-RO', { weekday: 'long' })
+
+/**
+ * Numele zilei („miercuri"), pentru „revino miercuri".
+ *
+ * Datele vin din Postgres ca `YYYY-MM-DD`, pe care `new Date()` le citeşte ca
+ * UTC. Construim data explicit din componente, ca fusul local să nu mute ziua
+ * cu una înapoi seara.
+ */
+export function dayLabel(isoDate: string): string {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  if (!y || !m || !d) return ''
+  return WEEKDAY_FMT.format(new Date(y, m - 1, d))
+}

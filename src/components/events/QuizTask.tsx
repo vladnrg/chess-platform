@@ -12,11 +12,16 @@ interface QuizTaskProps {
 }
 
 /**
- * O întrebare cu variante. Verificarea e pe server — variantele vin la client,
- * dar răspunsul corect nu, până când nu răspunzi.
+ * O întrebare cu variante, dintr-un eveniment cu sarcini (calendarul de Crăciun,
+ * ziua unui jucător, vânătoarea de ouă).
  *
- * Un răspuns greşit nu se înregistrează: quiz-urile de eveniment sunt de învăţat,
- * nu de pedepsit. Poţi reîncerca, dar XP-ul vine o singură dată.
+ * Un răspuns greşit nu se înregistrează: astea sunt sărbători, nu examene. Poţi
+ * reîncerca, dar XP-ul vine o singură dată — şi, până nimereşti, serverul nu
+ * trimite nici răspunsul corect, nici explicaţia. Altfel „încearcă din nou" ar
+ * fi un buton fără rost.
+ *
+ * Provocarea deschiderilor are reguli opuse — un singur răspuns, definitiv — şi
+ * de aceea are componentă separată: `OpeningChallenge`.
  */
 export function QuizTask({ task, slug, onSolved }: QuizTaskProps) {
   const [picked, setPicked] = useState<number | null>(null)
@@ -24,11 +29,13 @@ export function QuizTask({ task, slug, onSolved }: QuizTaskProps) {
   const complete = useCompleteTask(slug)
 
   const options = task.payload.options ?? []
-  // După rezolvare, serverul trimite şi răspunsul — îl folosim ca să marcăm
-  // varianta corectă când reintri pe o sarcină deja făcută.
-  const revealed = result ?? (task.done
-    ? { correct: true, xp: 0, answer: task.payload.answer, explanation: task.payload.explanation }
-    : null)
+  // Serverul trimite răspunsul şi explicaţia doar la reuşită. La o greşeală vine
+  // doar `correct: false`, deci nu avem ce dezvălui — exact ce vrem.
+  const revealed = result?.correct
+    ? result
+    : task.done
+      ? { correct: true, xp: 0, answer: task.payload.answer, explanation: task.payload.explanation }
+      : null
   const locked = task.done || result?.correct === true
 
   async function submit() {
@@ -52,7 +59,9 @@ export function QuizTask({ task, slug, onSolved }: QuizTaskProps) {
         {options.map((option, idx) => {
           const isCorrect = revealed?.answer === idx
           const isPicked = picked === idx
-          const showWrong = revealed && !revealed.correct && isPicked
+          // `revealed` e null la greşeală (serverul nu trimite soluţia), deci
+          // marcarea alegerii greşite se face din rezultat, nu din el.
+          const showWrong = result !== null && !result.correct && isPicked
 
           return (
             <button

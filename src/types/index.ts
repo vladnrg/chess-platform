@@ -155,6 +155,80 @@ export interface TaskResult {
   explanation?: string | null
 }
 
+// ============================================================
+// Provocarea deschiderilor (migrările 033–034)
+// ============================================================
+
+/**
+ * O întrebare dintr-un calup. `answer` şi `explanation` sunt `null` până când
+ * răspunzi — serverul le taie, ca soluţia să nu poată fi citită din consolă.
+ */
+export interface OpeningQuestion {
+  index: number
+  /** Mutările în notaţie UCI, pentru tablă. */
+  moves: string
+  title: string
+  prompt: string
+  options: string[]
+  /** Ce am răspuns. `null` = încă n-am ajuns aici. */
+  my_answer: number | null
+  answer: number | null
+  explanation: string | null
+}
+
+export interface OpeningSession {
+  id: string
+  session_date: string
+  total: number
+  answered: number
+  correct_count: number | null
+  xp_awarded: number | null
+  finished: boolean
+  questions: OpeningQuestion[]
+}
+
+/** Ce întoarce serverul imediat după un răspuns. Definitiv — nu se reia. */
+export interface OpeningAnswerResult {
+  index: number
+  correct: boolean
+  answer: number
+  explanation: string
+  is_last: boolean
+}
+
+export interface OpeningSessionSummary {
+  correct: number
+  total: number
+  xp: number
+  already?: boolean
+}
+
+/** Starea provocării de azi — pentru butonul din Bârlog. */
+export interface OpeningChallengeStatus {
+  is_challenge_day: boolean
+  today: string
+  next_day: string
+  session_id: string | null
+  answered: number
+  total: number
+  finished: boolean
+  correct_count: number | null
+  xp_awarded: number | null
+}
+
+/** XP-ul unui calup. Trebuie să corespundă cu `opening_session_xp` din 033. */
+export const OPENING_XP = {
+  perCorrect: 8,
+  perWrong: -3,
+  perfectBonus: 15,
+} as const
+
+export function openingSessionXp(correct: number, total: number): number {
+  return correct * OPENING_XP.perCorrect
+    + (total - correct) * OPENING_XP.perWrong
+    + (total > 0 && correct === total ? OPENING_XP.perfectBonus : 0)
+}
+
 export const COSMETIC_RARITY_LABELS: Record<CosmeticRarity, string> = {
   common: 'Obişnuit',
   rare: 'Rar',

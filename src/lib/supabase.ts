@@ -4,6 +4,7 @@ import type {
   Subscription, AssessmentResult, UserWeeklyXp, Tournament, OpeningLine, League,
   CosmeticKind, CosmeticRarity, EventKind, EventTaskType,
   SeasonalEvent, SeasonalEventDetail, TaskResult, ChessathonProgress, OwnedCosmetic,
+  OpeningChallengeStatus, OpeningSession, OpeningAnswerResult, OpeningSessionSummary,
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -400,6 +401,26 @@ export type Database = {
       unequip_cosmetic: {
         Args: { p_kind: CosmeticKind }
         Returns: void
+      }
+      opening_challenge_status: {
+        Args: Record<string, never>
+        Returns: OpeningChallengeStatus | null
+      }
+      start_opening_session: {
+        Args: Record<string, never>
+        Returns: OpeningSession
+      }
+      opening_session_state: {
+        Args: { p_session_id: string }
+        Returns: OpeningSession | null
+      }
+      answer_opening_question: {
+        Args: { p_session_id: string; p_answer: number }
+        Returns: OpeningAnswerResult
+      }
+      finish_opening_session: {
+        Args: { p_session_id: string }
+        Returns: OpeningSessionSummary
       }
     }
     Enums: Record<string, never>

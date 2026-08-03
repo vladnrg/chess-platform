@@ -3,6 +3,7 @@ import { ArrowLeft, CalendarClock, Tag } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { AdventCalendar } from '@/components/events/AdventCalendar'
 import { ChessathonPanel } from '@/components/events/ChessathonPanel'
+import { OpeningChallenge } from '@/components/events/OpeningChallenge'
 import { TaskList } from '@/components/events/TaskList'
 import { useEventDetail } from '@/hooks/useEvents'
 import { EventIcon } from '@/components/events/EventIcon'
@@ -24,6 +25,10 @@ function EventBody({ event }: { event: SeasonalEventDetail }) {
       return <AdventCalendar event={event} />
     case 'chessathon':
       return <ChessathonPanel event={event} />
+    // Provocarea deschiderilor nu foloseşte `event_tasks`: are propria bancă de
+    // întrebări şi calupuri zilnice (migrarea 033).
+    case 'name_opening':
+      return <OpeningChallenge />
     default:
       return <TaskList event={event} />
   }

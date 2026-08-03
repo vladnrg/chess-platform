@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { useEvents } from '@/hooks/useEvents'
 import { EventIcon } from '@/components/events/EventIcon'
+import { OpeningChallengeCard } from './OpeningChallengeCard'
 import { eventStatusLabel } from '@/lib/events'
 import type { SeasonalEvent } from '@/types'
 
@@ -47,9 +48,11 @@ function EventStrip({ event }: { event: SeasonalEvent }) {
  */
 export function ActiveEvents() {
   const { data: events = [] } = useEvents()
-  const live = events.filter(e => e.status === 'live').slice(0, MAX_SHOWN)
-
-  if (live.length === 0) return null
+  // Provocarea deschiderilor are cardul ei, cu starea zilei — n-are rost să
+  // apară de două ori.
+  const live = events
+    .filter(e => e.status === 'live' && e.slug !== 'numeste-deschiderea')
+    .slice(0, MAX_SHOWN)
 
   return (
     <section>
@@ -61,6 +64,7 @@ export function ActiveEvents() {
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <OpeningChallengeCard />
         {live.map(e => <EventStrip key={e.slug} event={e} />)}
       </div>
     </section>
