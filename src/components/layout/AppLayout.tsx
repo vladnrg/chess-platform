@@ -38,7 +38,10 @@ export function AppLayout() {
           className="mx-auto flex min-h-full w-full flex-col"
           style={{
             // Paginile focus au nevoie de lăţime pentru tablă şi coloanele ei.
-            maxWidth: archetype === 'focus' ? '112rem' : 'var(--app-max)',
+            // 120rem, nu 112rem: la 2560×1440 tabla ajunge la 72vh = 1037px, iar
+            // cu şinele şi spaţiile grupul cere 1853px. Sub vechea limită tabla
+            // se strângea la 928px şi nu mai era egală cu cea din Cufăr.
+            maxWidth: archetype === 'focus' ? '120rem' : 'var(--app-max)',
             padding: 'var(--app-pad)',
             gap: 'var(--app-gap)',
           }}

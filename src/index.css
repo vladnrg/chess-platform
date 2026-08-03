@@ -205,3 +205,37 @@ h1, h2, h3 {
   border-color: var(--tc, #3A3A3A);
   box-shadow: 0 14px 34px -12px color-mix(in srgb, var(--tc, #E2B340) 55%, transparent);
 }
+
+/* ------------------------------------------------------------------
+   Grila unei pagini de antrenament: şină · tablă · şină
+   ------------------------------------------------------------------
+   Lăţimea totală se opreşte exact la cât îi trebuie — cele două şine, cele
+   două spaţii şi tabla — apoi grupul se centrează.
+
+   Fără plafonul ăsta, coloana din mijloc ar fi `1fr` din tot ce rămâne: pe un
+   ecran lat, tabla (limitată de înălţime prin --board-max) ar sta lipită de
+   şina stângă, iar între ea şi cea dreaptă ar rămâne o groapă de câteva sute
+   de pixeli. Aşa, tabla e mereu la exact un `gap` de amândouă.
+
+   Coloana din mijloc rămâne `minmax(0, 1fr)`, nu o lăţime fixă: pe ecrane
+   înguste se strânge şi trage tabla după ea, în loc să iasă din pagină. */
+.board-grid {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  margin-inline: auto;
+}
+
+@media (min-width: 1280px) {
+  .board-grid {
+    grid-template-columns: 16rem minmax(0, 1fr) 20rem;
+    max-width: calc(16rem + 20rem + 3rem + var(--board-max));
+  }
+}
+
+@media (min-width: 1700px) {
+  .board-grid {
+    grid-template-columns: 22rem minmax(0, 1fr) 26rem;
+    max-width: calc(22rem + 26rem + 3rem + var(--board-max));
+  }
+}

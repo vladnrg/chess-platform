@@ -806,7 +806,10 @@ export function PuzzlesPage() {
 
       {/* Coloana din dreapta (acțiuni/rating/interval) e mai lată ca textul butoanelor
           să intre pe un singur rând; containerul e lărgit ca panoul să folosească marginea din dreapta. */}
-      <div className="grid gap-6 xl:grid-cols-[16rem_minmax(0,1fr)_20rem] min-[1700px]:grid-cols-[22rem_minmax(0,1fr)_26rem]">
+      {/* Coloanele şi plafonul de lăţime stau în `.board-grid` (index.css):
+          aveau nevoie de un `calc` cu --board-max, care ca şir de utilitare
+          arbitrare ar fi fost de necitit. */}
+      <div className="board-grid">
         {/* Panou stânga — explicația mutării greșite (sus, în zona liberă din stânga tablei) */}
         <div className="xl:order-1 order-2 space-y-4">
           {puzzleState?.status === 'wrong' && (

@@ -347,13 +347,19 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
               <Spinner className="h-7 w-7" />
             </div>
           ) : puzzleState ? (
-            /* Fără `max-w-[1400px] mx-auto`: pe un ecran lat, cutia aia centrată
-               lăsa sute de pixeli goi la dreapta panourilor. Acum rândul ţine
-               toată lăţimea (corpul are deja padding), bara laterală ajunge la
-               margine, iar tabla se centrează în ce rămâne. */
-            <div className="flex flex-col lg:flex-row gap-6 h-full">
+            /* Coloana tablei e limitată la lăţimea tablei, iar perechea
+               (tablă + bară laterală) se centrează. Aşa distanţa dintre ele e
+               exact `gap-6`, ca între coloanele grilei de pe pagina de puzzle-uri.
+
+               Nu e `flex-1` pe coloana tablei: atunci coloana s-ar întinde pe tot
+               ce rămâne, tabla s-ar centra în ea, iar între tablă şi panouri ar
+               apărea o groapă de câteva sute de pixeli. */
+            <div className="flex flex-col lg:flex-row lg:justify-center gap-6 h-full">
               {/* Board */}
-              <div className="flex-1 flex flex-col items-center gap-3 min-w-0">
+              <div
+                className="flex w-full flex-col items-center gap-3 min-w-0"
+                style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+              >
                 <div className="flex items-center gap-2 text-sm text-[#A0A0A0] self-start lg:self-center">
                   <span>Joci cu</span>
                   <span className={`font-semibold px-2 py-0.5 rounded text-xs ${puzzleState.game.turn() === 'w' ? 'bg-[#F0F0F0] text-black' : 'bg-[#141414] border border-[#3A3A3A] text-[#F0F0F0]'}`}>
@@ -361,8 +367,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
                   </span>
                 </div>
 
-                {/* Aceeaşi latură ca pe pagina de puzzle-uri — vezi --board-max */}
-                <div className="relative w-full" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
+                {/* Lăţimea vine din coloană (--board-max), nu se mai repetă aici */}
+                <div className="relative w-full">
                   <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
                     <Chessboard
                       options={{
@@ -408,9 +414,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
                   </div>
                 )}
 
-                {/* Panoul de sub tablă. Aceeaşi lăţime ca ea, altfel butoanele
-                    nu mai stau aliniate cu marginile tablei. */}
-                <div className="w-full" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
+                {/* Panoul de sub tablă — aceeaşi coloană, deci aceeaşi lăţime */}
+                <div className="w-full">
                   {seqPlaying && (
                     <p className="text-sm text-[#E2B340] text-center">Se redă secvența...</p>
                   )}
