@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react'
 import { Chessboard } from 'react-chessboard'
 import { useAICoach } from '@/hooks/useAICoach'
 import { useSubscription } from '@/hooks/useSubscription'
+import { translateNotation } from '@/lib/chess-translations'
 import { Button } from '@/components/ui/Button'
 import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
 
@@ -16,13 +17,8 @@ const QUICK_QUESTIONS = [
 
 const SQUARE_RE = /^[a-h][1-8]$/
 
-// Traduce notația SAN englezească (Rxg7, Qh6, Nf3) în română (Txg7, Dh6, Cf3).
-// K=Rege→R, Q=Damă→D, R=Tură→T, B=Nebun→N, N=Cal→C. Se aplică doar când litera
-// e urmată de o coordonată — deci cuvintele (Regele, Nebunul) rămân neatinse.
-const PIECE_MAP: Record<string, string> = { K: 'R', Q: 'D', R: 'T', B: 'N', N: 'C' }
-function translateNotation(text: string): string {
-  return text.replace(/\b([KQRBN])([a-h1-8]?x?)(?=[a-h][1-8])/g, (_m, piece: string, rest: string) => (PIECE_MAP[piece] ?? piece) + rest)
-}
+// `translateNotation` stă acum în lib/chess-translations, fiindcă o foloseşte şi
+// tabla din „Numește deschiderea".
 
 interface AICoachPanelProps {
   fen: string

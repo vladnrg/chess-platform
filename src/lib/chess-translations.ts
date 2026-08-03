@@ -96,6 +96,22 @@ const SUBTYPE_MAP: [RegExp, string][] = [
   [/\bPhilidor\b/gi, 'Philidor'],
 ]
 
+/**
+ * Traduce notaţia SAN englezească (Rxg7, Qh6, Nf3) în română (Txg7, Dh6, Cf3).
+ *
+ * K=Rege→R, Q=Damă→D, R=Tură→T, B=Nebun→N, C=Cal→C. Se aplică doar când litera
+ * e urmată de o coordonată — deci cuvintele întregi (Regele, Nebunul) rămân
+ * neatinse, iar un text amestecat se poate trece prin ea fără grijă.
+ */
+const PIECE_MAP: Record<string, string> = { K: 'R', Q: 'D', R: 'T', B: 'N', N: 'C' }
+
+export function translateNotation(text: string): string {
+  return text.replace(
+    /\b([KQRBN])([a-h1-8]?x?)(?=[a-h][1-8])/g,
+    (_m, piece: string, rest: string) => (PIECE_MAP[piece] ?? piece) + rest
+  )
+}
+
 export function translateOpeningName(name: string): string {
   let result = name
 

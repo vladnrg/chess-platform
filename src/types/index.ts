@@ -90,6 +90,12 @@ export interface EventTaskPayload {
   options?: string[]
   answer?: number
   explanation?: string
+  /**
+   * Mutările de arătat pe tablă, în notaţie UCI („e2e4 e7e5 g1f3").
+   * Prezente la întrebările despre deschideri: notaţia singură nu spune nimic
+   * cuiva care încă n-o citeşte din cap.
+   */
+  moves?: string
 }
 
 export interface EventTask {

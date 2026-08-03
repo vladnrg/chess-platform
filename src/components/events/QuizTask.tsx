@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle2, XCircle, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { OpeningBoard } from './OpeningBoard'
 import { useCompleteTask } from '@/hooks/useEvents'
 import type { EventTask, TaskResult } from '@/types'
 
@@ -39,6 +40,10 @@ export function QuizTask({ task, slug, onSolved }: QuizTaskProps) {
 
   return (
     <div className="space-y-4">
+      {/* Poziţia, când întrebarea e despre o deschidere. Stă înaintea întrebării:
+          întâi vezi despre ce e vorba, apoi ţi se cere să o numeşti. */}
+      {task.payload.moves && <OpeningBoard moves={task.payload.moves} />}
+
       {task.prompt && (
         <p className="text-[#F0F0F0] text-lg leading-relaxed">{task.prompt}</p>
       )}
