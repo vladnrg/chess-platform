@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles,
+  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Target,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -55,6 +55,13 @@ export const NAV: NavEntry[] = [
         label: 'Puzzle-uri',
         description: 'Exerciții tactice la nivelul tău, cu rating care se ajustează după fiecare.',
         icon: Puzzle,
+      },
+      {
+        to: '/misiuni',
+        label: 'Misiunile zilei',
+        title: 'Misiunile zilei',
+        description: 'Trei obiective mici pe zi, cu XP la fiecare și bonus dacă le termini pe toate.',
+        icon: Target,
       },
       {
         to: '/tactics',
