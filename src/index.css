@@ -59,7 +59,11 @@
    şi lăţimea containerului — de-acolo veneau diferenţele care păreau „de zoom".
    Se reglează AICI, nu în pagini. */
 :root {
-  --app-header: 4rem;          /* bara de navigare, sus */
+  /* Bara de navigare, sus. 5rem = 4rem × 1.25: conţinutul ei e mărit cu 25%
+     (vezi --app-header-zoom), deci şi bara trebuie să crească la fel, altfel
+     ar tăia din ce e înăuntru. */
+  --app-header: 5rem;
+  --app-header-zoom: 1.25;
   --app-pad: 1.5rem;           /* padding-ul zonei de conţinut */
   --app-gap: 1.25rem;          /* ritmul vertical dintre secţiuni */
   --app-rail: 20rem;           /* coloana dreaptă pe paginile focus */
@@ -84,8 +88,11 @@
 
      Fără scăderea asta, pe ecrane scunde tabla ieşea din pagină şi trebuia
      derulat ca să vezi butoanele de sub ea. Se scade la fel peste tot, ca
-     tablele să rămână egale între ele — pe ecrane înalte tot `72vh` decide. */
-  --board-chrome: 21rem;
+     tablele să rămână egale între ele — pe ecrane înalte tot `72vh` decide.
+
+     22rem, nu 21: bara de sus a crescut cu 1rem când i-am mărit conţinutul,
+     deci exact atât a rămas mai puţin pentru tablă. */
+  --board-chrome: 22rem;
 
   /* Înălţimea utilă, sub bara de sus. `dvh`, nu `vh`: pe mobil bara browserului
      se retrage, iar `vh` rămâne la valoarea veche şi taie conţinutul. */

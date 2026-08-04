@@ -85,9 +85,19 @@ export function TopNav() {
 
   return (
     <header
-      className="relative z-30 flex flex-shrink-0 items-center gap-4 border-b border-[#2A2A2A] bg-[#141414] px-4"
+      className="relative z-30 flex flex-shrink-0 items-center border-b border-[#2A2A2A] bg-[#141414] px-4"
       style={{ height: 'var(--app-header)' }}
     >
+      {/* Tot ce e în bară, mărit cu 25%.
+          Zoom-ul stă pe învelişul ăsta, nu pe `header`: aşa înălţimea barei
+          rămâne dată de --app-header (de care depinde şi calculul înălţimii
+          tablelor de şah), iar mărirea atinge doar conţinutul.
+          `relative` fiindcă panoul de pe mobil se poziţionează faţă de el —
+          altfel ar cădea în afara sistemului de coordonate al zoom-ului. */}
+      <div
+        className="relative flex w-full items-center gap-4"
+        style={{ zoom: 'var(--app-header-zoom)' }}
+      >
       {/* Logo */}
       <Link to="/dashboard" className="flex flex-shrink-0 items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
@@ -198,6 +208,7 @@ export function TopNav() {
           {' · '}{profile.xp} XP
         </span>
       )}
+      </div>
     </header>
   )
 }
