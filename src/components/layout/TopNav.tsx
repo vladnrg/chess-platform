@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, Crown, Flame, LogOut, Menu, X } from 'lucide-react'
+import { ChevronDown, Crown, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { StreakBadge } from './StreakBadge'
 import { cn, getLeagueConfig } from '@/lib/utils'
 import {
   NAV, ACCOUNT_ITEMS, ALL_PAGES, isGroup, isEntryActive, type NavLeaf,
@@ -154,12 +155,9 @@ export function TopNav() {
 
       {/* Dreapta: streak + cont */}
       <div className="ml-auto flex flex-shrink-0 items-center gap-3 lg:ml-0">
-        {profile && profile.streak_days > 0 && (
-          <span className="hidden items-center gap-1.5 rounded-full bg-[#1C1C1C] px-3 py-1.5 text-sm font-semibold text-[#fbbf24] sm:flex">
-            <Flame className="h-4 w-4" />
-            {profile.streak_days}
-          </span>
-        )}
+        {/* Streak-ul. Se vede mereu, şi când e 0: un şir care apare doar după
+            ce l-ai pornit nu-ţi spune niciodată că ar trebui să-l porneşti. */}
+        <StreakBadge />
 
         <AccountMenu
           open={openMenu === '__account'}

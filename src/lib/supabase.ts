@@ -440,6 +440,11 @@ export type Database = {
         Args: Record<string, never>
         Returns: { floor_rating: number; total: number }[]
       }
+      my_streak_week: {
+        Args: Record<string, never>
+        /** Ultimele 7 zile, în ordine, cu/fără XP câştigat. */
+        Returns: { day: string; earned: boolean }[]
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>

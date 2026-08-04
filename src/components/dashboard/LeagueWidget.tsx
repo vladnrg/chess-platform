@@ -6,6 +6,7 @@ import { useWeeklyXp } from '@/hooks/useWeeklyXp'
 import { useLeagueStanding } from '@/hooks/useLeagueStanding'
 import { levelFromXp } from '@/lib/levels'
 import { shieldsEarnedBy, honoraryEarnedBy } from '@/lib/unlocks'
+import { effectiveStreak } from '@/lib/streak'
 import type { LeagueConfig } from '@/types'
 
 /**
@@ -33,6 +34,7 @@ export function LeagueWidget() {
   // Scuturile şi promovările rămase: câte a câştigat prin nivel, minus consumul.
   const shields = Math.max(0, shieldsEarnedBy(levelFromXp(profile.xp)) - (profile.shields_used ?? 0))
   const honorary = Math.max(0, honoraryEarnedBy(levelFromXp(profile.xp)) - (profile.honorary_used ?? 0))
+  const streak = effectiveStreak(profile.streak_days, profile.last_active_date)
 
   return (
     <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
@@ -142,12 +144,13 @@ export function LeagueWidget() {
         </div>
       )}
 
-      {/* Streak */}
-      {profile.streak_days > 0 && (
+      {/* Streak. Trece prin `effectiveStreak`: cifra stocată e de la ultima zi
+          cu XP, deci după o pauză ar arăta un şir care nu mai există. */}
+      {streak > 0 && (
         <div className="mt-3 flex items-center gap-1.5 text-sm text-[#fbbf24]">
           <Flame className="h-4 w-4" />
-          <span className="font-semibold">{profile.streak_days} zile</span>
-          <span className="text-[#6B6B6B]">streak activ</span>
+          <span className="font-semibold">{streak} {streak === 1 ? 'zi' : 'zile'}</span>
+          <span className="text-[#6B6B6B]">la rând cu XP</span>
         </div>
       )}
     </div>
