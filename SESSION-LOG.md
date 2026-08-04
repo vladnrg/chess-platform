@@ -4,6 +4,65 @@ Jurnal de sesiuni de lucru - cele mai recente primele.
 
 ---
 
+## 2026-08-04 → 08-05 - Streak, jocul de mijloc, reparații la motor
+
+### Ce s-a făcut
+
+**Streak** (migrarea 039) — zile la rând în care ai câştigat XP, nu în care
+te-ai logat. Insignă în bara de sus, care se vede şi când e 0; click deschide
+săptămâna, citită din jurnalul de XP.
+
+**Jocul de mijloc** (migrările 040–042) — planuri legate de fiecare variantă,
+aşezate pe coloane, plus capcanele deschiderii în ambele sensuri („Ai grijă" /
+„Urmăreşte"). Apoi, la cererea ta, transformat din tabel în **exerciţiu**:
+butonul „Parcurge ideile din jocul de mijloc" duce acum la etapa a doua a
+antrenorului, pornind din poziţia exactă de la capătul deschiderii — ghidat,
+apoi pe cont propriu. Conţinut: Caro-Kann complet.
+
+**Bara de sus** mărită cu 25%, cu `--board-chrome` ajustat în consecinţă.
+
+### Bug-uri găsite şi reparate
+
+- **Tabla de analiză cădea după două mutări.** `stop` era urmat imediat de noua
+  poziţie, iar liniile rămase din căutarea veche ajungeau la ascultătorul nou.
+  chess.js aruncă eroare la mutări ilegale, iar funcţia rula la randare — deci
+  pagina se stingea. Acum se aşteaptă confirmarea motorului.
+- **Verificarea de echivalenţă din puzzle-uri** pornea două căutări simultan pe
+  acelaşi motor, prin `Promise.all`. Acum merg una după alta.
+- **`streak_days` nu-l scria nimeni.** Versiunea originală a lui `award_xp` îl
+  actualiza, dar nu seta `last_active_date`; apoi rescrierile din 029/030/033
+  au scos bucata cu totul.
+
+### Ce rămâne
+
+- [ ] **Traseul stil Duolingo** trebuie să înglobeze jocul de mijloc ca noduri
+      legate, nu ca secţiune separată sub el. Schema profesionistă vine de la
+      tine; instalaţia (rute, antrenor, conţinut) e deja gata.
+- [ ] Jocul de mijloc pentru celelalte 9 deschideri de negru
+- [ ] Rating pentru deschideri — singurul punct din lista iniţială nefăcut
+- [ ] Sub-meniurile se deschid la click, nu la hover
+- [ ] Misiunile zilei sunt tot machetă cu date fixe
+- [ ] Proiectul nu are niciun test automat
+
+### Commits
+
+`a03cc5b` bara de sus · `afbc847` tabla de analiză reparată ·
+`1a721aa` streak · `2099cca` jocul de mijloc (planuri şi capcane) ·
+`4122794` jocul de mijloc ca exerciţiu
+
+### Decizii importante
+
+- **Conţinutul didactic se verifică, nu se presupune.** Am aruncat două capcane
+  scrise pentru Caro-Kann fiindcă afirmaţiile nu erau destul de sigure, deşi
+  mutările erau legale. Un plan greşit nu e un bug — e cineva care învaţă un
+  lucru fals şi îl repetă un an.
+- **Un curs complet, nu zece pe jumătate.** Structura e fixată; restul e
+  conţinut curat, ~15 minute per curs.
+- **Streak-ul stocat e o fotografie**, nu adevărul. Afişarea trece mereu prin
+  `effectiveStreak`, altfel ar arăta un şir rupt ca activ.
+
+---
+
 ## 2026-08-03 → 08-04 - Evenimente, tablă de analiză, curățenie vizuală
 
 ### Ce s-a făcut
