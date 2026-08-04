@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
+import { MiddlegameSection } from '@/components/courses/MiddlegameSection'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -104,11 +105,12 @@ export function CourseDetail() {
   const resumeStep = steps.find(s => s.id === resumeId)
 
   return (
-    // Centrată pe ecran şi pe toată înălţimea: cardul rămâne sus, iar traseul
-    // primeşte spaţiul rămas. Înainte, `max-w-3xl` fără `mx-auto` împingea totul
-    // în stânga-sus şi lăsa restul ecranului gol.
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    {/* Primul ecran: cardul cursului şi traseul, exact cât ţine viewportul.
+        Jocul de mijloc vine dedesubt, la derulare — de aceea înălţimea fermă
+        stă pe blocul ăsta, nu pe toată pagina. */}
     <div
-      className="mx-auto flex w-full max-w-5xl flex-col gap-6"
+      className="flex w-full flex-col gap-6"
       style={{ height: 'var(--app-page-h)' }}
     >
       <Link to="/courses" className="flex flex-shrink-0 items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
@@ -287,6 +289,11 @@ export function CourseDetail() {
       ) : (
         <p className="text-[#6B6B6B] text-sm text-center py-8">Conținutul e în curs de pregătire.</p>
       )}
+      </div>
+
+      {/* Jocul de mijloc şi capcanele. Stau după traseu: întâi înveţi liniile,
+          apoi ce faci cu ele. Nu randează nimic pentru cursurile fără plan. */}
+      {slug && <MiddlegameSection slug={slug} />}
     </div>
   )
 }

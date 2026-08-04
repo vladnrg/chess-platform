@@ -445,6 +445,28 @@ export type Database = {
         /** Ultimele 7 zile, în ordine, cu/fără XP câştigat. */
         Returns: { day: string; earned: boolean }[]
       }
+      course_middlegame: {
+        Args: { p_slug: string }
+        /** Variantele cu planurile lor, plus capcanele deschiderii. */
+        Returns: {
+          variations: {
+            line_id: string
+            variation_name: string
+            variation_code: string
+            popularity_pct: number
+            moves_uci: string
+            structure: string | null
+            ideas: { title: string; detail: string }[]
+            avoid: string | null
+          }[]
+          traps: {
+            title: string
+            victim: 'ours' | 'theirs'
+            moves_uci: string
+            explanation: string
+          }[]
+        } | null
+      }
     }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
