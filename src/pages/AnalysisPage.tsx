@@ -12,7 +12,10 @@ import { translateNotation } from '@/lib/chess-translations'
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 const MULTI_PV = 3
-const DEPTH = 20
+// 16, nu 20: motorul rulează pe un singur fir în browser, iar la 20 o căutare
+// ţine zeci de secunde — timp în care fiecare mutare aşteaptă oprirea celei
+// anterioare. La 16 evaluarea e la fel de bună în practică şi vine repede.
+const DEPTH = 16
 
 interface Ply {
   san: string
@@ -51,18 +54,32 @@ function evalColor(line: EngineLine | undefined, whiteToMove: boolean): string {
   return '#A0A0A0'
 }
 
-/** Variaţia motorului, tradusă în notaţie românească, din poziţia dată. */
+/**
+ * Variaţia motorului, tradusă în notaţie românească, din poziţia dată.
+ *
+ * `chess.js` ARUNCĂ eroare la o mutare ilegală, nu întoarce `null`. Iar funcţia
+ * asta e apelată în timpul randării: o excepţie aici dărâmă toată pagina, nu
+ * doar caseta cu variante. S-a şi întâmplat — ecran negru după una-două mutări.
+ *
+ * Cauza de fond e reparată în `useStockfish` (căutările nu se mai suprapun),
+ * dar plasa rămâne: o funcţie de randare nu trebuie să poată strica pagina,
+ * indiferent ce primeşte de la motor.
+ */
 function lineToSan(fen: string, uciMoves: string[], max = 6): string[] {
-  const game = new Chess(fen)
   const out: string[] = []
-  for (const uci of uciMoves.slice(0, max)) {
-    const mv = game.move({
-      from: uci.slice(0, 2),
-      to: uci.slice(2, 4),
-      promotion: uci.length > 4 ? uci[4] : undefined,
-    })
-    if (!mv) break
-    out.push(translateNotation(mv.san))
+  try {
+    const game = new Chess(fen)
+    for (const uci of uciMoves.slice(0, max)) {
+      const mv = game.move({
+        from: uci.slice(0, 2),
+        to: uci.slice(2, 4),
+        promotion: uci.length > 4 ? uci[4] : undefined,
+      })
+      if (!mv) break
+      out.push(translateNotation(mv.san))
+    }
+  } catch {
+    // Variantă care nu se potriveşte cu poziţia: arătăm cât am apucat să citim.
   }
   return out
 }

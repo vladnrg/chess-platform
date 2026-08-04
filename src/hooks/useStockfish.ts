@@ -22,12 +22,45 @@ export interface PositionEval {
 
 export function useStockfish() {
   const workerRef = useRef<Worker | null>(null)
+  /** Motorul are o căutare în desfăşurare? Un singur motor, o singură căutare. */
+  const searchingRef = useRef(false)
 
   useEffect(() => {
     const worker = new Worker('/stockfish.js')
     workerRef.current = worker
     worker.postMessage('uci')
     return () => worker.terminate()
+  }, [])
+
+  /**
+   * Opreşte căutarea curentă şi aşteaptă confirmarea motorului.
+   *
+   * Protocolul UCI cere ca după `stop` să aştepţi `bestmove` înainte de a
+   * trimite altă poziţie. Trimiterea imediată lasă motorul să scoată în
+   * continuare linii din căutarea veche — care ajung la ascultătorul noii
+   * poziţii şi conţin mutări ilegale acolo.
+   */
+  const stopSearch = useCallback((worker: Worker): Promise<void> => {
+    if (!searchingRef.current) return Promise.resolve()
+
+    return new Promise(resolve => {
+      const finish = () => {
+        worker.removeEventListener('message', onMessage)
+        clearTimeout(timer)
+        searchingRef.current = false
+        resolve()
+      }
+      const onMessage = (e: MessageEvent<string>) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data)
+        if (msg.startsWith('bestmove')) finish()
+      }
+      // Plasă de siguranţă: dacă motorul nu confirmă, mergem mai departe după o
+      // secundă. Mai bine o căutare pornită peste alta decât o pagină blocată.
+      const timer = setTimeout(finish, 1000)
+
+      worker.addEventListener('message', onMessage)
+      worker.postMessage('stop')
+    })
   }, [])
 
   // Play mode: get best move at a given ELO strength
@@ -174,15 +207,15 @@ export function useStockfish() {
     if (!worker) return () => {}
 
     const multiPv = opts.multiPv ?? 3
-    const depth = opts.depth ?? 18
-    // Indexat după numărul variantei (1..multiPv), ca o linie nouă s-o
-    // înlocuiască pe cea veche de pe acelaşi loc.
+    const depth = opts.depth ?? 16
     const lines = new Map<number, EngineLine>()
     let stopped = false
 
     const handler = (e: MessageEvent<string>) => {
       if (stopped) return
       const msg = typeof e.data === 'string' ? e.data : String(e.data)
+
+      if (msg.startsWith('bestmove')) { searchingRef.current = false; return }
       if (!msg.startsWith('info') || !msg.includes(' pv ')) return
 
       const d = msg.match(/ depth (\d+)/)
@@ -207,14 +240,23 @@ export function useStockfish() {
       )
     }
 
-    worker.addEventListener('message', handler)
-    // `stop` înainte de orice: dacă mai rula o căutare, rezultatele ei ar
-    // continua să curgă peste cele noi.
-    worker.postMessage('stop')
-    worker.postMessage('setoption name UCI_LimitStrength value false')
-    worker.postMessage(`setoption name MultiPV value ${multiPv}`)
-    worker.postMessage(`position fen ${fen}`)
-    worker.postMessage(`go depth ${depth}`)
+    // Aşteptăm ca o eventuală căutare anterioară să se închidă de tot, apoi
+    // pornim.
+    //
+    // Fără aşteptarea asta, `stop` era trimis şi imediat după el noua poziţie —
+    // dar motorul mai avea de scos câteva linii din căutarea veche, iar acelea
+    // ajungeau la ascultătorul nou. Rezultatul: variante care nu sunt legale în
+    // poziţia curentă, chess.js arunca eroare în timpul randării şi pagina
+    // rămânea neagră după una-două mutări.
+    void stopSearch(worker).then(() => {
+      if (stopped) return
+      worker.addEventListener('message', handler)
+      searchingRef.current = true
+      worker.postMessage('setoption name UCI_LimitStrength value false')
+      worker.postMessage(`setoption name MultiPV value ${multiPv}`)
+      worker.postMessage(`position fen ${fen}`)
+      worker.postMessage(`go depth ${depth}`)
+    })
 
     return () => {
       stopped = true
@@ -223,7 +265,7 @@ export function useStockfish() {
       // MultiPV rămâne setat pentru cine vine după, deci îl punem la loc.
       worker.postMessage('setoption name MultiPV value 1')
     }
-  }, [])
+  }, [stopSearch])
 
   // Analyze a sequence of (fen, playedUci) pairs, return per-position evaluations
   const analyzePositions = useCallback(

@@ -634,10 +634,11 @@ export function PuzzlesPage() {
             // Comparăm poziţiile REZULTATE: una după mutarea ta, una după cea
             // din soluţie. Amândouă evaluate cu adversarul la mutare, deci
             // direct comparabile.
-            const [playedEval, expectedEval] = await Promise.all([
-              evalPosition(gameCopy.fen(), 12),
-              evalPosition(scripted.fen(), 12),
-            ])
+            // Una după alta, nu `Promise.all`: e un singur motor, iar a doua
+            // cerere ar întrerupe-o pe prima şi amândouă ar da rezultate
+            // amestecate.
+            const playedEval = await evalPosition(gameCopy.fen(), 12)
+            const expectedEval = await evalPosition(scripted.fen(), 12)
 
             if (isAtLeastAsGood(playedEval, expectedEval)) {
               setMoveExplanation({
