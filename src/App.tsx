@@ -98,6 +98,8 @@ function AppRoutes() {
         <Route path="/courses/:slug/lessons/:lessonId" element={<LessonPage />} />
         <Route path="/courses/:slug/guided/:lineId" element={<OpeningTrainerPage mode="guided" />} />
         <Route path="/courses/:slug/practice/:lineId" element={<OpeningTrainerPage mode="practice" />} />
+        <Route path="/courses/:slug/middlegame/:lineId" element={<OpeningTrainerPage mode="guided" stage="middlegame" />} />
+        <Route path="/courses/:slug/middlegame-practice/:lineId" element={<OpeningTrainerPage mode="practice" stage="middlegame" />} />
         <Route path="/puzzles" element={<PuzzlesPage />} />
         <Route path="/puzzles/placement" element={<PuzzlePlacement />} />
         <Route path="/stats" element={<StatsPage />} />

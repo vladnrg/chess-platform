@@ -27,8 +27,26 @@ function getTotalParts(totalPlies: number): number {
   return 1
 }
 
-function isUserPly(plyIdx: number, userColor: 'white' | 'black'): boolean {
-  return userColor === 'white' ? plyIdx % 2 === 0 : plyIdx % 2 === 1
+/**
+ * Linia antrenată: fie deschiderea, fie continuarea de joc de mijloc.
+ *
+ * Jocul de mijloc porneşte dintr-o poziţie deja jucată, deci nu mai e adevărat
+ * că semi-mutarea 0 e a albului. De aceea `start_fen`, iar tot ce ţine de „cine
+ * e la rând" trece prin `whiteMovesFirst`.
+ */
+export type TrainerLine = OpeningLine & {
+  /** Poziţia de plecare. Lipsă = poziţia iniţială a partidei. */
+  start_fen?: string
+}
+
+/** E albul la mutare în poziţia de plecare? */
+function whiteMovesFirst(line: TrainerLine): boolean {
+  return !line.start_fen || line.start_fen.includes(' w ')
+}
+
+function isUserPly(plyIdx: number, userColor: 'white' | 'black', whiteFirst = true): boolean {
+  const whitePly = whiteFirst ? plyIdx % 2 === 0 : plyIdx % 2 === 1
+  return (userColor === 'white') === whitePly
 }
 
 type TrainerStatus =
@@ -48,25 +66,25 @@ interface TrainerState {
   wrongTo: string | null
 }
 
-function buildInitialState(line: OpeningLine): TrainerState {
+function buildInitialState(line: TrainerLine): TrainerState {
   const moves = line.moves_uci.split(' ')
   const partEnd = getPartEnd(moves.length, 1)
   return {
-    game: new Chess(),
+    game: new Chess(line.start_fen),
     plyIdx: 0,
     part: 1,
     partEnd,
-    status: isUserPly(0, line.user_color) ? 'user-turn' : 'computer-thinking',
+    status: isUserPly(0, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking',
     wrongFrom: null,
     wrongTo: null,
   }
 }
 
 // Reconstruiește poziția la reluare, rejucând mutările până la plyIdx-ul salvat.
-function buildResumedState(line: OpeningLine, plyIdx: number): TrainerState {
+function buildResumedState(line: TrainerLine, plyIdx: number): TrainerState {
   const moves = line.moves_uci.split(' ')
   const target = Math.max(0, Math.min(plyIdx, moves.length))
-  const game = new Chess()
+  const game = new Chess(line.start_fen)
   for (let i = 0; i < target; i++) {
     const m = moves[i]
     try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) } catch { break }
@@ -77,34 +95,61 @@ function buildResumedState(line: OpeningLine, plyIdx: number): TrainerState {
     ? 'line-done'
     : target >= partEnd
     ? 'part-done'
-    : isUserPly(target, line.user_color) ? 'user-turn' : 'computer-thinking'
+    : isUserPly(target, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
   return { game, plyIdx: target, part, partEnd, status, wrongFrom: null, wrongTo: null }
 }
 
-const resumeKey = (lineId: string) => `op-resume:${lineId}`
+const resumeKey = (lineId: string, stage: string) => `op-resume:${stage}:${lineId}`
 
 const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Spre jocul de mijloc']
 
 interface Props {
   mode: 'guided' | 'practice'
+  /** 'opening' = linia de deschidere; 'middlegame' = continuarea de după ea. */
+  stage?: 'opening' | 'middlegame'
 }
 
-export function OpeningTrainerPage({ mode }: Props) {
+export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const { slug, lineId } = useParams<{ slug: string; lineId: string }>()
   const { user, fetchProfile } = useAuth()
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const isGuided = mode === 'guided'
+  const isMiddlegame = stage === 'middlegame'
   const savedDoneRef = useRef(false)
 
   const { data: line, isLoading } = useQuery({
-    queryKey: ['opening-line', lineId],
-    queryFn: async () => {
-      const { data } = await supabase
+    queryKey: ['trainer-line', lineId, stage],
+    queryFn: async (): Promise<TrainerLine | null> => {
+      const { data: base } = await supabase
         .from('opening_lines')
         .select('*')
         .eq('id', lineId!)
         .single()
-      return data as OpeningLine
+      const opening = base as OpeningLine | null
+      if (!opening || !isMiddlegame) return opening
+
+      // Jocul de mijloc: aceeaşi variantă, dar mutările vin din plan, iar
+      // poziţia de plecare e cea de la capătul deschiderii — o reconstruim
+      // rejucând linia, ca să nu ţinem un FEN duplicat în baza de date.
+      const { data: plan } = await supabase
+        .from('middlegame_plans')
+        .select('moves_uci, move_explanations')
+        .eq('opening_line_id', opening.id)
+        .single()
+      if (!plan?.moves_uci) return null
+
+      const game = new Chess()
+      for (const m of opening.moves_uci.split(' ')) {
+        try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) }
+        catch { break }
+      }
+
+      return {
+        ...opening,
+        moves_uci: plan.moves_uci,
+        move_explanations: (plan.move_explanations ?? {}) as Record<string, string>,
+        start_fen: game.fen(),
+      }
     },
     enabled: !!lineId,
   })
@@ -145,7 +190,7 @@ export function OpeningTrainerPage({ mode }: Props) {
     if (!line) return
     savedDoneRef.current = false
     if (isGuided) {
-      const saved = Number(localStorage.getItem(resumeKey(line.id)))
+      const saved = Number(localStorage.getItem(resumeKey(line.id, stage)))
       setState(saved > 0 ? buildResumedState(line, saved) : buildInitialState(line))
       void persistProgress(false)
     } else {
@@ -163,14 +208,14 @@ export function OpeningTrainerPage({ mode }: Props) {
   // Salvează punctul curent (plyIdx) pentru reluare exactă.
   useEffect(() => {
     if (!isGuided || !line || plyIdx == null || status === 'line-done') return
-    localStorage.setItem(resumeKey(line.id), String(plyIdx))
-  }, [plyIdx, status, isGuided, line])
+    localStorage.setItem(resumeKey(line.id, stage), String(plyIdx))
+  }, [plyIdx, status, isGuided, line, stage])
 
   // La finalizarea variantei: marchează complet + curăță punctul de reluare.
   useEffect(() => {
     if (!isGuided || !line || state?.status !== 'line-done' || savedDoneRef.current) return
     savedDoneRef.current = true
-    localStorage.removeItem(resumeKey(line.id))
+    localStorage.removeItem(resumeKey(line.id, stage))
     void persistProgress(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
@@ -195,7 +240,7 @@ export function OpeningTrainerPage({ mode }: Props) {
         if (nextPly >= state.partEnd) {
           nextStatus = state.partEnd >= moves.length ? 'line-done' : 'part-done'
         } else {
-          nextStatus = isUserPly(nextPly, line.user_color) ? 'user-turn' : 'computer-thinking'
+          nextStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
         }
         setState(s => s ? { ...s, game: gameCopy, plyIdx: nextPly, status: nextStatus } : null)
       } catch {
@@ -248,7 +293,7 @@ export function OpeningTrainerPage({ mode }: Props) {
       if (nextPly >= state.partEnd) {
         nextStatus = state.partEnd >= moves.length ? 'line-done' : 'part-done'
       } else {
-        nextStatus = isUserPly(nextPly, line.user_color) ? 'user-turn' : 'computer-thinking'
+        nextStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
       }
 
       setState(s => s
@@ -265,7 +310,7 @@ export function OpeningTrainerPage({ mode }: Props) {
     const nextPart = state.part + 1
     const nextPartEnd = getPartEnd(moves.length, nextPart)
     const nextPly = state.plyIdx
-    const nextStatus: TrainerStatus = isUserPly(nextPly, line.user_color) ? 'user-turn' : 'computer-thinking'
+    const nextStatus: TrainerStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
     setState(s => s
       ? { ...s, part: nextPart, partEnd: nextPartEnd, status: nextStatus, wrongFrom: null, wrongTo: null }
       : null)
@@ -276,9 +321,7 @@ export function OpeningTrainerPage({ mode }: Props) {
     setState(buildInitialState(line))
   }
 
-  function handleMiddlegame() {
-    toast('Analizele de joc de mijloc sunt în pregătire — revino curând!', { icon: '🔥' })
-  }
+
 
   if (isLoading || !state) {
     return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
@@ -495,21 +538,32 @@ export function OpeningTrainerPage({ mode }: Props) {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-[#4ade80] font-semibold">
                   <CheckCircle2 className="h-4 w-4" />
-                  Opening parcurs cu succes!
+                  {isMiddlegame ? 'Planul dus până la capăt!' : 'Opening parcurs cu succes!'}
                 </div>
-                <button
-                  onClick={handleMiddlegame}
-                  className="w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
-                >
-                  <span>Parcurge ideile din jocul de mijloc</span>
-                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                </button>
+
+                {/* Următoarea etapă. Din deschidere treci la jocul de mijloc,
+                    plecând exact din poziţia la care ai ajuns. */}
+                {!isMiddlegame && (
+                  <Link
+                    to={`/courses/${slug}/middlegame/${lineId}`}
+                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
+                  >
+                    <span>Parcurge ideile din jocul de mijloc</span>
+                    <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                  </Link>
+                )}
+
                 <div className="flex gap-2 pt-1">
                   <Button variant="secondary" size="sm" className="flex-1" onClick={resetLine}>
                     Repetă
                   </Button>
                   {isGuided && (
-                    <Link to={`/courses/${slug}/practice/${lineId}`} className="flex-1">
+                    <Link
+                      to={isMiddlegame
+                        ? `/courses/${slug}/middlegame-practice/${lineId}`
+                        : `/courses/${slug}/practice/${lineId}`}
+                      className="flex-1"
+                    >
                       <Button size="sm" className="w-full">Pe cont propriu</Button>
                     </Link>
                   )}

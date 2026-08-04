@@ -222,6 +222,29 @@ export interface XpLedgerRow {
   created_at: string
 }
 
+/** Planul de joc de mijloc al unei variante (migrările 040–042). */
+export interface MiddlegamePlanRow {
+  id: string
+  opening_line_id: string
+  structure: string
+  ideas: { title: string; detail: string }[]
+  avoid: string | null
+  /** Continuarea de antrenat, din poziţia de la capătul deschiderii. */
+  moves_uci: string | null
+  move_explanations: Record<string, string>
+  created_at: string
+}
+
+export interface OpeningTrapRow {
+  id: string
+  course_id: string
+  order_index: number
+  title: string
+  victim: 'ours' | 'theirs'
+  moves_uci: string
+  explanation: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -295,6 +318,8 @@ export type Database = {
       event_tasks: TableDef<EventTaskRow, 'id' | 'payload' | 'xp_reward'>
       user_event_tasks: TableDef<UserEventTaskRow, 'completed_at' | 'correct'>
       xp_ledger: TableDef<XpLedgerRow, Generated>
+      middlegame_plans: TableDef<MiddlegamePlanRow, Generated | 'ideas' | 'move_explanations'>
+      opening_traps: TableDef<OpeningTrapRow, 'id'>
     }
     Views: Record<string, never>
     Functions: {

@@ -156,7 +156,7 @@ export type PageArchetype = 'focus' | 'catalog'
 const FOCUS_PATTERNS: RegExp[] = [
   /^\/puzzles(\/|$)/,
   /^\/analiza$/,
-  /^\/courses\/[^/]+\/(lessons|guided|practice)\//,
+  /^\/courses\/[^/]+\/(lessons|guided|practice|middlegame|middlegame-practice)\//,
   /^\/tactics\/[^/]+\/[^/]+$/,
 ]
 
