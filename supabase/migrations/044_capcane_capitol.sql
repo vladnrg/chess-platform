@@ -138,7 +138,7 @@ select public.seed_trap_moves('caro-kann-defense', 1, '{
   "4": "Dezvolți și aperi e4. Negrul tocmai amenință pionul e4 cu ...dxe4; Cc3 pregătește reluarea cu Cxe4.",
   "5": "Negrul capturează pionul e4 — evită lanțul închis e5-d4 al Francezei.",
   "6": "Reiei cu calul, o piesă dezvoltată.",
-  "7": "Negrul dezvoltă calul pe d7: apară e5 și pregătește Cgf6.",
+  "7": "Negrul dezvoltă calul pe d7: apără e5 și pregătește Cgf6.",
   "8": "Dama pe e2 — pare natural, dar pregătești capcana.",
   "9": "**GREȘEALA!** Negrul aduce calul de pe g8 pe f6 (pare firesc), dar asta permite Cd6 mat. Mutarea corectă: Cdf6 cu calul de pe d7.",
   "10": "**MAT!** Regele nu are unde să se retragă: pe d7 e calul negrului, d8 dama, e7 pion, f7 pion, f8 nebun. Regele e zidit de propria armată. Pionul e7 ar putea captura calul, dar e țintuit de dama ta de pe e2 (coloana e e deschisă). Nici nebunul f8 nici dama d8 nu ajung la d6: sunt blocate de chiar pionul e7 și calul d7. Și tocmai asta-i esența Caro-Kann-ului: pionul c e pe c6, nu c7, deci nu există cxd6 ca în alte deschideri. Capcana e posibilă pentru că deschiderea în sine ți-o pregătește."
