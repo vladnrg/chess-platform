@@ -22,6 +22,12 @@ export type TrainerLine = OpeningLine & {
   start_fen?: string
   /** Doar la etapa de joc de mijloc. */
   plan?: MiddlegamePlan
+  /** Din ce variantă răsare capcana. */
+  fromVariation?: string
+  /** Paragraful de încheiere, arătat la capătul liniei. */
+  conclusion?: string
+  /** Linia nu se rupe în părţi (capcanele au 11–12 semi-mutări). */
+  singlePart?: boolean
 }
 
 /** Poziţia după primele `pana` semi-mutări dintr-o listă UCI. */
@@ -71,12 +77,57 @@ async function linieJocDeMijloc(lineId: string): Promise<TrainerLine | null> {
   }
 }
 
+/**
+ * O capcană, modelată ca linie de antrenat.
+ *
+ * Culoarea nu se scrie de mână, se deduce: dacă victima e cel care ţine
+ * deschiderea, tu joci cu cealaltă culoare — fiindcă tu eşti cel care întinde
+ * cursa. De aceea capcana are nevoie de varianta din care răsare: de acolo vine
+ * `user_color`.
+ */
+async function linieCapcana(trapId: string, mode: 'guided' | 'practice'): Promise<TrainerLine | null> {
+  const { data: trap } = await supabase
+    .from('opening_traps')
+    .select('*')
+    .eq('id', trapId)
+    .single()
+  if (!trap?.opening_line_id) return null
+
+  const { data: linie } = await supabase
+    .from('opening_lines')
+    .select('*')
+    .eq('id', trap.opening_line_id)
+    .single()
+  if (!linie) return null
+
+  const alTau = trap.victim === 'ours'
+    ? (linie.user_color === 'white' ? 'black' : 'white')
+    : linie.user_color
+
+  const exerseaza = mode === 'practice' && trap.spring_ply != null && trap.spring_ply > 0
+  const toate = trap.moves_uci.split(' ')
+
+  return {
+    ...linie,
+    id: trap.id,
+    variation_name: trap.title,
+    user_color: alTau,
+    moves_uci: exerseaza ? toate.slice(trap.spring_ply!).join(' ') : trap.moves_uci,
+    // La exerciţiu nu se arată explicaţii, deci nu are rost să le reindexăm.
+    move_explanations: exerseaza ? {} : (trap.move_explanations ?? {}),
+    start_fen: exerseaza ? fenDupa(trap.moves_uci, trap.spring_ply!) : undefined,
+    fromVariation: linie.variation_name,
+    conclusion: trap.explanation,
+    singlePart: true,
+  }
+}
+
 export async function incarcaLinie(
   stage: TrainerStage,
-  _mode: 'guided' | 'practice',
+  mode: 'guided' | 'practice',
   id: string,
 ): Promise<TrainerLine | null> {
   if (stage === 'middlegame') return linieJocDeMijloc(id)
-  if (stage === 'trap') return null // primeşte trup în etapa următoare
+  if (stage === 'trap') return linieCapcana(id, mode)
   return linieDeschidere(id)
 }

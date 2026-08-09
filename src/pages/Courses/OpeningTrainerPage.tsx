@@ -15,13 +15,15 @@ import { Spinner } from '@/components/ui/Spinner'
 // Part boundaries (ply indices): Part1 = 0-9, Part2 = 10-15, Part3 = 16+
 const PART_ENDS = [10, 16]
 
-function getPartEnd(totalPlies: number, part: number): number {
+function getPartEnd(totalPlies: number, part: number, singlePart = false): number {
+  if (singlePart) return totalPlies
   if (part === 1) return Math.min(PART_ENDS[0], totalPlies)
   if (part === 2) return Math.min(PART_ENDS[1], totalPlies)
   return totalPlies
 }
 
-function getTotalParts(totalPlies: number): number {
+function getTotalParts(totalPlies: number, singlePart = false): number {
+  if (singlePart) return 1
   if (totalPlies > PART_ENDS[1]) return 3
   if (totalPlies > PART_ENDS[0]) return 2
   return 1
@@ -57,7 +59,7 @@ interface TrainerState {
 
 function buildInitialState(line: TrainerLine): TrainerState {
   const moves = line.moves_uci.split(' ')
-  const partEnd = getPartEnd(moves.length, 1)
+  const partEnd = getPartEnd(moves.length, 1, line.singlePart)
   return {
     game: new Chess(line.start_fen),
     plyIdx: 0,
@@ -79,7 +81,7 @@ function buildResumedState(line: TrainerLine, plyIdx: number): TrainerState {
     try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) } catch { break }
   }
   const part = target >= PART_ENDS[1] ? 3 : target >= PART_ENDS[0] ? 2 : 1
-  const partEnd = getPartEnd(moves.length, part)
+  const partEnd = getPartEnd(moves.length, part, line.singlePart)
   const status: TrainerStatus = target >= moves.length
     ? 'line-done'
     : target >= partEnd
@@ -94,8 +96,8 @@ const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Spre jocul 
 
 interface Props {
   mode: 'guided' | 'practice'
-  /** 'opening' = linia de deschidere; 'middlegame' = continuarea de după ea. */
-  stage?: 'opening' | 'middlegame'
+  /** 'opening' = linia de deschidere; 'middlegame' = continuarea de după ea; 'trap' = capcana. */
+  stage?: 'opening' | 'middlegame' | 'trap'
 }
 
 export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
@@ -104,6 +106,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const isGuided = mode === 'guided'
   const isMiddlegame = stage === 'middlegame'
+  const isTrap = stage === 'trap'
   const savedDoneRef = useRef(false)
 
   const { data: line, isLoading } = useQuery({
@@ -266,7 +269,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     if (!state || !line) return
     const moves = line.moves_uci.split(' ')
     const nextPart = state.part + 1
-    const nextPartEnd = getPartEnd(moves.length, nextPart)
+    const nextPartEnd = getPartEnd(moves.length, nextPart, line.singlePart)
     const nextPly = state.plyIdx
     const nextStatus: TrainerStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
     setState(s => s
@@ -289,7 +292,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   }
 
   const moves = line.moves_uci.split(' ')
-  const totalParts = getTotalParts(moves.length)
+  const totalParts = getTotalParts(moves.length, line.singlePart)
   const progressPct = moves.length > 0 ? (state.plyIdx / moves.length) * 100 : 0
 
   // Current explanation (for whichever ply is being played now)
@@ -337,6 +340,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               <> · <span className="text-[#A0A0A0]">Partea {state.part} din {totalParts}</span></>
             )}
           </p>
+          {isTrap && line.fromVariation && (
+            <p className="mt-1 text-sm text-[#6B6B6B]">
+              Din <span className="text-[#A0A0A0]">{line.fromVariation}</span> · {line.user_color === 'white'
+                ? 'joci cu albul — tu întinzi cursa'
+                : 'joci cu negrul — tu pedepseşti greşeala'}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`text-xs font-medium px-2 py-1 rounded-full border ${
@@ -483,7 +493,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                     }`}>
                       {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : partNum}
                     </div>
-                    <span>{PART_LABELS[i]}</span>
+                    <span>{line.singlePart ? 'Capcana, de la cap la coadă' : PART_LABELS[i]}</span>
                   </div>
                 )
               })}
@@ -505,12 +515,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-[#4ade80] font-semibold">
                   <CheckCircle2 className="h-4 w-4" />
-                  {isMiddlegame ? 'Planul dus până la capăt!' : 'Opening parcurs cu succes!'}
+                  {isTrap ? 'Capcana, ştiută pe de rost!' : isMiddlegame ? 'Planul dus până la capăt!' : 'Opening parcurs cu succes!'}
                 </div>
+
+                {isTrap && line.conclusion && (
+                  <p className="mt-2 text-sm leading-relaxed text-[#A0A0A0]">{line.conclusion}</p>
+                )}
 
                 {/* Următoarea etapă. Din deschidere treci la jocul de mijloc,
                     plecând exact din poziţia la care ai ajuns. */}
-                {!isMiddlegame && (
+                {stage === 'opening' && (
                   <Link
                     to={`/courses/${slug}/middlegame/${lineId}`}
                     className="flex w-full items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
@@ -551,9 +565,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Antrenează-te</p>
             <div className="space-y-1">
               <Link
-                to={isMiddlegame
-                  ? `/courses/${slug}/middlegame/${lineId}`
-                  : `/courses/${slug}/guided/${lineId}`}
+                to={
+                  isTrap
+                    ? `/courses/${slug}/trap/${lineId}`
+                    : isMiddlegame
+                    ? `/courses/${slug}/middlegame/${lineId}`
+                    : `/courses/${slug}/guided/${lineId}`
+                }
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
@@ -563,9 +581,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 Ghidat — vreau indicații vizuale
               </Link>
               <Link
-                to={isMiddlegame
-                  ? `/courses/${slug}/middlegame-practice/${lineId}`
-                  : `/courses/${slug}/practice/${lineId}`}
+                to={
+                  isTrap
+                    ? `/courses/${slug}/trap-practice/${lineId}`
+                    : isMiddlegame
+                    ? `/courses/${slug}/middlegame-practice/${lineId}`
+                    : `/courses/${slug}/practice/${lineId}`
+                }
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   !isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
