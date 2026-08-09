@@ -243,6 +243,12 @@ export interface OpeningTrapRow {
   victim: 'ours' | 'theirs'
   moves_uci: string
   explanation: string
+  /** Varianta din care răsare capcana. `null` = neatribuită, deci nu intră în traseu. */
+  opening_line_id: string | null
+  /** Explicaţii pe semi-mutare, indexate de la 0. */
+  move_explanations: Record<string, string>
+  /** De la a câta semi-mutare porneşte exerciţiul. */
+  spring_ply: number | null
 }
 
 /** O poziţie de plecare aleasă de om pentru Proba de foc (migrarea 043). */
@@ -375,7 +381,7 @@ export type Database = {
       user_event_tasks: TableDef<UserEventTaskRow, 'completed_at' | 'correct'>
       xp_ledger: TableDef<XpLedgerRow, Generated>
       middlegame_plans: TableDef<MiddlegamePlanRow, Generated | 'ideas' | 'move_explanations'>
-      opening_traps: TableDef<OpeningTrapRow, 'id'>
+      opening_traps: TableDef<OpeningTrapRow, 'id' | 'opening_line_id' | 'move_explanations' | 'spring_ply'>
       arena_positions: TableDef<ArenaPositionRow, Generated | 'kind' | 'plies' | 'active'>
       arena_runs: TableDef<
         ArenaRunRow,
@@ -547,10 +553,14 @@ export type Database = {
             avoid: string | null
           }[]
           traps: {
+            id: string
             title: string
             victim: 'ours' | 'theirs'
             moves_uci: string
             explanation: string
+            opening_line_id: string | null
+            variation_name: string | null
+            spring_ply: number | null
           }[]
         } | null
       }
