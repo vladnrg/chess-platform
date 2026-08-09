@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Target, Cpu,
+  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Target, Cpu, Flame,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -8,14 +8,12 @@ import {
  * O pagină din navigare.
  *
  * `label` — eticheta din bară (scurtă)
- * `title` — antetul paginii, când merită să fie mai explicit decât eticheta
  * `description` — ce faci concret acolo. Prezenţa ei e chiar mecanismul prin care
  *   pagina intră în harta de pe Bârlog; cele fără descriere nu apar acolo.
  */
 export interface NavLeaf {
   to: string
   label: string
-  title?: string
   description?: string
   icon: LucideIcon
 }
@@ -39,11 +37,10 @@ export function isGroup(entry: NavEntry): entry is NavGroup {
  * orizontală ar cere ~2000px numai pentru navigare şi n-ar încăpea.
  */
 export const NAV: NavEntry[] = [
-  { to: '/dashboard', label: 'Bârlog', title: 'Bârlogul șahistului', icon: LayoutDashboard },
+  { to: '/dashboard', label: 'Bârlog', icon: LayoutDashboard },
   {
     to: '/courses',
     label: 'Cursuri',
-    title: 'Cursuri interactive',
     description: 'Deschideri explicate mutare cu mutare, cu antrenament pe tablă.',
     icon: BookOpen,
   },
@@ -59,7 +56,6 @@ export const NAV: NavEntry[] = [
       {
         to: '/misiuni',
         label: 'Misiunile zilei',
-        title: 'Misiunile zilei',
         description: 'Trei obiective mici pe zi, cu XP la fiecare și bonus dacă le termini pe toate.',
         icon: Target,
       },
@@ -74,6 +70,12 @@ export const NAV: NavEntry[] = [
         label: 'Tabla de analiză',
         description: 'Mută liber și vezi pe loc cum evaluează motorul fiecare variantă.',
         icon: Cpu,
+      },
+      {
+        to: '/proba',
+        label: 'Proba de foc',
+        description: 'Trei poziții din deschiderile tale, contra unui adversar mai tare. Câștigi cât îmbunătățești poziția.',
+        icon: Flame,
       },
       {
         to: '/pentru-incepatori',
@@ -131,7 +133,7 @@ export const ACCOUNT_ITEMS: NavLeaf[] = [
   { to: '/profile', label: 'Profil', icon: User },
 ]
 
-/** Toate paginile, aplatizate — pentru titluri şi pentru meniul de pe mobil. */
+/** Toate paginile, aplatizate — pentru harta de pe Bârlog şi meniul de pe mobil. */
 export const ALL_PAGES: NavLeaf[] = [
   ...NAV.flatMap(e => (isGroup(e) ? e.items : [e])),
   ...ACCOUNT_ITEMS,
@@ -158,6 +160,7 @@ const FOCUS_PATTERNS: RegExp[] = [
   /^\/analiza$/,
   /^\/courses\/[^/]+\/(lessons|guided|practice|middlegame|middlegame-practice)\//,
   /^\/tactics\/[^/]+\/[^/]+$/,
+  /^\/proba\/joc$/,
 ]
 
 export function archetypeFor(pathname: string): PageArchetype {
@@ -165,23 +168,18 @@ export function archetypeFor(pathname: string): PageArchetype {
 }
 
 /**
- * Pagini care îşi poartă singure antetul (hero propriu). Shell-ul nu le mai pune
- * un titlu deasupra, ca să nu se dubleze.
- */
-const OWN_HEADER_ROUTES = new Set(['/courses', '/puzzles'])
-
-/**
- * Titlul pe care shell-ul îl randează ca prim element al conţinutului, sau `null`
- * dacă pagina şi-l poartă singură.
+ * Cât de mare se randează o pagină faţă de restul aplicaţiei.
  *
- * Doar potrivire exactă: sub-paginile (un curs, o lecţie, o variantă) au deja un
- * titlu contextual propriu — mult mai util decât numele secţiunii din care fac
- * parte. Un „Cursuri interactive" deasupra lui „Linia Clasică" ar fi doar zgomot.
+ * Bârlogul e pagina pe care o vede toată lumea prima, şi e alcătuită aproape
+ * numai din text mic: etichete, descrieri de o linie, cifre. La 100% arăta
+ * pierdut într-un ecran lat. Mărirea se face cu `zoom`, ca la bara de sus — un
+ * singur număr care creşte deodată şi scrisul, şi casetele, şi spaţiile dintre
+ * ele, fără să rescriem zeci de clase Tailwind.
+ *
+ * Aici, nu în layout, ca decizia să stea lângă celelalte care ţin de pagini.
  */
-export function shellTitleFor(pathname: string): string | null {
-  if (OWN_HEADER_ROUTES.has(pathname)) return null
-  const page = ALL_PAGES.find(p => p.to === pathname)
-  return page ? (page.title ?? page.label) : null
+export function pageZoomFor(pathname: string): number {
+  return pathname === '/dashboard' ? 1.25 : 1
 }
 
 /** Grupul e „activ" dacă ruta curentă e una dintre paginile lui. */

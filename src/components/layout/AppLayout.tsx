@@ -3,7 +3,7 @@ import { TopNav } from './TopNav'
 import { useChildSession } from '@/hooks/useChildSession'
 import { SessionTimer } from '@/components/session/SessionTimer'
 import { SessionQuip } from './SessionQuip'
-import { archetypeFor, shellTitleFor } from '@/lib/navigation'
+import { archetypeFor, pageZoomFor } from '@/lib/navigation'
 import { useAcceptedChallengeRedirect } from '@/hooks/useChallenges'
 import { useMatchWatcher } from '@/hooks/useMatchWatcher'
 
@@ -24,7 +24,7 @@ export function AppLayout() {
   // Arhetipul vine dintr-un singur loc (lib/navigation), nu dintr-un `pathname ===`
   // scris în layout. Vezi comentariul de acolo pentru ce înseamnă fiecare.
   const archetype = archetypeFor(pathname)
-  const title = shellTitleFor(pathname)
+  const zoom = pageZoomFor(pathname)
 
   return (
     <div className="flex h-dvh flex-col bg-[#0A0A0A] overflow-hidden">
@@ -41,18 +41,25 @@ export function AppLayout() {
             // 120rem, nu 112rem: la 2560×1440 tabla ajunge la 72vh = 1037px, iar
             // cu şinele şi spaţiile grupul cere 1853px. Sub vechea limită tabla
             // se strângea la 928px şi nu mai era egală cu cea din Cufăr.
-            maxWidth: archetype === 'focus' ? '120rem' : 'var(--app-max)',
+            // O pagină mărită îşi citeşte lăţimea în pixeli măriţi, deci valoarea
+            // se împarte la zoom ca să iasă pe ecran exact `--app-max-zoom`.
+            maxWidth: archetype === 'focus'
+              ? '120rem'
+              : zoom > 1
+                ? `calc(var(--app-max-zoom) / ${zoom})`
+                : 'var(--app-max)',
             padding: 'var(--app-pad)',
             gap: 'var(--app-gap)',
+            // Mărirea unei pagini întregi (vezi `pageZoomFor`). Stă pe acest
+            // container, nu pe pagină, ca să prindă şi titlul — altfel „Bârlogul
+            // şahistului" ar fi rămas singurul rând mic din ecran.
+            zoom,
           }}
         >
-          {/* Titlul paginii stă în conţinut, nu în bara de sus — aceea e rezervată
-              navigării. Paginile cu antet propriu şi-l randează singure. */}
-          {title && (
-            <h1 className="flex-shrink-0 font-display text-2xl font-bold tracking-tight text-[#F0F0F0]">
-              {title}
-            </h1>
-          )}
+          {/* Fără titlu de pagină. Numele paginii se vede deja în bara de sus,
+              iar repetat aici nu spunea nimănui nimic nou — doar împingea
+              conţinutul în jos. Paginile care au nevoie de un antet propriu
+              (Cursuri, Puzzle-uri) şi-l randează singure, cu descriere şi cifre. */}
           <SessionQuip />
           <Outlet />
         </div>

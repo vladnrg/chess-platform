@@ -41,6 +41,8 @@ const EventsPage = lazy(() => import('@/pages/EventsPage').then(m => ({ default:
 const MissionsPage = lazy(() => import('@/pages/MissionsPage').then(m => ({ default: m.MissionsPage })))
 const AnalysisPage = lazy(() => import('@/pages/AnalysisPage').then(m => ({ default: m.AnalysisPage })))
 const EventDetailPage = lazy(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
+const ArenaPage = lazy(() => import('@/pages/ArenaPage').then(m => ({ default: m.ArenaPage })))
+const ArenaRunPage = lazy(() => import('@/pages/ArenaRunPage').then(m => ({ default: m.ArenaRunPage })))
 const BreakPage = lazy(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
 const ParentalConfirmPage = lazy(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
 const ParentalStatsPage = lazy(() => import('@/pages/ParentalStatsPage').then(m => ({ default: m.ParentalStatsPage })))
@@ -116,6 +118,8 @@ function AppRoutes() {
         <Route path="/analiza" element={<AnalysisPage />} />
         <Route path="/evenimente" element={<EventsPage />} />
         <Route path="/evenimente/:slug" element={<EventDetailPage />} />
+        <Route path="/proba" element={<ArenaPage />} />
+        <Route path="/proba/joc" element={<ArenaRunPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

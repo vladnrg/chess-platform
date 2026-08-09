@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Crown, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakBadge } from './StreakBadge'
@@ -32,8 +33,12 @@ function useDismiss(open: boolean, onClose: () => void) {
   return ref
 }
 
-/** Identificatorul panoului de pe mobil, în aceeaşi stare cu meniurile din bară. */
+/**
+ * Panourile care nu sunt meniuri din bară, ţinute în aceeaşi stare cu ele.
+ * Fiecare îşi are propriul mecanism de închidere, ancorat pe elementul lui.
+ */
 const MOBILE_PANEL = '__mobile'
+const ACCOUNT_PANEL = '__account'
 
 const itemClass = (active: boolean) => cn(
   'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
@@ -59,6 +64,7 @@ function MenuLink({ item, onNavigate }: { item: NavLeaf; onNavigate: () => void 
 export function TopNav() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { pathname } = useLocation()
 
   // Un singur panou deschis la un moment dat. Reţinem şi ruta pe care a fost
@@ -74,14 +80,35 @@ export function TopNav() {
   )
   const closeMenu = useCallback(() => setPanel(null), [])
 
-  const navRef = useDismiss(openMenu !== null && !mobileOpen, closeMenu)
+  // Închiderea la click în afară e armată DOAR pentru meniurile din bară.
+  //
+  // Panoul de cont şi cel de pe mobil îşi au propriul `useDismiss`, ancorat pe
+  // elementul lor. Armată şi pentru ele, verificarea de aici s-ar face faţă de
+  // <nav>, care nu le conţine — aşa că un `mousedown` pe un buton dinăuntrul
+  // panoului de cont îl închidea pe loc. Butonul dispărea înainte să apuce să se
+  // producă `click`, iar Deconectarea părea că nu face nimic.
+  const grupDinBaraDeschis =
+    openMenu !== null && openMenu !== ACCOUNT_PANEL && openMenu !== MOBILE_PANEL
+  const navRef = useDismiss(grupDinBaraDeschis, closeMenu)
   const mobileRef = useDismiss(mobileOpen, closeMenu)
 
   const league = profile ? getLeagueConfig(profile.current_league) : null
 
-  async function handleSignOut() {
-    await signOut()
-    navigate('/')
+  /**
+   * Deconectarea nu aşteaptă serverul.
+   *
+   * `signOut` curăţă starea locală sincron, înainte de orice apel de reţea, deci
+   * până aici utilizatorul e deja deconectat. Restul — confirmarea revocării —
+   * se rezolvă în fundal; dacă am fi aşteptat-o, o sesiune expirată ar fi blocat
+   * tot ce urmează, inclusiv navigarea.
+   */
+  function handleSignOut() {
+    closeMenu()
+    void signOut()
+    // Datele din cache aparţin contului care tocmai a plecat: fără golire, ele
+    // s-ar vedea o clipă la următoarea autentificare, pe alt cont.
+    queryClient.clear()
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -160,8 +187,8 @@ export function TopNav() {
         <StreakBadge />
 
         <AccountMenu
-          open={openMenu === '__account'}
-          onToggle={() => toggle('__account')}
+          open={openMenu === ACCOUNT_PANEL}
+          onToggle={() => toggle(ACCOUNT_PANEL)}
           onClose={closeMenu}
           onSignOut={handleSignOut}
         />

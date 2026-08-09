@@ -104,7 +104,7 @@ export function LeagueWidget() {
                 </span>
               )
             ) : standing.promote_slots > 0 ? (
-              <>Urcă primii {standing.promote_slots} — mai ai {standing.rank - standing.promote_slots} locuri.</>
+              <>Promovează primii {standing.promote_slots} — mai ai {standing.rank - standing.promote_slots} locuri.</>
             ) : !nextLeague ? (
               <span className="text-[#E2B340]">Ești în liga supremă ✦</span>
             ) : (

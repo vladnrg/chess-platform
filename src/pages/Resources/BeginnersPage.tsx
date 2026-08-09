@@ -14,13 +14,12 @@ const ICONS: Record<string, LucideIcon> = {
 export function BeginnersPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Pentru începători</h1>
-        <p className="text-[#6B6B6B] text-sm mt-1 max-w-2xl">
-          Tot ce-ți trebuie ca să pornești la drum: regulile jocului, notația mutărilor și antrenament
-          pe nivelul tău — gratuit și direct în platformă, fără PDF-uri de deschis.
-        </p>
-      </div>
+      {/* Fără titlu: numele paginii se vede în bara de sus. Rămâne doar
+          propoziţia care chiar spune ceva nou. */}
+      <p className="max-w-2xl text-sm text-[#6B6B6B]">
+        Tot ce-ți trebuie ca să pornești la drum: regulile jocului, notația mutărilor și antrenament
+        pe nivelul tău — gratuit și direct în platformă, fără PDF-uri de deschis.
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {PDF_RESOURCES.map(res => {

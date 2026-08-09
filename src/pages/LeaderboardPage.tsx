@@ -7,6 +7,8 @@ import {
   hoursUntilWeekEnd, type RankedPlayer,
 } from '@/hooks/useLeaderboard'
 import { useCommunity, type CommunitySortKey } from '@/hooks/useCommunity'
+import { useArenaLeaderboard } from '@/hooks/useArena'
+import { formatPawns } from '@/lib/arena'
 import { PlayerCard } from '@/components/community/PlayerCard'
 import { Button } from '@/components/ui/Button'
 import {
@@ -15,7 +17,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner'
 import { getLeagueConfig, formatXp, cn } from '@/lib/utils'
 
-type Tab = 'weekly' | 'total' | 'winsWeek' | 'winsAll' | 'players'
+type Tab = 'weekly' | 'total' | 'winsWeek' | 'winsAll' | 'proba' | 'players'
 
 export function LeaderboardPage() {
   const { profile } = useAuth()
@@ -40,6 +42,7 @@ export function LeaderboardPage() {
           { key: 'total' as Tab, label: 'XP total', icon: Star },
           { key: 'winsWeek' as Tab, label: 'Victorii, săptămâna asta', icon: Swords },
           { key: 'winsAll' as Tab, label: 'Victorii, din totdeauna', icon: Swords },
+          { key: 'proba' as Tab, label: 'Proba de foc', icon: Flame },
           { key: 'players' as Tab, label: 'Caută jucători', icon: Users },
         ]).map(({ key, label, icon: Icon }) => (
           <button
@@ -60,6 +63,7 @@ export function LeaderboardPage() {
       {tab === 'total' && <TotalTable />}
       {tab === 'winsWeek' && <WinsTable period="week" />}
       {tab === 'winsAll' && <WinsTable period="all" />}
+      {tab === 'proba' && <ArenaTable />}
       {tab === 'players' && <PlayerBrowser />}
     </div>
   )
@@ -82,7 +86,7 @@ function WeeklyTable() {
             ? <>Ești pe locul <span className="font-semibold text-[#E2B340]">{me.rank}</span> din {players!.length}.</>
             : 'Încă n-ai strâns XP săptămâna asta.'}
           <span className="text-[#6B6B6B]">
-            {' '}Prima treime urcă, ultima coboară.
+            {' '}Prima treime promovează, ultima retrogradează.
           </span>
         </p>
         <p className="flex items-center gap-1.5 text-sm text-[#6B6B6B]">
@@ -172,6 +176,94 @@ function TotalTable() {
 }
 
 /** Clasamentul după victorii — peste toate ligile, nu doar a ta. */
+/**
+ * Clasamentul Probei de foc.
+ *
+ * Pe cel mai bun rezultat, nu pe sumă — altfel ar urca cine joacă cel mai mult,
+ * nu cine joacă cel mai bine. Şi în sutimi de pion câştigate, nu în victorii:
+ * proba nu se câştigă, se măsoară.
+ */
+function ArenaTable() {
+  const { profile } = useAuth()
+  const [period, setPeriod] = useState<'week' | 'all'>('week')
+  const { data: rows, isLoading } = useArenaLeaderboard(period)
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-[#6B6B6B]">
+          Cât ai îmbunătățit pozițiile primite, măsurat în pioni.
+        </p>
+        <div className="flex gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] p-1">
+          {(['week', 'all'] as const).map(p => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={cn(
+                'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                period === p ? 'bg-[#2A2A2A] text-[#F0F0F0]' : 'text-[#6B6B6B] hover:text-[#A0A0A0]'
+              )}
+            >
+              {p === 'week' ? 'Săptămâna asta' : 'Din totdeauna'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
+      ) : !rows?.length ? (
+        <div className="flex flex-col items-center py-16 text-center">
+          <Flame className="mb-3 h-12 w-12 text-[#2A2A2A]" />
+          <p className="text-[#6B6B6B]">Nimeni n-a dus încă o probă la capăt.</p>
+          <Link to="/proba" className="mt-3 text-sm font-medium text-[#E2B340] hover:underline">
+            Fii primul
+          </Link>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-[#2A2A2A]">
+          {rows.map((row, i) => {
+            const medal = medalColor(row.rank)
+            const isMe = row.user_id === profile?.id
+            return (
+              <div
+                key={row.user_id}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3',
+                  i !== rows.length - 1 && 'border-b border-[#2A2A2A]',
+                  isMe && 'bg-[rgba(226,179,64,0.08)]'
+                )}
+              >
+                <span
+                  className="w-7 flex-shrink-0 text-center text-sm font-bold tabular-nums"
+                  style={{ color: medal ?? (isMe ? '#E2B340' : '#6B6B6B') }}
+                >
+                  {row.rank}
+                </span>
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#2A2A2A] text-xs font-bold text-[#E2B340]">
+                  {row.username.slice(0, 2).toUpperCase()}
+                </div>
+                <p className={cn('min-w-0 flex-1 truncate text-sm font-medium', isMe ? 'text-[#E2B340]' : 'text-[#F0F0F0]')}>
+                  {row.username}
+                  {isMe && <span className="ml-2 text-xs font-normal text-[#6B6B6B]">(tu)</span>}
+                </p>
+                <span className="flex-shrink-0 text-right">
+                  <span className="text-sm font-semibold tabular-nums text-[#F0F0F0]">
+                    {formatPawns(row.best_cp)}
+                  </span>
+                  <span className="ml-2 text-xs font-normal text-[#6B6B6B]">
+                    {row.runs} {row.runs === 1 ? 'probă' : 'probe'}
+                  </span>
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function WinsTable({ period }: { period: 'week' | 'all' }) {
   const { profile } = useAuth()
   const { data: rows, isLoading } = useWinsLeaderboard(period)

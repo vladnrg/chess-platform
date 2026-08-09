@@ -89,8 +89,19 @@ export function useStockfish() {
     })
   }, [])
 
-  // Analysis mode: get centipawn eval (+ mate) + best move for a position (full strength)
-  const evalPosition = useCallback((fen: string, depth = 14): Promise<{ cp: number; mate?: number; best: string }> => {
+  /**
+   * Evaluarea unei poziţii, la putere maximă.
+   *
+   * `fresh` goleşte tabela de transpoziţii înainte de măsurătoare. Fără ea,
+   * aceeaşi poziţie evaluată de două ori dă rezultate care diferă cu până la 8
+   * sutimi de pion, fiindcă motorul se foloseşte de ce a calculat înainte
+   * (măsurat pe motorul din proiect). Pentru tabla de analiză n-are importanţă
+   * şi ar încetini; pentru Proba de foc are, fiindcă acolo scorul e diferenţa
+   * dintre două evaluări, iar zgomotul lor s-ar aduna.
+   */
+  const evalPosition = useCallback((
+    fen: string, depth = 14, fresh = false,
+  ): Promise<{ cp: number; mate?: number; best: string }> => {
     return new Promise((resolve, reject) => {
       const worker = workerRef.current
       if (!worker) { reject(new Error('Engine not ready')); return }
@@ -124,6 +135,8 @@ export function useStockfish() {
       }
 
       worker.addEventListener('message', handler)
+      if (fresh) worker.postMessage('ucinewgame')
+      worker.postMessage('setoption name Skill Level value 20')
       worker.postMessage('setoption name UCI_LimitStrength value false')
       worker.postMessage(`position fen ${fen}`)
       worker.postMessage(`go depth ${depth}`)
@@ -181,6 +194,7 @@ export function useStockfish() {
       }
 
       worker.addEventListener('message', handler)
+      worker.postMessage('setoption name Skill Level value 20')
       worker.postMessage('setoption name UCI_LimitStrength value false')
       worker.postMessage(`position fen ${fen}`)
       worker.postMessage(`go depth ${depth}`)
@@ -252,6 +266,7 @@ export function useStockfish() {
       if (stopped) return
       worker.addEventListener('message', handler)
       searchingRef.current = true
+      worker.postMessage('setoption name Skill Level value 20')
       worker.postMessage('setoption name UCI_LimitStrength value false')
       worker.postMessage(`setoption name MultiPV value ${multiPv}`)
       worker.postMessage(`position fen ${fen}`)
@@ -266,6 +281,44 @@ export function useStockfish() {
       worker.postMessage('setoption name MultiPV value 1')
     }
   }, [stopSearch])
+
+  /**
+   * Mai multe mutări candidate dintr-o poziţie, cu evaluarea fiecăreia.
+   *
+   * `analyze` trimite rezultate în flux şi nu se termină singură; asta o
+   * împachetează într-o promisiune care se închide la prima atingere a
+   * adâncimii cerute. De aici ia Proba de foc „greşeala plauzibilă" cu care
+   * porneşte o rundă de dezavantaj: a doua sau a treia variantă, nu prima.
+   */
+  const getCandidates = useCallback((
+    fen: string, count = 4, depth = 12,
+  ): Promise<EngineLine[]> => {
+    return new Promise(resolve => {
+      const stopRef = { current: null as null | (() => void) }
+      let settled = false
+      let latest: EngineLine[] = []
+
+      const finish = (lines: EngineLine[]) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        stopRef.current?.()
+        resolve(lines)
+      }
+
+      // Dacă motorul nu duce toate variantele la adâncimea cerută, mergem cu ce
+      // avem — mai bine variante puţin mai puţin adânci decât nimic.
+      const timer = setTimeout(() => finish(latest), 8000)
+
+      stopRef.current = analyze(fen, { multiPv: count, depth }, lines => {
+        latest = lines
+        // Aşteptăm ca TOATE variantele să ajungă la adâncimea cerută, nu doar
+        // prima. Altfel slot-urile rămase în urmă poartă rezultate mai vechi,
+        // iar printre ele apar duplicate: aceeaşi mutare şi pe locul 1, şi pe 2.
+        if (lines.length > 0 && lines.every(l => l.depth >= depth)) finish(lines)
+      })
+    })
+  }, [analyze])
 
   // Analyze a sequence of (fen, playedUci) pairs, return per-position evaluations
   const analyzePositions = useCallback(
@@ -295,5 +348,56 @@ export function useStockfish() {
     [evalPosition],
   )
 
-  return { getBestMove, evalPosition, getLine, analyze, analyzePositions }
+  /**
+   * Mutarea motorului la o forţă anume, pentru Proba de foc.
+   *
+   * Spre deosebire de `getBestMove`, nu presupune că `UCI_Elo` e butonul de
+   * forţă: motorul refuză valori sub 1320 (le înlocuieşte tăcut cu 1320), aşa
+   * că sub pragul ăsta singurul care mai slăbeşte jocul e `Skill Level`.
+   */
+  const getMoveAtStrength = useCallback((
+    fen: string,
+    s: { skill: number; limitStrength: boolean; elo: number; movetime: number },
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const worker = workerRef.current
+      if (!worker) { reject(new Error('Motorul nu e pornit')); return }
+
+      const timeout = setTimeout(() => {
+        worker.removeEventListener('message', handler)
+        reject(new Error('Motorul nu a răspuns'))
+      }, 10000)
+
+      const handler = (e: MessageEvent<string>) => {
+        const msg = typeof e.data === 'string' ? e.data : String(e.data)
+        if (!msg.startsWith('bestmove')) return
+        clearTimeout(timeout)
+        worker.removeEventListener('message', handler)
+        const move = msg.split(' ')[1]
+        if (move && move !== '(none)') resolve(move)
+        else reject(new Error('Fără mutare'))
+      }
+
+      worker.addEventListener('message', handler)
+      worker.postMessage(`setoption name Skill Level value ${s.skill}`)
+      worker.postMessage(`setoption name UCI_LimitStrength value ${s.limitStrength}`)
+      if (s.limitStrength) worker.postMessage(`setoption name UCI_Elo value ${s.elo}`)
+      worker.postMessage(`position fen ${fen}`)
+      worker.postMessage(`go movetime ${s.movetime}`)
+    })
+  }, [])
+
+  /** Readuce motorul la putere maximă, după ce a fost slăbit pentru joc. */
+  const resetStrength = useCallback(() => {
+    const worker = workerRef.current
+    if (!worker) return
+    worker.postMessage('setoption name Skill Level value 20')
+    worker.postMessage('setoption name Skill Level value 20')
+      worker.postMessage('setoption name UCI_LimitStrength value false')
+  }, [])
+
+  return {
+    getBestMove, evalPosition, getLine, analyze, analyzePositions,
+    getCandidates, getMoveAtStrength, resetStrength,
+  }
 }

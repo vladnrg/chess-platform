@@ -245,6 +245,62 @@ export interface OpeningTrapRow {
   explanation: string
 }
 
+/** O poziţie de plecare aleasă de om pentru Proba de foc (migrarea 043). */
+export interface ArenaPositionRow {
+  id: string
+  course_id: string
+  opening_line_id: string | null
+  kind: 'deschidere' | 'dezavantaj'
+  fen: string
+  user_color: 'white' | 'black'
+  label: string
+  plies: number
+  active: boolean
+  created_at: string
+}
+
+export interface ArenaRunRow {
+  id: string
+  user_id: string
+  target_elo: number
+  score_cp: number
+  rounds_played: number
+  duration_ms: number
+  started_at: string
+  finished_at: string | null
+}
+
+export interface ArenaRoundRow {
+  id: string
+  run_id: string
+  idx: number
+  course_id: string | null
+  label: string
+  kind: 'deschidere' | 'dezavantaj'
+  start_fen: string
+  base_cp: number
+  final_cp: number
+  gain_cp: number
+  moves_uci: string
+}
+
+/** O rundă trasă la sorţi, aşa cum vine din `arena_draw`. */
+export interface ArenaDrawRow {
+  slot: number
+  source: 'linie' | 'pozitie'
+  ref_id: string
+  course_slug: string
+  course_title: string
+  label: string
+  kind: 'deschidere' | 'dezavantaj'
+  user_color: 'white' | 'black'
+  /** Pentru rundele care pornesc de la capătul unei variante studiate. */
+  moves_uci: string | null
+  /** Pentru poziţiile alese de om. */
+  fen: string | null
+  plies: number
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -320,6 +376,12 @@ export type Database = {
       xp_ledger: TableDef<XpLedgerRow, Generated>
       middlegame_plans: TableDef<MiddlegamePlanRow, Generated | 'ideas' | 'move_explanations'>
       opening_traps: TableDef<OpeningTrapRow, 'id'>
+      arena_positions: TableDef<ArenaPositionRow, Generated | 'kind' | 'plies' | 'active'>
+      arena_runs: TableDef<
+        ArenaRunRow,
+        'id' | 'started_at' | 'finished_at' | 'score_cp' | 'rounds_played' | 'duration_ms'
+      >
+      arena_rounds: TableDef<ArenaRoundRow, 'id' | 'moves_uci'>
     }
     Views: Record<string, never>
     Functions: {
@@ -491,6 +553,41 @@ export type Database = {
             explanation: string
           }[]
         } | null
+      }
+      arena_draw: {
+        /** Câte runde are proba. Implicit 3, cel mult 5. */
+        Args: { p_rounds?: number }
+        Returns: ArenaDrawRow[]
+      }
+      arena_submit: {
+        Args: {
+          p_target_elo: number
+          p_duration_ms: number
+          /** Rundele jucate, în ordine — vezi `ArenaRoundResult` din `@/lib/arena`. */
+          p_rounds: unknown
+        }
+        Returns: { run_id: string; score_cp: number; rounds: number; xp: number }
+      }
+      arena_leaderboard: {
+        Args: { p_period?: 'week' | 'all'; p_limit?: number }
+        Returns: {
+          user_id: string
+          username: string
+          avatar_url: string | null
+          best_cp: number
+          runs: number
+          rank: number
+        }[]
+      }
+      my_arena_stats: {
+        Args: Record<string, never>
+        Returns: {
+          eligible_courses: number
+          runs: number
+          best_cp: number | null
+          best_week_cp: number | null
+          last_at: string | null
+        }
       }
     }
     Enums: Record<string, never>
