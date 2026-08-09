@@ -27,10 +27,16 @@ export type TrainerLine = OpeningLine & {
 /** Poziţia după primele `pana` semi-mutări dintr-o listă UCI. */
 function fenDupa(moves: string, pana: number, dela?: string): string {
   const game = new Chess(dela)
-  moves.split(' ').slice(0, pana).forEach(m => {
-    try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) }
-    catch { /* mutare imposibilă în datele semănate — ne oprim aici */ }
-  })
+  const lista = moves.split(' ').slice(0, pana)
+  for (const m of lista) {
+    try {
+      game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' })
+    } catch {
+      // Mutare imposibilă în datele semănate: ne oprim aici şi întoarcem poziţia
+      // de până acum, exact ca varianta din care a fost mutată funcţia.
+      break
+    }
+  }
   return game.fen()
 }
 
