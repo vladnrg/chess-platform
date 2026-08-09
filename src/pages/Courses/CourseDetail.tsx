@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
-import { OpeningTraps } from '@/components/courses/OpeningTraps'
 import { CourseChapters } from '@/components/courses/CourseChapters'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
@@ -303,12 +302,6 @@ export function CourseDetail() {
         <p className="text-[#6B6B6B] text-sm text-center py-8">Conținutul e în curs de pregătire.</p>
       )}
       </div>
-
-      {/* Capcanele. Stau după traseu: întâi înveţi liniile, apoi ce te poate
-          costa în ele. Nu randează nimic pentru cursurile fără capcane scrise.
-          Planurile de joc de mijloc nu mai sunt aici — fiecare stă în lecţia
-          variantei lui, unde le citeşti cu poziţia în faţă. */}
-      {slug && <OpeningTraps slug={slug} />}
     </div>
   )
 }
