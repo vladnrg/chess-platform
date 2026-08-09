@@ -69,6 +69,13 @@
   --app-rail: 20rem;           /* coloana dreaptă pe paginile focus */
   --app-max: 96rem;            /* lăţimea maximă a conţinutului */
 
+  /* Lăţimea unei pagini mărite (vezi `pageZoomFor`), măsurată pe ecran, nu în
+     pixeli măriţi. Scrisul mai mare cere mai mult loc, deci 110rem în loc de 96
+     — dar nu tot ecranul: la 1920px rămân 80px de fiecare parte. Fără plafonul
+     ăsta, `--app-max` citit în pixeli măriţi dădea exact 1920px şi conţinutul
+     se lipea de margini (măsurat). */
+  --app-max-zoom: 110rem;
+
   /* Latura maximă a unei table de şah, oriunde se antrenează cineva: pagina de
      puzzle-uri, Cufărul cu tactici, testul de plasament, sarcinile de eveniment.
 
@@ -207,6 +214,35 @@ h1, h2, h3 {
 }
 
 .animate-glow-pulse { animation: glow-pulse 2.2s ease-in-out infinite; }
+
+/* Nodul „ești aici" din traseul unui capitol: respiră încet, ca să tragă ochiul
+   fără să sară în el.
+
+   Două animații, nu una, fiindcă lovesc proprietăți diferite pe elemente
+   diferite: scalarea stă pe cutia din afară, haloul pe fața butonului. Nodurile
+   în formă de diamant au deja o rotație pe față, iar o animație de `transform`
+   pusă peste ea ar șterge-o. */
+@keyframes node-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.055); }
+}
+
+@keyframes node-glow {
+  0%, 100% { box-shadow: 0 0 18px rgba(226,179,64,0.30); }
+  50% { box-shadow: 0 0 34px rgba(226,179,64,0.60); }
+}
+
+.animate-node-breathe { animation: node-breathe 2.6s ease-in-out infinite; }
+.animate-node-glow { animation: node-glow 2.6s ease-in-out infinite; }
+
+/* Cine a cerut sistemului mai puțină mișcare primește nodul aprins, dar liniștit. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-node-breathe { animation: none; }
+  .animate-node-glow {
+    animation: none;
+    box-shadow: 0 0 26px rgba(226,179,64,0.45);
+  }
+}
 
 /* Sweep de lumină peste bara de progres */
 @keyframes progress-sweep {
