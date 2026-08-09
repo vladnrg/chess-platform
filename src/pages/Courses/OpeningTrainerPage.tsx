@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
-import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -28,6 +28,18 @@ function getTotalParts(totalPlies: number): number {
 }
 
 /**
+ * Planul din spatele mutărilor: structura rezultată, ideile şi greşeala tipică.
+ *
+ * Stătea într-un tabel pe pagina cursului, unde îl citea cine avea chef. Locul
+ * lui e aici, lângă tablă, fiindcă abia aici întrebi „bine, dar de ce mut asta?".
+ */
+interface MiddlegamePlan {
+  structure: string | null
+  ideas: { title: string; detail: string }[]
+  avoid: string | null
+}
+
+/**
  * Linia antrenată: fie deschiderea, fie continuarea de joc de mijloc.
  *
  * Jocul de mijloc porneşte dintr-o poziţie deja jucată, deci nu mai e adevărat
@@ -37,6 +49,8 @@ function getTotalParts(totalPlies: number): number {
 export type TrainerLine = OpeningLine & {
   /** Poziţia de plecare. Lipsă = poziţia iniţială a partidei. */
   start_fen?: string
+  /** Doar la etapa de joc de mijloc. */
+  plan?: MiddlegamePlan
 }
 
 /** E albul la mutare în poziţia de plecare? */
@@ -133,7 +147,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       // rejucând linia, ca să nu ţinem un FEN duplicat în baza de date.
       const { data: plan } = await supabase
         .from('middlegame_plans')
-        .select('moves_uci, move_explanations')
+        .select('moves_uci, move_explanations, structure, ideas, avoid')
         .eq('opening_line_id', opening.id)
         .single()
       if (!plan?.moves_uci) return null
@@ -149,6 +163,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         moves_uci: plan.moves_uci,
         move_explanations: (plan.move_explanations ?? {}) as Record<string, string>,
         start_fen: game.fen(),
+        plan: {
+          structure: plan.structure,
+          ideas: plan.ideas ?? [],
+          avoid: plan.avoid,
+        },
       }
     },
     enabled: !!lineId,
@@ -428,7 +447,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         </div>
 
         {/* Coloana dreaptă — lăţime fixă, cu scroll propriu dacă e nevoie, ca
-            înălţimea ei să nu influenţeze niciodată dimensiunea tablei. */}
+            înălţimea ei să nu influenţeze niciodată dimensiunea tablei.
+            De aici vine şi libertatea de a pune planul întreg în ea. */}
         <div
           className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[var(--app-rail)]"
         >
@@ -491,6 +511,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               </div>
             )}
           </div>
+
+          {/* Planul variantei — doar la jocul de mijloc, unde există.
+              Deschis din start la lecţie, strâns la exerciţiu: acolo te testezi,
+              iar „c5 e singura ta spargere" citit înainte de mutare nu mai e
+              gândire, e răspuns. Rămâne la un click distanţă dacă te blochezi. */}
+          {isMiddlegame && line.plan && (
+            <PlanulVariantei plan={line.plan} deschisInitial={isGuided} />
+          )}
 
           {/* Parts tracker */}
           <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
@@ -577,12 +605,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             )}
           </div>
 
-          {/* Mode switcher */}
+          {/* Mode switcher. Rămâne în etapa în care eşti: de la planul de joc de
+              mijloc, „pe cont propriu" înseamnă tot jocul de mijloc, nu te aruncă
+              înapoi în deschidere. */}
           <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
             <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Antrenează-te</p>
             <div className="space-y-1">
               <Link
-                to={`/courses/${slug}/guided/${lineId}`}
+                to={isMiddlegame
+                  ? `/courses/${slug}/middlegame/${lineId}`
+                  : `/courses/${slug}/guided/${lineId}`}
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
@@ -592,7 +624,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 Ghidat — vreau indicații vizuale
               </Link>
               <Link
-                to={`/courses/${slug}/practice/${lineId}`}
+                to={isMiddlegame
+                  ? `/courses/${slug}/middlegame-practice/${lineId}`
+                  : `/courses/${slug}/practice/${lineId}`}
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   !isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
@@ -605,6 +639,68 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Planul variantei, lângă tablă.
+ *
+ * Structura într-o propoziţie, ideile în ordinea în care se pun în practică şi
+ * greşeala care costă cel mai des. Mutările de pe tablă sunt planul ăsta jucat;
+ * fără el, rămân o listă de mutări memorate — adică exact ce nu vrem.
+ */
+function PlanulVariantei({
+  plan, deschisInitial,
+}: {
+  plan: MiddlegamePlan
+  deschisInitial: boolean
+}) {
+  const [deschis, setDeschis] = useState(deschisInitial)
+
+  return (
+    <div className="rounded-xl border border-[#2A2A2A] bg-[#141414]">
+      <button
+        onClick={() => setDeschis(d => !d)}
+        aria-expanded={deschis}
+        className="flex w-full items-center justify-between gap-2 p-4 text-left"
+      >
+        <span className="text-xs uppercase tracking-wider text-[#2DD4BF]">Planul variantei</span>
+        <ChevronDown
+          className={`h-4 w-4 flex-shrink-0 text-[#6B6B6B] transition-transform ${deschis ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {deschis && (
+        <div className="space-y-3 border-t border-[#2A2A2A] p-4">
+          {plan.structure && (
+            <p className="border-l-2 border-[#2DD4BF] pl-3 text-sm leading-relaxed text-[#A0A0A0]">
+              {plan.structure}
+            </p>
+          )}
+
+          <ol className="space-y-3">
+            {plan.ideas.map((idea, i) => (
+              <li key={i} className="flex gap-2.5">
+                <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(45,212,191,0.15)] text-[11px] font-bold text-[#2DD4BF]">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#F0F0F0]">{idea.title}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed text-[#6B6B6B]">{idea.detail}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          {plan.avoid && (
+            <div className="flex gap-2.5 rounded-lg border border-[rgba(251,113,133,0.25)] bg-[rgba(251,113,133,0.06)] p-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#FB7185]" />
+              <p className="text-sm leading-relaxed text-[#A0A0A0]">{plan.avoid}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

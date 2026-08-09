@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
-import { MiddlegameSection } from '@/components/courses/MiddlegameSection'
+import { OpeningTraps } from '@/components/courses/OpeningTraps'
+import { CourseChapters } from '@/components/courses/CourseChapters'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -204,8 +205,20 @@ export function CourseDetail() {
         ) : null}
       </div>
 
-      {/* Conținutul cursului — traseu stil Duolingo */}
-      {steps.length > 0 ? (
+      {/* Cuprinsul.
+          Deschiderile au capitole care se deschid într-un traseu: fiecare
+          variantă înseamnă teorie, joc de mijloc şi o verificare, adică paşi
+          făcuţi în ordine. Cursurile fundamentale n-au variante, doar lecţii —
+          acolo rămâne lista simplă de dedesubt. */}
+      {hasOpeningLines && slug ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <h2 className="mb-1 text-lg font-semibold text-[#F0F0F0]">Conținutul cursului</h2>
+          <p className="mb-4 text-xs text-[#6B6B6B]">
+            {doneCount} din {totalSteps} variante parcurse
+          </p>
+          <CourseChapters slug={slug} lines={openingLines ?? []} completedIds={completedIds} />
+        </div>
+      ) : steps.length > 0 ? (
         <div className="flex min-h-0 flex-1 flex-col">
           <h2 className="flex-shrink-0 text-lg font-semibold text-[#F0F0F0] mb-1">Conținutul cursului</h2>
           <p className="flex-shrink-0 text-xs text-[#6B6B6B] mb-4">{doneCount} din {totalSteps} parcurse</p>
@@ -291,9 +304,11 @@ export function CourseDetail() {
       )}
       </div>
 
-      {/* Jocul de mijloc şi capcanele. Stau după traseu: întâi înveţi liniile,
-          apoi ce faci cu ele. Nu randează nimic pentru cursurile fără plan. */}
-      {slug && <MiddlegameSection slug={slug} />}
+      {/* Capcanele. Stau după traseu: întâi înveţi liniile, apoi ce te poate
+          costa în ele. Nu randează nimic pentru cursurile fără capcane scrise.
+          Planurile de joc de mijloc nu mai sunt aici — fiecare stă în lecţia
+          variantei lui, unde le citeşti cu poziţia în faţă. */}
+      {slug && <OpeningTraps slug={slug} />}
     </div>
   )
 }
