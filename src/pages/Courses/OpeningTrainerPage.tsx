@@ -6,11 +6,11 @@ import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { ChevronLeft, ChevronRight, ChevronDown, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
+import { incarcaLinie, type TrainerLine, type MiddlegamePlan } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-import type { OpeningLine } from '@/types'
 
 // Part boundaries (ply indices): Part1 = 0-9, Part2 = 10-15, Part3 = 16+
 const PART_ENDS = [10, 16]
@@ -27,31 +27,6 @@ function getTotalParts(totalPlies: number): number {
   return 1
 }
 
-/**
- * Planul din spatele mutărilor: structura rezultată, ideile şi greşeala tipică.
- *
- * Stătea într-un tabel pe pagina cursului, unde îl citea cine avea chef. Locul
- * lui e aici, lângă tablă, fiindcă abia aici întrebi „bine, dar de ce mut asta?".
- */
-interface MiddlegamePlan {
-  structure: string | null
-  ideas: { title: string; detail: string }[]
-  avoid: string | null
-}
-
-/**
- * Linia antrenată: fie deschiderea, fie continuarea de joc de mijloc.
- *
- * Jocul de mijloc porneşte dintr-o poziţie deja jucată, deci nu mai e adevărat
- * că semi-mutarea 0 e a albului. De aceea `start_fen`, iar tot ce ţine de „cine
- * e la rând" trece prin `whiteMovesFirst`.
- */
-export type TrainerLine = OpeningLine & {
-  /** Poziţia de plecare. Lipsă = poziţia iniţială a partidei. */
-  start_fen?: string
-  /** Doar la etapa de joc de mijloc. */
-  plan?: MiddlegamePlan
-}
 
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
@@ -132,44 +107,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const savedDoneRef = useRef(false)
 
   const { data: line, isLoading } = useQuery({
-    queryKey: ['trainer-line', lineId, stage],
-    queryFn: async (): Promise<TrainerLine | null> => {
-      const { data: base } = await supabase
-        .from('opening_lines')
-        .select('*')
-        .eq('id', lineId!)
-        .single()
-      const opening = base as OpeningLine | null
-      if (!opening || !isMiddlegame) return opening
-
-      // Jocul de mijloc: aceeaşi variantă, dar mutările vin din plan, iar
-      // poziţia de plecare e cea de la capătul deschiderii — o reconstruim
-      // rejucând linia, ca să nu ţinem un FEN duplicat în baza de date.
-      const { data: plan } = await supabase
-        .from('middlegame_plans')
-        .select('moves_uci, move_explanations, structure, ideas, avoid')
-        .eq('opening_line_id', opening.id)
-        .single()
-      if (!plan?.moves_uci) return null
-
-      const game = new Chess()
-      for (const m of opening.moves_uci.split(' ')) {
-        try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) }
-        catch { break }
-      }
-
-      return {
-        ...opening,
-        moves_uci: plan.moves_uci,
-        move_explanations: (plan.move_explanations ?? {}) as Record<string, string>,
-        start_fen: game.fen(),
-        plan: {
-          structure: plan.structure,
-          ideas: plan.ideas ?? [],
-          avoid: plan.avoid,
-        },
-      }
-    },
+    queryKey: ['trainer-line', lineId, stage, mode],
+    queryFn: () => incarcaLinie(stage, mode, lineId!),
     enabled: !!lineId,
   })
 
