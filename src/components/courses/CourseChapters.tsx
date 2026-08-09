@@ -31,18 +31,21 @@ export function CourseChapters({
   /** Variantele deja parcurse, din progresul utilizatorului. */
   completedIds: string[]
 }) {
-  // Ce variante au plan de joc de mijloc. Fără asta, am pune pe traseu paşi
-  // care duc într-o pagină goală.
-  const { data: cuPlan } = useQuery({
-    queryKey: ['middlegame-lines', slug],
+  // Ce variante au plan de joc de mijloc şi capcanele deschiderii.
+  // Fără asta, am pune pe traseu paşi care duc într-o pagină goală.
+  const { data: dinCurs } = useQuery({
+    queryKey: ['course-middlegame', slug],
     queryFn: async () => {
       const { data } = await supabase.rpc('course_middlegame', { p_slug: slug })
-      return new Set((data?.variations ?? []).filter(v => v.structure).map(v => v.line_id))
+      return {
+        cuPlan: new Set((data?.variations ?? []).filter(v => v.structure).map(v => v.line_id)),
+        capcane: (data?.traps ?? []).filter(t => t.opening_line_id),
+      }
     },
   })
 
   const capitole: Capitol[] = lines.map(line => {
-    const arePlan = cuPlan?.has(line.id) ?? false
+    const arePlan = dinCurs?.cuPlan.has(line.id) ?? false
     const teorieGata = completedIds.includes(line.id)
 
     const noduri: PathNode[] = [
@@ -91,6 +94,36 @@ export function CourseChapters({
       terminat: teorieGata,
     }
   })
+
+  // Capcanele nu ţin de o variantă anume, ci de deschidere ca întreg — de aceea
+  // capitol separat, nu noduri împrăştiate prin celelalte. Fiecare îşi poartă
+  // eticheta variantei din care răsare, pe pagina ei.
+  const capcane = dinCurs?.capcane ?? []
+  if (capcane.length > 0) {
+    const variante = [...new Set(capcane.map(c => c.variation_name).filter(Boolean))]
+    capitole.push({
+      lineId: 'capcane',
+      titlu: 'Capcane uzuale',
+      subtitlu: `${capcane.length} capcane · din ${variante.join(' şi ')}`,
+      terminat: capcane.every(c => completedIds.includes(c.id)),
+      noduri: capcane.flatMap(c => [
+        {
+          id: `${c.id}-lectie`,
+          kind: 'lectie' as const,
+          title: `${c.title} — pas cu pas`,
+          href: `/courses/${slug}/trap/${c.id}`,
+          done: completedIds.includes(c.id),
+        },
+        // Fără punct de armare n-am de unde porni exerciţiul, deci nodul lipseşte.
+        ...(c.spring_ply != null ? [{
+          id: `${c.id}-exercitiu`,
+          kind: 'exercitiu' as const,
+          title: `${c.title} — pe cont propriu`,
+          href: `/courses/${slug}/trap-practice/${c.id}`,
+        }] : []),
+      ]),
+    })
+  }
 
   // Se deschide capitolul la care ai rămas. Calculat o singură dată, la montare:
   // dacă s-ar recalcula, ţi-ar închide sub degete capitolul deschis manual.
