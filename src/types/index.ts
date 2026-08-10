@@ -294,6 +294,8 @@ export interface Course {
   playing_styles: PlayingStyle[]
   is_premium: boolean
   is_foundational: boolean
+  /** Cursurile nepublicate nu apar în catalog şi nu se pot deschide. */
+  is_published: boolean
   thumbnail_url: string | null
   lesson_count: number
   order_index: number

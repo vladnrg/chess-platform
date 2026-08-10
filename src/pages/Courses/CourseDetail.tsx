@@ -78,6 +78,28 @@ export function CourseDetail() {
   if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
   if (!course) return <p className="text-[#6B6B6B]">Cursul nu a fost găsit.</p>
 
+  // Cursurile scoase din raft nu se deschid nici pe adresă directă. Altfel ar
+  // rămâne accesibile oricui are legătura salvată — adică exact celor care le-au
+  // parcurs deja şi s-ar întoarce la ele.
+  //
+  // Comparaţie cu `=== false`, nu `!course.is_published`: până se rulează
+  // migrarea, câmpul lipseşte, iar negarea ar închide toate cursurile deodată.
+  if (course.is_published === false) {
+    return (
+      <div className="mx-auto max-w-lg py-16 text-center">
+        <h1 className="mb-2 text-xl font-bold text-[#F0F0F0]">{course.title}</h1>
+        <p className="text-sm leading-relaxed text-[#A0A0A0]">
+          Cursul e retras temporar. Am găsit greşeli în liniile predate şi preferăm
+          să lipsească din catalog decât să te înveţe ceva fals. Revine după ce e
+          rescris şi verificat.
+        </p>
+        <Link to="/courses" className="mt-6 inline-block text-sm text-[#E2B340] hover:underline">
+          Înapoi la cursuri
+        </Link>
+      </div>
+    )
+  }
+
   const hasOpeningLines = openingLines && openingLines.length > 0
   const completedIds = progress?.completed_lesson_ids ?? []
   const isLocked = course.is_premium && !isPro
@@ -106,12 +128,15 @@ export function CourseDetail() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-    {/* Primul ecran: cardul cursului şi traseul, exact cât ţine viewportul.
-        Jocul de mijloc vine dedesubt, la derulare — de aceea înălţimea fermă
-        stă pe blocul ăsta, nu pe toată pagina. */}
+    {/* Înălţimea fermă e doar pentru cursurile fundamentale, unde traseul e o
+        listă de lecţii care se centrează în ecran.
+        La deschideri, capitolele se desfac şi trebuie să împingă pagina în jos:
+        altfel traseul unui capitol s-ar derula într-o cutie de câteva sute de
+        pixeli, iar celelalte capitole ar dispărea din vedere. Aici pagina
+        creşte, şi se derulează toată. */}
     <div
       className="flex w-full flex-col gap-6"
-      style={{ height: 'var(--app-page-h)' }}
+      style={hasOpeningLines ? undefined : { height: 'var(--app-page-h)' }}
     >
       <Link to="/courses" className="flex flex-shrink-0 items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
         <ChevronLeft className="h-4 w-4" />
@@ -210,7 +235,7 @@ export function CourseDetail() {
           făcuţi în ordine. Cursurile fundamentale n-au variante, doar lecţii —
           acolo rămâne lista simplă de dedesubt. */}
       {hasOpeningLines && slug ? (
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div>
           <h2 className="mb-1 text-lg font-semibold text-[#F0F0F0]">Conținutul cursului</h2>
           <p className="mb-4 text-xs text-[#6B6B6B]">
             {doneCount} din {totalSteps} variante parcurse

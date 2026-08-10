@@ -125,25 +125,36 @@ export function CourseChapters({
     })
   }
 
-  // Se deschide capitolul la care ai rămas. Calculat o singură dată, la montare:
-  // dacă s-ar recalcula, ţi-ar închide sub degete capitolul deschis manual.
-  const [deschis, setDeschis] = useState<string | null>(
-    () => capitole.find(c => !c.terminat)?.lineId ?? capitole[0]?.lineId ?? null,
-  )
+  // Capitolele se ţin deschise câte vrei, nu unul singur. Cine compară două
+  // variante — şi asta face oricine îşi alege un repertoriu — vrea traseele
+  // una sub alta, nu să închidă una ca s-o vadă pe cealaltă.
+  //
+  // La montare se deschide capitolul la care ai rămas. Calculat o singură dată:
+  // dacă s-ar recalcula, ţi-ar închide sub degete ce ai deschis manual.
+  const [deschise, setDeschise] = useState<Set<string>>(() => {
+    const primul = capitole.find(c => !c.terminat)?.lineId ?? capitole[0]?.lineId
+    return new Set(primul ? [primul] : [])
+  })
+
+  const comuta = (lineId: string) => setDeschise(vechi => {
+    const nou = new Set(vechi)
+    if (!nou.delete(lineId)) nou.add(lineId)
+    return nou
+  })
 
   if (capitole.length === 0) return null
 
   return (
     <div className="space-y-3">
       {capitole.map((cap, i) => {
-        const esteDeschis = deschis === cap.lineId
+        const esteDeschis = deschise.has(cap.lineId)
         return (
           <div
             key={cap.lineId}
             className="overflow-hidden rounded-2xl border border-[#2A2A2A] bg-[#141414]"
           >
             <button
-              onClick={() => setDeschis(esteDeschis ? null : cap.lineId)}
+              onClick={() => comuta(cap.lineId)}
               aria-expanded={esteDeschis}
               className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-[#1A1A1A]"
             >
