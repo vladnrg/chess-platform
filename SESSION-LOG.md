@@ -4,6 +4,77 @@ Jurnal de sesiuni de lucru - cele mai recente primele.
 
 ---
 
+## 2026-08-09 → 08-10 - Traseul capătă personalitate, capcanele devin capitol
+
+### Ce s-a făcut
+
+**Traseul cursului** — fiecare variantă e un capitol care se deschide într-un
+drum în zigzag. Forma nodului spune ce fel de pas urmează (pătrat = lecţie,
+diamant = exerciţiu, pătrat mare = încheiere), culoarea spune unde ai ajuns,
+iar un fir punctat le leagă. Etichetele de sub noduri au dispărut: numele
+apare la trecerea cu mouse-ul. Nodul curent respiră încet.
+
+Nodurile închise nu mai poartă lacăt **în locul** icoanei, ci propria icoană
+în galben stins, cu un lăcăţel mic în colţ. O gantere stinsă spune „urmează
+un exerciţiu"; un lacăt spune doar „nu poţi".
+
+**Planul de joc de mijloc** s-a mutat din tabelul de pe pagina cursului în
+lecţia variantei, lângă tablă — desfăcut la lecţie, strâns la exerciţiu.
+
+**Capcanele au devenit capitolul 4** (migrările 044 şi 045), cu o parcurgere
+ghidată şi un exerciţiu pentru fiecare. Joci din partea celui care întinde
+cursa — culoarea se deduce din `victim`, nu se scrie de mână. Exerciţiul
+porneşte din poziţia în care se armează cursa, nu de la 1.e4. Explicaţie la
+fiecare mutare, 28 în total.
+
+Antrenorul a căpătat etapa `trap`, iar încărcarea liniei a ieşit din pagină
+în `src/lib/trainer-line.ts`, cu o funcţie per etapă.
+
+### Bug-uri găsite şi reparate
+
+- **`tsc --noEmit` nu verifica nimic.** `tsconfig.json` din rădăcină are
+  `"files": []` şi doar referinţe, deci ieşea cu 0 pe gol. Comanda corectă e
+  `tsc -b --noEmit`, cea din scriptul de build. Descoperit când un import
+  şters a trecut nesancţionat.
+- **Comutatorul de mod din pagina de joc de mijloc** te arunca înapoi în
+  deschidere.
+- **Explicaţiile capcanelor se afişau cu asteriscuri** (`**MAT!**`): fuseseră
+  scrise cu marcaje Markdown, dar antrenorul afişează text simplu.
+
+### Ce rămâne
+
+- [ ] Jocul de mijloc şi capcanele pentru celelalte cursuri de negru — urmează,
+      unul câte unul. Structura e gata; e muncă de conţinut.
+- [ ] Paragraful de încheiere al capcanei 3 (din migrarea 041) susţine că albul
+      „nu le poate apăra pe amândouă comod". Verificat: e fals, le apără pe
+      amândouă. Se contrazice cu textul nou de la mutarea 6...Db6.
+- [ ] Teoria tăiată în lecţii, ca traseul să aibă lungimea din schemă
+- [ ] Testul de capitol (pălăria de absolvire scrie încă „în curând")
+- [ ] Rating pentru deschideri
+- [ ] Sub-meniurile se deschid la click, nu la hover
+- [ ] Misiunile zilei sunt tot machetă cu date fixe
+- [ ] Proiectul nu are niciun test automat
+- [ ] Migrarea 043 (Arena) e scrisă, dar nerulată
+
+### Decizii importante
+
+- **Conţinutul se verifică pe poziţie, nu din memorie.** Ciornele explicaţiilor
+  au avut şase afirmaţii de şah false în două runde („nebunul n-are unde să se
+  retragă" — avea cinci mutări legale; „albul nu poate apăra pe amândouă" — le
+  apără pe amândouă). Toate prinse rulând poziţia prin chess.js.
+- **Un conţinut are o singură casă.** Tabelul de joc de mijloc şi acordeonul de
+  capcane au fost şterse când conţinutul lor s-a mutat în lecţii.
+- **Forma spune tipul, culoarea spune starea.** Două limbaje care nu se calcă.
+
+### Commits
+
+`5edf761` traseul pe capitole · `6051531` planul în lecţie ·
+`1789b2e` schema capcanelor · `9ad1737` explicaţiile ·
+`2a63aec` încărcarea liniei iese din pagină · `7903ad6` etapa `trap` ·
+`7232947` capitolul 4 · `5528697` acordeonul dispare · `2c16996` asteriscurile
+
+---
+
 ## 2026-08-04 → 08-05 - Streak, jocul de mijloc, reparații la motor
 
 ### Ce s-a făcut
