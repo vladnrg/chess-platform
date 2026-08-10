@@ -190,9 +190,10 @@ export interface OpeningTrapRow {
   move_explanations: Record<string, string>
   /** De la a câta semi-mutare porneşte exerciţiul. */
   spring_ply: number | null
-  created_at: string
 }
 ```
+
+**Atenţie:** `opening_traps` **nu are** coloană `created_at` — spre deosebire de `middlegame_plans`. Verificat direct în baza de date. Nu o adăuga nici în interfaţă, nici în tabel: un câmp scris în tipuri, dar absent din schemă, minte tăcut la execuţie.
 
 Verifică întâi câmpurile existente cu `Read` — păstrează-le exact cum sunt, adaugă-le doar pe cele trei noi. Actualizează și lista de coloane opţionale la inserare:
 
@@ -409,10 +410,15 @@ export type TrainerLine = OpeningLine & {
 /** Poziţia după primele `pana` semi-mutări dintr-o listă UCI. */
 function fenDupa(moves: string, pana: number, dela?: string): string {
   const game = new Chess(dela)
-  moves.split(' ').slice(0, pana).forEach(m => {
-    try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) }
-    catch { /* mutare imposibilă în datele semănate — ne oprim aici */ }
-  })
+  for (const m of moves.split(' ').slice(0, pana)) {
+    try {
+      game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' })
+    } catch {
+      // Mutare imposibilă în datele semănate: ne oprim aici şi întoarcem poziţia
+      // de până acum, exact ca varianta din care a fost mutată funcţia.
+      break
+    }
+  }
   return game.fen()
 }
 
