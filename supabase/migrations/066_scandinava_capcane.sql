@@ -1,17 +1,21 @@
 -- ============================================================
 -- Scandinava: capcanele
 -- ============================================================
--- Două curse, amândouă în care cade albul. Măsurate cu Stockfish la adâncime 18.
+-- Trei curse: două în care cade albul, una în care cade negrul. Măsurate cu
+-- Stockfish la adâncime 18.
 --
--- N-am găsit niciuna în care să cadă negrul. Am încercat opt candidate: nebunul
--- prins pe h5 după g4 (+0,28), dama ieşită pe e5 (+0,31), pionul ţinut cu c6 la
--- momentul greşit (+0,74), nebunul pe g4 într-o poziţie cu f3 disponibil
--- (+0,26) şi altele. Niciuna nu trece pragul, iar una dintre ele — dama care ia
--- pe b2 — s-a dovedit pur şi simplu ilegală: de pe a5, dama nu ajunge la b2.
+-- Nota de metodă, fiindcă a fost o lecţie. Prima căutare a fost pe ghicite —
+-- opt candidate scoase din cap, niciuna peste prag — şi concluzia a fost că
+-- Scandinava n-are nicio cursă în care să cadă negrul. Concluzia era greşită.
 --
--- Asta spune ceva despre deschidere, nu despre căutare. Scandinava e simplă şi
--- solidă: negrul îşi ia pionul înapoi devreme, iar poziţiile care ies n-au
--- ascuţişul din care se nasc cursele. Cursul nu promite ce n-are.
+-- A doua căutare a fost sistematică: la fiecare poziţie în care negrul e la
+-- mutare, motorul a evaluat TOATE mutările legale, nu doar cele la care mă
+-- gândisem eu. A ieşit imediat 5...De5+, care pierde dama pe loc.
+--
+-- Ce s-a mai văzut din căutarea aceea: în Scandinavă, aproape toate pierderile
+-- mari ale negrului sunt acelaşi lucru — dama ieşită devreme nimereşte un câmp
+-- unde e lovită. Nu sunt curse pregătite de alb, e o temă a deschiderii. De
+-- aceea capcana a treia e scrisă ca temă, nu ca linie de memorat.
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -47,4 +51,22 @@ select public.seed_trap_moves('scandinavian-defense', 2, '{
   "15": "Nxf3 — începi prin a-i lua un apărător. Calul de pe f3 păzea d4.",
   "16": "Albul reia cu pionul, fiindcă altfel pierde material pe loc.",
   "17": "Cxd4 — iei pionul. Nebunul de pe e3 şi dama de pe d2 se apără unul pe altul, dar niciunul nu poate lua calul fără să deschidă coloana spre dama lui."
+}'::jsonb);
+
+
+-- ------------------------------------------------------------
+-- 3. Şahul care îţi costă dama — cade negrul
+-- ------------------------------------------------------------
+select public.seed_trap('scandinavian-defense', 3,
+  'Şahul cu dama, care se răspunde luând dama', 'ours',
+  'e2e4 d7d5 e4d5 d8d5 b1c3 d5a5 d2d4 g8f6 g1f3 a5e5 f3e5',
+  'Toată Scandinava se sprijină pe un lucru neplăcut: îţi scoţi dama la mutarea a doua şi trebuie să trăieşti cu ea afară vreo zece mutări. Aici e greşeala care încheie partida cel mai repede. Dama de pe a5 vede coloana e liberă până la regele alb şi dă şah — o mutare care pare că şi câştigă timp. Numai că un şah e o ameninţare doar dacă adversarul trebuie să se ferească. Pe e5 dama e atacată şi de calul de pe f3, şi de pionul de pe d4, iar amândouă capturile rezolvă şahul în aceeaşi mutare. Nu e nimic de parat: pur şi simplu dispare dama. Verificat: negrul rămâne cu nouă puncte de material în minus. Regula pe care o predă: înainte să dai şah, uită-te dacă adversarul poate răspunde luându-ţi piesa care îl dă.'
+);
+select public.seed_trap_link('scandinavian-defense', 3, 'A', 8);
+select public.seed_trap_moves('scandinavian-defense', 3, '{
+  "6": "Adversarul îşi construieşte centrul cu d4. Pionul ăsta va conta peste trei mutări, deşi acum pare doar o mutare de dezvoltare.",
+  "7": "Cf6 — te dezvolţi normal. Până aici totul e după carte.",
+  "8": "Cf3 — aici se armează cursa, fără ca albul să facă nimic special. Calul îşi ia câmpul firesc şi, din întâmplare, acoperă e5. Împreună cu pionul de pe d4, câmpul acela e acum păzit de două ori.",
+  "9": "GREŞEALA! De5+. Coloana e e liberă până la regele alb, şahul pare că vine cu tempo, iar dama scapă din colţul de pe a5. Trei motive bune şi niciunul care să conteze.",
+  "10": "Cxe5 — calul ia dama şi, în aceeaşi mutare, iese din şah. Un şah la care adversarul răspunde luându-ţi dama nu e un şah, e un cadou."
 }'::jsonb);
