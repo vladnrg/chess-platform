@@ -76,8 +76,8 @@ select public.seed_plan('scandinavian-defense', 'C',
   'Ai dat un pion la mutarea a treia şi ţi l-ai luat înapoi. Ce ai câştigat în plus e ceva ce nu se vede în numărătoare: regele alb rămâne în centru. Verificat pe poziţie — după schimbul de pe f1, albul pierde amândouă drepturile de rocadă, iar la capătul liniei regele lui e tot acolo, în timp ce al tău stă la adăpost.',
   '[
     {"title": "Schimbul de pe f1 îi ia rocada", "detail": "Nebunul tău ia pe f1, iar albul e obligat să reia cu regele. Din clipa aceea nu mai poate face rocada niciodată — verificat, drepturile dispar amândouă. Un nebun dat pe un nebun, şi în plus regele lui rămâne în mijlocul tablei."},
-    {"title": "Castelează-te tu, cât el nu poate", "detail": "El nu mai are cum. Tu ai. E singura asimetrie care contează în poziţia asta, şi vine din schimbul de la mutarea zece."},
-    {"title": "Nu-ţi trebuie atac, îţi trebuie ordine", "detail": "Cu regele lui în centru, nu te grăbi să deschizi linii cu orice preţ. Adu-ţi piesele, castelează, şi lasă-l pe el să găsească un loc unde să-şi pună regele. De obicei nu găseşte unul bun."}
+    {"title": "Fă rocada tu, cât el nu poate", "detail": "El nu mai are cum. Tu ai. E singura asimetrie care contează în poziţia asta, şi vine din schimbul de la mutarea zece."},
+    {"title": "Nu-ţi trebuie atac, îţi trebuie ordine", "detail": "Cu regele lui în centru, nu te grăbi să deschizi linii cu orice preţ. Adu-ţi piesele, fă rocada, şi lasă-l pe el să găsească un loc unde să-şi pună regele. De obicei nu găseşte unul bun."}
   ]'::jsonb,
   'Nu deschide centrul cât timp regele tău e încă în centru. Sună de la sine înţeles, dar în gambitul ăsta e ispita cea mai mare: ai iniţiativă, adversarul are regele prost aşezat, şi pare că orice deschidere de linie te ajută. Îl ajută pe el, dacă la momentul acela regele tău e tot pe e8.'
 );
