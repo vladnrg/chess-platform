@@ -29,8 +29,8 @@ const STEPS = [
   },
   {
     n: '2',
-    title: 'Te antrenezi cu Dl. En Passant lângă tine',
-    desc: 'Parcurgi openings-urile direct pe tablă, rezolvi tactici și puzzle-uri potrivite nivelului tău. Ori de câte ori te blochezi, îl întrebi pe Dl. En Passant și îți explică poziția pe loc, în română. Nimic memorat pe de rost, totul înțeles.',
+    title: 'Te antrenezi cu Căluțul savant lângă tine',
+    desc: 'Parcurgi openings-urile direct pe tablă, rezolvi tactici și puzzle-uri potrivite nivelului tău. Ori de câte ori te blochezi, îl întrebi pe Căluțul savant și îți explică poziția pe loc, în română. Nimic memorat pe de rost, totul înțeles.',
   },
   {
     n: '3',
@@ -96,7 +96,7 @@ const PRICING = [
       '3 cursuri complete de openings',
       '10 puzzle-uri pe zi',
       'Sistemul de ligi și streak-ul',
-      'Dl. En Passant pe pozițiile din cursurile gratuite',
+      'Căluțul savant pe pozițiile din cursurile gratuite',
     ],
     cta: 'Intru acum, gratis',
     href: '/register',
@@ -150,7 +150,7 @@ const FAQ = [
   },
   {
     q: 'Chiar e totul în română?',
-    a: 'Da. Cursuri, explicații, antrenorul Dl. En Passant, tot. Fără momente în care un termen în engleză te lasă blocat.',
+    a: 'Da. Cursuri, explicații, antrenorul Căluțul savant, tot. Fără momente în care un termen în engleză te lasă blocat.',
   },
   {
     q: 'Pot renunța oricând?',
@@ -216,7 +216,7 @@ export function SalesPage() {
               <span className="text-[#E2B340]">fiecare mutare.</span>
             </h1>
             <p className="mb-5 max-w-xl text-lg text-[#C7C7C7]">
-              Rezolvi openings și tactici direct pe tablă, iar Dl. En Passant îți spune pe loc de ce o
+              Rezolvi openings și tactici direct pe tablă, iar Căluțul savant îți spune pe loc de ce o
               mutare ține sau cade. Așa înveți din propriile greșeli cât încă ții minte poziția.
             </p>
             <p className="mb-9 max-w-xl text-[15px] leading-relaxed text-[#A0A0A0]">
@@ -263,7 +263,7 @@ export function SalesPage() {
               <p className="flex items-start gap-3">
                 <MascotEnPassant mood="thinking" size={40} animated className="mt-0.5 flex-shrink-0" />
                 <span>
-                  Îl întrebi pe Dl. En Passant „de ce nu merge mutarea asta?" și îți răspunde despre
+                  Îl întrebi pe Căluțul savant „de ce nu merge mutarea asta?" și îți răspunde despre
                   poziția ta concretă, nu despre o teorie generală. Exersezi openings-urile activ pe
                   tablă, cu abaterile lor cu tot, până le înțelegi logica. Și fiindcă o dată pe săptămână
                   primești înapoi 3 poziții din ce ai învățat, îți rămâne în cap, nu îți scapă până luni.
@@ -565,7 +565,7 @@ export function SalesPage() {
             </p>
             <p className="mx-auto mb-9 max-w-2xl text-[15px] leading-relaxed text-[#A0A0A0]">
               Nu trebuie să te decizi acum pentru nimic. Fă testul de plasament, află-ți nivelul și stilul,
-              încearcă primele cursuri cu Dl. En Passant lângă tine. Totul gratuit, fără card. Dacă îți
+              încearcă primele cursuri cu Căluțul savant lângă tine. Totul gratuit, fără card. Dacă îți
               place, mergi mai departe. Dacă nu, ai pierdut cinci minute și ai aflat cât de bun ești.
             </p>
             <Link to="/register">

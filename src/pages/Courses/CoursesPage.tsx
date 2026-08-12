@@ -91,7 +91,15 @@ export function CoursesPage() {
     queryKey: ['courses'],
     queryFn: async () => {
       const { data } = await supabase.from('courses').select('*').order('order_index')
-      return (data ?? []) as Course[]
+      // Cursurile nepublicate nu se arată deloc: sunt cele al căror conţinut s-a
+      // dovedit greşit şi aşteaptă rescrierea. Mai bine lipsesc din raft decât
+      // să înveţe pe cineva lucruri false.
+      //
+      // Filtrarea se face aici, nu cu `.eq()` în interogare, fiindcă migrările
+      // se rulează manual: o interogare care cere o coloană încă neadăugată
+      // eşuează şi întoarce catalogul gol. Aşa, până se rulează migrarea,
+      // câmpul lipseşte şi toate cursurile rămân vizibile — exact ce trebuie.
+      return (data ?? []).filter(c => c.is_published !== false) as Course[]
     },
   })
 

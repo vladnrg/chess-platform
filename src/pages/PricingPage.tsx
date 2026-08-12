@@ -54,7 +54,7 @@ export function PricingPage() {
   const { user, profile } = useAuth()
   const { isPro, subscription } = useSubscription()
 
-  const birthYear = (profile as any)?.birth_year as number | null | undefined
+  const birthYear = profile?.birth_year
   const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
   if (user && isMinor) return <RestrictedPricing />
 
@@ -69,7 +69,9 @@ export function PricingPage() {
       body: JSON.stringify({ priceId, userId: user.id }),
     })
     const { url } = await res.json() as { url: string }
-    if (url) window.location.href = url
+    // assign() în loc de `location.href = ...`: aceeași redirecționare, dar apel de
+    // metodă, nu atribuire pe un obiect global — ceea ce React Compiler interzice.
+    if (url) window.location.assign(url)
   }
 
   return (

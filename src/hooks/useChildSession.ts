@@ -1,22 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { supabase, type ChildSession } from '@/lib/supabase'
 import { useAuth } from './useAuth'
 
 const SESSION_MINUTES = 60
 const WARNING_AT_MINUTES = 50
-
-interface ChildSession {
-  id: string
-  session_number: number
-  started_at: string
-  expires_at: string
-  break_duration_minutes: number
-  break_starts_at: string | null
-  break_ends_at: string | null
-  last_seen_at: string
-  warning_sent: boolean
-}
 
 export function useChildSession() {
   const { user, profile } = useAuth()
@@ -26,11 +14,17 @@ export function useChildSession() {
   const [showWarning, setShowWarning] = useState(false)
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const birthYear = (profile as any)?.birth_year as number | null | undefined
+  const birthYear = profile?.birth_year
   const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
 
-  const loadOrCreateSession = useCallback(async () => {
-    if (!user || !isMinor) return
+  /**
+   * Întoarce sesiunea activă (creând una nouă dacă e cazul), sau `null` dacă nu e
+   * nimic de afișat — copilul e în pauză și a fost redirecționat, sau nu e minor.
+   * Nu scrie direct în state: decizia dacă rezultatul mai e relevant aparține
+   * efectului care o apelează, altfel un răspuns întârziat suprascrie unul nou.
+   */
+  const loadOrCreateSession = useCallback(async (): Promise<ChildSession | null> => {
+    if (!user || !isMinor) return null
 
     // Check if currently in a break
     const { data: existingSessions } = await supabase
@@ -39,7 +33,7 @@ export function useChildSession() {
       .eq('user_id', user.id)
       .is('ended_at', null)
       .order('started_at', { ascending: false })
-      .limit(1) as any
+      .limit(1)
 
     const existing = existingSessions?.[0] as ChildSession | undefined
 
@@ -51,7 +45,7 @@ export function useChildSession() {
       if (breakEndsAt && now < breakEndsAt) {
         const breakMinsLeft = Math.ceil((breakEndsAt.getTime() - now.getTime()) / 60000)
         navigate(`/break?minutes=${breakMinsLeft}&sessionId=${existing.id}`)
-        return
+        return null
       }
 
       // Session expired → start break
@@ -65,13 +59,13 @@ export function useChildSession() {
           break_duration_minutes: breakMins,
           break_starts_at: breakStart.toISOString(),
           break_ends_at: breakEnd.toISOString(),
-        }).eq('id', existing.id) as any
+        }).eq('id', existing.id)
 
         navigate(`/break?minutes=${breakMins}&sessionId=${existing.id}`)
-        return
+        return null
       }
 
-      setSession(existing)
+      return existing
     } else {
       // Create new session
       const { data: lastSession } = await supabase
@@ -79,13 +73,13 @@ export function useChildSession() {
         .select('session_number')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
-        .limit(1) as any
+        .limit(1)
 
       const nextNumber = (lastSession?.[0]?.session_number ?? 0) + 1
       const now = new Date()
       const expiresAt = new Date(now.getTime() + SESSION_MINUTES * 60000)
 
-      const { data: newSession } = await supabase
+      const { data: newSession, error } = await supabase
         .from('child_sessions')
         .insert({
           user_id: user.id,
@@ -94,9 +88,10 @@ export function useChildSession() {
           break_duration_minutes: calcBreakDuration(nextNumber),
         })
         .select()
-        .single() as any
+        .single()
 
-      setSession(newSession)
+      if (error) throw error
+      return newSession
     }
   }, [user, isMinor, navigate])
 
@@ -112,12 +107,12 @@ export function useChildSession() {
       setMinutesLeft(minsLeft)
 
       // Update last_seen
-      await supabase.from('child_sessions').update({ last_seen_at: now.toISOString() }).eq('id', session.id) as any
+      await supabase.from('child_sessions').update({ last_seen_at: now.toISOString() }).eq('id', session.id)
 
       // Warning at 10 min left
       if (minsLeft <= SESSION_MINUTES - WARNING_AT_MINUTES && !session.warning_sent) {
         setShowWarning(true)
-        await supabase.from('child_sessions').update({ warning_sent: true }).eq('id', session.id) as any
+        await supabase.from('child_sessions').update({ warning_sent: true }).eq('id', session.id)
         setSession(s => s ? { ...s, warning_sent: true } : s)
       }
 
@@ -131,7 +126,7 @@ export function useChildSession() {
           break_duration_minutes: breakMins,
           break_starts_at: now.toISOString(),
           break_ends_at: breakEnd.toISOString(),
-        }).eq('id', session.id) as any
+        }).eq('id', session.id)
 
         navigate(`/break?minutes=${breakMins}&sessionId=${session.id}`)
       }
@@ -143,7 +138,11 @@ export function useChildSession() {
   }, [user, isMinor, session, navigate])
 
   useEffect(() => {
-    loadOrCreateSession()
+    let cancelled = false
+    void loadOrCreateSession()
+      .then(loaded => { if (!cancelled && loaded) setSession(loaded) })
+      .catch(() => { /* fără sesiune: aplicația rămâne utilizabilă, doar netemporizată */ })
+    return () => { cancelled = true }
   }, [loadOrCreateSession])
 
   return { minutesLeft, showWarning, dismissWarning: () => setShowWarning(false), isMinor }

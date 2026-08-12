@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Chessboard } from 'react-chessboard'
@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, CheckCircle2 } from 'lucide-react
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { FundamentalLessonPage } from './FundamentalLessonPage'
@@ -26,6 +27,7 @@ function parsePgn(pgn: string): string[] {
 export function LessonPage() {
   const { slug, lessonId } = useParams<{ slug: string; lessonId: string }>()
   const { user, fetchProfile } = useAuth()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const qc = useQueryClient()
 
   const [moveIndex, setMoveIndex] = useState(0)
@@ -33,7 +35,8 @@ export function LessonPage() {
   const { data: lesson, isLoading } = useQuery({
     queryKey: ['lesson', lessonId],
     queryFn: async () => {
-      const { data } = await supabase.from('lessons').select('*').eq('id', lessonId).single()
+      const { data, error } = await supabase.from('lessons').select('*').eq('id', lessonId!).single()
+      if (error) throw error
       return data as Lesson
     },
     enabled: !!lessonId,
@@ -42,7 +45,8 @@ export function LessonPage() {
   const { data: course } = useQuery({
     queryKey: ['course', slug],
     queryFn: async () => {
-      const { data } = await supabase.from('courses').select('*').eq('slug', slug).single()
+      const { data, error } = await supabase.from('courses').select('*').eq('slug', slug!).single()
+      if (error) throw error
       return data as Course
     },
     enabled: !!slug,
@@ -90,10 +94,14 @@ export function LessonPage() {
     },
   })
 
-  const moves = lesson?.pgn ? parsePgn(lesson.pgn) : []
+  // Memoizat: altfel `parsePgn` produce un array nou la fiecare render și strică
+  // memoizarea lui getCurrentFen de mai jos. `pgn` e legat într-o variabilă ca
+  // dependența să fie exact câmpul, nu întregul obiect `lesson`.
+  const pgn = lesson?.pgn
+  const moves = useMemo(() => (pgn ? parsePgn(pgn) : []), [pgn])
 
   const getCurrentFen = useCallback(() => {
-    if (!lesson?.pgn || moves.length === 0) return 'start'
+    if (!pgn || moves.length === 0) return 'start'
     try {
       const g = new Chess()
       for (let i = 0; i < moveIndex; i++) {
@@ -103,7 +111,7 @@ export function LessonPage() {
     } catch {
       return 'start'
     }
-  }, [lesson?.pgn, moves, moveIndex])
+  }, [pgn, moves, moveIndex])
 
   function goBack() { setMoveIndex(i => Math.max(0, i - 1)) }
   function goForward() { setMoveIndex(i => Math.min(moves.length, i + 1)) }
@@ -148,8 +156,8 @@ export function LessonPage() {
                 position: getCurrentFen(),
                 allowDragging: false,
                 boardStyle: { borderRadius: 0 },
-                darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                darkSquareStyle,
+                lightSquareStyle,
               }}
             />
           </div>

@@ -1,232 +1,270 @@
-import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Chessboard } from 'react-chessboard'
-import { Lock, ArrowRight, ExternalLink, FileText, ChevronLeft, ChevronRight, Target } from 'lucide-react'
+import { Lock, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
-import { TACTIC_CATEGORIES } from '@/data/tactics'
-import { PUZZLE_BANDS, bandIndex } from '@/lib/puzzle-rating'
-import { PDF_RESOURCES } from '@/data/famousGames'
+import { useAuth } from '@/hooks/useAuth'
+import { TACTIC_CATEGORIES, type TacticCategory } from '@/data/tactics'
+import { TACTIC_TIERS, type TacticTier, pickPathIds } from '@/lib/tactics-path'
+import { tacticVisual, tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
+import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
 
-// Etichetă de dificultate pentru un interval de ELO (4 niveluri)
-function bandTier(floor: number): string {
-  if (floor < 1000) return 'Începător'
-  if (floor < 1600) return 'Mediu'
-  if (floor < 2200) return 'Avansat'
-  return 'Master'
+interface PuzzleIndexRow {
+  id: string
+  rating: number
+  themes: string[]
 }
 
-export function TacticsChestPage() {
-  const navigate = useNavigate()
-  const { isPro } = useSubscription()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const eloParam = searchParams.get('elo')
+interface CardData {
+  cat: TacticCategory
+  total: number
+  solvedCount: number
+}
 
-  // Index ușor (rating + teme) pentru a calcula câte exerciții sunt pe interval / categorie
+// Valori implicite stabile: `?? []` / `?? new Set()` în corpul componentei ar crea
+// referințe noi la fiecare render și ar anula memoizarea de mai jos.
+const NO_ROWS: PuzzleIndexRow[] = []
+const NO_SOLVED: ReadonlySet<string> = new Set()
+
+export function TacticsChestPage() {
+  const { isPro } = useSubscription()
+  const { user, profile } = useAuth()
+
+  // Index ușor (id + rating + teme) — o singură interogare pentru toate traseele.
   const { data: rows } = useQuery({
     queryKey: ['tactics-index'],
     queryFn: async () => {
-      const { data } = await supabase.from('puzzles').select('rating, themes')
-      return (data ?? []) as { rating: number; themes: string[] }[]
+      const { data } = await supabase.from('puzzles').select('id, rating, themes')
+      return (data ?? []) as PuzzleIndexRow[]
     },
   })
 
-  const bandCounts = useMemo(() => {
-    const counts = new Array(PUZZLE_BANDS.length).fill(0) as number[]
-    for (const r of rows ?? []) counts[bandIndex(r.rating)]++
-    return counts
-  }, [rows])
+  // Puzzle-urile rezolvate de utilizator (o singură interogare pentru tot ansamblul).
+  const { data: solvedIds } = useQuery({
+    queryKey: ['tactics-solved', user?.id],
+    queryFn: async () => {
+      if (!user) return new Set<string>()
+      const { data } = await supabase
+        .from('user_puzzle_attempts')
+        .select('puzzle_id')
+        .eq('user_id', user.id)
+        .eq('solved', true)
+      return new Set((data ?? []).map((r: { puzzle_id: string }) => r.puzzle_id))
+    },
+    enabled: !!user,
+  })
 
-  const selectedBand = eloParam
-    ? PUZZLE_BANDS.find(b => `${b.floor}-${b.ceil}` === eloParam) ?? null
-    : null
+  const puzzles = rows ?? NO_ROWS
+  const solved: ReadonlySet<string> = solvedIds ?? NO_SOLVED
 
-  // Câte exerciții are fiecare categorie în intervalul selectat
-  const catCounts = useMemo(() => {
-    const m: Record<string, number> = {}
-    if (!selectedBand) return m
-    for (const r of rows ?? []) {
-      if (r.rating < selectedBand.floor || r.rating >= selectedBand.ceil) continue
-      for (const cat of TACTIC_CATEGORIES) {
-        if (cat.lichessThemes.some(t => r.themes?.includes(t))) m[cat.id] = (m[cat.id] ?? 0) + 1
+  // Traseele + progresul, calculate o singură dată și partajate cu rândurile și hero-ul.
+  const tierData = useMemo(() => {
+    return TACTIC_TIERS.map(tier => {
+      const cards: CardData[] = TACTIC_CATEGORIES
+        .map(cat => {
+          const ids = pickPathIds(puzzles, cat, tier)
+          return { cat, total: ids.length, solvedCount: ids.filter(id => solved.has(id)).length }
+        })
+        .filter(c => c.total > 0 || (c.cat.isPro && !isPro))
+      return { tier, cards }
+    })
+  }, [puzzles, solved, isPro])
+
+  const stats = useMemo(() => {
+    let solvedCount = 0
+    let complete = 0
+    for (const { cards } of tierData) {
+      for (const c of cards) {
+        if (c.total === 0) continue
+        solvedCount += c.solvedCount
+        if (c.solvedCount === c.total) complete++
       }
     }
-    return m
-  }, [rows, selectedBand])
+    return { solvedCount, complete }
+  }, [tierData])
+
+  const playerElo = profile?.estimated_elo
 
   return (
     <div className="space-y-10">
       {/* Hero */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Cufărul cu tactici</h1>
-        <p className="text-[#6B6B6B] text-sm mt-1 max-w-xl">
-          Alege întâi un interval de ELO, apoi tipul de tactică — furculiță, legare, atac descoperit și altele.
-          Exerciții interactive din partide reale, potrivite nivelului tău.
-        </p>
+      <div
+        className="relative overflow-hidden rounded-2xl border border-[#2A2A2A]"
+        style={{ background: 'linear-gradient(135deg, #0A0A0A 0%, #1C1C1C 55%, #0A0A0A 100%)' }}
+      >
+        {/* Mascota decorativă */}
+        <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 opacity-95 pointer-events-none select-none hidden sm:block">
+          <MascotEnPassant size={132} mood="happy" />
+        </div>
+        <div className="relative px-6 py-7 max-w-[36rem]">
+          {/* Titlul stă în bara shell-ului; hero-ul păstrează doar descrierea şi statisticile */}
+          <p className="text-[#A0A0A0] text-sm">
+            Antrenează-te pe niveluri — de la începător la maestru. Alege un tip de tactică
+            și parcurge traseul de exerciții, exact ca la cursuri.
+          </p>
+          <div className="flex gap-6 mt-5">
+            <HeroStat value={stats.solvedCount} label="exerciții rezolvate" color="#4ade80" />
+            <HeroStat value={stats.complete} label="tactici complete" color="#E2B340" />
+            {playerElo != null && <HeroStat value={`~${playerElo}`} label="nivelul tău" color="#2DD4BF" />}
+          </div>
+        </div>
       </div>
 
-      {!selectedBand ? (
-        <>
-          {/* Nivel 1 — intervale de ELO */}
-          <section>
-            <h2 className="text-lg font-semibold text-[#F0F0F0] mb-4">Alege un interval de ELO</h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {PUZZLE_BANDS.map((band, i) => bandCounts[i] > 0 && (
-                <button
-                  key={band.floor}
-                  onClick={() => setSearchParams({ elo: `${band.floor}-${band.ceil}` })}
-                  className="group flex items-center gap-4 rounded-2xl border border-[#2A2A2A] bg-[#141414] p-4 text-left hover:border-[#E2B340] hover:-translate-y-0.5 transition-all"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(226,179,64,0.12)] text-[#E2B340]">
-                    <Target className="h-6 w-6" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-display font-bold text-lg text-[#F0F0F0]">ELO {band.label}</p>
-                    <p className="text-xs text-[#6B6B6B]">{bandTier(band.floor)} · {bandCounts[i]} exerciții</p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-[#3A3A3A] group-hover:text-[#E2B340] transition-colors" />
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Resurse PDF */}
-          <section>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-[#F0F0F0]">Resurse & PDF-uri</h2>
-              <p className="text-sm text-[#6B6B6B] mt-0.5">Materiale gratuite pentru studiu offline.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {PDF_RESOURCES.map(res => (
-                <a
-                  key={res.id}
-                  href={res.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-3 rounded-xl bg-[#141414] border border-[#2A2A2A] p-4 hover:border-[#E2B340] transition-colors"
-                >
-                  <FileText className="h-5 w-5 text-[#E2B340] flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-[#F0F0F0] group-hover:text-[#E2B340] transition-colors">
-                        {res.title}
-                      </p>
-                      <span className="text-xs text-[#6B6B6B] border border-[#2A2A2A] rounded px-1">
-                        {res.language}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#6B6B6B] mt-1 leading-relaxed">{res.description}</p>
-                  </div>
-                  <ExternalLink className="h-3.5 w-3.5 text-[#6B6B6B] flex-shrink-0 mt-0.5 group-hover:text-[#E2B340] transition-colors" />
-                </a>
-              ))}
-            </div>
-          </section>
-        </>
-      ) : (
-        /* Nivel 2 — categorii tactice din intervalul ales */
-        <section>
-          <button
-            onClick={() => setSearchParams({})}
-            className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors mb-4"
-          >
-            <ChevronLeft className="h-4 w-4" /> Toate intervalele
-          </button>
-          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-1">Tactici · ELO {selectedBand.label}</h2>
-          <p className="text-sm text-[#6B6B6B] mb-4">Alege tipul de tactică.</p>
-          {(() => {
-            const visible = TACTIC_CATEGORIES.filter(
-              cat => (catCounts[cat.id] ?? 0) > 0 || (cat.isPro && !isPro)
-            )
-            if (visible.length === 0) {
-              return <p className="text-sm text-[#6B6B6B] py-10 text-center">Nu există tactici în acest interval de ELO.</p>
-            }
-            return (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {visible.map(cat => (
-                  <CategoryCard
-                    key={cat.id}
-                    category={cat}
-                    isPro={isPro}
-                    count={catCounts[cat.id] ?? 0}
-                    onNavigate={() => navigate(`/tactics/${cat.id}?elo=${eloParam}`)}
-                  />
-                ))}
-              </div>
-            )
-          })()}
-        </section>
-      )}
+      {tierData.map(({ tier, cards }) => (
+        <TacticTierRow key={tier.id} tier={tier} cards={cards} isPro={isPro} />
+      ))}
     </div>
   )
 }
 
-interface CategoryCardProps {
-  category: (typeof TACTIC_CATEGORIES)[number]
-  isPro: boolean
-  count: number
-  onNavigate: () => void
+function HeroStat({ value, label, color }: { value: number | string; label: string; color: string }) {
+  return (
+    <div>
+      <p className="text-2xl font-black" style={{ color }}>{value}</p>
+      <p className="text-xs text-[#6B6B6B]">{label}</p>
+    </div>
+  )
 }
 
-function CategoryCard({ category, isPro, count, onNavigate }: CategoryCardProps) {
-  const locked = category.isPro && !isPro
-  const empty = !locked && count === 0
+// Un rând = nivel de ELO colorat + carusel orizontal (stil „Cursuri interactive").
+function TacticTierRow({ tier, cards, isPro }: { tier: TacticTier; cards: CardData[]; isPro: boolean }) {
+  const navigate = useNavigate()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const scroll = (dir: number) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
+
+  if (cards.length === 0) return null
+
+  const color = tierColor(tier.id)
+  const TierIcon = TIER_ICONS[tier.id]
+  const started = cards.filter(c => c.solvedCount > 0).length
 
   return (
-    <div
-      className={[
-        'rounded-xl border overflow-hidden flex flex-col transition-colors',
-        locked
-          ? 'bg-[#141414] border-[#1C1C1C] opacity-70 cursor-pointer'
-          : empty
-          ? 'bg-[#141414] border-[#1C1C1C] opacity-60 cursor-default'
-          : 'bg-[#141414] border-[#2A2A2A] hover:border-[#E2B340] cursor-pointer',
-      ].join(' ')}
-      onClick={locked || !empty ? onNavigate : undefined}
-    >
-      {/* Board thumbnail */}
-      <div className="aspect-square w-full pointer-events-none select-none relative">
-        <Chessboard
-          options={{
-            position: category.coverFen,
-            allowDragging: false,
-            boardStyle: { borderRadius: 0 },
-            darkSquareStyle: { backgroundColor: '#3A3A3A' },
-            lightSquareStyle: { backgroundColor: '#f0d9b5' },
-          }}
-        />
-        {locked && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="rounded-full bg-[#E2B340]/90 p-3">
-              <Lock className="h-5 w-5 text-black" />
+    <section>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${color}1F`, color }}
+          >
+            <TierIcon className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-[#F0F0F0] font-display">{tier.label}</h2>
+              <span
+                className="text-[11px] font-semibold rounded-full px-2 py-0.5"
+                style={{ backgroundColor: `${color}1F`, color }}
+              >
+                ELO {tier.floor}–{tier.ceil}
+              </span>
             </div>
+            <p className="text-xs text-[#6B6B6B] mt-0.5">{started}/{cards.length} tactici începute</p>
           </div>
+        </div>
+        <div className="flex gap-1.5">
+          {[-1, 1].map(dir => (
+            <button
+              key={dir}
+              onClick={() => scroll(dir)}
+              aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
+            >
+              {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Linie subțire colorată sub antet */}
+      <div className="h-px w-full mb-4" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
+
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {cards.map(({ cat, total, solvedCount }) => (
+          <div key={cat.id} className="w-60 sm:w-64 shrink-0 snap-start">
+            <TacticCard
+              category={cat}
+              total={total}
+              solvedCount={solvedCount}
+              locked={cat.isPro && !isPro}
+              onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// Cardul unui tip de tactică: ICON + CULOARE proprie + progres Duolingo.
+function TacticCard({ category, total, solvedCount, locked, onClick }: {
+  category: TacticCategory
+  total: number
+  solvedCount: number
+  locked: boolean
+  onClick: () => void
+}) {
+  const { icon: Icon, color } = tacticVisual(category.id)
+  const pct = total > 0 ? Math.round((solvedCount / total) * 100) : 0
+  const done = pct === 100
+
+  return (
+    <button
+      onClick={onClick}
+      className="tactic-card group w-full h-full rounded-2xl border border-[#2A2A2A] bg-[#141414] overflow-hidden flex flex-col text-left hover:-translate-y-1"
+      style={{ ['--tc' as string]: color }}
+    >
+      {/* Zona icon — glow din culoarea categoriei */}
+      <div
+        className="relative h-28 flex items-center justify-center"
+        style={{ background: `radial-gradient(circle at 50% 42%, ${color}22, transparent 72%)` }}
+      >
+        <span
+          className="flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-110"
+          style={{ backgroundColor: `${color}1A`, color, boxShadow: `0 8px 26px ${color}22` }}
+        >
+          <Icon className="h-8 w-8" strokeWidth={2} />
+        </span>
+        {locked && (
+          <span className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-[#E2B340]">
+            <Lock className="h-3 w-3" /> PRO
+          </span>
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-4 flex flex-col gap-2 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-[#F0F0F0] text-sm leading-snug">{category.title}</h3>
-          {category.isPro && (
-            <span className="flex-shrink-0 text-[10px] font-bold uppercase tracking-wider bg-[#E2B340]/15 text-[#E2B340] border border-[#E2B340]/30 rounded px-1.5 py-0.5">
-              Pro
+      {/* Info + progres */}
+      <div className="p-4 flex flex-col gap-1.5 flex-1">
+        <h3 className="font-display font-bold text-[#F0F0F0] text-sm leading-snug">{category.title}</h3>
+        <p className="text-xs text-[#6B6B6B] leading-relaxed line-clamp-2 flex-1">{category.description}</p>
+
+        <div className="pt-1.5">
+          <div className="flex items-center justify-between text-xs mb-1.5">
+            <span className="text-[#6B6B6B]">
+              {locked ? 'Necesită Pro' : `${solvedCount}/${total} rezolvate`}
             </span>
-          )}
-        </div>
-        <p className="text-xs text-[#A0A0A0] leading-relaxed flex-1">{category.description}</p>
-        <div className="flex items-center justify-between mt-1">
-          {locked ? (
-            <span className="text-xs text-[#6B6B6B]">Necesită Pro</span>
-          ) : empty ? (
-            <span className="text-xs text-[#6B6B6B]">Momentan fără exerciții</span>
-          ) : (
-            <span className="text-xs text-[#E2B340] font-semibold">{count} exerciții</span>
-          )}
-          <ArrowRight className="h-3.5 w-3.5 text-[#3A3A3A]" />
+            {!locked && (
+              done ? (
+                <span className="font-semibold text-[#4ade80]">✓ Complet</span>
+              ) : solvedCount > 0 ? (
+                <span className="font-semibold" style={{ color }}>{pct}%</span>
+              ) : (
+                <span className="flex items-center gap-0.5 font-semibold" style={{ color }}>
+                  Începe <ArrowRight className="h-3 w-3" />
+                </span>
+              )
+            )}
+          </div>
+          <div className="h-1.5 rounded-full bg-[#1C1C1C] overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${locked ? 0 : pct}%`, backgroundColor: done ? '#4ade80' : color }}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </button>
   )
 }

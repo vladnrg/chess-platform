@@ -41,6 +41,19 @@ export function getLeagueProgress(xp: number, league: League): number {
   return Math.min(100, Math.round((earned / range) * 100))
 }
 
+/**
+ * Poţi juca doar cu cineva din liga ta, una mai jos sau una mai sus.
+ *
+ * Regula e impusă pe server (funcţia `create_challenge`); aici o repetăm doar ca
+ * să nu arătăm un buton care oricum ar fi refuzat.
+ */
+export function canChallenge(mine: League, theirs: League): boolean {
+  const a = LEAGUES.findIndex(l => l.name === mine)
+  const b = LEAGUES.findIndex(l => l.name === theirs)
+  if (a < 0 || b < 0) return false
+  return Math.abs(a - b) <= 1
+}
+
 export function getCurrentWeekStart(): Date {
   const now = new Date()
   const day = now.getUTCDay()
@@ -54,4 +67,17 @@ export function getCurrentWeekStart(): Date {
 export function formatXp(xp: number): string {
   if (xp >= 1000) return `${(xp / 1000).toFixed(1)}k`
   return `${xp}`
+}
+
+/**
+ * „Zgomot" determinist în [0, 1) pornind de la un seed întreg.
+ *
+ * Folosit în animații pentru a da variație vizuală (poziții, întârzieri, rotații)
+ * fără `Math.random()`. Random-ul real în corpul unei componente se re-evaluează
+ * la fiecare render și face elementele să sară în timpul animației; funcția asta
+ * întoarce mereu aceeași valoare pentru același seed, deci animația e stabilă.
+ */
+export function noise(seed: number): number {
+  const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453
+  return x - Math.floor(x)
 }

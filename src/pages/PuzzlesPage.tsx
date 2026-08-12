@@ -1,18 +1,22 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
-import { CheckCircle2, RefreshCw, Loader2, RotateCcw, Info, Target, Flame, Calendar, Lightbulb, Sparkles, ChevronLeft } from 'lucide-react'
+import { CheckCircle2, RefreshCw, Loader2, Info, Target, Flame, Calendar, Lightbulb, Sparkles, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useStockfish } from '@/hooks/useStockfish'
-import { fetchLichessPuzzleNext, eloToDifficulty, fetchLichessCloudEval } from '@/lib/lichess'
-import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, hintXpFactor, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
-import { accessibleBands, bandForRating, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
+import { useRefutation } from '@/hooks/useAICoach'
+import { fetchLichessPuzzleNext, eloToDifficulty } from '@/lib/lichess'
+import { initPuzzleState, lichessPuzzleToLocal, uciToSan, analyzeWrongMove, basePuzzleXp, buildSpecificHint, type PuzzleState } from '@/lib/puzzle-utils'
+import { accessibleBands, type BandOffset, type PuzzleBand } from '@/lib/puzzle-rating'
 import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
+import { translateNotation } from '@/lib/chess-translations'
+import { isAtLeastAsGood, acceptanceMessage } from '@/lib/puzzle-equivalence'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
@@ -22,23 +26,94 @@ import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
 import { cn } from '@/lib/utils'
 import type { Puzzle } from '@/types'
 
-// Culoare / etichetă per poziție a benzii (inferioară / curentă / superioară)
+// Culoare per poziție a benzii (inferioară / curentă / superioară)
 function offsetColor(o: BandOffset): string {
   return o === -1 ? '#60a5fa' : o === 0 ? '#E2B340' : '#f97316'
 }
-function offsetLabel(o: BandOffset): string {
-  return o === -1 ? 'Sub tine' : o === 0 ? 'Nivelul tău' : 'Peste tine'
+
+// Helperi cu efect (ceas), ținuți la nivel de modul — nu în corpul componentei.
+// Sunt apelați doar din handlere și efecte, niciodată în timpul render-ului.
+//
+// `pickRandom` a dispărut odată cu alegerea în client: acum serverul alege,
+// fiindcă doar el ştie ce ai rezolvat deja.
+function nowMs(): number {
+  return Date.now()
 }
+
+// ---- Completarea benzii din Lichess ----
+// Sub atâtea puzzle-uri nevăzute rămase în bandă, aducem altele. Pragul e
+// deasupra lui zero intenţionat: dacă am aştepta să se golească, ai apuca să
+// vezi ultimele câteva de mai multe ori.
+const TOP_UP_THRESHOLD = 8
+const TOP_UP_BATCH = 5
+// Lichess nu ţinteşte exact o bandă, deci unele aduse pot cădea alături. Fără
+// răcire, o bandă greu de umplut ar declanşa cereri la fiecare puzzle.
+const TOP_UP_COOLDOWN_MS = 60_000
+let lastTopUp = 0
+
+/** Aduce un puzzle de la Lichess şi îl salvează în banca noastră. */
+async function fetchAndStore(band: PuzzleBand): Promise<Puzzle> {
+  const lp = await fetchLichessPuzzleNext(eloToDifficulty(band.floor + 100))
+  const puzzle = lichessPuzzleToLocal(lp)
+  // Prin RPC, nu prin insert direct: `puzzles` e tabel comun şi n-are politică
+  // de scriere — vechiul `upsert` din client era respins în tăcere.
+  await supabase.rpc('store_lichess_puzzle', {
+    p_id: puzzle.id,
+    p_fen: puzzle.fen,
+    p_moves: puzzle.moves,
+    p_rating: puzzle.rating,
+    p_themes: puzzle.themes,
+    p_game_url: puzzle.game_url ?? null,
+  })
+  return puzzle
+}
+
+/**
+ * Plasă de siguranţă: un puzzle din bandă, ales în client.
+ *
+ * Se foloseşte doar când `next_puzzle_for` nu răspunde — de obicei fiindcă
+ * migrarea 037 n-a fost aplicată. Nu ştie ce ai rezolvat deja, deci se pot
+ * repeta; dar o pagină care repetă e mai bună decât una care nu încarcă nimic.
+ */
+async function loadFromBand(band: PuzzleBand): Promise<Puzzle | null> {
+  const { data } = await supabase.from('puzzles').select('*')
+    .gte('rating', band.floor)
+    .lt('rating', band.ceil)
+    .limit(200)
+  const pool = (data ?? []) as Puzzle[]
+  if (pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+/** Îmbogăţeşte banda în fundal. Eşecurile se ignoră — e doar o completare. */
+async function topUpBand(band: PuzzleBand): Promise<void> {
+  if (nowMs() - lastTopUp < TOP_UP_COOLDOWN_MS) return
+  lastTopUp = nowMs()
+  for (let i = 0; i < TOP_UP_BATCH; i++) {
+    try {
+      await fetchAndStore(band)
+    } catch {
+      return
+    }
+  }
+}
+
+// Penalizarea fixă de XP pentru fiecare indiciu (scăzută din recompensa puzzle-ului).
+// Nivel 3 („arată mutarea") = pierzi toată recompensa. Eșec după un indiciu = −1 XP.
+const HINT_PENALTY: Record<number, number> = { 1: 2, 2: 3 }
+const HINT_FAIL_PENALTY = 1
 
 // Teme pentru provocările zilnice curate
 const COUNTER_THEMES = ['quietMove', 'zugzwang', 'defensiveMove', 'interference', 'clearance', 'xRayAttack', 'intermezzo', 'underPromotion']
 const SATISFYING_THEMES = ['smotheredMate', 'doubleCheck', 'discoveredAttack', 'attraction', 'sacrifice', 'backRankMate', 'operaMate']
 
 type DailyKind = 'zi' | 'contra' | 'satisf'
-const DAILY_META: Record<DailyKind, { title: string; subtitle: string }> = {
-  zi: { title: 'Puzzle-ul zilei', subtitle: 'Provocarea de azi, aceeași pentru toți.' },
-  contra: { title: 'Cel mai contraintuitiv', subtitle: 'Mutarea pe care n-o vezi venind.' },
-  satisf: { title: 'Cel mai satisfăcător', subtitle: 'Un final de combinație delicios.' },
+// Doar titlul: subtitlurile („Provocarea de azi, aceeaşi pentru toţi") repetau
+// ce spunea deja numele şi ocupau înălţime înaintea tablei.
+const DAILY_META: Record<DailyKind, { title: string }> = {
+  zi: { title: 'Puzzle-ul zilei' },
+  contra: { title: 'Cel mai contraintuitiv' },
+  satisf: { title: 'Cel mai satisfăcător' },
 }
 
 interface MoveExplanation {
@@ -48,77 +123,27 @@ interface MoveExplanation {
   nearEqualAlternatives?: string[]
 }
 
-function cpToWhitePct(cp: number) {
-  return Math.min(97, Math.max(3, 50 + 50 * Math.tanh(cp / 600)))
-}
-
-interface EvalBarProps {
-  cp?: number
-  mate?: number
-  prevCp?: number
-  prevMate?: number
-  orientation: 'white' | 'black'
-}
-
-function EvalBar({ cp, mate, prevCp, prevMate, orientation }: EvalBarProps) {
-  const whiteAdv = mate !== undefined ? (mate > 0 ? 97 : 3) : cp !== undefined ? cpToWhitePct(cp) : 50
-  const fillPct = orientation === 'white' ? whiteAdv : 100 - whiteAdv
-
-  const label = mate !== undefined
-    ? `M${Math.abs(mate)}`
-    : cp !== undefined
-      ? `${cp >= 0 ? '+' : ''}${(cp / 100).toFixed(1)}`
-      : '0.0'
-
-  const prevAdv = prevMate !== undefined
-    ? (prevMate > 0 ? 97 : 3)
-    : prevCp !== undefined
-      ? cpToWhitePct(prevCp)
-      : null
-
-  const playerFactor = orientation === 'white' ? 1 : -1
-  const rawDelta = prevAdv !== null && cp !== undefined && prevCp !== undefined
-    ? (cp - prevCp) * playerFactor
-    : null
-  const deltaLabel = rawDelta !== null
-    ? `${rawDelta >= 0 ? '▲' : '▼'} ${(Math.abs(rawDelta) / 100).toFixed(1)}`
-    : null
-  const deltaPositive = rawDelta !== null && rawDelta >= 0
-
-  return (
-    <div className="flex flex-col items-center gap-1 select-none" style={{ width: 28 }}>
-      <div className="relative flex-1 w-full rounded-lg overflow-hidden border border-[#2A2A2A] bg-[#1C1C1C]" style={{ minHeight: 80 }}>
-        <div
-          className="absolute bottom-0 left-0 right-0 bg-[#F0F0F0] transition-all duration-700 ease-out"
-          style={{ height: `${fillPct}%` }}
-        />
-      </div>
-      <span className="text-[11px] font-mono font-bold text-[#F0F0F0] leading-none tabular-nums">{label}</span>
-      {deltaLabel && (
-        <span className={`text-[10px] font-mono leading-none tabular-nums ${deltaPositive ? 'text-[#4ade80]' : 'text-[#FB7185]'}`}>
-          {deltaLabel}
-        </span>
-      )}
-    </div>
-  )
-}
-
 export function PuzzlesPage() {
   const navigate = useNavigate()
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
-  const { evalPosition } = useStockfish()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
   const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(null)
-  const [initialPuzzleState, setInitialPuzzleState] = useState<PuzzleState | null>(null)
+  // Cea mai avansată semi-mutare atinsă în linia curentă = poziția „actuală" spre care duce săgeata dreapta
+  const [maxPly, setMaxPly] = useState(0)
   const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(null)
   const [todayCount, setTodayCount] = useState(0)
   const [nextLoading, setNextLoading] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
+  const [showRatingInfo, setShowRatingInfo] = useState(false)
 
-  // Rating de puzzle (sursa de adevăr: profilul; oglindit local pentru update instant)
-  const [puzzleRating, setPuzzleRating] = useState<number | null>(profile?.puzzle_rating ?? null)
-  const [winStreak, setWinStreak] = useState(profile?.puzzle_win_streak ?? 0)
+  // Rating de puzzle: sursa de adevăr e profilul, dar rezultatul unei rezolvări
+  // ajunge aici înaintea reîncărcării profilului. Îl păstrăm local și îi dăm
+  // prioritate — derivat, nu oglindit printr-un efect.
+  const [latestResult, setLatestResult] = useState<{ rating: number; streak: number } | null>(null)
+  const puzzleRating = latestResult?.rating ?? profile?.puzzle_rating ?? null
+  const winStreak = latestResult?.streak ?? profile?.puzzle_win_streak ?? 0
   const [activeOffset, setActiveOffset] = useState<BandOffset>(0)
   const [lastDelta, setLastDelta] = useState<number | null>(null)
   const ratingAppliedRef = useRef(false)
@@ -128,9 +153,11 @@ export function PuzzlesPage() {
   const [xpBurst, setXpBurst] = useState<number | null>(null)
   const puzzlePerfectRef = useRef(true)
 
-  // Indicii graduale: 0 = niciunul, 1 = indiciu, 2 = arată piesa, 3 = arată mutarea
+  // Indicii: 0 = niciunul, 1 = indiciu (−2), 2 = arată piesa (−3), 3 = arată mutarea (fără XP).
+  // Un singur indiciu pe puzzle; după el trebuie nimerită mutarea, altfel −1 XP (o dată).
   const [hintLevel, setHintLevel] = useState(0)
   const hintLevelRef = useRef(0)
+  const hintFailAppliedRef = useRef(false)
   const [secondHint, setSecondHint] = useState<string | null>(null)
 
   // Anti-skip: timestamps ale apăsărilor pe "Puzzle nou" (fereastră 60 min)
@@ -148,31 +175,37 @@ export function PuzzlesPage() {
   const [wrongFen, setWrongFen] = useState<string | null>(null)
   const [playerMoveSan, setPlayerMoveSan] = useState<string | null>(null)
 
+  // Parcurgerea refutării: poziţiile prin care trece linia motorului după
+  // mutarea greşită, plus mutarea care duce la fiecare.
+  const [refutation, setRefutation] = useState<{
+    fens: string[]
+    sans: string[]
+    from: string[]
+    to: string[]
+  } | null>(null)
+  const [refuPly, setRefuPly] = useState(0)
+  const [refuLoading, setRefuLoading] = useState(false)
+  const { getLine, evalPosition } = useStockfish()
+  const {
+    explain: explainRefutation,
+    data: refuCoach,
+    loading: refuCoachLoading,
+    reset: resetRefutation,
+  } = useRefutation()
+
   // Click-to-move state
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [shakingSquare, setShakingSquare] = useState<string | null>(null)
-
-  // Eval bar
-  const [evalHistory, setEvalHistory] = useState<{ cp?: number; mate?: number }[]>([])
-  const [evalBarEnabled, setEvalBarEnabled] = useState(false)
-  const boardEval = evalHistory.at(-1) ?? null
-  const prevBoardEval = evalHistory.at(-2) ?? null
-
-  // Evaluează o poziție cu Stockfish local (fiabil pe orice poziție) și o adaugă în bară
-  const pushEval = useCallback(async (fen: string) => {
-    try {
-      const { cp, mate } = await evalPosition(fen, 12)
-      setEvalHistory(h => [...h, mate !== undefined ? { mate } : { cp }])
-    } catch { /* engine indisponibil / timeout */ }
-  }, [evalPosition])
 
   const FREE_LIMIT = 10
 
   // ---- Provocările zilei (puzzle-uri curate, fără plasament) ----
   const [daily, setDaily] = useState<Partial<Record<DailyKind, Puzzle>>>({})
   const [mode, setMode] = useState<'rated' | 'daily'>('rated')
+  // Oglindă a lui `mode` citibilă din callback-uri async (evaluări Stockfish care se întorc
+  // târziu). Ținut sincron manual în loadDaily / backToChallenges — singurele locuri care
+  // schimbă modul — ca să nu scriem în ref în timpul render-ului.
   const modeRef = useRef<'rated' | 'daily'>('rated')
-  modeRef.current = mode
   const [dailyKind, setDailyKind] = useState<DailyKind | null>(null)
 
   // Alege puzzle-urile zilnice determinist (seed = data), din tabela locală
@@ -195,14 +228,6 @@ export function PuzzlesPage() {
     })()
   }, [])
 
-  // Sincronizează rating-ul local cu profilul când acesta se încarcă/schimbă
-  useEffect(() => {
-    if (profile?.puzzle_rating != null) {
-      setPuzzleRating(profile.puzzle_rating)
-      setWinStreak(profile.puzzle_win_streak ?? 0)
-    }
-  }, [profile?.puzzle_rating, profile?.puzzle_win_streak])
-
   // Numără tentativele de azi
   useEffect(() => {
     if (!user) return
@@ -215,14 +240,6 @@ export function PuzzlesPage() {
       .then(({ count }: { count: number | null }) => setTodayCount(count ?? 0))
   }, [user])
 
-  // Încarcă primul puzzle când avem rating (banda curentă)
-  useEffect(() => {
-    if (puzzleRating != null && !currentPuzzle) {
-      void loadNext(0)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzleRating])
-
   const attemptMutation = useMutation({
     mutationFn: async ({ solved, timeSeconds, xpAmount }: { solved: boolean; timeSeconds: number; xpAmount: number }) => {
       if (!user || !currentPuzzle) return
@@ -232,7 +249,7 @@ export function PuzzlesPage() {
         solved,
         time_seconds: timeSeconds,
       })
-      if (solved && xpAmount > 0) {
+      if (xpAmount !== 0) {
         await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: xpAmount })
         await fetchProfile(user.id)
       }
@@ -240,8 +257,9 @@ export function PuzzlesPage() {
     },
   })
 
-  // Aplică rezultatul la rating-ul de puzzle (o singură dată per puzzle, server-side)
-  function applyRating(solved: boolean) {
+  // Aplică rezultatul la rating-ul de puzzle (o singură dată per puzzle, server-side).
+  // Memoizat fiindcă e dependență a lui tryMove.
+  const applyRating = useCallback((solved: boolean) => {
     if (modeRef.current === 'daily') return  // provocările zilnice nu schimbă rating-ul
     if (ratingAppliedRef.current || !user || !currentPuzzle) return
     ratingAppliedRef.current = true
@@ -251,27 +269,28 @@ export function PuzzlesPage() {
       })
       if (error || !data || (typeof data === 'object' && 'error' in data)) return
       const res = data as { rating: number; delta: number; promoted: boolean; streak: number }
-      setPuzzleRating(res.rating)
-      setWinStreak(res.streak)
+      setLatestResult({ rating: res.rating, streak: res.streak })
       setLastDelta(res.delta)
       window.setTimeout(() => setLastDelta(null), 2200)
       if (res.promoted) toast.success('Promovat! 5 corecte la rând — treci la intervalul de Elo superior 🎯')
     })()
-  }
+  }, [user, currentPuzzle])
 
   // Penalizare anti-skip: după 3 apăsări pe "Puzzle nou" în 60 min, XP × 1/3
   function skipPenaltyActive(): boolean {
-    const cutoff = Date.now() - 60 * 60 * 1000
+    const cutoff = nowMs() - 60 * 60 * 1000
     skipTimestampsRef.current = skipTimestampsRef.current.filter(t => t > cutoff)
     return skipTimestampsRef.current.length > 3
   }
 
-  function computeSolveXp(rating: number): number {
+  // Citește doar din ref-uri, deci nu are dependențe. Memoizat ca dependență a lui tryMove.
+  const computeSolveXp = useCallback((rating: number): number => {
     const base = basePuzzleXp(rating)
-    const factor = hintXpFactor(hintLevelRef.current)
+    const level = hintLevelRef.current
+    const penalty = level >= 3 ? base : (HINT_PENALTY[level] ?? 0)
     const skip = skipPenaltyActive() ? (1 / 3) : 1
-    return Math.round(base * factor * skip)
-  }
+    return Math.max(0, Math.round((base - penalty) * skip))
+  }, [])
 
   function registerSolve(xpAmount: number) {
     setCorrectStreak(prev => {
@@ -289,7 +308,7 @@ export function PuzzlesPage() {
     setCorrectStreak(0)
   }
 
-  function useHint(level: number) {
+  function revealHint(level: number) {
     setHintLevel(level)
     hintLevelRef.current = level
     puzzlePerfectRef.current = false
@@ -298,7 +317,7 @@ export function PuzzlesPage() {
 
   function handleSkipPuzzle() {
     if (puzzleState && puzzleState.status === 'playing') {
-      skipTimestampsRef.current.push(Date.now())
+      skipTimestampsRef.current.push(nowMs())
       setCorrectStreak(0)
     }
     void loadNext(activeOffset)
@@ -338,18 +357,86 @@ export function PuzzlesPage() {
     setSecondHint(null)
     setSelectedSquare(null)
     setShakingSquare(null)
+    setRefutation(null)
+    setRefuPly(0)
+    setRefuLoading(false)
+    resetRefutation()
+  }
+
+  /**
+   * „Arată de ce nu merge": motorul calculează cum cade mutarea greşită, iar
+   * Căluţul savant comentează linia mutare cu mutare.
+   *
+   * Fără asta, un exerciţiu greşit te învaţă doar că ai greşit. Ca să treci de
+   * un anumit nivel, trebuie să vezi refutarea, nu doar verdictul.
+   */
+  async function startRefutation() {
+    if (!wrongFen || !wrongMoveFrom || !wrongMoveTo || !playerMoveSan) return
+    setRefuLoading(true)
+    try {
+      // Poziţia de după mutarea greşită — de acolo pleacă refutarea.
+      const after = new Chess(wrongFen)
+      after.move({ from: wrongMoveFrom, to: wrongMoveTo, promotion: 'q' })
+
+      const { pv } = await getLine(after.fen(), 14, 6)
+      if (!pv.length) {
+        toast.error('Nu am putut calcula continuarea. Mai încearcă.')
+        return
+      }
+
+      // Replay: fiecare semi-mutare devine o poziţie de arătat pe tablă.
+      const board = new Chess(after.fen())
+      const fens: string[] = [after.fen()]
+      const sans: string[] = []
+      const from: string[] = []
+      const to: string[] = []
+
+      for (const uci of pv) {
+        const mv = board.move({
+          from: uci.slice(0, 2),
+          to: uci.slice(2, 4),
+          promotion: uci.length > 4 ? uci[4] : undefined,
+        })
+        // Motorul poate întoarce o variaţie mai lungă decât e legală de la un
+        // punct încolo; ne oprim acolo, cu ce am adunat.
+        if (!mv) break
+        sans.push(mv.san)
+        from.push(mv.from)
+        to.push(mv.to)
+        fens.push(board.fen())
+      }
+
+      if (!sans.length) {
+        toast.error('Nu am putut calcula continuarea. Mai încearcă.')
+        return
+      }
+
+      setRefutation({ fens, sans, from, to })
+      setRefuPly(0)
+
+      void explainRefutation({
+        fen: wrongFen,
+        playerMoveSan,
+        bestMoveSan: moveExplanation?.bestMoveSan ?? '',
+        lineSan: sans,
+      })
+    } catch {
+      toast.error('Motorul nu a răspuns. Mai încearcă.')
+    } finally {
+      setRefuLoading(false)
+    }
   }
 
   function loadPuzzle(puzzle: Puzzle) {
     clearWrongState()
     setCurrentPuzzle(puzzle)
-    setEvalHistory([])
     puzzlePerfectRef.current = true
     ratingAppliedRef.current = false
+    hintFailAppliedRef.current = false
     try {
       const state = initPuzzleState(puzzle.fen, puzzle.moves)
       setPuzzleState(state)
-      setInitialPuzzleState(state)
+      setMaxPly(state.currentMoveIdx)
       setPlayerColor(state.game.turn() === 'w' ? 'white' : 'black')
     } catch (e) {
       console.error('[loadPuzzle] initPuzzleState failed:', e, { fen: puzzle.fen, moves: puzzle.moves })
@@ -359,11 +446,46 @@ export function PuzzlesPage() {
     }
   }
 
-  function resetToInitial() {
-    if (!initialPuzzleState) return
-    setPuzzleState({ ...initialPuzzleState, startTime: Date.now() })
-    setEvalHistory([])
+  // Navighează la o poziție unde e RÂNDUL JUCĂTORULUI (`target`), animând întâi mutarea
+  // adversarului care duce acolo — ca s-o vezi — apoi poți muta imediat.
+  function goToPlayerPosition(target: number) {
+    if (!currentPuzzle || !puzzleState) return
+    const fen = currentPuzzle.fen
+    const mvs = puzzleState.solutionMoves
+    const t = Math.max(0, Math.min(target, mvs.length))
+    const build = (idx: number) => {
+      const g = new Chess(fen)
+      for (let i = 0; i < idx; i++) {
+        const m = mvs[i]
+        g.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? undefined })
+      }
+      return g
+    }
     clearWrongState()
+    if (t > 0) {
+      // Arată poziția dinainte de mutarea adversarului (solutionMoves[t-1]), apoi o animează.
+      setPuzzleState(s => s ? { ...s, game: build(t - 1), currentMoveIdx: t - 1, status: 'playing', waitingOpponent: true } : null)
+      setTimeout(() => {
+        setPuzzleState(s => s ? { ...s, game: build(t), currentMoveIdx: t, status: 'playing', waitingOpponent: false } : null)
+      }, 450)
+    } else {
+      setPuzzleState(s => s ? { ...s, game: build(0), currentMoveIdx: 0, status: 'playing', waitingOpponent: false } : null)
+    }
+  }
+
+  // „Înapoi": la decizia ta anterioară. Din „greșit", prima apăsare reia poziția curentă
+  // (re-animează mutarea adversarului și poți re-juca). Aterizează mereu pe rândul tău.
+  function stepBack() {
+    if (!puzzleState || puzzleState.waitingOpponent) return
+    const cur = puzzleState.currentMoveIdx
+    const target = puzzleState.status === 'wrong' ? cur : cur - 2
+    goToPlayerPosition(Math.max(1, target))
+  }
+
+  // „Înainte": spre poziția curentă (cea mai avansată), o mutare completă odată.
+  function stepForward() {
+    if (!puzzleState || puzzleState.waitingOpponent) return
+    goToPlayerPosition(Math.min(maxPly, puzzleState.currentMoveIdx + 2))
   }
 
   // Încarcă un puzzle din banda corespunzătoare offset-ului (relativ la rating-ul curent)
@@ -380,34 +502,60 @@ export function PuzzlesPage() {
 
     setNextLoading(true)
     try {
-      const { data } = await supabase.from('puzzles').select('*')
-        .gte('rating', band.floor)
-        .lt('rating', band.ceil)
-        .limit(40)
-      const pool = (data ?? []) as Puzzle[]
-      if (pool.length >= 1) {
-        loadPuzzle(pool[Math.floor(Math.random() * pool.length)])
+      // Serverul alege unul pe care nu l-ai mai văzut. Înainte luam primele 40
+      // rânduri din bandă, fără ordonare — adică mereu aceleaşi.
+      const { data, error } = await supabase.rpc('next_puzzle_for', {
+        p_floor: band.floor,
+        p_ceil: band.ceil,
+      })
+
+      if (!error) {
+        const res = data as { puzzle: Puzzle | null; unseen_left: number; band_total: number }
+        if (res.puzzle) {
+          loadPuzzle(res.puzzle)
+          // Se apropie de fundul benzii: aducem altele în fundal, ca data
+          // viitoare să existe din ce alege.
+          if (res.unseen_left <= TOP_UP_THRESHOLD) void topUpBand(band)
+          return
+        }
+        // Banda e goală de tot — aducem unul de la Lichess, cu aşteptare.
+        loadPuzzle(await fetchAndStore(band))
         return
       }
-      // Fallback Lichess (mijlocul benzii)
-      const lp = await fetchLichessPuzzleNext(eloToDifficulty(band.floor + 100))
-      const puzzle = lichessPuzzleToLocal(lp)
-      await supabase.from('puzzles').upsert(
-        { id: puzzle.id, fen: puzzle.fen, moves: puzzle.moves, rating: puzzle.rating, themes: puzzle.themes, game_url: puzzle.game_url },
-        { onConflict: 'id' }
-      )
-      loadPuzzle(puzzle)
-    } catch {
+
+      // RPC-ul lipseşte (migrarea 037 neaplicată) sau a eşuat. Nu lăsăm pagina
+      // moartă din cauza asta: încărcăm din bandă ca înainte. Se pot repeta
+      // puzzle-uri, dar măcar există puzzle-uri.
+      console.warn('[puzzles] next_puzzle_for a eşuat, folosesc varianta simplă:', error)
+      const fallback = await loadFromBand(band)
+      if (fallback) {
+        loadPuzzle(fallback)
+        return
+      }
+      loadPuzzle(await fetchAndStore(band))
+    } catch (e) {
+      console.error('[puzzles] încărcare eşuată:', e)
       toast.error('Nu am putut încărca un puzzle nou.')
     } finally {
       setNextLoading(false)
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onPieceDrop = useCallback(({ sourceSquare: source, targetSquare: target }: any) => {
+  // Încarcă primul puzzle când avem rating (banda curentă).
+  // Declarat după `loadNext` ca efectul să prindă versiunea din render-ul curent.
+  useEffect(() => {
+    if (puzzleRating != null && !currentPuzzle) {
+      void loadNext(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleRating])
+
+  // Logica unei mutări, independentă de sursa ei (drag sau click-to-move).
+  const tryMove = useCallback((source: string, target: string) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
     if (!currentPuzzle) return false
+    // În timpul derulării poți ajunge la o poziție unde e rândul adversarului — atunci nu se mută.
+    if (puzzleState.game.turn() !== (playerColor === 'white' ? 'w' : 'b')) return false
 
     const expectedMove = puzzleState.solutionMoves[puzzleState.currentMoveIdx]
     if (!expectedMove) return false
@@ -418,22 +566,55 @@ export function PuzzlesPage() {
       const gameCopy = new Chess(puzzleState.game.fen())
       gameCopy.move({ from: source, to: target, promotion: 'q' })
 
-      const isCorrect = myMove === expectedMove.slice(0, 4)
+      const fenBeforeMove = puzzleState.game.fen()
+      const correctUci = expectedMove.slice(0, 4)
+
+      // Poziţia la care duce soluţia — pentru comparaţiile de mai jos.
+      const scripted = new Chess(fenBeforeMove)
+      scripted.move({
+        from: correctUci.slice(0, 2),
+        to: correctUci.slice(2, 4),
+        promotion: expectedMove[4] ?? 'q',
+      })
+
+      // Aceeaşi poziţie, altă notaţie: rocada se poate scrie e1g1 sau e1h1, iar
+      // promovarea diferă prin ultima literă. Nu e altă mutare, e aceeaşi.
+      const sameOutcome = gameCopy.fen() === scripted.fen()
+
+      const isCorrect = myMove === correctUci || sameOutcome
+
+      // Matul dat cu altă piesă decât cea din soluţie rămâne mat. Verificarea
+      // veche compara şiruri, deci îl respingea — de aici pornise problema.
+      // Nu întrebăm motorul: partida s-a terminat, n-are ce să adauge.
+      if (!isCorrect && gameCopy.isCheckmate()) {
+        const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
+        setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'correct' } : null)
+        setMaxPly(puzzleState.currentMoveIdx)
+        setMoveExplanation({
+          type: 'near-equal',
+          message: acceptanceMessage('mate', uciToSan(fenBeforeMove, correctUci)),
+        })
+        toast.success('Corect!')
+        const xpMate = computeSolveXp(currentPuzzle.rating)
+        attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpMate })
+        registerSolve(xpMate)
+        applyRating(true)
+        return true
+      }
 
       if (!isCorrect) {
-        const fenBeforeMove = puzzleState.game.fen()
         const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
-        const correctUci = expectedMove.slice(0, 4)
 
         const contextMessage = analyzeWrongMove(
           fenBeforeMove, myMove, correctUci, currentPuzzle.themes
         )
 
         puzzlePerfectRef.current = false
-        pendingHintRef.current = buildSpecificHint(fenBeforeMove, correctUci, currentPuzzle.themes)
+        pendingHintRef.current = buildSpecificHint(currentPuzzle.themes)
         setWrongFen(fenBeforeMove)
         setPlayerMoveSan(uciToSan(fenBeforeMove, myMove))
         setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'wrong' } : null)
+        setMaxPly(puzzleState.currentMoveIdx)
         setWrongMoveFrom(source)
         setWrongMoveTo(target)
         setExpectedMoveUci(correctUci)
@@ -446,62 +627,49 @@ export function PuzzlesPage() {
         setEvalLoading(true)
         void (async () => {
           try {
-            const evalData = await fetchLichessCloudEval(fenBeforeMove, 5)
-            if (evalData?.pvs?.length) {
-              const bestPv = evalData.pvs[0]
-              const bestCp = bestPv.cp
-              const playerPv = evalData.pvs.find(pv => pv.moves.startsWith(myMove))
-              const playerCp = playerPv?.cp
-              const isNearEqual =
-                bestCp !== undefined && playerCp !== undefined &&
-                bestPv.mate === undefined && playerPv?.mate === undefined &&
-                Math.abs(bestCp - playerCp) <= 20
+            // Motorul local, nu baza Lichess: aceea are doar poziţiile pe care
+            // le-a căutat cineva înainte, deci pe majoritatea puzzle-urilor
+            // răspundea „nu ştiu" şi verificarea nu se făcea deloc.
+            //
+            // Comparăm poziţiile REZULTATE: una după mutarea ta, una după cea
+            // din soluţie. Amândouă evaluate cu adversarul la mutare, deci
+            // direct comparabile.
+            // Una după alta, nu `Promise.all`: e un singur motor, iar a doua
+            // cerere ar întrerupe-o pe prima şi amândouă ar da rezultate
+            // amestecate.
+            const playedEval = await evalPosition(gameCopy.fen(), 12)
+            const expectedEval = await evalPosition(scripted.fen(), 12)
 
-              if (isNearEqual) {
-                const bestMoveUci = bestPv.moves.split(' ')[0]
-                const playerIsBest = myMove === bestMoveUci
-
-                const nearEqualAlternatives = evalData.pvs
-                  .filter(pv => {
-                    const pvFirst = pv.moves.split(' ')[0]
-                    return pvFirst !== myMove &&
-                      pv.cp !== undefined && bestCp !== undefined &&
-                      pv.mate === undefined &&
-                      Math.abs(bestCp - pv.cp) <= 20
-                  })
-                  .map(pv => uciToSan(fenBeforeMove, pv.moves.split(' ')[0]))
-
-                let message: string
-                if (playerIsBest) {
-                  message = nearEqualAlternatives.length > 0
-                    ? `Excelent! Ai ales cea mai bună mutare. Mai există ${nearEqualAlternatives.length === 1 ? 'o variantă la fel de bună' : `${nearEqualAlternatives.length} variante la fel de bune`} în această poziție — descoperă alternativele.`
-                    : 'Excelent! Ai ales cea mai bună mutare din această poziție!'
-                } else {
-                  const bestSan = uciToSan(fenBeforeMove, bestMoveUci)
-                  message = `Mutarea ta este bună! Motorul preferă ${bestSan}, dar diferența este neglijabilă.`
-                }
-
-                setMoveExplanation({
-                  type: 'near-equal',
-                  message,
-                  nearEqualAlternatives: nearEqualAlternatives.length > 0 ? nearEqualAlternatives : undefined,
-                })
-                setPuzzleState(s => s ? { ...s, status: 'correct' } : null)
-                setWrongMoveFrom(null)
-                setWrongMoveTo(null)
-                setExpectedMoveUci(null)
-                const xpNear = computeSolveXp(currentPuzzle.rating)
-                attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpNear })
-                registerSolve(xpNear)
-                applyRating(true)
-                return
-              }
+            if (isAtLeastAsGood(playedEval, expectedEval)) {
+              setMoveExplanation({
+                type: 'near-equal',
+                message: acceptanceMessage('equal', uciToSan(fenBeforeMove, correctUci)),
+              })
+              setPuzzleState(s => s ? { ...s, status: 'correct' } : null)
+              setWrongMoveFrom(null)
+              setWrongMoveTo(null)
+              setExpectedMoveUci(null)
+              setEvalLoading(false)
+              toast.success('Corect!')
+              const xpNear = computeSolveXp(currentPuzzle.rating)
+              attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpNear })
+              registerSolve(xpNear)
+              applyRating(true)
+              return
             }
-          } catch { /* keep contextual message */ }
+          } catch {
+            // Motorul n-a răspuns: rămâne verdictul euristic de mai sus.
+            console.warn('[puzzles] verificarea de echivalenţă a eşuat')
+          }
           finally { setEvalLoading(false) }
-          if (evalBarEnabled) void pushEval(gameCopy.fen())
           registerWrong()
-          attemptMutation.mutate({ solved: false, timeSeconds: elapsed, xpAmount: 0 })
+          // Dacă ai folosit un indiciu (nivel 1/2) și tot ai greșit → −1 XP, o singură dată.
+          let failPenalty = 0
+          if ((hintLevelRef.current === 1 || hintLevelRef.current === 2) && !hintFailAppliedRef.current) {
+            failPenalty = -HINT_FAIL_PENALTY
+            hintFailAppliedRef.current = true
+          }
+          attemptMutation.mutate({ solved: false, timeSeconds: elapsed, xpAmount: failPenalty })
           applyRating(false)
         })()
 
@@ -513,25 +681,26 @@ export function PuzzlesPage() {
 
       if (isLast) {
         setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'correct', currentMoveIdx: nextIdx } : null)
+        setMaxPly(nextIdx)
         const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
         toast.success('Corect!')
         const xpSolve = computeSolveXp(currentPuzzle.rating)
         attemptMutation.mutate({ solved: true, timeSeconds: elapsed, xpAmount: xpSolve })
         registerSolve(xpSolve)
         applyRating(true)
-        void pushEval(gameCopy.fen())
         return true
       }
 
       const opponentMove = puzzleState.solutionMoves[nextIdx]
       setPuzzleState(s => s ? { ...s, game: gameCopy, currentMoveIdx: nextIdx, waitingOpponent: true } : null)
+      setMaxPly(nextIdx)
 
       setTimeout(() => {
         try {
           const g2 = new Chess(gameCopy.fen())
           g2.move({ from: opponentMove.slice(0, 2), to: opponentMove.slice(2, 4), promotion: opponentMove[4] ?? undefined })
           setPuzzleState(s => s ? { ...s, game: g2, currentMoveIdx: nextIdx + 1, waitingOpponent: false } : null)
-          if (evalBarEnabled) void pushEval(g2.fen())
+          setMaxPly(nextIdx + 1)
         } catch { /* skip */ }
       }, 500)
 
@@ -539,10 +708,18 @@ export function PuzzlesPage() {
     } catch {
       return false
     }
-  }, [puzzleState, currentPuzzle, attemptMutation, evalBarEnabled, setEvalHistory, pushEval])
+  }, [puzzleState, currentPuzzle, playerColor, attemptMutation, applyRating, computeSolveXp, evalPosition])
+
+  // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
+  const onPieceDrop = useCallback(
+    ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+      targetSquare ? tryMove(sourceSquare, targetSquare) : false,
+    [tryMove]
+  )
 
   const onSquareClick = useCallback(({ square }: { square: string; piece?: unknown }) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return
+    if (puzzleState.game.turn() !== (playerColor === 'white' ? 'w' : 'b')) return
 
     const piece = puzzleState.game.get(square as Parameters<typeof puzzleState.game.get>[0])
     const isMyPiece = piece && piece.color === (playerColor === 'white' ? 'w' : 'b')
@@ -562,22 +739,35 @@ export function PuzzlesPage() {
       return
     }
 
-    const ok = onPieceDrop({ sourceSquare: selectedSquare, targetSquare: square })
+    const ok = tryMove(selectedSquare, square)
     const from = selectedSquare
     setSelectedSquare(null)
     if (!ok) {
       setShakingSquare(from)
       setTimeout(() => setShakingSquare(null), 1500)
     }
-  }, [puzzleState, selectedSquare, playerColor, onPieceDrop])
+  }, [puzzleState, selectedSquare, playerColor, tryMove])
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
   const hasRating = puzzleRating != null
 
+  // `currentBand` a dispărut odată cu antetul: banda curentă se vede în
+  // selectorul „Interval de Elo" din şina dreaptă, care o şi evidenţiază.
   const bands = hasRating ? accessibleBands(puzzleRating!) : []
-  const currentBand = hasRating ? bandForRating(puzzleRating!) : null
 
-  const boardSquareStyles: Record<string, React.CSSProperties> = {
+  // Cât timp parcurgem refutarea, tabla arată linia motorului, nu poziţia
+  // puzzle-ului. Ieşirea din parcurgere readuce totul de unde a rămas.
+  const inRefutation = refutation !== null
+  const refuMoveIdx = refuPly - 1   // mutarea care a dus la poziţia curentă
+
+  const boardSquareStyles: Record<string, React.CSSProperties> = inRefutation
+    ? (refuMoveIdx >= 0 && refutation
+        ? {
+            [refutation.from[refuMoveIdx]]: { backgroundColor: 'rgba(226,179,64,0.35)' },
+            [refutation.to[refuMoveIdx]]: { backgroundColor: 'rgba(226,179,64,0.6)' },
+          }
+        : {})
+    : {
     ...(wrongMoveFrom && wrongMoveTo ? {
       [wrongMoveFrom]: { backgroundColor: 'rgba(251, 191, 36, 0.35)' },
       [wrongMoveTo]: { backgroundColor: 'rgba(249, 115, 22, 0.55)' },
@@ -596,83 +786,92 @@ export function PuzzlesPage() {
     } : {}),
   }
 
-  const boardArrows = [
-    ...(wrongMoveFrom && wrongMoveTo ? [{ startSquare: wrongMoveFrom, endSquare: wrongMoveTo, color: '#f97316' }] : []),
-    ...(hintLevel >= 3 && expectedMoveUci ? [{ startSquare: expectedMoveUci.slice(0, 2), endSquare: expectedMoveUci.slice(2, 4), color: '#E2B340' }] : []),
-  ]
+  const boardArrows = inRefutation
+    ? (refuMoveIdx >= 0 && refutation
+        ? [{
+            startSquare: refutation.from[refuMoveIdx],
+            endSquare: refutation.to[refuMoveIdx],
+            color: '#E2B340',
+          }]
+        : [])
+    : [
+        ...(wrongMoveFrom && wrongMoveTo ? [{ startSquare: wrongMoveFrom, endSquare: wrongMoveTo, color: '#f97316' }] : []),
+        ...(hintLevel >= 3 && expectedMoveUci ? [{ startSquare: expectedMoveUci.slice(0, 2), endSquare: expectedMoveUci.slice(2, 4), color: '#E2B340' }] : []),
+      ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#F0F0F0]">Puzzle-uri</h1>
-          <p className="text-[#6B6B6B] text-sm mt-0.5">
-            {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} azi`}
-            {currentBand && (
-              <> · <span style={{ color: offsetColor(0) }}>Interval Elo {currentBand.label}</span></>
-            )}
-            {currentPuzzle && (
-              <> · <span className="text-[#F0F0F0] font-medium">puzzle ELO {currentPuzzle.rating}</span></>
-            )}
-          </p>
-        </div>
+    <div className="space-y-4">
+      {/* Provocările zilei, cu rating-ul pe acelaşi rând.
+          Stăteau pe rânduri separate şi împingeau tabla sub marginea ecranului;
+          caseta de rating e oricum mai înaltă decât titlul, deci alăturarea lor
+          nu costă niciun pixel în plus. */}
+      <div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-base font-bold text-[#F0F0F0] uppercase tracking-wider">Provocările zilei</h2>
 
-        {/* Rating curent — stil chess.com */}
-        {hasRating && (
-        <div className="flex items-center gap-3">
-          {winStreak > 0 && (
-            <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
-              <Flame className="h-4 w-4" /> {winStreak}
-            </span>
-          )}
-          <div className="relative rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-2 text-center">
-            <p className="text-[10px] uppercase tracking-wider text-[#6B6B6B] flex items-center justify-center gap-1">
-              <Target className="h-3 w-3" /> Rating-ul tău
-            </p>
-            <p className="text-2xl font-black text-[#F0F0F0] leading-tight tabular-nums">{puzzleRating}</p>
-            {lastDelta !== null && lastDelta !== 0 && (
-              <span
-                className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#FB7185] text-black'}`}
-                style={{ animation: 'xp-float 2.2s ease-out forwards' }}
-              >
-                {lastDelta > 0 ? `+${lastDelta}` : lastDelta}
+          <div className="flex items-center gap-3">
+            {!isPro && (
+              <span className="text-sm text-[#6B6B6B]">
+                {todayCount} / {FREE_LIMIT} azi
               </span>
+            )}
+
+            {/* Rating curent — stil chess.com */}
+            {hasRating && (
+            <>
+              {winStreak > 0 && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
+                  <Flame className="h-4 w-4" /> {winStreak}
+                </span>
+              )}
+              <div className="relative rounded-xl border border-[#2A2A2A] bg-[#141414] px-4 py-1.5 text-center">
+                <p className="text-[10px] uppercase tracking-wider text-[#6B6B6B] flex items-center justify-center gap-1">
+                  <Target className="h-3 w-3" /> Rating-ul tău
+                </p>
+                <p className="text-xl font-black text-[#F0F0F0] leading-tight tabular-nums">{puzzleRating}</p>
+                {lastDelta !== null && lastDelta !== 0 && (
+                  <span
+                    className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-black shadow-lg ${lastDelta > 0 ? 'bg-[#4ade80] text-black' : 'bg-[#FB7185] text-black'}`}
+                    style={{ animation: 'xp-float 2.2s ease-out forwards' }}
+                  >
+                    {lastDelta > 0 ? `+${lastDelta}` : lastDelta}
+                  </span>
+                )}
+              </div>
+            </>
             )}
           </div>
         </div>
-        )}
-      </div>
-
-      {/* Provocările zilei — mereu vizibile, fără plasament */}
-      <div>
-        <h2 className="text-sm font-bold text-[#F0F0F0] uppercase tracking-wider mb-3">Provocările zilei</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {(['zi', 'contra', 'satisf'] as DailyKind[]).map(kind => {
             const p = daily[kind]
             const Icon = kind === 'zi' ? Calendar : kind === 'contra' ? Lightbulb : Sparkles
             const active = mode === 'daily' && dailyKind === kind
             return (
+              // Fără subtitlu: „Provocarea de azi, aceeaşi pentru toţi" nu spunea
+              // nimic ce nu se vedea deja din titlu, şi împingea tabla în jos.
               <button
                 key={kind}
                 onClick={() => loadDaily(kind)}
                 disabled={!p}
                 className={cn(
-                  'text-left rounded-2xl border p-4 transition-all disabled:opacity-50',
+                  'flex items-center gap-3 text-left rounded-xl border p-3 transition-all disabled:opacity-50',
                   active
                     ? 'border-[rgba(226,179,64,0.55)] bg-[rgba(226,179,64,0.06)] shadow-[0_0_18px_rgba(226,179,64,0.12)]'
                     : 'border-[#2A2A2A] bg-[#141414] hover:border-[#3A3A3A] hover:-translate-y-0.5'
                 )}
               >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(226,179,64,0.12)] text-[#E2B340]">
-                    <Icon className="h-4 w-4" />
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(226,179,64,0.12)] text-[#E2B340]">
+                  <Icon className="h-4.5 w-4.5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold text-[#F0F0F0]">
+                    {DAILY_META[kind].title}
                   </span>
-                  <span className="font-display font-bold text-sm text-[#F0F0F0]">{DAILY_META[kind].title}</span>
-                </div>
-                <p className="text-xs text-[#6B6B6B] leading-relaxed">{DAILY_META[kind].subtitle}</p>
-                <p className="text-[11px] mt-2 font-semibold text-[#E2B340]">
-                  {p ? `Rezolvă · ELO ${p.rating}` : 'Indisponibil azi'}
-                </p>
+                  <span className="block text-xs font-semibold text-[#E2B340]">
+                    {p ? `Rezolvă · ELO ${p.rating}` : 'Indisponibil azi'}
+                  </span>
+                </span>
               </button>
             )
           })}
@@ -702,39 +901,6 @@ export function PuzzlesPage() {
         </button>
       )}
 
-      {/* Selector pe 3 benzi: inferioară / curentă / superioară (doar rated) */}
-      {hasRating && mode === 'rated' && (
-      <div className="flex gap-2 flex-wrap">
-        {bands.map(({ offset, band, gain, loss }) => (
-          <button
-            key={offset}
-            onClick={() => void loadNext(offset)}
-            disabled={limitReached || nextLoading}
-            className={cn(
-              'flex flex-col items-start gap-0.5 rounded-xl px-4 py-2.5 text-sm font-semibold border-2 transition-all disabled:opacity-50',
-              activeOffset === offset
-                ? 'text-black border-transparent'
-                : 'bg-transparent text-[#A0A0A0] border-[#2A2A2A] hover:border-[#3A3A3A] hover:text-[#F0F0F0]'
-            )}
-            style={activeOffset === offset ? { backgroundColor: offsetColor(offset), borderColor: offsetColor(offset) } : {}}
-          >
-            <span className="flex items-center gap-1.5">
-              {offsetLabel(offset)}
-              <span className="opacity-70 font-normal">· {band.label}</span>
-            </span>
-            <span className={cn('text-xs font-bold', activeOffset === offset ? 'text-black/70' : '')}>
-              <span className={activeOffset === offset ? '' : 'text-[#4ade80]'}>+{gain}</span>
-              {' / '}
-              <span className={activeOffset === offset ? '' : 'text-[#FB7185]'}>−{loss}</span>
-            </span>
-          </button>
-        ))}
-        <Button variant="secondary" size="sm" className="ml-auto self-center" onClick={handleSkipPuzzle} disabled={limitReached || nextLoading}>
-          <RefreshCw className={`h-4 w-4 ${nextLoading ? 'animate-spin' : ''}`} /> Puzzle nou
-        </Button>
-      </div>
-      )}
-
       {limitReached && (
         <div className="rounded-xl bg-[rgba(226,179,64,0.08)] border border-[rgba(226,179,64,0.3)] p-4 text-center">
           <p className="text-[#E2B340] font-semibold">Ai atins limita zilnică de {FREE_LIMIT} puzzle-uri</p>
@@ -745,40 +911,182 @@ export function PuzzlesPage() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Coloana din dreapta (acțiuni/rating/interval) e mai lată ca textul butoanelor
+          să intre pe un singur rând; containerul e lărgit ca panoul să folosească marginea din dreapta. */}
+      {/* Coloanele şi plafonul de lăţime stau în `.board-grid` (index.css):
+          aveau nevoie de un `calc` cu --board-max, care ca şir de utilitare
+          arbitrare ar fi fost de necitit. */}
+      <div className="board-grid">
+        {/* Panou stânga — explicația mutării greșite (sus, în zona liberă din stânga tablei) */}
+        <div className="xl:order-1 order-2 space-y-4">
+          {puzzleState?.status === 'wrong' && (
+            <Card className="p-4 space-y-2 border-[rgba(251,191,36,0.4)]">
+              <div className="flex items-center gap-2">
+                {evalLoading
+                  ? <Loader2 className="h-4 w-4 animate-spin text-[#fbbf24]" />
+                  : <Info className="h-4 w-4 text-[#fbbf24]" />}
+                <p className="text-sm font-bold text-[#fbbf24]">Mai gândește-te</p>
+              </div>
+              {/* Feedback inițial DOAR până apeși un indiciu (hintLevel 0). L1 = întrebare orientativă.
+                  L2+ = doar highlight pe piesă, fără niciun text.
+                  Verdictul Căluțului savant, când există, îl înlocuiește pe cel
+                  euristic: e scris pe poziția reală, nu pe tiparul tacticii. */}
+              {evalLoading ? (
+                <p className="text-sm text-[#A0A0A0]">Se analizează poziția...</p>
+              ) : hintLevel === 0 && (refuCoach?.verdict || moveExplanation) ? (
+                <p className="text-sm text-[#F0F0F0] leading-relaxed">
+                  {refuCoach?.verdict || moveExplanation?.message}
+                </p>
+              ) : hintLevel === 1 && secondHint ? (
+                <div className="rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] p-2.5">
+                  <p className="text-sm text-[#F0C85A]">{secondHint}</p>
+                </div>
+              ) : null}
+
+              {/* „De ce nu merge" — motorul calculează refutarea, antrenorul o
+                  comentează. Fără asta, o greșeală te învață doar că ai greșit. */}
+              {!inRefutation && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="w-full"
+                  disabled={refuLoading}
+                  onClick={() => void startRefutation()}
+                >
+                  {refuLoading
+                    ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Calculez…</>
+                    : <>Arată de ce nu merge</>}
+                </Button>
+              )}
+            </Card>
+          )}
+
+          {/* Parcurgerea refutării */}
+          {inRefutation && refutation && (
+            <Card className="space-y-3 border-[rgba(226,179,64,0.35)] p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-[#E2B340]">Ce urmează după mutarea ta</p>
+                <button
+                  onClick={() => { setRefutation(null); setRefuPly(0) }}
+                  title="Închide"
+                  className="rounded p-1 text-[#6B6B6B] transition-colors hover:bg-[#2A2A2A] hover:text-[#F0F0F0]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Mutările liniei, ca butoane — poți sări direct unde vrei */}
+              <div className="flex flex-wrap gap-1.5">
+                {refutation.sans.map((san, i) => (
+                  <button
+                    key={`${san}-${i}`}
+                    onClick={() => setRefuPly(i + 1)}
+                    className={[
+                      'rounded px-2 py-1 font-mono text-sm transition-colors',
+                      refuPly === i + 1
+                        ? 'bg-[rgba(226,179,64,0.2)] text-[#E2B340]'
+                        : 'text-[#A0A0A0] hover:bg-[#1F1F1F] hover:text-[#F0F0F0]',
+                    ].join(' ')}
+                  >
+                    {translateNotation(san)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Nota Căluțului savant pentru mutarea curentă */}
+              <div className="min-h-16 rounded-lg border border-[#2A2A2A] bg-[#141414] p-3">
+                {refuCoachLoading ? (
+                  <p className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Căluțul savant se uită la linie…
+                  </p>
+                ) : refuPly === 0 ? (
+                  <p className="text-sm text-[#A0A0A0]">
+                    Poziția de după mutarea ta. Mergi înainte ca să vezi cum răspunde adversarul.
+                  </p>
+                ) : refuCoach?.notes?.[refuMoveIdx] ? (
+                  <p className="text-sm leading-relaxed text-[#F0F0F0]">
+                    {refuCoach.notes[refuMoveIdx]}
+                  </p>
+                ) : (
+                  <p className="text-sm text-[#6B6B6B]">
+                    {translateNotation(refutation.sans[refuMoveIdx])} — urmărește ce se schimbă pe tablă.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setRefuPly(p => Math.max(0, p - 1))}
+                  disabled={refuPly === 0}
+                  className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Înapoi
+                </button>
+                <button
+                  onClick={() => setRefuPly(p => Math.min(refutation.sans.length, p + 1))}
+                  disabled={refuPly >= refutation.sans.length}
+                  className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Înainte <ChevronRight className="h-4 w-4" />
+                </button>
+                <span className="ml-auto text-xs tabular-nums text-[#6B6B6B]">
+                  {refuPly} / {refutation.sans.length}
+                </span>
+              </div>
+            </Card>
+          )}
+        </div>
+
         {/* Tablă */}
-        <div className="lg:col-span-2">
+        <div className="xl:order-2 order-1 relative min-w-0">
+          {/* „Cum funcționează rating-ul" — popover flotant, centrat deasupra tablei; nu deplasează layout-ul */}
+          {showRatingInfo && (
+            <div className="absolute left-1/2 top-1 z-30 w-[min(94%,26rem)] -translate-x-1/2 rounded-xl border border-[#2A2A2A] bg-[#141414]/95 backdrop-blur-sm shadow-2xl p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-xs text-[#6B6B6B] uppercase tracking-wider">Cum funcționează rating-ul</p>
+                <button onClick={() => setShowRatingInfo(false)} className="-mr-1 -mt-1 rounded p-1 text-[#6B6B6B] hover:text-[#F0F0F0] hover:bg-[#2A2A2A] transition-colors">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <ul className="space-y-1.5 text-sm text-[#A0A0A0]">
+                <li>• Joci doar din 3 intervale de Elo: sub tine, al tău și peste tine</li>
+                <li>• Intervalul tău: <span className="text-[#4ade80]">+5</span> / <span className="text-[#FB7185]">−5</span> · sub tine: <span className="text-[#4ade80]">+3</span> / <span className="text-[#FB7185]">−7</span> · peste tine: <span className="text-[#4ade80]">+7</span> / <span className="text-[#FB7185]">−3</span></li>
+                <li>• 5 corecte la rând → urci automat la intervalul de Elo superior</li>
+              </ul>
+              <button onClick={() => { setShowRatingInfo(false); navigate('/puzzles/placement') }} className="mt-3 text-xs text-[#A0A0A0] hover:text-[#E2B340] transition-colors underline underline-offset-2">
+                Refă testul de plasament
+              </button>
+            </div>
+          )}
           {nextLoading && !puzzleState ? (
             <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
           ) : puzzleState ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium text-[#F0F0F0]">
-                {puzzleState.status === 'playing' && !puzzleState.waitingOpponent
+                {puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b')
                   ? <><span className="text-[#E2B340]">Mutarea ta!</span> Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
                   : <>Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
                 }
               </div>
+              {/* Aceeaşi latură ca în Cufărul cu tactici — vezi --board-max */}
               <div className="flex gap-2 items-stretch">
-                {(evalBarEnabled || puzzleState.status === 'correct') && boardEval !== null && (
-                  <EvalBar
-                    cp={boardEval.cp}
-                    mate={boardEval.mate}
-                    prevCp={prevBoardEval?.cp}
-                    prevMate={prevBoardEval?.mate}
-                    orientation={playerColor}
-                  />
-                )}
-                <div className="relative flex-1 rounded-xl overflow-hidden border border-[#2A2A2A]">
+                <div
+                  className="relative w-full rounded-xl overflow-hidden border border-[#2A2A2A]"
+                  style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+                >
                   <Chessboard
                     options={{
-                      position: puzzleState.game.fen(),
+                      position: inRefutation && refutation
+                        ? refutation.fens[refuPly]
+                        : puzzleState.game.fen(),
                       onPieceDrop,
                       onSquareClick,
-                      allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent,
+                      allowDragging: !inRefutation && puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b'),
                       boardOrientation: playerColor,
                       boardStyle: { borderRadius: 0 },
-                      darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                      darkSquareStyle,
+                      lightSquareStyle,
                       squareStyles: boardSquareStyles,
                       arrows: boardArrows,
                     }}
@@ -792,32 +1100,37 @@ export function PuzzlesPage() {
                     </div>
                   )}
 
-                  {puzzleState.status === 'wrong' && (
-                    <div className="absolute top-0 left-0 right-0 z-20 p-2">
-                      <div
-                        className="mx-auto max-w-md rounded-xl border border-[rgba(251,191,36,0.45)] bg-[#1C1C1C]/95 backdrop-blur-sm shadow-2xl p-3 space-y-2"
-                        style={{ animation: 'pop-in 0.25s ease-out' }}
-                      >
-                        <div className="flex items-center gap-2">
-                          {evalLoading
-                            ? <Loader2 className="h-4 w-4 animate-spin text-[#fbbf24]" />
-                            : <Info className="h-4 w-4 text-[#fbbf24]" />}
-                          <p className="text-sm font-bold text-[#fbbf24]">Mai gândește-te</p>
-                        </div>
-                        {evalLoading ? (
-                          <p className="text-sm text-[#A0A0A0]">Se analizează poziția...</p>
-                        ) : moveExplanation ? (
-                          <p className="text-sm text-[#F0F0F0] leading-relaxed">{moveExplanation.message}</p>
-                        ) : null}
-                        {secondHint && (
-                          <div className="rounded-lg bg-[rgba(226,179,64,0.1)] border border-[rgba(226,179,64,0.3)] p-2.5">
-                            <p className="text-sm text-[#F0C85A]">{secondHint}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
+              </div>
+
+              {/* Navigare prin mutări — la fiecare pas se animează mutarea adversarului,
+                  apoi e rândul tău: poți muta imediat ce o vezi. */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={stepBack}
+                  disabled={puzzleState.waitingOpponent || (puzzleState.currentMoveIdx <= 1 && puzzleState.status !== 'wrong')}
+                  title="Înapoi la mutarea ta anterioară"
+                  className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Înapoi
+                </button>
+                {puzzleState.currentMoveIdx < maxPly && (
+                  <button
+                    onClick={stepForward}
+                    disabled={puzzleState.waitingOpponent}
+                    title="Înainte, spre poziția curentă"
+                    className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Înainte <ChevronRight className="h-4 w-4" />
+                  </button>
+                )}
+                {puzzleState.currentMoveIdx < maxPly && (
+                  <span className="text-xs text-[#6B6B6B]">
+                    {puzzleState.waitingOpponent
+                      ? 'Se joacă mutarea adversarului…'
+                      : 'E rândul tău — mută ca să reiei de aici'}
+                  </span>
+                )}
               </div>
 
               {/* Corect (fără near-equal) */}
@@ -853,34 +1166,6 @@ export function PuzzlesPage() {
                 </div>
               )}
 
-              {/* Opțiuni — exact sub puzzle */}
-              {puzzleState.status === 'wrong' && (
-                <div className="flex gap-2 flex-wrap">
-                  <Button size="sm" variant="secondary" className="gap-2" onClick={resetToInitial}>
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    Reia poziția
-                  </Button>
-
-                  {hintLevel < 1 && (
-                    <Button size="sm" variant="secondary" onClick={() => useHint(1)}>
-                      Dă-mi un indiciu <span className="opacity-60 ml-1">· ¾ XP</span>
-                    </Button>
-                  )}
-                  {hintLevel < 2 && (
-                    <Button size="sm" variant="secondary" onClick={() => useHint(2)}>
-                      Arată ce trebuie să mut <span className="opacity-60 ml-1">· ¼ XP</span>
-                    </Button>
-                  )}
-                  {hintLevel < 3 && (
-                    <Button size="sm" variant="secondary" onClick={() => useHint(3)}>
-                      Nu mă prind, arată mutarea <span className="opacity-60 ml-1">· fără XP</span>
-                    </Button>
-                  )}
-
-                  <Button size="sm" className="ml-auto" onClick={mode === 'daily' ? backToChallenges : () => void loadNext(activeOffset)}>{mode === 'daily' ? 'Înapoi la provocări' : 'Următor'}</Button>
-                </div>
-              )}
-
               {puzzleState.waitingOpponent && (
                 <p className="text-sm text-[#6B6B6B] text-center">Adversarul mută...</p>
               )}
@@ -896,7 +1181,50 @@ export function PuzzlesPage() {
         </div>
 
         {/* Info puzzle */}
-        <div className="space-y-4">
+        <div className="space-y-4 xl:order-3 order-3">
+          {/* „Puzzle nou" — buton de sine stătător, sus dreapta */}
+          {hasRating && mode === 'rated' && (
+            <Button variant="secondary" size="md" className="w-full justify-center gap-2 text-base" onClick={handleSkipPuzzle} disabled={limitReached || nextLoading}>
+              <RefreshCw className={`h-4 w-4 ${nextLoading ? 'animate-spin' : ''}`} /> Puzzle nou
+            </Button>
+          )}
+
+          {/* Coach — buton de sine stătător, cu mascota în dreapta textului (tot centrat) */}
+          {puzzleState && (
+            <Button variant="secondary" size="md" className="w-full justify-center gap-2 text-base" onClick={() => setCoachOpen(true)}>
+              Consultă Căluțul savant
+              <MascotEnPassant size={22} />
+            </Button>
+          )}
+
+          {/* Acțiuni (indicii) — doar când ai greșit. Un singur indiciu pe puzzle:
+              după ce alegi unul, toate dispar. */}
+          {puzzleState?.status === 'wrong' && (
+            <Card className="p-4 space-y-2">
+              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">Acțiuni</p>
+              {hintLevel === 0 ? (
+                <>
+                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => revealHint(1)}>
+                    Dă-mi un indiciu <span className="opacity-60 ml-auto">−2 XP</span>
+                  </Button>
+                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => revealHint(2)}>
+                    Arată ce trebuie să mut <span className="opacity-60 ml-auto">−3 XP</span>
+                  </Button>
+                  <Button size="sm" variant="secondary" className="w-full justify-start" onClick={() => revealHint(3)}>
+                    Nu mă prind, arată mutarea <span className="opacity-60 ml-auto">fără XP</span>
+                  </Button>
+                </>
+              ) : (hintLevel === 1 || hintLevel === 2) ? (
+                <p className="text-xs text-[#fbbf24] leading-relaxed">
+                  Nimerește mutarea acum — dacă greșești, pierzi <span className="font-semibold">−1 XP</span> în plus.
+                </p>
+              ) : null}
+              <Button size="sm" className="w-full" onClick={mode === 'daily' ? backToChallenges : () => void loadNext(activeOffset)}>
+                {mode === 'daily' ? 'Înapoi la provocări' : 'Următor'}
+              </Button>
+            </Card>
+          )}
+
           {currentPuzzle && (
             <Card className="p-4 space-y-3">
               <div>
@@ -926,60 +1254,47 @@ export function PuzzlesPage() {
             </Card>
           )}
 
-          <Card className="p-4">
-            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Cum funcționează rating-ul</p>
-            <ul className="space-y-1.5 text-sm text-[#A0A0A0]">
-              <li>• Joci doar din 3 intervale de Elo: sub tine, al tău și peste tine</li>
-              <li>• Intervalul tău: <span className="text-[#4ade80]">+5</span> / <span className="text-[#FB7185]">−5</span> · sub tine: <span className="text-[#4ade80]">+3</span> / <span className="text-[#FB7185]">−7</span> · peste tine: <span className="text-[#4ade80]">+7</span> / <span className="text-[#FB7185]">−3</span></li>
-              <li>• 5 corecte la rând → urci automat la intervalul de Elo superior</li>
-            </ul>
-            <button
-              onClick={() => navigate('/puzzles/placement')}
-              className="mt-3 text-xs text-[#A0A0A0] hover:text-[#E2B340] transition-colors underline underline-offset-2"
-            >
-              Refă testul de plasament
-            </button>
-          </Card>
-
-          <Card className="p-4">
-            <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
-              <div>
-                <p className="text-sm text-[#F0F0F0] font-medium">Bara de evaluare</p>
-                <p className="text-xs text-[#6B6B6B] mt-0.5">Afișează evaluarea după fiecare mutare</p>
+          {/* Interval de Elo — mărit, lângă „Rating puzzle" */}
+          {hasRating && mode === 'rated' && (
+            <Card className="p-4">
+              <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Interval de Elo</p>
+              <div className="space-y-2">
+                {bands.map(({ offset, band, gain, loss }) => (
+                  <button
+                    key={offset}
+                    onClick={() => void loadNext(offset)}
+                    disabled={limitReached || nextLoading}
+                    className={cn(
+                      'w-full flex items-center justify-between rounded-xl px-4 py-2.5 border-2 transition-all disabled:opacity-50',
+                      activeOffset === offset
+                        ? 'text-black border-transparent'
+                        : 'bg-transparent text-[#A0A0A0] border-[#2A2A2A] hover:border-[#3A3A3A] hover:text-[#F0F0F0]'
+                    )}
+                    style={activeOffset === offset ? { backgroundColor: offsetColor(offset), borderColor: offsetColor(offset) } : {}}
+                  >
+                    <span className="text-sm font-bold tabular-nums">{band.label}</span>
+                    <span className={cn('text-sm font-bold', activeOffset === offset ? 'text-black/80' : '')}>
+                      <span className={activeOffset === offset ? '' : 'text-[#4ade80]'}>+{gain}</span>
+                      {' / '}
+                      <span className={activeOffset === offset ? '' : 'text-[#FB7185]'}>−{loss}</span>
+                    </span>
+                  </button>
+                ))}
               </div>
-              <button
-                role="switch"
-                aria-checked={evalBarEnabled}
-                onClick={() => {
-                  const next = !evalBarEnabled
-                  setEvalBarEnabled(next)
-                  if (next && puzzleState) void pushEval(puzzleState.game.fen())
-                }}
-                className={cn(
-                  'relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200',
-                  evalBarEnabled ? 'bg-[#E2B340]' : 'bg-[#2A2A2A]'
-                )}
-              >
-                <span
-                  className={cn(
-                    'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200',
-                    evalBarEnabled ? 'translate-x-4' : 'translate-x-0'
-                  )}
-                />
-              </button>
-            </label>
-          </Card>
 
-          {puzzleState && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="w-full gap-2"
-              onClick={() => setCoachOpen(true)}
-            >
-              Consultă-l pe En Passant
-            </Button>
+              {/* Explicaţia stă aici, lângă intervalele pe care le explică.
+                  Era un buton separat deasupra tablei şi o împingea în jos cu
+                  vreo 65px, degeaba. */}
+              <button
+                onClick={() => setShowRatingInfo(v => !v)}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 text-xs text-[#6B6B6B] transition-colors hover:text-[#E2B340]"
+              >
+                <Info className="h-3.5 w-3.5" /> Cum funcționează rating-ul
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showRatingInfo ? 'rotate-180' : ''}`} />
+              </button>
+            </Card>
           )}
+
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { X, Brain, Loader2, ChevronRight, ChevronLeft, Lightbulb, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useStockfish } from '@/hooks/useStockfish'
 import { useAuth } from '@/hooks/useAuth'
@@ -51,11 +51,6 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
   const current = positions[currentIdx] ?? null
 
   // ── Analysis pipeline ──────────────────────────────────────
-  useEffect(() => {
-    void run()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   async function run() {
     try {
       // 1. Fetch recent games
@@ -166,6 +161,15 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     }
   }
 
+  // Pornește analiza (Lichess + Stockfish) după commit-ul render-ului: `run` setează
+  // eticheta de progres sincron, iar un setState sincron în corpul efectului
+  // declanșează un render în cascadă. Declarat după `run` ca să prindă versiunea curentă.
+  useEffect(() => {
+    const t = setTimeout(() => void run(), 0)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // ── Puzzle interaction ────────────────────────────────────
   function startSolving(idx: number) {
     setCurrentIdx(idx)
@@ -186,9 +190,9 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     setShowBest(false)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onPieceDrop = useCallback(({ sourceSquare: from, targetSquare: to }: { sourceSquare: string; targetSquare: string | null; [k: string]: any }) => {
-    if (!to || !current || moveResult !== null) return false
+  // Logica unei mutări, independentă de sursa ei (drag sau click-to-move).
+  const tryMove = useCallback((from: string, to: string) => {
+    if (!current || moveResult !== null) return false
     try {
       const g = new Chess(current.fen)
       const result = g.move({ from, to, promotion: 'q' })
@@ -201,6 +205,13 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
       return true
     } catch { return false }
   }, [current, moveResult])
+
+  // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
+  const onPieceDrop = useCallback(
+    ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+      targetSquare ? tryMove(sourceSquare, targetSquare) : false,
+    [tryMove]
+  )
 
   const onSquareClick = useCallback(({ square }: { square: string }) => {
     if (!current || moveResult !== null) return
@@ -215,8 +226,8 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     if (square === selectedSquare) { setSelectedSquare(null); return }
     if (isMyPiece) { setSelectedSquare(square); return }
 
-    onPieceDrop({ sourceSquare: selectedSquare, targetSquare: square })
-  }, [current, moveResult, selectedSquare, onPieceDrop])
+    tryMove(selectedSquare, square)
+  }, [current, moveResult, selectedSquare, tryMove])
 
   async function askHint() {
     if (!current || !user) return
@@ -434,7 +445,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                     >
                       {hintLoading
                         ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Gândesc...</>
-                        : <><Lightbulb className="h-3.5 w-3.5" /> Indiciu de la Dl. En Passant</>
+                        : <><Lightbulb className="h-3.5 w-3.5" /> Indiciu de la Căluțul savant</>
                       }
                     </Button>
                     <Button
@@ -453,7 +464,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                 <div className="rounded-xl bg-[rgba(226,179,64,0.07)] border border-[rgba(226,179,64,0.25)] p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Brain className="h-4 w-4 text-[#E2B340]" />
-                    <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Dl. En Passant</p>
+                    <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Căluțul savant</p>
                   </div>
                   <p className="text-sm text-[#C99A2E] leading-relaxed">{hint}</p>
                 </div>

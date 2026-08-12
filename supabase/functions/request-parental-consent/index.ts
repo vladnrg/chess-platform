@@ -39,8 +39,8 @@ serve(async (req) => {
     supabase.from('parental_links').insert({ user_id: userId, type: 'reject', expires_at: expiresAt }).select('token').single(),
   ])
 
-  const confirmUrl = `${appUrl}/parental/confirm?token=${(confirmLink as any)?.token}&action=confirm`
-  const rejectUrl = `${appUrl}/parental/confirm?token=${(rejectLink as any)?.token}&action=reject`
+  const confirmUrl = `${appUrl}/parental/confirm?token=${(confirmLink as { token?: string } | null)?.token}&action=confirm`
+  const rejectUrl = `${appUrl}/parental/confirm?token=${(rejectLink as { token?: string } | null)?.token}&action=reject`
 
   if (resendKey) {
     await fetch('https://api.resend.com/emails', {

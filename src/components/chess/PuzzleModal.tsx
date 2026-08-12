@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
 import { initPuzzleState, type PuzzleState } from '@/lib/puzzle-utils'
 import { Button } from '@/components/ui/Button'
@@ -57,21 +58,37 @@ interface Props {
   theme: string
   initialPuzzle?: Puzzle   // dacă e dat, se joacă exact această poziție (nu una aleatorie)
   onClose: () => void
+  onSolved?: () => void    // apelat după o rezolvare reușită (ex. pe traseu → actualizează progresul)
+  onNext?: () => void      // dacă e dat, „Următor" avansează pe traseu în loc de un puzzle aleatoriu
 }
 
 const FREE_LIMIT = 10
 
-export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
+export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }: Props) {
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
-  const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(null)
-  const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(null)
+  // Când poziția e dată de la părinte (traseu de tactici), o folosim direct ca stare
+  // inițială — altfel primul render ar fi gol, urmat imediat de un setState din efect.
+  const initialState = useState(() => {
+    if (!initialPuzzle) return null
+    try {
+      return initPuzzleState(initialPuzzle.fen, initialPuzzle.moves)
+    } catch {
+      return null
+    }
+  })[0]
+
+  const [puzzleState, setPuzzleState] = useState<PuzzleState | null>(initialState)
+  const [currentPuzzle, setCurrentPuzzle] = useState<Puzzle | null>(initialPuzzle ?? null)
   const [loading, setLoading] = useState(false)
   const [todayCount, setTodayCount] = useState(0)
 
   // Orientare fixată la încărcare (nu se mai rotește când mută adversarul)
-  const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
+  const [playerColor, setPlayerColor] = useState<'white' | 'black'>(
+    initialState?.game.turn() === 'b' ? 'black' : 'white'
+  )
   // Indicii
   const [hintFrom, setHintFrom] = useState<string | null>(null)   // evidențiază piesa de mutat
   const [showMove, setShowMove] = useState(false)                 // evidențiază mutarea (from+to)
@@ -124,9 +141,16 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
         await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: xp })
         await fetchProfile(user.id)
         setTodayCount(c => c + 1)
+        onSolved?.()
       }
     },
   })
+
+  // „Următor": pe traseu avansează la nodul următor; altfel un puzzle aleatoriu pe temă.
+  function goNext() {
+    if (onNext) onNext()
+    else void fetchNextPuzzle()
+  }
 
   function loadPuzzle(puzzle: Puzzle) {
     setCurrentPuzzle(puzzle)
@@ -169,18 +193,18 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
     }
   }
 
-  // Load first puzzle on mount (poziția specifică, dacă e dată; altfel una aleatorie pe temă)
+  // Poziția specifică e deja în starea inițială; aici încărcăm doar cazul aleatoriu pe temă.
   useEffect(() => {
-    if (initialPuzzle) loadPuzzle(initialPuzzle)
-    else void fetchNextPuzzle()
+    if (!initialPuzzle) void fetchNextPuzzle()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const onPieceDrop = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ({ sourceSquare: source, targetSquare: target }: any): boolean => {
+    ({ sourceSquare: source, targetSquare: target }: PieceDropHandlerArgs): boolean => {
       if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
       if (!currentPuzzle) return false
+      // Piesă lăsată în afara tablei — snap-back, fără să conteze ca încercare
+      if (!target) return false
 
       const expectedMove = puzzleState.solutionMoves[puzzleState.currentMoveIdx]
       if (!expectedMove) return false
@@ -323,9 +347,19 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
               <Spinner className="h-7 w-7" />
             </div>
           ) : puzzleState ? (
-            <div className="flex flex-col lg:flex-row gap-6 h-full max-w-[1400px] mx-auto">
+            /* Coloana tablei e limitată la lăţimea tablei, iar perechea
+               (tablă + bară laterală) se centrează. Aşa distanţa dintre ele e
+               exact `gap-6`, ca între coloanele grilei de pe pagina de puzzle-uri.
+
+               Nu e `flex-1` pe coloana tablei: atunci coloana s-ar întinde pe tot
+               ce rămâne, tabla s-ar centra în ea, iar între tablă şi panouri ar
+               apărea o groapă de câteva sute de pixeli. */
+            <div className="flex flex-col lg:flex-row lg:justify-center gap-6 h-full">
               {/* Board */}
-              <div className="flex-1 flex flex-col items-center gap-3 min-w-0">
+              <div
+                className="flex w-full flex-col items-center gap-3 min-w-0"
+                style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+              >
                 <div className="flex items-center gap-2 text-sm text-[#A0A0A0] self-start lg:self-center">
                   <span>Joci cu</span>
                   <span className={`font-semibold px-2 py-0.5 rounded text-xs ${puzzleState.game.turn() === 'w' ? 'bg-[#F0F0F0] text-black' : 'bg-[#141414] border border-[#3A3A3A] text-[#F0F0F0]'}`}>
@@ -333,8 +367,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                   </span>
                 </div>
 
-                {/* Tablă mare pătrată, încadrată în înălțimea ecranului */}
-                <div className="relative w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
+                {/* Lăţimea vine din coloană (--board-max), nu se mai repetă aici */}
+                <div className="relative w-full">
                   <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
                     <Chessboard
                       options={{
@@ -343,8 +377,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                         allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
                         boardOrientation: playerColor,
                         boardStyle: { borderRadius: 0 },
-                        darkSquareStyle: { backgroundColor: '#3A3A3A' },
-                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                        darkSquareStyle,
+                        lightSquareStyle,
                         squareStyles,
                         arrows: boardArrows,
                       }}
@@ -380,7 +414,8 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                   </div>
                 )}
 
-                <div className="w-full" style={{ maxWidth: 'min(72vh, 100%)' }}>
+                {/* Panoul de sub tablă — aceeaşi coloană, deci aceeaşi lăţime */}
+                <div className="w-full">
                   {seqPlaying && (
                     <p className="text-sm text-[#E2B340] text-center">Se redă secvența...</p>
                   )}
@@ -398,7 +433,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                     <div className="flex items-center gap-2 rounded-lg bg-[rgba(74,222,128,0.1)] border border-[rgba(74,222,128,0.3)] p-3">
                       <CheckCircle2 className="h-5 w-5 text-[#4ade80]" />
                       <span className="text-[#4ade80] font-semibold">Corect! Excelent!</span>
-                      <Button size="sm" className="ml-auto" onClick={() => void fetchNextPuzzle()}>
+                      <Button size="sm" className="ml-auto" onClick={goNext}>
                         <RefreshCw className="h-3.5 w-3.5" /> Următor
                       </Button>
                     </div>
@@ -471,22 +506,13 @@ export function PuzzleModal({ theme, initialPuzzle, onClose }: Props) {
                   variant="secondary"
                   size="sm"
                   className="w-full gap-2"
-                  onClick={() => void fetchNextPuzzle()}
+                  onClick={goNext}
                   disabled={loading || limitReached}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                  Puzzle următor
+                  {onNext ? 'Exercițiul următor' : 'Puzzle următor'}
                 </Button>
 
-                <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
-                  <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Cum funcționează</p>
-                  <ol className="space-y-1.5 text-xs text-[#A0A0A0]">
-                    <li>1. Ultima mutare a fost a adversarului — acum e rândul tău</li>
-                    <li>2. Mută piesa cu drag & drop spre pătratul dorit</li>
-                    <li>3. Blocat? „Dă-mi un indiciu" îți arată piesa, „Arată mutarea" îți arată mutarea</li>
-                    <li>4. La tacticile cu mai multe mutări, „Arată secvența" redă toată soluția</li>
-                  </ol>
-                </div>
               </div>
             </div>
           ) : (

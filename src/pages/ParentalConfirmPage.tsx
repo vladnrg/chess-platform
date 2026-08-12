@@ -1,71 +1,90 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 
-type PageState = 'loading' | 'confirm' | 'already-used' | 'expired' | 'done-confirm' | 'done-reject'
+type PageState = 'loading' | 'confirm' | 'already-used' | 'expired' | 'done-confirm' | 'done-reject' | 'error'
+
+/** Linkul validat — necesar ca butoanele să știe pe cine confirmă/resping. */
+interface ValidLink {
+  userId: string
+  linkId: string
+}
 
 export function ParentalConfirmPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
   const action = searchParams.get('action') as 'confirm' | 'reject' | null
 
-  const [state, setState] = useState<PageState>('loading')
+  // Fără token nu e nimic de verificat — pornim direct în starea finală.
+  const [state, setState] = useState<PageState>(token ? 'loading' : 'expired')
   const [childName, setChildName] = useState('')
+  const [link, setLink] = useState<ValidLink | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  const handleAction = useCallback(async (act: 'confirm' | 'reject', userId: string, linkId: string) => {
+    setSubmitting(true)
+    try {
+      const { error: profileError } = act === 'confirm'
+        ? await supabase.from('profiles').update({
+            account_frozen: false,
+            account_frozen_reason: null,
+            parental_consent_given: true,
+          }).eq('id', userId)
+        : await supabase.from('profiles').update({
+            account_frozen: true,
+            account_frozen_reason: 'rejected',
+            parental_consent_given: false,
+          }).eq('id', userId)
+
+      if (profileError) throw profileError
+
+      // Marcăm linkul drept folosit abia după ce actualizarea contului a reușit,
+      // ca părintele să poată reîncerca dacă ceva pică la mijloc.
+      const { error: linkError } = await supabase
+        .from('parental_links')
+        .update({ used_at: new Date().toISOString() })
+        .eq('id', linkId)
+      if (linkError) throw linkError
+
+      setState(act === 'confirm' ? 'done-confirm' : 'done-reject')
+    } catch {
+      setState('error')
+    } finally {
+      setSubmitting(false)
+    }
+  }, [])
+
   useEffect(() => {
-    if (!token) { setState('expired'); return }
+    if (!token) return
+    let cancelled = false
 
     const checkLink = async () => {
-      const { data: link } = await supabase
+      const { data, error } = await supabase
         .from('parental_links')
-        .select('*, profiles(username, birth_year)')
+        .select('*, profiles(username)')
         .eq('token', token)
-        .single() as any
+        .maybeSingle()
 
-      if (!link) { setState('expired'); return }
-      if (link.used_at) { setState('already-used'); return }
-      if (new Date(link.expires_at) < new Date()) { setState('expired'); return }
+      if (cancelled) return
+      if (error) { setState('error'); return }
+      if (!data) { setState('expired'); return }
+      if (data.used_at) { setState('already-used'); return }
+      if (new Date(data.expires_at) < new Date()) { setState('expired'); return }
 
-      const profile = link.profiles as any
-      setChildName(profile?.username ?? 'copilul tău')
+      setChildName(data.profiles?.username ?? 'copilul tău')
+      setLink({ userId: data.user_id, linkId: data.id })
 
-      // Auto-action if action param present
+      // Acțiune automată dacă linkul din e-mail conține deja intenția părintelui
       if (action === 'confirm' || action === 'reject') {
-        await handleAction(action, link.user_id, link.id)
+        await handleAction(action, data.user_id, data.id)
       } else {
         setState('confirm')
       }
     }
 
-    checkLink()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, action])
-
-  async function handleAction(act: 'confirm' | 'reject', userId: string, linkId: string) {
-    setSubmitting(true)
-    try {
-      if (act === 'confirm') {
-        await supabase.from('profiles').update({
-          account_frozen: false,
-          account_frozen_reason: null,
-          parental_consent_given: true,
-        }).eq('id', userId) as any
-        setState('done-confirm')
-      } else {
-        await supabase.from('profiles').update({
-          account_frozen: true,
-          account_frozen_reason: 'rejected',
-          parental_consent_given: false,
-        }).eq('id', userId) as any
-        setState('done-reject')
-      }
-
-      await supabase.from('parental_links').update({ used_at: new Date().toISOString() }).eq('id', linkId) as any
-    } finally {
-      setSubmitting(false)
-    }
-  }
+    void checkLink()
+    return () => { cancelled = true }
+  }, [token, action, handleAction])
 
   if (state === 'loading') {
     return (
@@ -73,6 +92,10 @@ export function ParentalConfirmPage() {
         <p className="text-[#6B6B6B]">Se verifică linkul...</p>
       </div>
     )
+  }
+
+  if (state === 'error') {
+    return <StatusPage icon="⚠️" title="Ceva n-a mers" message="Nu am putut procesa cererea. Încearcă din nou peste câteva minute — linkul rămâne valabil." />
   }
 
   if (state === 'expired') {
@@ -117,18 +140,18 @@ export function ParentalConfirmPage() {
 
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => { /* handleAction called with token data */ }}
-            disabled={submitting}
+            onClick={() => link && void handleAction('reject', link.userId, link.linkId)}
+            disabled={submitting || !link}
             className="rounded-lg bg-[#141414] border border-[#2A2A2A] text-[#FB7185] font-semibold py-3 hover:border-[#FB7185] transition-colors disabled:opacity-50"
           >
             Respinge
           </button>
           <button
-            onClick={() => { /* handleAction called with token data */ }}
-            disabled={submitting}
+            onClick={() => link && void handleAction('confirm', link.userId, link.linkId)}
+            disabled={submitting || !link}
             className="rounded-lg bg-[#E2B340] text-black font-semibold py-3 hover:bg-[#F0C85A] transition-colors disabled:opacity-50"
           >
-            Confirma
+            Confirmă
           </button>
         </div>
 

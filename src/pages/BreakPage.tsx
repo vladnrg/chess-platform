@@ -14,40 +14,37 @@ const BREAK_ACTIVITIES = [
 export function BreakPage() {
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
-  const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
-  const [canResume, setCanResume] = useState(false)
-  const [activity] = useState(() => BREAK_ACTIVITIES[Math.floor(Math.random() * BREAK_ACTIVITIES.length)])
-
   const sessionId = searchParams.get('sessionId')
   const initialMinutes = parseInt(searchParams.get('minutes') ?? '15')
 
-  useEffect(() => {
-    setSecondsLeft(initialMinutes * 60)
-  }, [initialMinutes])
+  const [secondsLeft, setSecondsLeft] = useState(() => initialMinutes * 60)
+  const [activity] = useState(() => BREAK_ACTIVITIES[Math.floor(Math.random() * BREAK_ACTIVITIES.length)])
+
+  // Stare derivată, nu stare separată: pauza s-a terminat exact când a expirat timpul.
+  const canResume = secondsLeft <= 0
 
   // Countdown
   useEffect(() => {
-    if (secondsLeft === null) return
-    if (secondsLeft <= 0) {
-      setCanResume(true)
-      return
-    }
-    const t = setTimeout(() => setSecondsLeft(s => (s ?? 1) - 1), 1000)
+    if (secondsLeft <= 0) return
+    const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000)
     return () => clearTimeout(t)
   }, [secondsLeft])
 
   // Reduce break if user was inactive (last_seen gap > 10 min)
   useEffect(() => {
     if (!sessionId || !user) return
+    let cancelled = false
 
     const checkInactivity = async () => {
       const { data } = await supabase
         .from('child_sessions')
         .select('last_seen_at, break_ends_at')
         .eq('id', sessionId)
-        .single() as any
+        .single()
 
-      if (!data) return
+      // Fără last_seen_at nu putem calcula inactivitatea; ieșim mai degrabă decât
+      // să tratăm null ca epoch 1970 și să anulăm din greșeală pauza.
+      if (!data?.last_seen_at) return
 
       const lastSeen = new Date(data.last_seen_at)
       const now = new Date()
@@ -56,17 +53,17 @@ export function BreakPage() {
       if (gapMinutes >= 10 && data.break_ends_at) {
         const newBreakEnd = new Date(new Date(data.break_ends_at).getTime() - gapMinutes * 60000)
         const minsLeft = Math.max(0, Math.ceil((newBreakEnd.getTime() - now.getTime()) / 60000))
-        setSecondsLeft(minsLeft * 60)
-        if (minsLeft <= 0) setCanResume(true)
-        await supabase.from('child_sessions').update({ break_ends_at: newBreakEnd.toISOString() }).eq('id', sessionId) as any
+        if (!cancelled) setSecondsLeft(minsLeft * 60)
+        await supabase.from('child_sessions').update({ break_ends_at: newBreakEnd.toISOString() }).eq('id', sessionId)
       }
     }
 
-    checkInactivity()
+    void checkInactivity()
+    return () => { cancelled = true }
   }, [sessionId, user])
 
-  const mins = Math.floor((secondsLeft ?? 0) / 60)
-  const secs = (secondsLeft ?? 0) % 60
+  const mins = Math.floor(secondsLeft / 60)
+  const secs = secondsLeft % 60
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">

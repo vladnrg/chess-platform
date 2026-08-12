@@ -16,6 +16,9 @@ const Login = lazy(() => import('@/pages/Auth/Login').then(m => ({ default: m.Lo
 const Register = lazy(() => import('@/pages/Auth/Register').then(m => ({ default: m.Register })))
 const ForgotPassword = lazy(() => import('@/pages/Auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })))
 const ResetPassword = lazy(() => import('@/pages/Auth/ResetPassword').then(m => ({ default: m.ResetPassword })))
+const NotationGuide = lazy(() => import('@/pages/Resources/NotationGuide').then(m => ({ default: m.NotationGuide })))
+const ResourcesPage = lazy(() => import('@/pages/Resources/ResourcesPage').then(m => ({ default: m.ResourcesPage })))
+const BeginnersPage = lazy(() => import('@/pages/Resources/BeginnersPage').then(m => ({ default: m.BeginnersPage })))
 const Onboarding = lazy(() => import('@/pages/Onboarding/Onboarding').then(m => ({ default: m.Onboarding })))
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
 const CoursesPage = lazy(() => import('@/pages/Courses/CoursesPage').then(m => ({ default: m.CoursesPage })))
@@ -27,12 +30,19 @@ const PuzzlePlacement = lazy(() => import('@/pages/PuzzlePlacement').then(m => (
 const StatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const PricingPage = lazy(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
-const CommunityPage = lazy(() => import('@/pages/CommunityPage').then(m => ({ default: m.CommunityPage })))
+const MatchPage = lazy(() => import('@/pages/MatchPage').then(m => ({ default: m.MatchPage })))
+const LeaderboardPage = lazy(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
 const CalendarPage = lazy(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
 const TacticsChestPage = lazy(() => import('@/pages/TacticsChestPage').then(m => ({ default: m.TacticsChestPage })))
 const TacticsCategoryPage = lazy(() => import('@/pages/TacticsCategoryPage').then(m => ({ default: m.TacticsCategoryPage })))
 const RepertoirePage = lazy(() => import('@/pages/RepertoirePage').then(m => ({ default: m.RepertoirePage })))
 const LeaguesPage = lazy(() => import('@/pages/LeaguesPage').then(m => ({ default: m.LeaguesPage })))
+const EventsPage = lazy(() => import('@/pages/EventsPage').then(m => ({ default: m.EventsPage })))
+const MissionsPage = lazy(() => import('@/pages/MissionsPage').then(m => ({ default: m.MissionsPage })))
+const AnalysisPage = lazy(() => import('@/pages/AnalysisPage').then(m => ({ default: m.AnalysisPage })))
+const EventDetailPage = lazy(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
+const ArenaPage = lazy(() => import('@/pages/ArenaPage').then(m => ({ default: m.ArenaPage })))
+const ArenaRunPage = lazy(() => import('@/pages/ArenaRunPage').then(m => ({ default: m.ArenaRunPage })))
 const BreakPage = lazy(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
 const ParentalConfirmPage = lazy(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
 const ParentalStatsPage = lazy(() => import('@/pages/ParentalStatsPage').then(m => ({ default: m.ParentalStatsPage })))
@@ -70,6 +80,8 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/resurse" element={<ResourcesPage />} />
+      <Route path="/resurse/notatie" element={<NotationGuide />} />
       {/* NU e PublicRoute: link-ul de recuperare creează o sesiune, iar PublicRoute ar redirecționa la /dashboard înainte să poți seta parola */}
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/pricing" element={<PricingPage />} />
@@ -88,16 +100,28 @@ function AppRoutes() {
         <Route path="/courses/:slug/lessons/:lessonId" element={<LessonPage />} />
         <Route path="/courses/:slug/guided/:lineId" element={<OpeningTrainerPage mode="guided" />} />
         <Route path="/courses/:slug/practice/:lineId" element={<OpeningTrainerPage mode="practice" />} />
+        <Route path="/courses/:slug/middlegame/:lineId" element={<OpeningTrainerPage mode="guided" stage="middlegame" />} />
+        <Route path="/courses/:slug/middlegame-practice/:lineId" element={<OpeningTrainerPage mode="practice" stage="middlegame" />} />
+        <Route path="/courses/:slug/trap/:lineId" element={<OpeningTrainerPage mode="guided" stage="trap" />} />
+        <Route path="/courses/:slug/trap-practice/:lineId" element={<OpeningTrainerPage mode="practice" stage="trap" />} />
         <Route path="/puzzles" element={<PuzzlesPage />} />
         <Route path="/puzzles/placement" element={<PuzzlePlacement />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/clasament" element={<LeaderboardPage />} />
+        <Route path="/partida/:matchId" element={<MatchPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tactics" element={<TacticsChestPage />} />
-        <Route path="/tactics/:categoryId" element={<TacticsCategoryPage />} />
+        <Route path="/tactics/:categoryId/:tier" element={<TacticsCategoryPage />} />
+        <Route path="/pentru-incepatori" element={<BeginnersPage />} />
         <Route path="/repertoire" element={<RepertoirePage />} />
         <Route path="/leagues" element={<LeaguesPage />} />
+        <Route path="/misiuni" element={<MissionsPage />} />
+        <Route path="/analiza" element={<AnalysisPage />} />
+        <Route path="/evenimente" element={<EventsPage />} />
+        <Route path="/evenimente/:slug" element={<EventDetailPage />} />
+        <Route path="/proba" element={<ArenaPage />} />
+        <Route path="/proba/joc" element={<ArenaRunPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

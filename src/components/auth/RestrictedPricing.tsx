@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 
 export function RestrictedPricing() {
   const { user, profile } = useAuth()
-  const [email, setEmail] = useState((profile as any)?.parental_email ?? '')
+  const [email, setEmail] = useState(profile?.parental_email ?? '')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
 
@@ -28,7 +28,7 @@ export function RestrictedPricing() {
         }
       )
       if (!res.ok) throw new Error('Eroare')
-      await supabase.from('profiles').update({ parental_email: email }).eq('id', user.id) as any
+      await supabase.from('profiles').update({ parental_email: email }).eq('id', user.id)
       setSent(true)
       toast.success('Link trimis părintelui!')
     } catch {

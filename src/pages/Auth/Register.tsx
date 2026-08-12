@@ -37,7 +37,7 @@ export function Register() {
       email,
       password,
       options: { data: { username } },
-    }) as any
+    })
 
     setLoading(false)
     if (error) {
@@ -54,7 +54,7 @@ export function Register() {
 
     // Save birth_year to profile
     if (birthYear) {
-      await supabase.from('profiles').update({ birth_year: birthYear }).eq('id', createdUserId) as any
+      await supabase.from('profiles').update({ birth_year: birthYear }).eq('id', createdUserId)
     }
 
     const isMinor = birthYear !== null && (new Date().getFullYear() - birthYear) < 14

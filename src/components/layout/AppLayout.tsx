@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
-import { Sidebar } from './Sidebar'
-import { Menu } from 'lucide-react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { TopNav } from './TopNav'
 import { useChildSession } from '@/hooks/useChildSession'
 import { SessionTimer } from '@/components/session/SessionTimer'
 import { SessionQuip } from './SessionQuip'
+import { archetypeFor, pageZoomFor } from '@/lib/navigation'
+import { useAcceptedChallengeRedirect } from '@/hooks/useChallenges'
+import { useMatchWatcher } from '@/hooks/useMatchWatcher'
 
 function ChildSessionGuard() {
   const { minutesLeft, showWarning, dismissWarning, isMinor } = useChildSession()
@@ -13,46 +14,56 @@ function ChildSessionGuard() {
 }
 
 export function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { pathname } = useLocation()
+
+  // Intră automat în partidă când cineva îţi acceptă provocarea, oriunde ai fi
+  useAcceptedChallengeRedirect()
+  // Închide partidele cu timpul expirat şi anunţă finalurile, oriunde ai fi
+  useMatchWatcher()
+
+  // Arhetipul vine dintr-un singur loc (lib/navigation), nu dintr-un `pathname ===`
+  // scris în layout. Vezi comentariul de acolo pentru ce înseamnă fiecare.
+  const archetype = archetypeFor(pathname)
+  const zoom = pageZoomFor(pathname)
 
   return (
-    <div className="flex h-screen bg-[#0A0A0A] overflow-hidden">
-      {/* Overlay mobile */}
-      {sidebarOpen && (
+    <div className="flex h-dvh flex-col bg-[#0A0A0A] overflow-hidden">
+      <TopNav />
+
+      {/* Zona de pagină. Are exact înălțimea rămasă; scroll-ul e intern, ca bara
+          de navigare să rămână fixă. O pagină care vrea să umple ecranul cere
+          `height: var(--app-page-h)` şi îşi împarte singură spațiul. */}
+      <main className="min-h-0 flex-1 overflow-y-auto" data-archetype={archetype}>
         <div
-          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-200
-        lg:relative lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </aside>
-
-      {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-auto">
-        {/* Mobile topbar */}
-        <header className="flex items-center gap-3 border-b border-[#2A2A2A] px-4 py-3 lg:hidden">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 text-[#A0A0A0] hover:bg-[#141414] hover:text-[#F0F0F0] transition-colors"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <span className="font-bold text-[#E2B340] text-lg">CleanChess</span>
-        </header>
-
-        {/* Page */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          className="mx-auto flex min-h-full w-full flex-col"
+          style={{
+            // Paginile focus au nevoie de lăţime pentru tablă şi coloanele ei.
+            // 120rem, nu 112rem: la 2560×1440 tabla ajunge la 72vh = 1037px, iar
+            // cu şinele şi spaţiile grupul cere 1853px. Sub vechea limită tabla
+            // se strângea la 928px şi nu mai era egală cu cea din Cufăr.
+            // O pagină mărită îşi citeşte lăţimea în pixeli măriţi, deci valoarea
+            // se împarte la zoom ca să iasă pe ecran exact `--app-max-zoom`.
+            maxWidth: archetype === 'focus'
+              ? '120rem'
+              : zoom > 1
+                ? `calc(var(--app-max-zoom) / ${zoom})`
+                : 'var(--app-max)',
+            padding: 'var(--app-pad)',
+            gap: 'var(--app-gap)',
+            // Mărirea unei pagini întregi (vezi `pageZoomFor`). Stă pe acest
+            // container, nu pe pagină, ca să prindă şi titlul — altfel „Bârlogul
+            // şahistului" ar fi rămas singurul rând mic din ecran.
+            zoom,
+          }}
+        >
+          {/* Fără titlu de pagină. Numele paginii se vede deja în bara de sus,
+              iar repetat aici nu spunea nimănui nimic nou — doar împingea
+              conţinutul în jos. Paginile care au nevoie de un antet propriu
+              (Cursuri, Puzzle-uri) şi-l randează singure, cu descriere şi cifre. */}
           <SessionQuip />
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
 
       <ChildSessionGuard />
     </div>

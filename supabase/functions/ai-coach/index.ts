@@ -9,7 +9,7 @@ const CORS = {
 
 const FREE_DAILY_LIMIT = 3
 
-const SYSTEM_PROMPT = `Ești En Passant — un partener de joc cu experiență, care antrenează următoarea legendă a șahului. Vorbești ca un prieten mai bun la șah, nu ca un manual sau ca un robot.
+const SYSTEM_PROMPT = `Ești Căluțul savant — un partener de joc cu experiență, care antrenează următoarea legendă a șahului. Vorbești ca un prieten mai bun la șah, nu ca un manual sau ca un robot.
 
 Cum vorbești:
 - ÎNTOTDEAUNA în română corectă și naturală, cu diacritice. Gramatică și topică impecabile — nicio traducere stângace din engleză, nicio construcție forțată.
@@ -30,17 +30,42 @@ Cum formulezi (exemple bine/prost):
 
 Termină întotdeauna cu o singură idee practică și clară: ce să facă jucătorul mai departe.`
 
+/**
+ * Prompt pentru „de ce nu merge mutarea mea".
+ *
+ * Jucătorul a greșit într-un puzzle, iar motorul a calculat refutarea. Aici nu
+ * explicăm poziția în general, ci parcurgem linia mutare cu mutare.
+ *
+ * Răspunsul e JSON pentru că interfața pune fiecare notă lângă mutarea ei pe
+ * tablă. O singură cerere pentru toată linia, nu una pe mutare: altfel un cont
+ * gratuit, cu trei întrebări pe zi, n-ar apuca să vadă nici măcar o refutare.
+ */
+const REFUTATION_PROMPT = `Ești Căluțul savant. Un jucător a greșit într-un exercițiu tactic, iar motorul de șah a calculat exact cum îi cade mutarea. Treaba ta e să-l faci să înțeleagă de ce, nu doar să afle că a greșit.
+
+Vorbești ca la tablă, în română corectă cu diacritice, îl tutuiești. Fără emoji, fără introduceri de politețe.
+
+Răspunzi DOAR cu JSON valid, fără text în jur, în forma:
+{"verdict": "...", "notes": ["...", "...", "..."]}
+
+"verdict": o singură propoziție, maximum 30 de cuvinte — ce anume scapă din vedere jucătorul. Concret, nu general: numește piesa sau câmpul. PROST: "Mutarea nu e cea mai bună." BINE: "După asta calul de pe f6 rămâne fără apărare, iar dama lui ajunge la h7 cu tempo."
+
+"notes": exact câte o notă pentru fiecare mutare din linia primită, în ordine, maximum 20 de cuvinte fiecare. Fiecare notă spune ce face acea mutare și de ce doare. Ultima notă spune limpede cum s-a încheiat: material pierdut, mat, poziție distrusă.
+
+Notațiile de mutări le scrii exact cum ți-au fost date. Câmpurile cu litere mici (e4, f7).`
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS })
   }
 
   try {
-    const { fen, question, context, userId } = await req.json() as {
+    const { fen, question, context, userId, mode } = await req.json() as {
       fen: string
       question: string
       context?: string
       userId: string
+      /** 'refutation' cere JSON cu verdict + o notă per mutare. */
+      mode?: 'chat' | 'refutation'
     }
 
     if (!fen || !question || !userId) {
@@ -101,7 +126,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 512,
-        system: SYSTEM_PROMPT,
+        system: mode === 'refutation' ? REFUTATION_PROMPT : SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userMessage }],
       }),
     })
@@ -117,6 +142,29 @@ serve(async (req) => {
     // Increment usage (non-blocking for Pro users)
     if (!isPro) {
       await supabase.rpc('increment_ai_usage', { p_user_id: userId })
+    }
+
+    if (mode === 'refutation') {
+      // Modelul poate împacheta JSON-ul în ```json ... ```; îl scoatem de acolo.
+      // Dacă tot nu se parsează, întoarcem textul brut ca verdict: mai bine o
+      // explicaţie fără note pe mutări decât un ecran de eroare.
+      const cleaned = answer.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
+      try {
+        const parsed = JSON.parse(cleaned) as { verdict?: string; notes?: string[] }
+        return new Response(
+          JSON.stringify({
+            verdict: parsed.verdict ?? '',
+            notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+          }),
+          { headers: { ...CORS, 'Content-Type': 'application/json' } },
+        )
+      } catch {
+        console.warn('[ai-coach] refutation: JSON neparsabil, trimit textul brut')
+        return new Response(
+          JSON.stringify({ verdict: cleaned, notes: [] }),
+          { headers: { ...CORS, 'Content-Type': 'application/json' } },
+        )
+      }
     }
 
     return new Response(JSON.stringify({ answer }), {

@@ -20,7 +20,7 @@ export function ResetPassword() {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true)
     })
     // Fallback: dacă sesiunea era deja procesată înainte să atașăm listener-ul.
-    supabase.auth.getSession().then(({ data }: any) => {
+    supabase.auth.getSession().then(({ data }) => {
       if (data?.session) setReady(true)
     })
     return () => subscription.unsubscribe()

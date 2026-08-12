@@ -3,6 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { TitlePicker } from '@/components/profile/TitlePicker'
+import { CosmeticPicker } from '@/components/profile/CosmeticPicker'
 import { getLeagueConfig } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -36,8 +38,6 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-[#F0F0F0]">Profil</h1>
-
       {/* Avatar + ligă */}
       <Card>
         <CardContent className="flex items-center gap-5 p-5">
@@ -54,6 +54,10 @@ export function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      <TitlePicker />
+
+      <CosmeticPicker />
 
       {/* Editare */}
       <Card>

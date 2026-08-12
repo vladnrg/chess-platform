@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react'
 import { Chessboard } from 'react-chessboard'
 import { useAICoach } from '@/hooks/useAICoach'
 import { useSubscription } from '@/hooks/useSubscription'
+import { translateNotation } from '@/lib/chess-translations'
 import { Button } from '@/components/ui/Button'
 import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
 
@@ -16,13 +17,8 @@ const QUICK_QUESTIONS = [
 
 const SQUARE_RE = /^[a-h][1-8]$/
 
-// Traduce notația SAN englezească (Rxg7, Qh6, Nf3) în română (Txg7, Dh6, Cf3).
-// K=Rege→R, Q=Damă→D, R=Tură→T, B=Nebun→N, N=Cal→C. Se aplică doar când litera
-// e urmată de o coordonată — deci cuvintele (Regele, Nebunul) rămân neatinse.
-const PIECE_MAP: Record<string, string> = { K: 'R', Q: 'D', R: 'T', B: 'N', N: 'C' }
-function translateNotation(text: string): string {
-  return text.replace(/\b([KQRBN])([a-h1-8]?x?)(?=[a-h][1-8])/g, (_m, piece: string, rest: string) => (PIECE_MAP[piece] ?? piece) + rest)
-}
+// `translateNotation` stă acum în lib/chess-translations, fiindcă o foloseşte şi
+// tabla din „Numește deschiderea".
 
 interface AICoachPanelProps {
   fen: string
@@ -76,7 +72,7 @@ export function AICoachPanel({ fen, context = '', onClose }: AICoachPanelProps) 
           <div className="flex items-center gap-4">
             <MascotEnPassant mood={loading ? 'thinking' : answer ? 'happy' : 'idle'} size={68} animated={loading} />
             <div>
-              <h2 className="text-2xl font-semibold text-[#F0F0F0]">En Passant</h2>
+              <h2 className="text-2xl font-semibold text-[#F0F0F0]">Căluțul savant</h2>
               <p className="text-base text-[#6B6B6B]">
                 {isPro ? 'Nelimitat' : 'Până la 3 întrebări/zi'}
               </p>
@@ -129,7 +125,7 @@ export function AICoachPanel({ fen, context = '', onClose }: AICoachPanelProps) 
           {loading ? (
             <div className="flex items-center gap-2.5 text-lg text-[#6B6B6B]">
               <Loader2 className="h-6 w-6 animate-spin text-[#E2B340]" />
-              En Passant studiază poziția...
+              Căluțul savant studiază poziția...
             </div>
           ) : error ? (
             <p className="text-lg text-[#fbbf24]">{error}</p>

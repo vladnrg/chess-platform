@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, RefreshCw, BookOpen, Target, Swords, Film, Crosshair } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase'
+import { supabase, type UserOpeningStats as OpeningStat } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
@@ -29,17 +29,6 @@ const ECO_TO_THEME: Record<string, string> = {
   C: 'discoveredAttack',
   D: 'skewer',
   E: 'sacrifice',
-}
-
-interface OpeningStat {
-  id: string
-  eco: string
-  opening_name: string
-  color: 'white' | 'black'
-  wins: number
-  draws: number
-  losses: number
-  last_imported_at: string
 }
 
 function scorePercent(stat: OpeningStat) {
@@ -71,7 +60,7 @@ export function RepertoirePage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
-  const [lichessInput, setLichessInput] = useState((profile as any)?.lichess_username ?? '')
+  const [lichessInput, setLichessInput] = useState(profile?.lichess_username ?? '')
   const [colorFilter, setColorFilter] = useState<'white' | 'black' | 'all'>('all')
   const [showPersonalTactics, setShowPersonalTactics] = useState(false)
   const [trainerElo, setTrainerElo] = useState(1800)
@@ -117,13 +106,10 @@ export function RepertoirePage() {
   return (
     <>
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#F0F0F0]">Studiază-ți partidele</h1>
-        <p className="text-[#6B6B6B] text-sm mt-1 max-w-xl">
-          Conectează-ți contul Lichess pentru a vedea cum performezi cu fiecare deschidere și ce trebuie să antrenezi.
-        </p>
-      </div>
+      {/* Titlul stă în bara shell-ului; aici rămâne doar subtitlul */}
+      <p className="text-[#6B6B6B] text-sm max-w-xl">
+        Conectează-ți contul Lichess pentru a vedea cum performezi cu fiecare deschidere și ce trebuie să antrenezi.
+      </p>
 
       {/* Import panel */}
       <Card>
@@ -153,8 +139,8 @@ export function RepertoirePage() {
           {stats && stats.length > 0 && (
             <p className="text-xs text-[#6B6B6B]">
               {total} partide analizate · {filtered.length} deschideri
-              {(stats[0] as any)?.last_imported_at &&
-                ` · Ultima import: ${new Date(stats[0].last_imported_at).toLocaleDateString('ro-RO')}`}
+              {stats[0].last_imported_at &&
+                ` · Ultimul import: ${new Date(stats[0].last_imported_at).toLocaleDateString('ro-RO')}`}
             </p>
           )}
         </CardContent>
@@ -222,7 +208,7 @@ export function RepertoirePage() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Swords className="h-4 w-4 text-[#E2B340]" />
-                  <h3 className="text-sm font-semibold text-[#F0F0F0]">Antrenează-ți slăbiciunile cu Dl. En Passant</h3>
+                  <h3 className="text-sm font-semibold text-[#F0F0F0]">Antrenează-ți slăbiciunile cu Căluțul savant</h3>
                 </div>
                 <button
                   onClick={() => setShowPersonalTactics(true)}

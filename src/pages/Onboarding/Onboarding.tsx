@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -47,12 +47,12 @@ function computeResults(answers: Record<string, string>) {
   const playing_style = (Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0][0]) as PlayingStyle
 
   const totalScore = puzzleScore * 2 + knowledgeScore
-  let estimated_elo = 500
-  if (totalScore >= 13) estimated_elo = 1800
-  else if (totalScore >= 10) estimated_elo = 1400
-  else if (totalScore >= 7) estimated_elo = 1100
-  else if (totalScore >= 4) estimated_elo = 800
-  else estimated_elo = 600
+  const estimated_elo =
+    totalScore >= 13 ? 1800 :
+    totalScore >= 10 ? 1400 :
+    totalScore >= 7 ? 1100 :
+    totalScore >= 4 ? 800 :
+    600
 
   return { puzzleScore, knowledgeScore, playing_style, estimated_elo }
 }
@@ -213,7 +213,9 @@ function TacticsQuestion({
         <Chessboard
           options={{
             position: tacticsState.game.fen(),
-            onPieceDrop: ({ sourceSquare, targetSquare }: any) => onDrop(sourceSquare, targetSquare),
+            // targetSquare e null la drop în afara tablei → snap-back
+            onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
+              targetSquare ? onDrop(sourceSquare, targetSquare) : false,
             boardStyle: { borderRadius: 8 },
             darkSquareStyle: { backgroundColor: '#3A3A3A' },
             lightSquareStyle: { backgroundColor: '#f0d9b5' },

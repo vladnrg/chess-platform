@@ -7,7 +7,6 @@ interface ChildStats {
   current_league: string
   xp: number
   streak_days: number
-  birth_year: number
 }
 
 interface WeekStat {
@@ -21,28 +20,32 @@ export function ParentalStatsPage() {
 
   const [stats, setStats] = useState<ChildStats | null>(null)
   const [weeklyXp, setWeeklyXp] = useState<WeekStat[]>([])
-  const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading')
+  // Fără token nu e nimic de încărcat — pornim direct în starea finală.
+  const [state, setState] = useState<'loading' | 'loaded' | 'error'>(token ? 'loading' : 'error')
 
   useEffect(() => {
-    if (!token) { setState('error'); return }
+    if (!token) return
+    let cancelled = false
 
     const load = async () => {
       const { data: link } = await supabase
         .from('parental_links')
         .select('user_id, expires_at, type')
         .eq('token', token)
-        .single() as any
+        .maybeSingle()
 
+      if (cancelled) return
       if (!link || link.type !== 'stats' || new Date(link.expires_at) < new Date()) {
         setState('error')
         return
       }
 
       const [profileRes, xpRes] = await Promise.all([
-        supabase.from('profiles').select('username, current_league, xp, streak_days, birth_year').eq('id', link.user_id).single() as any,
-        supabase.from('user_weekly_xp').select('week_start, xp_earned').eq('user_id', link.user_id).order('week_start', { ascending: false }).limit(8) as any,
+        supabase.from('profiles').select('username, current_league, xp, streak_days').eq('id', link.user_id).maybeSingle(),
+        supabase.from('user_weekly_xp').select('week_start, xp_earned').eq('user_id', link.user_id).order('week_start', { ascending: false }).limit(8),
       ])
 
+      if (cancelled) return
       if (!profileRes.data) { setState('error'); return }
 
       setStats(profileRes.data)
@@ -50,7 +53,8 @@ export function ParentalStatsPage() {
       setState('loaded')
     }
 
-    load()
+    void load()
+    return () => { cancelled = true }
   }, [token])
 
   if (state === 'loading') {

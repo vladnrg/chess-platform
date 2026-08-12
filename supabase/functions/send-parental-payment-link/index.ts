@@ -51,7 +51,7 @@ serve(async (req) => {
     .eq('id', userId)
     .single()
 
-  const childName = (profile as any)?.username ?? 'copilul dumneavoastră'
+  const childName = (profile as { username?: string } | null)?.username ?? 'copilul dumneavoastră'
 
   if (resendKey) {
     await fetch('https://api.resend.com/emails', {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { X, ChevronLeft, ChevronRight, RotateCcw, Brain } from 'lucide-react'
 import { useStockfish } from '@/hooks/useStockfish'
 import { cn } from '@/lib/utils'
@@ -60,15 +60,16 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
     }
   }, [getBestMove, elo, checkGameEnd])
 
-  // Engine moves first if player is Black
+  // Cu negrele, motorul deschide partida. Pornirea e amânată după commit-ul
+  // render-ului: makeEngineMove setează „thinking" sincron, iar un setState sincron
+  // în corpul efectului produce un render în cascadă.
   useEffect(() => {
-    if (playerColor === 'black' && game.moveNumber() === 1 && game.turn() === 'w') {
-      void makeEngineMove(game)
-    }
+    if (playerColor !== 'black' || game.moveNumber() !== 1 || game.turn() !== 'w') return
+    const t = setTimeout(() => void makeEngineMove(game), 0)
+    return () => clearTimeout(t)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function onDrop({ sourceSquare, targetSquare, piece }: { sourceSquare: string; targetSquare: string | null; piece: any }) {
+  function onDrop({ sourceSquare, targetSquare, piece }: PieceDropHandlerArgs) {
     if (!targetSquare) return false
     if (status !== 'playing') return false
     if ((game.turn() === 'w') !== (playerColor === 'white')) return false
@@ -118,7 +119,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
 
   const statusText = {
     playing: `Rândul tău (${playerColor === 'white' ? '♔ Alb' : '♚ Negru'})`,
-    thinking: `Dl. En Passant gândește... (${elo} ELO)`,
+    thinking: `Căluțul savant gândește... (${elo} ELO)`,
     won: '🎉 Ai câștigat!',
     lost: '😔 Ai pierdut. Încearcă din nou!',
     draw: '🤝 Remiză',
@@ -137,8 +138,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
               position: game.fen(),
               boardOrientation: playerColor,
               allowDragging: status === 'playing',
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onPieceDrop: (args: any) => onDrop(args),
+              onPieceDrop: onDrop,
               squareStyles,
               darkSquareStyle: { backgroundColor: '#3d5c3a' },
               lightSquareStyle: { backgroundColor: '#c8e6c0' },
@@ -153,7 +153,7 @@ export function OpeningTrainerModal({ openingName, playerColor, elo, onClose }: 
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Brain className="h-4 w-4 text-[#E2B340]" />
-                <span className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Dl. En Passant</span>
+                <span className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider">Căluțul savant</span>
               </div>
               <h3 className="font-bold text-[#F0F0F0] text-sm leading-snug">{openingName}</h3>
               <p className="text-xs text-[#6B6B6B] mt-0.5">

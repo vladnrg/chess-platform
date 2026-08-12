@@ -22,30 +22,18 @@ export function hintXpFactor(level: number): number {
   return [1, 0.75, 0.25, 0][level] ?? 0
 }
 
-const PIECE_RO: Record<string, string> = {
-  p: 'pionul', n: 'calul', b: 'nebunul', r: 'tura', q: 'dama', k: 'regele',
-}
-
-// Indiciu mai specific (nivelul 1): numește piesa de mutat și tema, fără destinație
-export function buildSpecificHint(fen: string, correctUci: string, themes: string[]): string {
-  const from = correctUci.slice(0, 2)
-  let pieceName = 'piesa potrivită'
-  try {
-    const g = new Chess(fen)
-    const piece = g.get(from as Parameters<typeof g.get>[0])
-    if (piece) pieceName = PIECE_RO[piece.type] ?? pieceName
-  } catch { /* fallback */ }
-
-  const themeNudge =
-    themes.some(t => t.startsWith('mate')) ? 'Caută secvența care duce direct la mat.'
-    : themes.includes('fork') ? 'Caută o mutare care atacă două ținte deodată.'
-    : themes.includes('pin') ? 'Caută cum poți ținti o piesă în fața uneia mai valoroase.'
-    : themes.includes('skewer') ? 'Forțează o piesă valoroasă să se ferească și ia ce rămâne în spate.'
-    : themes.includes('discoveredAttack') || themes.includes('doubleCheck') ? 'Mută o piesă ca să dezvălui atacul alteia.'
-    : themes.includes('sacrifice') ? 'Uneori trebuie să dai material ca să deschizi atacul.'
-    : 'Gândește ce amenințare poți crea cu ea.'
-
-  return `Uită-te bine la ${pieceName} de pe ${from}. ${themeNudge}`
+// Indiciu de nivel 1 („Dă-mi un indiciu"): o întrebare care orientează spre IDEE,
+// FĂRĂ să dezvăluie ce piesă trebuie mutată (dezvăluirea piesei e treaba nivelului 2).
+// Ton curios, nu condescendent — nu-l face pe jucător să se simtă prost.
+export function buildSpecificHint(themes: string[]): string {
+  if (themes.some(t => t.startsWith('mate'))) return 'Cum îl poți da mat pe regele advers în această poziție?'
+  if (themes.includes('fork')) return 'Cum poți ataca două piese ale adversarului în același timp?'
+  if (themes.includes('pin')) return 'Poți imobiliza o piesă a adversarului în fața uneia mai valoroase?'
+  if (themes.includes('skewer') || themes.includes('xRayAttack')) return 'Poți forța o piesă valoroasă să se dea la o parte și să iei ce rămâne în spate?'
+  if (themes.includes('discoveredAttack') || themes.includes('doubleCheck')) return 'Poți dezvălui un atac mutând o piesă din fața alteia?'
+  if (themes.includes('capturingDefender')) return 'Poți elimina piesa care apără punctul cheie?'
+  if (themes.includes('attraction') || themes.includes('deflection') || themes.includes('sacrifice')) return 'Merită să dai material pentru un atac decisiv aici?'
+  return 'Cum poți câștiga material în această poziție?'
 }
 
 export function initPuzzleState(fen: string, movesStr: string): PuzzleState {
@@ -107,9 +95,23 @@ export function analyzeWrongMove(
       return 'Trebuia să dai șah mai întâi! Șahul forțează adversarul să răspundă și îți câștigă tempo decisiv.'
     }
 
-    // Sacrificiu prematur — player a capturat pe un câmp apărat
+    // Player a capturat, dar mutarea corectă nu e o captură.
+    // NU presupune un „sacrificiu" — evaluează materialul: poate fi doar un schimb egal.
     if (playerIsCapture && !correctIsCapture) {
-      return 'Aveai nevoie de mai multe piese în atac ca să poți face acest sacrificiu. Verifică întâi dacă captura este profitabilă!'
+      const VAL: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9 }
+      const capturedVal = VAL[playerResult?.captured ?? ''] ?? 0
+      const movingVal = VAL[playerResult?.piece ?? ''] ?? 0
+      // După mutarea jucătorului e rândul adversarului — poate recaptura pe câmpul de sosire?
+      const to = playerMoveUci.slice(2, 4)
+      const canRecapture = gPlayer.moves({ verbose: true }).some((m: { to?: string; captured?: string }) => m.to === to && !!m.captured)
+
+      if (canRecapture && capturedVal < movingVal) {
+        return 'Dai mai mult material decât iei înapoi cu această captură, iar poziția nu-ți oferă compensație. Verifică întâi dacă schimbul e avantajos.'
+      }
+      if (canRecapture && capturedVal === movingVal) {
+        return 'Asta e doar un schimb egal de material — există o mutare mai puternică decât un simplu schimb.'
+      }
+      return 'Captura câștigă material, dar nu e cea mai bună alegere — există o mutare și mai benefică în această poziție.'
     }
 
     // Material gratuit ratat

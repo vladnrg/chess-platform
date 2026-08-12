@@ -22,8 +22,10 @@ export function SessionQuip() {
   if (!visible) return null
 
   return (
+    // Flotant, nu în fluxul paginii: e o glumă de o dată pe sesiune şi n-are de ce
+    // să consume din înălţimea pe care paginile şi-o împart ca să încapă în ecran.
     <div
-      className="mb-5 flex items-center gap-3 rounded-xl border border-[rgba(226,179,64,0.25)] bg-[rgba(226,179,64,0.06)] px-4 py-3"
+      className="fixed bottom-4 right-4 z-40 flex max-w-sm items-center gap-3 rounded-xl border border-[rgba(226,179,64,0.25)] bg-[#141414] px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
       style={{ animation: 'pop-in 0.4s ease-out' }}
     >
       <Sparkles className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />
