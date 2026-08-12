@@ -2,7 +2,6 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { TopNav } from './TopNav'
 import { useChildSession } from '@/hooks/useChildSession'
 import { SessionTimer } from '@/components/session/SessionTimer'
-import { SessionQuip } from './SessionQuip'
 import { archetypeFor, pageZoomFor } from '@/lib/navigation'
 import { useAcceptedChallengeRedirect } from '@/hooks/useChallenges'
 import { useMatchWatcher } from '@/hooks/useMatchWatcher'
@@ -56,11 +55,11 @@ export function AppLayout() {
             zoom,
           }}
         >
-          {/* Fără titlu de pagină. Numele paginii se vede deja în bara de sus,
-              iar repetat aici nu spunea nimănui nimic nou — doar împingea
-              conţinutul în jos. Paginile care au nevoie de un antet propriu
-              (Cursuri, Puzzle-uri) şi-l randează singure, cu descriere şi cifre. */}
-          <SessionQuip />
+          {/* Fără titlu de pagină şi fără mesaje de întâmpinare. Numele paginii
+              se vede deja în bara de sus, iar un salut sau o vorbă de duh nu
+              spuneau nimănui nimic nou — doar împingeau conţinutul în jos ori
+              acopereau un colţ de ecran. Paginile care au nevoie de un antet
+              propriu (Cursuri, Puzzle-uri) şi-l randează singure. */}
           <Outlet />
         </div>
       </main>

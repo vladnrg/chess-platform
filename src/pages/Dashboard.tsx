@@ -45,14 +45,6 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Salut — titlul paginii e randat de shell, aici rămâne doar adresarea */}
-      <div>
-        <h2 className="text-lg font-semibold text-[#F0F0F0]">
-          Salut, {profile.username}!
-        </h2>
-        <p className="text-[#6B6B6B] text-sm mt-0.5">Continuă să înveți și să avansezi.</p>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <LeagueWidget />
