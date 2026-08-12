@@ -109,6 +109,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const isTrap = stage === 'trap'
   const savedDoneRef = useRef(false)
 
+  // Calea către exerciţiu, scrisă o singură dată. Era scrisă în două locuri, iar
+  // unul dintre ele uitase capcanele: butonul „Pe cont propriu" de la capătul
+  // liniei trimitea id-ul capcanei către ruta deschiderilor, care evident nu-l
+  // găsea în `opening_lines` — de acolo „Varianta nu a fost găsită.".
+  const practicePath = `/courses/${slug}/${
+    isTrap ? 'trap-practice' : isMiddlegame ? 'middlegame-practice' : 'practice'
+  }/${lineId}`
+
   const { data: line, isLoading } = useQuery({
     queryKey: ['trainer-line', lineId, stage, mode],
     queryFn: () => incarcaLinie(stage, mode, lineId!),
@@ -284,11 +292,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
 
 
-  if (isLoading || !state) {
+  // Întâi „nu există", abia apoi „se încarcă": invers, o variantă lipsă lăsa
+  // rotiţa să se învârtă la nesfârşit, fiindcă starea nu se construia niciodată.
+  if (isLoading) {
     return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
   }
   if (!line) {
     return <p className="text-[#6B6B6B]">Varianta nu a fost găsită.</p>
+  }
+  if (!state) {
+    return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
   }
 
   const moves = line.moves_uci.split(' ')
@@ -539,12 +552,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                     Repetă
                   </Button>
                   {isGuided && (
-                    <Link
-                      to={isMiddlegame
-                        ? `/courses/${slug}/middlegame-practice/${lineId}`
-                        : `/courses/${slug}/practice/${lineId}`}
-                      className="flex-1"
-                    >
+                    <Link to={practicePath} className="flex-1">
                       <Button size="sm" className="w-full">Pe cont propriu</Button>
                     </Link>
                   )}
@@ -581,13 +589,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 Ghidat — vreau indicații vizuale
               </Link>
               <Link
-                to={
-                  isTrap
-                    ? `/courses/${slug}/trap-practice/${lineId}`
-                    : isMiddlegame
-                    ? `/courses/${slug}/middlegame-practice/${lineId}`
-                    : `/courses/${slug}/practice/${lineId}`
-                }
+                to={practicePath}
                 className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
                   !isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
