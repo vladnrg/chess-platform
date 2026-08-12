@@ -4,7 +4,7 @@
 -- Migrările 064, 065 şi 066 au fost date drept rulate, dar baza spune altceva:
 -- Nimzo A/8 zice în continuare „Rocadă — negrul se rochează" acolo unde se
 -- joacă a3, varianta C a Scandinavei se numeşte tot „Gambitul Icelandic", iar
--- Scandinava n-are nicio capcană din cele trei. În acelaşi timp 067, 068 şi 069
+-- Scandinava n-are ACcio capcană din cele trei. În acelaşi timp 067, 068 şi 069
 -- au intrat curat, deci nu e o problemă de drepturi sau de conexiune.
 --
 -- Am căutat cauza în fişiere şi n-am găsit-o: aceeaşi codare ca la cele care au
