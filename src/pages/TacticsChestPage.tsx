@@ -216,7 +216,7 @@ function TierChest({ tier, color, Icon }: { tier: TacticTier; color: string; Ico
   const [areImagine, setAreImagine] = useState(true)
 
   return (
-    <div className="flex w-16 shrink-0 items-center justify-center sm:w-32">
+    <div className="flex w-20 shrink-0 items-center justify-center sm:w-36">
       <div
         className="relative flex aspect-square w-full items-center justify-center"
         // Aura din spate — aceeași culoare cu lumina care se scurge spre carduri.
