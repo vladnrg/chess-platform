@@ -1,7 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Lock, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import { Lock, ChevronLeft, ChevronRight, ArrowRight, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
@@ -140,15 +140,24 @@ function TacticTierRow({ tier, cards, isPro }: { tier: TacticTier; cards: CardDa
   const started = cards.filter(c => c.solvedCount > 0).length
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <span
-            className="flex h-10 w-10 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${color}1F`, color }}
-          >
-            <TierIcon className="h-5 w-5" />
-          </span>
+    // Cufărul stă în stânga rândului, nu deasupra lui: tacticile pornesc din el
+    // spre dreapta, deci metafora e spațială, nu doar o etichetă lângă titlu.
+    <section className="relative flex gap-4 sm:gap-6">
+      {/* Lumina scursă din cufăr. Stă pe secțiune, nu pe carusel, ca să
+          izvorască din dreptul cufărului şi să treacă peste primele carduri —
+          ele au fundal opac, deci dedesubt n-ar vedea-o nimeni. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[32rem] max-w-full"
+        style={{
+          background: `radial-gradient(ellipse 58% 52% at 3.5rem 50%, ${color}38, ${color}12 45%, transparent 72%)`,
+        }}
+      />
+
+      <TierChest tier={tier} color={color} Icon={TierIcon} />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between mb-2">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-[#F0F0F0] font-display">{tier.label}</h2>
@@ -161,41 +170,76 @@ function TacticTierRow({ tier, cards, isPro }: { tier: TacticTier; cards: CardDa
             </div>
             <p className="text-xs text-[#6B6B6B] mt-0.5">{started}/{cards.length} tactici începute</p>
           </div>
+          <div className="flex gap-1.5">
+            {[-1, 1].map(dir => (
+              <button
+                key={dir}
+                onClick={() => scroll(dir)}
+                aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
+              >
+                {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-1.5">
-          {[-1, 1].map(dir => (
-            <button
-              key={dir}
-              onClick={() => scroll(dir)}
-              aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
-            >
-              {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
+
+        {/* Linie subțire colorată sub antet */}
+        <div className="h-px w-full mb-4" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
+
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {cards.map(({ cat, total, solvedCount }) => (
+            <div key={cat.id} className="w-60 sm:w-64 shrink-0 snap-start">
+              <TacticCard
+                category={cat}
+                total={total}
+                solvedCount={solvedCount}
+                locked={cat.isPro && !isPro}
+                onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
+              />
+            </div>
           ))}
         </div>
       </div>
-
-      {/* Linie subțire colorată sub antet */}
-      <div className="h-px w-full mb-4" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
-
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {cards.map(({ cat, total, solvedCount }) => (
-          <div key={cat.id} className="w-60 sm:w-64 shrink-0 snap-start">
-            <TacticCard
-              category={cat}
-              total={total}
-              solvedCount={solvedCount}
-              locked={cat.isPro && !isPro}
-              onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
-            />
-          </div>
-        ))}
-      </div>
     </section>
+  )
+}
+
+/**
+ * Cufărul treptei. Imaginea vine din `public/tactics/<tier>.png`; până apare,
+ * rămâne iconița de nivel, ca pagina să nu aștepte după poze.
+ */
+function TierChest({ tier, color, Icon }: { tier: TacticTier; color: string; Icon: LucideIcon }) {
+  const [areImagine, setAreImagine] = useState(true)
+
+  return (
+    <div className="flex w-16 shrink-0 items-center justify-center sm:w-32">
+      <div
+        className="relative flex aspect-square w-full items-center justify-center"
+        // Aura din spate — aceeași culoare cu lumina care se scurge spre carduri.
+        style={{ background: `radial-gradient(circle at 50% 50%, ${color}1A, transparent 68%)` }}
+      >
+        {areImagine ? (
+          <img
+            src={`/tactics/${tier.id}.png`}
+            alt={`Cufărul ${tier.label}`}
+            loading="lazy"
+            onError={() => setAreImagine(false)}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14"
+            style={{ backgroundColor: `${color}1F`, color }}
+          >
+            <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
+          </span>
+        )}
+      </div>
+    </div>
   )
 }
 
