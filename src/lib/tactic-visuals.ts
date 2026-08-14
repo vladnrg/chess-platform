@@ -37,12 +37,22 @@ export function tacticVisual(id: string): TacticVisual {
   return TACTIC_VISUALS[id] ?? FALLBACK
 }
 
-// Culoarea semnătură a fiecărui nivel (progresie: verde → teal → violet → auriu)
+/**
+ * Scara valorii, împrumutată de la ligi: lemn → argint → aur → diamant.
+ *
+ * Verde → teal → violet → auriu, cum era înainte, e o progresie doar dacă ţi-o
+ * explică cineva; nimeni nu ştie din instinct că violetul valorează mai mult
+ * decât tealul. Scara asta se citeşte fără instrucţiuni, şi urcă şi în
+ * luminozitate, nu doar în nuanţă — cufărul de lemn e cel mai stins din patru.
+ *
+ * Culorile sunt aceleaşi cu ale ligilor (vezi LEAGUES în types), ca rândul
+ * întreg să spună acelaşi lucru cu cufărul din capul lui.
+ */
 export const TIER_COLORS: Record<string, string> = {
-  incepator: '#4ade80',
-  intermediar: '#2DD4BF',
-  avansat: '#8B5CF6',
-  master: '#E2B340',
+  incepator: '#A98342',   // lemn — cel mai neremarcabil
+  intermediar: '#C0C0C0', // argint, ca liga Bazat
+  avansat: '#FFD700',     // aur, ca liga Avansat
+  master: '#B9F2FF',      // diamant, ca liga Legendar
 }
 
 export const TIER_ICONS: Record<string, LucideIcon> = {

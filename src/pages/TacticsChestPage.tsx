@@ -150,7 +150,9 @@ function TacticTierRow({ tier, cards, isPro }: { tier: TacticTier; cards: CardDa
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[32rem] max-w-full"
         style={{
-          background: `radial-gradient(ellipse 58% 52% at 3.5rem 50%, ${color}38, ${color}12 45%, transparent 72%)`,
+          // Alfa mică: culorile de sus ale scării (aur, diamant) sunt mult mai
+          // luminoase decât lemnul, iar la aceeaşi opacitate ar face pete.
+          background: `radial-gradient(ellipse 58% 52% at 3.5rem 50%, ${color}2B, ${color}0D 45%, transparent 72%)`,
         }}
       />
 
