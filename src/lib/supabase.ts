@@ -501,6 +501,11 @@ export type Database = {
         Args: Record<string, never>
         Returns: OpeningChallengeStatus | null
       }
+      /** Fixează zilele provocării pentru săptămâna curentă (087). */
+      ensure_opening_week: {
+        Args: Record<string, never>
+        Returns: { week_start: string; parity: 0 | 1; is_challenge_day: boolean } | null
+      }
       start_opening_session: {
         Args: Record<string, never>
         Returns: OpeningSession

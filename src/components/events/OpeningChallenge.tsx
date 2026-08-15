@@ -15,11 +15,25 @@ import type {
   OpeningSession, OpeningAnswerResult, OpeningSessionSummary,
 } from '@/types'
 
-/** Regulile, pe scurt — se văd şi înainte de a începe, şi între calupuri. */
-function Rules() {
+/**
+ * Zilele tale din săptămâna asta. Nu mai sunt aceleaşi pentru toată lumea:
+ * ziua în care deschizi prima oară pagina de evenimente îţi dă seria.
+ */
+const ZILE: Record<0 | 1, string> = {
+  1: 'luni · miercuri · vineri · duminică',
+  0: 'marți · joi · sâmbătă',
+}
+
+/**
+ * Regulile, pe scurt — se văd şi înainte de a începe, şi între calupuri.
+ *
+ * `parity` lipseşte cât timp migrarea 087 nu e rulată; atunci cad pe zilele
+ * impare, care erau oricum programul fix de dinainte.
+ */
+function Rules({ parity }: { parity?: number }) {
   return (
     <ul className="space-y-1.5 text-sm text-[#A0A0A0]">
-      <li>Cinci poziţii, luni · miercuri · vineri · duminică.</li>
+      <li>Cinci poziţii, {ZILE[parity === 0 ? 0 : 1]}.</li>
       <li>O singură șansă la fiecare — răspunsul rămâne cum l-ai dat.</li>
       <li>
         <span className="text-[#4ade80]">+{OPENING_XP.perCorrect} XP</span> pentru fiecare corect,{' '}
@@ -267,7 +281,7 @@ export function OpeningChallenge() {
           </div>
         </div>
         <div className="border-t border-[#2A2A2A] pt-5">
-          <Rules />
+          <Rules parity={status.parity} />
         </div>
       </div>
     )
@@ -291,7 +305,7 @@ export function OpeningChallenge() {
         </p>
       </div>
 
-      <Rules />
+      <Rules parity={status.parity} />
 
       <Button
         size="lg"

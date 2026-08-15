@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { CalendarClock, Sparkles } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { Progress } from '@/components/ui/Progress'
+import { useEnsureOpeningWeek } from '@/hooks/useOpeningChallenge'
 import { useEvents } from '@/hooks/useEvents'
 import { EventIcon } from '@/components/events/EventIcon'
 import { eventWindow, eventStatusLabel } from '@/lib/events'
@@ -84,6 +85,12 @@ function EventCard({ event }: { event: SeasonalEvent }) {
  */
 export function EventsPage() {
   const { data: events = [], isLoading } = useEvents()
+
+  // Prima deschidere din saptamana fixeaza zilele provocarii „Numeste
+  // deschiderea": ziua in care intri decide daca joci in zilele impare sau
+  // in cele pare. Sta aici, nu in componenta provocarii, fiindca aceea se
+  // monteaza abia dupa ce intri in evenimentul respectiv.
+  useEnsureOpeningWeek()
 
   const live = events.filter(e => e.status === 'live')
   const upcoming = events.filter(e => e.status === 'upcoming')

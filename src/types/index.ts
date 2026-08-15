@@ -208,6 +208,10 @@ export interface OpeningChallengeStatus {
   is_challenge_day: boolean
   today: string
   next_day: string
+  /** 1 = zile impare (luni, miercuri, vineri, duminică); 0 = pare (marți, joi, sâmbătă). */
+  parity: 0 | 1
+  /** Paritatea a fost deja fixată pentru săptămâna asta. */
+  schedule_locked: boolean
   session_id: string | null
   answered: number
   total: number

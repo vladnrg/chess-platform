@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -25,6 +26,31 @@ function message(error: { message?: string } | null): string {
   const raw = error?.message ?? ''
   const key = Object.keys(ERRORS).find(k => raw.includes(k))
   return key ? ERRORS[key] : 'Ceva n-a mers. Încearcă din nou.'
+}
+
+/**
+ * Fixează zilele de provocare ale săptămânii, la prima deschidere a paginii
+ * de evenimente.
+ *
+ * Ziua în care intri decide seria: într-o zi impară primeşti zilele impare
+ * (luni, miercuri, vineri, duminică), într-una pară doar pe cele pare (marţi,
+ * joi, sâmbătă). Serverul scrie o singură dată pe săptămână, deci apelul e
+ * inofensiv dacă se repetă.
+ */
+export function useEnsureOpeningWeek() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+
+  useEffect(() => {
+    if (!user) return
+    let anulat = false
+    void supabase.rpc('ensure_opening_week').then(() => {
+      // Starea putea fi deja în cache de pe Bârlog, calculată înainte ca
+      // paritatea să fie scrisă. O reîmprospătăm ca butonul să spună adevărul.
+      if (!anulat) void qc.invalidateQueries({ queryKey: ['opening-challenge-status'] })
+    })
+    return () => { anulat = true }
+  }, [user, qc])
 }
 
 /** Starea provocării de azi: e zi de provocare? am început? am terminat? */
