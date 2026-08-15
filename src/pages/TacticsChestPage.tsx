@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Lock, ChevronLeft, ChevronRight, ArrowRight, X } from 'lucide-react'
@@ -131,9 +131,9 @@ export function TacticsChestPage() {
       </div>
 
       {open && (
-        <TacticTierRow
-          // `key` remontează secţiunea la fiecare cufăr: altfel React ar
-          // refolosi nodurile şi animaţia de ieşire n-ar mai porni.
+        <TacticsModal
+          // `key` remontează fereastra la fiecare cufăr: altfel React ar
+          // refolosi nodurile şi animaţia cardurilor n-ar mai porni.
           key={open.tier.id}
           tier={open.tier}
           cards={open.cards}
@@ -203,8 +203,14 @@ function HeroStat({ value, label, color }: { value: number | string; label: stri
   )
 }
 
-/** Ce se revarsă dintr-un cufăr deschis: antetul treptei şi caruselul ei. */
-function TacticTierRow({ tier, cards, isPro, onClose }: {
+/**
+ * Tacticile unei trepte, într-o fereastră separată.
+ *
+ * Cufărul rămâne la vedere în antetul ferestrei — el e ce ai deschis, deci
+ * n-are ce căuta în spatele unui văl. Restul paginii, inclusiv celelalte trei
+ * cufere, trece sub fundalul întunecat.
+ */
+function TacticsModal({ tier, cards, isPro, onClose }: {
   tier: TacticTier
   cards: CardData[]
   isPro: boolean
@@ -214,96 +220,116 @@ function TacticTierRow({ tier, cards, isPro, onClose }: {
   const scrollRef = useRef<HTMLDivElement>(null)
   const scroll = (dir: number) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
 
-  if (cards.length === 0) return null
+  // Escape închide, iar pagina de dedesubt nu mai derulează cât e fereastra
+  // deschisă. Scroll-ul nu e pe `body`, ci pe `<main>` — vezi AppLayout.
+  useEffect(() => {
+    const laTasta = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', laTasta)
+    const zona = document.querySelector('main')
+    const inainte = zona?.style.overflowY
+    if (zona) zona.style.overflowY = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', laTasta)
+      if (zona) zona.style.overflowY = inainte ?? ''
+    }
+  }, [onClose])
 
   const color = tierColor(tier.id)
   const started = cards.filter(c => c.solvedCount > 0).length
 
   return (
-    <section className="relative">
-      {/* Lumina scursă din cufărul de deasupra. Stă peste carduri, nu sub ele:
-          au fundal opac, deci dedesubt n-ar vedea-o nimeni. */}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      onClick={onClose}
+    >
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-6 z-10 h-40"
-        style={{
-          background: `radial-gradient(ellipse 42% 100% at 50% 0%, ${color}2B, ${color}0D 45%, transparent 72%)`,
-        }}
-      />
-
-      <div
-        className="mb-2 flex items-center justify-between"
-        style={{ animation: 'se-desface 0.25s ease-out both' }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Tactici ${tier.label}`}
+        onClick={e => e.stopPropagation()}
+        className="flex max-h-[88dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[#2A2A2A] bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.7)]"
+        style={{ animation: 'pop-in 0.28s ease-out' }}
       >
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="font-display text-lg font-bold text-[#F0F0F0]">{tier.label}</h2>
-            <span
-              className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-              style={{ backgroundColor: `${color}1F`, color }}
-            >
-              ELO {tier.floor}–{tier.ceil}
-            </span>
+        {/* Antetul: cufărul, ca să se vadă în continuare ce ai deschis */}
+        <div className="relative flex flex-shrink-0 items-center gap-4 border-b border-[#2A2A2A] p-4 sm:gap-5 sm:p-5">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 w-72"
+            style={{ background: `radial-gradient(ellipse 60% 70% at 12% 50%, ${color}24, transparent 70%)` }}
+          />
+          <img
+            src={`/tactics/${tier.id}.png`}
+            alt=""
+            className="relative h-16 w-16 flex-shrink-0 object-contain sm:h-24 sm:w-24"
+          />
+          <div className="relative min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-display text-lg font-bold text-[#F0F0F0]">{tier.label}</h2>
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                style={{ backgroundColor: `${color}1F`, color }}
+              >
+                ELO {tier.floor}–{tier.ceil}
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-[#6B6B6B]">{started}/{cards.length} tactici începute</p>
           </div>
-          <p className="mt-0.5 text-xs text-[#6B6B6B]">{started}/{cards.length} tactici începute</p>
-        </div>
-        <div className="flex gap-1.5">
-          {[-1, 1].map(dir => (
-            <button
-              key={dir}
-              onClick={() => scroll(dir)}
-              aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#141414] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:bg-[#1C1C1C] hover:text-[#F0F0F0]"
-            >
-              {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-          ))}
           <button
             onClick={onClose}
-            aria-label="Închide cufărul"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#141414] text-[#6B6B6B] transition-colors hover:border-[#3A3A3A] hover:bg-[#1C1C1C] hover:text-[#F0F0F0]"
+            aria-label="Închide"
+            className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-      </div>
 
-      {/* Linie subțire colorată sub antet */}
-      <div
-        className="mb-4 h-px w-full"
-        style={{
-          background: `linear-gradient(90deg, ${color}66, transparent)`,
-          animation: 'se-desface 0.25s ease-out both',
-        }}
-      />
-
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {cards.map(({ cat, total, solvedCount }, i) => (
-          <div
-            key={cat.id}
-            className="w-60 shrink-0 snap-start sm:w-64"
-            // Se aşază pe rând, stânga→dreapta. Întârzierea se opreşte după al
-            // optulea: cu paisprezece tactici, ultimele ar fi apărut la peste
-            // o secundă, adică o aşteptare, nu o animaţie.
-            style={{
-              animation: 'iese-din-cufar 0.38s ease-out both',
-              animationDelay: `${0.06 + Math.min(i, 7) * 0.045}s`,
-            }}
-          >
-            <TacticCard
-              category={cat}
-              total={total}
-              solvedCount={solvedCount}
-              locked={cat.isPro && !isPro}
-              onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
-            />
+        {/* Corpul: săgețile și caruselul */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
+            <div className="ml-4 flex flex-shrink-0 gap-1.5">
+              {[-1, 1].map(dir => (
+                <button
+                  key={dir}
+                  onClick={() => scroll(dir)}
+                  aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
+                >
+                  {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+              ))}
+            </div>
           </div>
-        ))}
+
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {cards.map(({ cat, total, solvedCount }, i) => (
+              <div
+                key={cat.id}
+                className="w-60 shrink-0 snap-start sm:w-64"
+                // Se aşază pe rând, stânga→dreapta. Întârzierea se opreşte după
+                // al optulea: cu paisprezece tactici, ultimele ar fi apărut la
+                // peste o secundă, adică o aşteptare, nu o animaţie.
+                style={{
+                  animation: 'iese-din-cufar 0.38s ease-out both',
+                  animationDelay: `${0.08 + Math.min(i, 7) * 0.045}s`,
+                }}
+              >
+                <TacticCard
+                  category={cat}
+                  total={total}
+                  solvedCount={solvedCount}
+                  locked={cat.isPro && !isPro}
+                  onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   )
 }
 
