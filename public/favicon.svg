@@ -1,13 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!--
-    Favicon CleanChess: făraşul, fără pionul din marca mare.
-    La 16 pixeli pionul devine o pată lipită de cădiţă, iar silueta se încarcă
-    degeaba — aşa că aici rămâne doar făraşul, care se citeşte curat.
+    Favicon CleanChess: acelaşi pion sclipitor ca marca din aplicaţie
+    (src/components/ui/Logo.tsx). Dacă se schimbă unul, se schimbă amândouă.
+    Verificat randat la 16, 24, 32 şi 64 de pixeli.
   -->
   <rect width="32" height="32" rx="7" fill="#E2B340"/>
-  <g transform="translate(4.2 4.2) scale(0.74)" fill="#0A0A0A">
-    <path d="M.5 21.8 12 19.4v4.6H2.2a1.7 1.7 0 0 1-1.7-2.2Z"/>
-    <path d="M9.5 11.5h18.2l-2.4 12.2a3 3 0 0 1-2.9 2.4H12.4a3 3 0 0 1-2.9-2.4L9.5 11.5Z"/>
-    <path d="M24.6 12.6 27.9 5a2.1 2.1 0 0 1 2.8-1.1 2.1 2.1 0 0 1 1.1 2.8l-3.4 7.7Z"/>
+  <g transform="translate(3.4 3.4) scale(0.79)" fill="#0A0A0A">
+    <circle cx="13.4" cy="8.8" r="4.7"/>
+    <path d="M8.7 12.9h9.4l-1.1 2.5a1.1 1.1 0 0 1-1 .7h-5.2a1.1 1.1 0 0 1-1-.7L8.7 12.9Z"/>
+    <path d="M10.6 16.9h5.6l1.9 7.9H8.7l1.9-7.9Z"/>
+    <path d="M5.9 25.2h14.6a1.9 1.9 0 0 1 1.9 1.9v1.1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1.1a1.9 1.9 0 0 1 1.9-1.9Z"/>
+    <path d="M26 1.8Q26 7 31.2 7 26 7 26 12.2 26 7 20.8 7 26 7 26 1.8Z"/>
+    <path d="M27.6 14.8Q27.6 17.6 30.4 17.6 27.6 17.6 27.6 20.4 27.6 17.6 24.8 17.6 27.6 17.6 27.6 14.8Z"/>
   </g>
 </svg>
