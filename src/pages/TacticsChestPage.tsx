@@ -146,8 +146,11 @@ export function TacticsChestPage() {
 }
 
 /**
- * Un cufăr închis, ca buton. Nu poartă etichetă: materialul spune treapta,
- * iar numele apare la hover şi pentru cititoarele de ecran.
+ * Un cufăr închis, ca buton, cu intervalul lui de ELO deasupra.
+ *
+ * Numele treptei rămâne doar în `title` şi `aria-label`: intervalul spune deja
+ * pentru cine e cufărul, iar patru nume scrise sub patru cifre ar fi umplut
+ * rândul cu text — exact ce s-a scos din pagină.
  */
 function ChestButton({ tier, open, onClick }: { tier: TacticTier; open: boolean; onClick: () => void }) {
   const color = tierColor(tier.id)
@@ -161,29 +164,40 @@ function ChestButton({ tier, open, onClick }: { tier: TacticTier; open: boolean;
       title={`${tier.label} · ELO ${tier.floor}–${tier.ceil}`}
       aria-label={`${tier.label}, ELO ${tier.floor}–${tier.ceil}`}
       aria-expanded={open}
-      className="group relative flex w-28 items-center justify-center rounded-2xl p-1 transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 sm:w-48"
+      className="group flex w-28 flex-col items-center gap-2 rounded-2xl p-1 transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 sm:w-48"
       style={{ outlineColor: color }}
     >
-      {/* Aura din spate. Se aprinde când cufărul e deschis — singurul semn de
-          care e nevoie, fiindcă lista apare oricum dedesubt. */}
       <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+        className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap transition-colors duration-200"
         style={{
-          background: `radial-gradient(circle at 50% 52%, ${color}${open ? '3D' : '1A'}, transparent 68%)`,
+          backgroundColor: `${color}${open ? '33' : '1A'}`,
+          color,
+          border: `1px solid ${color}${open ? '55' : '2A'}`,
         }}
-      />
+      >
+        ELO {tier.floor}–{tier.ceil}
+      </span>
+
       <span className="relative flex aspect-square w-full items-center justify-center">
+        {/* Aura din spate. Se aprinde când cufărul e deschis — singurul semn de
+            care e nevoie, fiindcă lista apare oricum într-o fereastră. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(circle at 50% 52%, ${color}${open ? '3D' : '1A'}, transparent 68%)`,
+          }}
+        />
         {areImagine ? (
           <img
             src={`/tactics/${tier.id}.png`}
             alt=""
             onError={() => setAreImagine(false)}
-            className={`h-full w-full object-contain transition-transform duration-200 group-hover:scale-105 ${open ? 'scale-105' : ''}`}
+            className={`relative h-full w-full object-contain transition-transform duration-200 group-hover:scale-105 ${open ? 'scale-105' : ''}`}
           />
         ) : (
           <span
-            className="flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14"
             style={{ backgroundColor: `${color}1F`, color }}
           >
             <Icon className="h-5 w-5 sm:h-7 sm:w-7" />

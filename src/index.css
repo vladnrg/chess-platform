@@ -140,6 +140,19 @@ body {
   min-height: 100vh;
 }
 
+/* Mânuța pe orice se poate apăsa.
+   Tailwind v4 nu mai pune `cursor: pointer` pe butoane, cum făcea v3, iar în
+   aplicație sunt 94 de `<button>` scrise direct în pagini — doar câteva îl
+   cereau explicit. Regula asta le prinde pe toate deodată, în loc să se adauge
+   o clasă în optzeci şi ceva de locuri şi să se uite la următorul buton nou.
+   Cele dezactivate rămân cu săgeata, ca să se vadă că nu răspund. */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+label[for],
+summary {
+  cursor: pointer;
+}
+
 /* Titlurile folosesc fontul de display (Space Grotesk) */
 h1, h2, h3 {
   font-family: var(--font-display);
