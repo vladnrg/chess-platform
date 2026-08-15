@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Spinner } from '@/components/ui/Spinner'
 import type { Course, CourseLevel, PlayingStyle, Profile } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
+import { Logo } from '@/components/ui/Logo'
 
 // Color palette per ECO family
 function getEcoTheme(eco?: string | null) {
@@ -136,8 +137,11 @@ export function CoursesPage() {
       {/* Hero header */}
       <div className="relative rounded-2xl overflow-hidden border border-[#2A2A2A]"
         style={{ background: 'linear-gradient(135deg, #0A0A0A 0%, #1C1C1C 50%, #0A0A0A 100%)' }}>
-        <div className="absolute inset-0 opacity-5 text-[200px] flex items-center justify-end pr-8 select-none pointer-events-none leading-none">
-          ♛
+        {/* Filigran: marca aplicaţiei, nu o piesă oarecare. Conţinutul mărcii
+            ocupă ~85% din caseta ei, deci 9rem de casetă dau cam cât înălţimea
+            reginei de dinainte. */}
+        <div className="pointer-events-none absolute inset-0 flex select-none items-center justify-end pr-8 text-[#F0F0F0] opacity-5">
+          <Logo className="h-36 w-36" />
         </div>
         <div className="relative px-6 py-8">
           <h1 className="text-3xl font-black text-[#F0F0F0] tracking-tight">Cursuri interactive</h1>
