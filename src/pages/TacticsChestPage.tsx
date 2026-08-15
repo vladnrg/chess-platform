@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Lock, ChevronLeft, ChevronRight, ArrowRight, type LucideIcon } from 'lucide-react'
+import { Lock, ChevronLeft, ChevronRight, ArrowRight, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
@@ -86,6 +86,10 @@ export function TacticsChestPage() {
 
   const playerElo = profile?.estimated_elo
 
+  // Niciun cufăr deschis la intrare: pagina porneşte curată, cu patru cufere.
+  const [openTier, setOpenTier] = useState<string | null>(null)
+  const open = tierData.find(t => t.tier.id === openTier && t.cards.length > 0)
+
   return (
     <div className="space-y-10">
       {/* Hero */}
@@ -111,10 +115,82 @@ export function TacticsChestPage() {
         </div>
       </div>
 
-      {tierData.map(({ tier, cards }) => (
-        <TacticTierRow key={tier.id} tier={tier} cards={cards} isPro={isPro} />
-      ))}
+      {/* Cuferele, unul lângă altul. Închise, pagina nu arată decât scara
+          materialelor — lemn, argint, aur, smarald. Eticheta, numărătoarea şi
+          tacticile apar abia după ce deschizi unul, ca să nu se reverse tot
+          conţinutul din prima. */}
+      <div className="flex flex-wrap items-end justify-center gap-2 sm:gap-6">
+        {tierData.map(({ tier, cards }) => cards.length > 0 && (
+          <ChestButton
+            key={tier.id}
+            tier={tier}
+            open={openTier === tier.id}
+            onClick={() => setOpenTier(id => (id === tier.id ? null : tier.id))}
+          />
+        ))}
+      </div>
+
+      {open && (
+        <TacticTierRow
+          // `key` remontează secţiunea la fiecare cufăr: altfel React ar
+          // refolosi nodurile şi animaţia de ieşire n-ar mai porni.
+          key={open.tier.id}
+          tier={open.tier}
+          cards={open.cards}
+          isPro={isPro}
+          onClose={() => setOpenTier(null)}
+        />
+      )}
     </div>
+  )
+}
+
+/**
+ * Un cufăr închis, ca buton. Nu poartă etichetă: materialul spune treapta,
+ * iar numele apare la hover şi pentru cititoarele de ecran.
+ */
+function ChestButton({ tier, open, onClick }: { tier: TacticTier; open: boolean; onClick: () => void }) {
+  const color = tierColor(tier.id)
+  const Icon = TIER_ICONS[tier.id]
+  const [areImagine, setAreImagine] = useState(true)
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={`${tier.label} · ELO ${tier.floor}–${tier.ceil}`}
+      aria-label={`${tier.label}, ELO ${tier.floor}–${tier.ceil}`}
+      aria-expanded={open}
+      className="group relative flex w-28 items-center justify-center rounded-2xl p-1 transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 sm:w-48"
+      style={{ outlineColor: color }}
+    >
+      {/* Aura din spate. Se aprinde când cufărul e deschis — singurul semn de
+          care e nevoie, fiindcă lista apare oricum dedesubt. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(circle at 50% 52%, ${color}${open ? '3D' : '1A'}, transparent 68%)`,
+        }}
+      />
+      <span className="relative flex aspect-square w-full items-center justify-center">
+        {areImagine ? (
+          <img
+            src={`/tactics/${tier.id}.png`}
+            alt=""
+            onError={() => setAreImagine(false)}
+            className={`h-full w-full object-contain transition-transform duration-200 group-hover:scale-105 ${open ? 'scale-105' : ''}`}
+          />
+        ) : (
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14"
+            style={{ backgroundColor: `${color}1F`, color }}
+          >
+            <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
+          </span>
+        )}
+      </span>
+    </button>
   )
 }
 
@@ -127,8 +203,13 @@ function HeroStat({ value, label, color }: { value: number | string; label: stri
   )
 }
 
-// Un rând = nivel de ELO colorat + carusel orizontal (stil „Cursuri interactive").
-function TacticTierRow({ tier, cards, isPro }: { tier: TacticTier; cards: CardData[]; isPro: boolean }) {
+/** Ce se revarsă dintr-un cufăr deschis: antetul treptei şi caruselul ei. */
+function TacticTierRow({ tier, cards, isPro, onClose }: {
+  tier: TacticTier
+  cards: CardData[]
+  isPro: boolean
+  onClose: () => void
+}) {
   const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
   const scroll = (dir: number) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
@@ -136,114 +217,96 @@ function TacticTierRow({ tier, cards, isPro }: { tier: TacticTier; cards: CardDa
   if (cards.length === 0) return null
 
   const color = tierColor(tier.id)
-  const TierIcon = TIER_ICONS[tier.id]
   const started = cards.filter(c => c.solvedCount > 0).length
 
   return (
-    // Cufărul stă în stânga rândului, nu deasupra lui: tacticile pornesc din el
-    // spre dreapta, deci metafora e spațială, nu doar o etichetă lângă titlu.
-    <section className="relative flex gap-4 sm:gap-6">
-      {/* Lumina scursă din cufăr. Stă pe secțiune, nu pe carusel, ca să
-          izvorască din dreptul cufărului şi să treacă peste primele carduri —
-          ele au fundal opac, deci dedesubt n-ar vedea-o nimeni. */}
+    <section className="relative">
+      {/* Lumina scursă din cufărul de deasupra. Stă peste carduri, nu sub ele:
+          au fundal opac, deci dedesubt n-ar vedea-o nimeni. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[32rem] max-w-full"
+        className="pointer-events-none absolute inset-x-0 -top-6 z-10 h-40"
         style={{
-          // Alfa mică: culorile de sus ale scării (aur, diamant) sunt mult mai
-          // luminoase decât lemnul, iar la aceeaşi opacitate ar face pete.
-          background: `radial-gradient(ellipse 58% 52% at 3.5rem 50%, ${color}2B, ${color}0D 45%, transparent 72%)`,
+          background: `radial-gradient(ellipse 42% 100% at 50% 0%, ${color}2B, ${color}0D 45%, transparent 72%)`,
         }}
       />
 
-      <TierChest tier={tier} color={color} Icon={TierIcon} />
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-[#F0F0F0] font-display">{tier.label}</h2>
-              <span
-                className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-                style={{ backgroundColor: `${color}1F`, color }}
-              >
-                ELO {tier.floor}–{tier.ceil}
-              </span>
-            </div>
-            <p className="text-xs text-[#6B6B6B] mt-0.5">{started}/{cards.length} tactici începute</p>
+      <div
+        className="mb-2 flex items-center justify-between"
+        style={{ animation: 'se-desface 0.25s ease-out both' }}
+      >
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-[#F0F0F0]">{tier.label}</h2>
+            <span
+              className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+              style={{ backgroundColor: `${color}1F`, color }}
+            >
+              ELO {tier.floor}–{tier.ceil}
+            </span>
           </div>
-          <div className="flex gap-1.5">
-            {[-1, 1].map(dir => (
-              <button
-                key={dir}
-                onClick={() => scroll(dir)}
-                aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#141414] border border-[#2A2A2A] text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] hover:bg-[#1C1C1C] transition-colors"
-              >
-                {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </button>
-            ))}
-          </div>
+          <p className="mt-0.5 text-xs text-[#6B6B6B]">{started}/{cards.length} tactici începute</p>
         </div>
-
-        {/* Linie subțire colorată sub antet */}
-        <div className="h-px w-full mb-4" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
-
-        <div
-          ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {cards.map(({ cat, total, solvedCount }) => (
-            <div key={cat.id} className="w-60 sm:w-64 shrink-0 snap-start">
-              <TacticCard
-                category={cat}
-                total={total}
-                solvedCount={solvedCount}
-                locked={cat.isPro && !isPro}
-                onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
-              />
-            </div>
+        <div className="flex gap-1.5">
+          {[-1, 1].map(dir => (
+            <button
+              key={dir}
+              onClick={() => scroll(dir)}
+              aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#141414] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:bg-[#1C1C1C] hover:text-[#F0F0F0]"
+            >
+              {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
           ))}
+          <button
+            onClick={onClose}
+            aria-label="Închide cufărul"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#141414] text-[#6B6B6B] transition-colors hover:border-[#3A3A3A] hover:bg-[#1C1C1C] hover:text-[#F0F0F0]"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
+      </div>
+
+      {/* Linie subțire colorată sub antet */}
+      <div
+        className="mb-4 h-px w-full"
+        style={{
+          background: `linear-gradient(90deg, ${color}66, transparent)`,
+          animation: 'se-desface 0.25s ease-out both',
+        }}
+      />
+
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {cards.map(({ cat, total, solvedCount }, i) => (
+          <div
+            key={cat.id}
+            className="w-60 shrink-0 snap-start sm:w-64"
+            // Se aşază pe rând, stânga→dreapta. Întârzierea se opreşte după al
+            // optulea: cu paisprezece tactici, ultimele ar fi apărut la peste
+            // o secundă, adică o aşteptare, nu o animaţie.
+            style={{
+              animation: 'iese-din-cufar 0.38s ease-out both',
+              animationDelay: `${0.06 + Math.min(i, 7) * 0.045}s`,
+            }}
+          >
+            <TacticCard
+              category={cat}
+              total={total}
+              solvedCount={solvedCount}
+              locked={cat.isPro && !isPro}
+              onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
+            />
+          </div>
+        ))}
       </div>
     </section>
   )
 }
 
-/**
- * Cufărul treptei. Imaginea vine din `public/tactics/<tier>.png`; până apare,
- * rămâne iconița de nivel, ca pagina să nu aștepte după poze.
- */
-function TierChest({ tier, color, Icon }: { tier: TacticTier; color: string; Icon: LucideIcon }) {
-  const [areImagine, setAreImagine] = useState(true)
-
-  return (
-    <div className="flex w-20 shrink-0 items-center justify-center sm:w-36">
-      <div
-        className="relative flex aspect-square w-full items-center justify-center"
-        // Aura din spate — aceeași culoare cu lumina care se scurge spre carduri.
-        style={{ background: `radial-gradient(circle at 50% 50%, ${color}1A, transparent 68%)` }}
-      >
-        {areImagine ? (
-          <img
-            src={`/tactics/${tier.id}.png`}
-            alt={`Cufărul ${tier.label}`}
-            loading="lazy"
-            onError={() => setAreImagine(false)}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <span
-            className="flex h-10 w-10 items-center justify-center rounded-xl sm:h-14 sm:w-14"
-            style={{ backgroundColor: `${color}1F`, color }}
-          >
-            <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
-          </span>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // Cardul unui tip de tactică: ICON + CULOARE proprie + progres Duolingo.
 function TacticCard({ category, total, solvedCount, locked, onClick }: {

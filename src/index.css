@@ -165,6 +165,32 @@ h1, h2, h3 {
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* Cardurile de tactici, ieșind din cufărul deschis: vin din stânga, de unde
+   stă cufărul, și se așază pe rând (întârzierea o pune componenta). */
+@keyframes iese-din-cufar {
+  0% { opacity: 0; transform: translateY(-18px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Antetul treptei — apare puțin mai devreme decât cardurile, ca să se știe
+   imediat ce cufăr s-a deschis. */
+@keyframes se-desface {
+  0% { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Cine a cerut mai puțină mișcare primește doar apariția, fără deplasare. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes iese-din-cufar {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes se-desface {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+}
+
 /* Bifă verde care apare, pulsează scurt și se estompează (mutare corectă) */
 @keyframes checkPop {
   0% { opacity: 0; transform: scale(0.3); }
