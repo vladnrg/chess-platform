@@ -269,12 +269,12 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
           <span
             aria-hidden
             className="pointer-events-none absolute inset-y-0 left-0 w-72"
-            style={{ background: `radial-gradient(ellipse 60% 70% at 12% 50%, ${color}24, transparent 70%)` }}
+            style={{ background: `radial-gradient(ellipse 62% 74% at 30% 50%, ${color}24, transparent 70%)` }}
           />
           <img
             src={`/tactics/${tier.id}.png`}
             alt=""
-            className="relative h-16 w-16 flex-shrink-0 object-contain sm:h-24 sm:w-24"
+            className="relative h-24 w-24 flex-shrink-0 object-contain sm:h-36 sm:w-36"
           />
           <div className="relative min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
