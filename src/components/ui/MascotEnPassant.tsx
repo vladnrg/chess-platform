@@ -1,5 +1,5 @@
 // Căluțul savant — mascota platformei: un CAL de șah (knight) savant, cu
-// ochelari rotunzi și păr alb creț. SVG desenat manual, cu expresii care
+// monoclu şi păr alb creţ. SVG desenat manual, cu expresii care
 // variază după `mood`.
 
 export type MascotMood = 'idle' | 'thinking' | 'happy' | 'encouraging'
@@ -67,11 +67,11 @@ export function MascotEnPassant({ mood = 'idle', size = 40, className = '', anim
       <path d="M25 16 L27 7 L31 15 Z" fill={`url(#${id})`} stroke="#A8801C" strokeWidth="0.6" strokeLinejoin="round" />
       <path d="M37 15 L42 7 L41 17 Z" fill={`url(#${id})`} stroke="#A8801C" strokeWidth="0.6" strokeLinejoin="round" />
 
-      {/* Ochelari rotunzi de savant */}
+      {/* Monoclu de savant: o singură lentilă, cu rama şi braţul ei.
+          A doua lentilă stătea pe bot, unde un cal n-are ochi — de acolo
+          venea senzaţia că ochelarii sunt puşi strâmb. */}
       <g stroke="#1C1C1C" strokeWidth="1.8" fill="none" strokeLinecap="round">
         <circle cx="25" cy="26" r="6" />
-        <circle cx="16" cy="28" r="4.5" />
-        <path d="M20.5 27 L23 26.5" strokeWidth="1.4" />
         <path d="M31 25 Q34 22 37 21" strokeWidth="1.4" />
       </g>
 
@@ -89,8 +89,6 @@ function Face({ mood }: { mood: MascotMood }) {
       <g stroke={c} strokeWidth="2" strokeLinecap="round" fill="none">
         {/* ochi fericit (arc) sub lentilă */}
         <path d="M22 26.5 q3 -3 6 0" />
-        {/* zâmbet pe bot */}
-        <path d="M14 35 q4.5 3 8.5 0" />
       </g>
     )
   }
@@ -100,8 +98,6 @@ function Face({ mood }: { mood: MascotMood }) {
       <g>
         {/* ochi ridicat spre colț */}
         <circle cx="26" cy="25" r="1.8" fill={c} />
-        {/* gură mică, neutră */}
-        <path d="M15 35.5 q3.5 1.2 6.5 0" stroke={c} strokeWidth="2" strokeLinecap="round" fill="none" />
         {/* punctuleț de gând */}
         <circle cx="50" cy="10" r="1.7" fill="#E2B340" opacity="0.9" />
       </g>
@@ -113,8 +109,6 @@ function Face({ mood }: { mood: MascotMood }) {
       <g stroke={c} strokeWidth="2" strokeLinecap="round" fill="none">
         {/* clipește (wink) */}
         <path d="M22 26 q3 -2.5 6 0" />
-        {/* zâmbet încurajator */}
-        <path d="M14 35 q4.5 3 8.5 0" />
       </g>
     )
   }
@@ -126,8 +120,6 @@ function Face({ mood }: { mood: MascotMood }) {
       <path d="M20 18.5 q3.5 -1.8 6.5 -0.3" stroke={c} strokeWidth="1.7" strokeLinecap="round" fill="none" />
       {/* ochi confident */}
       <circle cx="25.5" cy="26.5" r="2" fill={c} />
-      {/* smirk superior — un colț urcă mult */}
-      <path d="M14 36 q4.5 2.5 9 -2.5" stroke={c} strokeWidth="2.2" strokeLinecap="round" fill="none" />
     </g>
   )
 }

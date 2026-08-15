@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Lock, ChevronLeft, ChevronRight, ArrowRight, X } from 'lucide-react'
+import { Lock, ChevronLeft, ChevronRight, ArrowRight, X, Dumbbell, Check, TrendingUp, Gauge, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
@@ -74,14 +74,16 @@ export function TacticsChestPage() {
   const stats = useMemo(() => {
     let solvedCount = 0
     let complete = 0
+    let paths = 0
     for (const { cards } of tierData) {
       for (const c of cards) {
         if (c.total === 0) continue
+        paths++
         solvedCount += c.solvedCount
         if (c.solvedCount === c.total) complete++
       }
     }
-    return { solvedCount, complete }
+    return { solvedCount, complete, paths }
   }, [tierData])
 
   const playerElo = profile?.estimated_elo
@@ -108,9 +110,22 @@ export function TacticsChestPage() {
             și parcurge traseul de exerciții, exact ca la cursuri.
           </p>
           <div className="flex gap-6 mt-5">
-            <HeroStat value={stats.solvedCount} label="exerciții rezolvate" color="#4ade80" />
-            <HeroStat value={stats.complete} label="tactici complete" color="#E2B340" />
-            {playerElo != null && <HeroStat value={`~${playerElo}`} label="nivelul tău" color="#2DD4BF" />}
+            <HeroStat
+              icon={Dumbbell}
+              bifa
+              value={stats.solvedCount}
+              label="exerciții rezolvate"
+              color="#4ade80"
+            />
+            <HeroStat
+              icon={TrendingUp}
+              value={`${stats.complete}/${stats.paths}`}
+              label="tactici complete"
+              color="#E2B340"
+            />
+            {playerElo != null && (
+              <HeroStat icon={Gauge} value={`~${playerElo}`} label="ELO estimat" color="#2DD4BF" />
+            )}
           </div>
         </div>
       </div>
@@ -208,11 +223,42 @@ function ChestButton({ tier, open, onClick }: { tier: TacticTier; open: boolean;
   )
 }
 
-function HeroStat({ value, label, color }: { value: number | string; label: string; color: string }) {
+/**
+ * O cifră din antet, cu semnul ei.
+ *
+ * Iconiţa nu e decor: la o privire rapidă se vede ce fel de cifră e, fără să
+ * citeşti eticheta. Gantera pentru repetiţie, săgeata de trend pentru cât ai
+ * dus până la capăt, cadranul pentru o măsurătoare aproximativă — de aceea
+ * ELO-ul estimat are cadran, nu trofeu: e o citire, nu o realizare.
+ */
+function HeroStat({ icon: Icon, value, label, color, bifa = false }: {
+  icon: LucideIcon
+  value: number | string
+  label: string
+  color: string
+  /** Bifa mică din colţ — doar la exerciţiile rezolvate. */
+  bifa?: boolean
+}) {
   return (
-    <div>
-      <p className="text-2xl font-black" style={{ color }}>{value}</p>
-      <p className="text-xs text-[#6B6B6B]">{label}</p>
+    <div className="flex items-center gap-2.5">
+      <span
+        className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+        style={{ backgroundColor: `${color}1A`, color }}
+      >
+        <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
+        {bifa && (
+          <span
+            className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#141414]"
+            style={{ backgroundColor: color }}
+          >
+            <Check className="h-2.5 w-2.5 text-[#0A0A0A]" strokeWidth={4} />
+          </span>
+        )}
+      </span>
+      <div>
+        <p className="text-2xl font-black leading-none" style={{ color }}>{value}</p>
+        <p className="mt-1 text-xs text-[#6B6B6B]">{label}</p>
+      </div>
     </div>
   )
 }
