@@ -137,10 +137,10 @@ export function CoursesPage() {
       {/* Hero header */}
       <div className="relative rounded-2xl overflow-hidden border border-[#2A2A2A]"
         style={{ background: 'linear-gradient(135deg, #0A0A0A 0%, #1C1C1C 50%, #0A0A0A 100%)' }}>
-        {/* Filigran: marca aplicaţiei, nu o piesă oarecare. Conţinutul mărcii
-            ocupă ~85% din caseta ei, deci 9rem de casetă dau cam cât înălţimea
-            reginei de dinainte. */}
-        <div className="pointer-events-none absolute inset-0 flex select-none items-center justify-end pr-8 text-[#F0F0F0] opacity-5">
+        {/* Filigran: marca aplicaţiei, nu o piesă oarecare. Aurie, nu albă —
+            pe negru, aurul se vede la o opacitate mult mai mică decât albul,
+            deci iese în evidenţă fără să concureze cu titlul. */}
+        <div className="pointer-events-none absolute inset-0 flex select-none items-center justify-end pr-8 text-[#E2B340] opacity-25">
           <Logo className="h-36 w-36" />
         </div>
         <div className="relative px-6 py-8">

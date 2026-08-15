@@ -1,16 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!--
     Favicon CleanChess: acelaşi pion sclipitor ca marca din aplicaţie
-    (src/components/ui/Logo.tsx). Dacă se schimbă unul, se schimbă amândouă.
-    Verificat randat la 16, 24, 32 şi 64 de pixeli.
+    (src/components/ui/Logo.tsx). Dacă se schimbă unul, se schimbă amândouă —
+    contururile trebuie să rămână identice, nu doar asemănătoare.
+
+    Marca stă într-un <svg> imbricat, cu acelaşi viewBox strâns ca al
+    componentei: aşa se aşază singură în pătratul auriu, fără o scalare
+    calculată de mână care s-ar strica la orice ajustare a desenului.
   -->
   <rect width="32" height="32" rx="7" fill="#E2B340"/>
-  <g transform="translate(3.4 3.4) scale(0.79)" fill="#0A0A0A">
+  <svg x="4" y="4" width="24" height="24" viewBox="2.6 3.25 25.9 25.9" fill="#0A0A0A">
     <circle cx="13.4" cy="8.8" r="4.7"/>
     <path d="M9.8 12.7H17l-.8 4.2h-5.6l-.8-4.2Z"/>
     <path d="M10.6 16.9h5.6l1.9 7.9H8.7l1.9-7.9Z"/>
     <path d="M6.1 25.2h14.6a1.9 1.9 0 0 1 1.9 1.9v1.1a1 1 0 0 1-1 1H5.2a1 1 0 0 1-1-1v-1.1a1.9 1.9 0 0 1 1.9-1.9Z"/>
-    <path d="M26 1.8Q26 7 31.2 7 26 7 26 12.2 26 7 20.8 7 26 7 26 1.8Z"/>
-    <path d="M27.6 14.8Q27.6 17.6 30.4 17.6 27.6 17.6 27.6 20.4 27.6 17.6 24.8 17.6 27.6 17.6 27.6 14.8Z"/>
-  </g>
+    <path d="M23 2.6Q23 7.2 27.6 7.2 23 7.2 23 11.8 23 7.2 18.4 7.2 23 7.2 23 2.6Z"/>
+    <path d="M21.6 13.9Q21.6 16.5 24.2 16.5 21.6 16.5 21.6 19.1 21.6 16.5 19 16.5 21.6 16.5 21.6 13.9Z"/>
+  </svg>
 </svg>
