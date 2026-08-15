@@ -103,13 +103,12 @@ export function TacticsChestPage() {
         <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 opacity-95 pointer-events-none select-none hidden sm:block">
           <CalutulOmniscient size={132} mood="happy" />
         </div>
-        <div className="relative px-6 py-7 max-w-[36rem]">
+        <div className="relative mx-auto max-w-[44rem] px-6 py-7 text-center">
           {/* Titlul stă în bara shell-ului; hero-ul păstrează doar descrierea şi statisticile */}
-          <p className="text-[#A0A0A0] text-sm">
-            Antrenează-te pe niveluri — de la începător la maestru. Alege un tip de tactică
-            și parcurge traseul de exerciții, exact ca la cursuri.
+          <p className="text-sm text-[#A0A0A0]">
+            Găsește mutarea cea mai potrivită în poziții variate, pe diverse grade de dificultate.
           </p>
-          <div className="flex gap-6 mt-5">
+          <div className="mt-5 flex flex-wrap justify-center gap-6">
             <HeroStat
               icon={Dumbbell}
               bifa

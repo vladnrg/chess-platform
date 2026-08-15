@@ -42,9 +42,12 @@ export function CalutulOmniscient({ mood = 'idle', size = 40, className = '', an
       <path d="M15 57 C15 52 19 50 21 49 L43 49 C45 50 49 52 49 57 Z" fill={`url(#${id})`} />
       <rect x="22" y="45" width="20" height="5" rx="2.5" fill={`url(#${id})`} />
 
-      {/* Capul de cal (profil, spre stânga) */}
+      {/* Capul de cal (profil, spre stânga).
+          Botul se termină într-o curbă continuă, nu într-un perete drept:
+          muchia din stânga cobora vertical de la y=28 la y=33 şi se închidea
+          într-un colţ, ceea ce se citea ca un nas retezat. */}
       <path
-        d="M12 33 C12 28 15 24 20 22 C25 20 30 18 34 17 C40 16 44 19 44 26 C45 33 43 41 42 47 L24 47 C24 40 23 36 26 33 C22 37 16 37 13 35 C12.1 34.4 11.3 33.6 12 33 Z"
+        d="M12.6 30.6 C12.8 27.8 15 24 20 22 C25 20 30 18 34 17 C40 16 44 19 44 26 C45 33 43 41 42 47 L24 47 C24 40 23 36 26 33 C22 37 16.5 36.8 13.8 34.8 C11.8 33.9 11.5 32 12.6 30.6 Z"
         fill={`url(#${id})`}
         stroke="#A8801C"
         strokeWidth="0.75"
