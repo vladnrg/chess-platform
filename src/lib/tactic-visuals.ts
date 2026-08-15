@@ -52,7 +52,7 @@ export const TIER_COLORS: Record<string, string> = {
   incepator: '#A98342',   // lemn — cel mai neremarcabil
   intermediar: '#C0C0C0', // argint, ca liga Bazat
   avansat: '#FFD700',     // aur, ca liga Avansat
-  master: '#B9F2FF',      // diamant, ca liga Legendar
+  master: '#50C878',      // smarald, ca liga Remarcabil
 }
 
 export const TIER_ICONS: Record<string, LucideIcon> = {
