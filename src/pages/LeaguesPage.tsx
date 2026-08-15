@@ -53,7 +53,10 @@ export function LeaguesPage() {
               }}
             >
               <div className="flex items-center gap-4">
-                <LeagueBadge league={currentLeagueConfig} className="h-16 w-16" />
+                {/* 7.5rem = 120px, cu 25% peste cele 96px ale stemelor din scara
+                    de mai jos: liga în care eşti trebuie să fie cea mai mare de
+                    pe pagină, nu una dintre multe. */}
+                <LeagueBadge league={currentLeagueConfig} className="h-[7.5rem] w-[7.5rem]" />
                 <div className="min-w-0 flex-1">
                   <span className="text-sm text-[#A0A0A0]">Liga ta curentă</span>
                   <h2 className="mt-0.5 text-xl font-bold" style={{ color: currentLeagueConfig.color }}>
@@ -81,8 +84,11 @@ export function LeaguesPage() {
               </div>
 
               {/* Liga se câştigă prin clasament, nu prin praguri de XP total —
-                  deci n-are ce căuta aici o bară „cât mai am până la următoarea". */}
-              {standing && (
+                  deci n-are ce căuta aici o bară „cât mai am până la următoarea".
+                  Rândul apare doar când chiar are ceva de spus: dacă nu eşti nici
+                  în zona de promovare, nici în cea de retrogradare, şi nici n-are
+                  cine promova, tăcerea e mai bună decât „nu se mişcă nimeni". */}
+              {standing && (standing.in_promotion_zone || standing.in_relegation_zone || standing.promote_slots > 0) && (
                 <p className="mt-4 text-sm text-[#A0A0A0]">
                   {standing.in_promotion_zone ? (
                     <span className="text-[#4ade80]">Ești în zona de promovare. Ține-o tot așa până duminică.</span>
@@ -91,10 +97,8 @@ export function LeaguesPage() {
                       Ești în zona de retrogradare. Treci peste locul{' '}
                       <span className="font-semibold">{standing.members - standing.relegate_slots}</span> ca să scapi.
                     </span>
-                  ) : standing.promote_slots > 0 ? (
-                    <>Promovează primii <span className="font-semibold text-[#E2B340]">{standing.promote_slots}</span> din ligă. Mai ai timp până duminică.</>
                   ) : (
-                    <>Prea puțini jucători în ligă ca să se miște cineva săptămâna asta.</>
+                    <>Promovează primii <span className="font-semibold text-[#E2B340]">{standing.promote_slots}</span> din ligă. Mai ai timp până duminică.</>
                   )}
                 </p>
               )}
