@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { GoogleButton } from '@/components/auth/GoogleButton'
+import { Logo } from '@/components/ui/Logo'
 
 export function Login() {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ export function Login() {
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340]">
-              <span className="text-black font-black text-xl">♟</span>
+              <Logo className="h-6 w-6 text-black" />
             </div>
             <span className="font-bold text-[#F0F0F0] text-xl">CleanChess</span>
           </Link>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { AgeGateStep } from '@/components/auth/AgeGateStep'
 import { GoogleButton } from '@/components/auth/GoogleButton'
+import { Logo } from '@/components/ui/Logo'
 
 type Step = 'credentials' | 'age' | 'done-minor'
 
@@ -104,7 +105,7 @@ export function Register() {
         <div className="w-full max-w-sm">
           <div className="mb-8 text-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340] mx-auto mb-4">
-              <span className="text-black font-black text-xl">♟</span>
+              <Logo className="h-6 w-6 text-black" />
             </div>
             <h1 className="text-xl font-bold text-[#F0F0F0]">Un ultim pas</h1>
             <p className="mt-1 text-sm text-[#A0A0A0]">Când ai fost născut?</p>
@@ -122,7 +123,7 @@ export function Register() {
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2B340]">
-              <span className="text-black font-black text-xl">♟</span>
+              <Logo className="h-6 w-6 text-black" />
             </div>
             <span className="font-bold text-[#F0F0F0] text-xl">CleanChess</span>
           </Link>

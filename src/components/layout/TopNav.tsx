@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Crown, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { StreakBadge } from './StreakBadge'
+import { Logo } from '@/components/ui/Logo'
 import { cn, getLeagueConfig } from '@/lib/utils'
 import {
   NAV, ACCOUNT_ITEMS, ALL_PAGES, isGroup, isEntryActive, type NavLeaf,
@@ -129,7 +130,7 @@ export function TopNav() {
       {/* Logo */}
       <Link to="/dashboard" className="flex flex-shrink-0 items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
-          <span className="text-sm font-black text-black">♟</span>
+          <Logo className="h-[22px] w-[22px] text-black" />
         </div>
         <span className="font-display text-lg font-bold tracking-tight text-[#F0F0F0]">CleanChess</span>
       </Link>
