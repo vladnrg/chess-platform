@@ -61,7 +61,7 @@ export const NAV: NavEntry[] = [
       },
       {
         to: '/tactics',
-        label: 'Cufărul cu tactici',
+        label: 'Cuferele cu tactici',
         description: 'Trasee pe categorii — furculiță, țintuire, sacrificiu — de la începător la maestru.',
         icon: Sword,
       },

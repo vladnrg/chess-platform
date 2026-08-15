@@ -40,7 +40,7 @@ interface Mission {
 /** Date fixe, alese ca să arate toate cele trei stări deodată. */
 const SAMPLE_MISSIONS: Mission[] = [
   { id: 'm1', icon: Puzzle, text: 'Rezolvă 5 puzzle-uri', done: 3, total: 5, status: 'active' },
-  { id: 'm2', icon: Sword, text: 'Termină 3 exerciții din Cufărul cu tactici', done: 3, total: 3, status: 'done' },
+  { id: 'm2', icon: Sword, text: 'Termină 3 exerciții din Cuferele cu tactici', done: 3, total: 3, status: 'done' },
   { id: 'm3', icon: BookOpen, text: 'Parcurge Deschiderea și Jocul de mijloc dintr-un curs', done: 0, total: 2, status: 'cooldown', cooldownLeft: 4 },
 ]
 

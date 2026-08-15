@@ -81,7 +81,7 @@ export function TacticsCategoryPage() {
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <p className="text-[#6B6B6B]">Traseul nu a fost găsit.</p>
         <Button variant="secondary" size="sm" onClick={() => navigate('/tactics')}>
-          ← Înapoi la Cufărul cu tactici
+          ← Înapoi la Cuferele cu tactici
         </Button>
       </div>
     )
@@ -97,7 +97,7 @@ export function TacticsCategoryPage() {
         className="flex items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
-        Cufărul cu tactici
+        Cuferele cu tactici
       </button>
 
       {/* Header */}

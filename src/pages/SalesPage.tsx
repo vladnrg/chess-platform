@@ -6,7 +6,7 @@ import {
   CreditCard, Lightbulb, TrendingUp, RotateCcw, Target, ShieldHalf,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
+import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { LEAGUES } from '@/types'
 import { CinematicImage } from '@/components/marketing/CinematicImage'
 import heroImg from '@/assets/marketing/hero.jpg'
@@ -261,7 +261,7 @@ export function SalesPage() {
                 </strong>
               </p>
               <p className="flex items-start gap-3">
-                <MascotEnPassant mood="thinking" size={40} animated className="mt-0.5 flex-shrink-0" />
+                <CalutulOmniscient mood="thinking" size={40} animated className="mt-0.5 flex-shrink-0" />
                 <span>
                   Îl întrebi pe Căluțul savant „de ce nu merge mutarea asta?" și îți răspunde despre
                   poziția ta concretă, nu despre o teorie generală. Exersezi openings-urile activ pe

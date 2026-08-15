@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES, type TacticCategory } from '@/data/tactics'
 import { TACTIC_TIERS, type TacticTier, pickPathIds } from '@/lib/tactics-path'
 import { tacticVisual, tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
-import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
+import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 
 interface PuzzleIndexRow {
   id: string
@@ -101,7 +101,7 @@ export function TacticsChestPage() {
       >
         {/* Mascota decorativă */}
         <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 opacity-95 pointer-events-none select-none hidden sm:block">
-          <MascotEnPassant size={132} mood="happy" />
+          <CalutulOmniscient size={132} mood="happy" />
         </div>
         <div className="relative px-6 py-7 max-w-[36rem]">
           {/* Titlul stă în bara shell-ului; hero-ul păstrează doar descrierea şi statisticile */}

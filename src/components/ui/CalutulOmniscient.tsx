@@ -1,4 +1,4 @@
-// Căluțul savant — mascota platformei: un CAL de șah (knight) savant, cu
+// Căluţul omniscient — mascota platformei: un CAL de şah (knight) savant, cu
 // monoclu şi păr alb creţ. SVG desenat manual, cu expresii care
 // variază după `mood`.
 
@@ -12,7 +12,7 @@ interface Props {
   animated?: boolean
 }
 
-export function MascotEnPassant({ mood = 'idle', size = 40, className = '', animated = false }: Props) {
+export function CalutulOmniscient({ mood = 'idle', size = 40, className = '', animated = false }: Props) {
   const id = `mascot-grad-${mood}`
   const hairId = `mascot-hair-${mood}`
   return (
@@ -44,7 +44,7 @@ export function MascotEnPassant({ mood = 'idle', size = 40, className = '', anim
 
       {/* Capul de cal (profil, spre stânga) */}
       <path
-        d="M12 33 C12 28 15 24 20 22 C25 20 30 18 34 17 C40 16 44 19 44 26 C45 33 43 41 42 47 L24 47 C24 40 23 36 26 33 C22 37 16 37 13 35 C12 35 12 34 12 33 Z"
+        d="M12 33 C12 28 15 24 20 22 C25 20 30 18 34 17 C40 16 44 19 44 26 C45 33 43 41 42 47 L24 47 C24 40 23 36 26 33 C22 37 16 37 13 35 C12.1 34.4 11.3 33.6 12 33 Z"
         fill={`url(#${id})`}
         stroke="#A8801C"
         strokeWidth="0.75"

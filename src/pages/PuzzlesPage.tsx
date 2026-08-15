@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { Card } from '@/components/ui/Card'
 import { AICoachPanel } from '@/components/chess/AICoachPanel'
-import { MascotEnPassant } from '@/components/ui/MascotEnPassant'
+import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { cn } from '@/lib/utils'
 import type { Puzzle } from '@/types'
 
@@ -881,7 +881,7 @@ export function PuzzlesPage() {
       {/* Banner plasament (dacă nu ai rating) — antrenamentul pe nivelul tău */}
       {!hasRating && mode === 'rated' && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center rounded-xl border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.06)] p-4">
-          <MascotEnPassant mood="encouraging" size={44} />
+          <CalutulOmniscient mood="encouraging" size={44} />
           <div className="flex-1">
             <p className="text-sm font-semibold text-[#F0F0F0]">Deblochează antrenamentul pe nivelul tău</p>
             <p className="text-xs text-[#A0A0A0] mt-0.5">
@@ -1069,7 +1069,7 @@ export function PuzzlesPage() {
                   : <>Joci cu <span className={`px-1.5 py-0.5 rounded text-xs ${playerColor === 'white' ? 'bg-[#F0F0F0] text-black' : 'bg-[#2A2A2A] border border-[#3A3A3A] text-[#F0F0F0]'}`}>{playerColor === 'white' ? '♔ Alb' : '♚ Negru'}</span></>
                 }
               </div>
-              {/* Aceeaşi latură ca în Cufărul cu tactici — vezi --board-max */}
+              {/* Aceeaşi latură ca în Cuferele cu tactici — vezi --board-max */}
               <div className="flex gap-2 items-stretch">
                 <div
                   className="relative w-full rounded-xl overflow-hidden border border-[#2A2A2A]"
@@ -1193,7 +1193,7 @@ export function PuzzlesPage() {
           {puzzleState && (
             <Button variant="secondary" size="md" className="w-full justify-center gap-2 text-base" onClick={() => setCoachOpen(true)}>
               Consultă Căluțul savant
-              <MascotEnPassant size={22} />
+              <CalutulOmniscient size={22} />
             </Button>
           )}
 
