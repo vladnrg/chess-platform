@@ -261,8 +261,12 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
         aria-modal="true"
         aria-label={`Tactici ${tier.label}`}
         onClick={e => e.stopPropagation()}
-        className="flex max-h-[88dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[#2A2A2A] bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.7)]"
-        style={{ animation: 'pop-in 0.28s ease-out' }}
+        className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-2xl border border-[#2A2A2A] bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.7)]"
+        // Aceeaşi lăţime cu a conţinutului paginii (`--app-max`), minus
+        // marginile ferestrei. Legată de token, nu de o cifră scrisă aici:
+        // altfel, pe ecrane mari fereastra rămânea mai îngustă decât antetul
+        // din spatele ei şi arăta ca o casetă pierdută în mijloc.
+        style={{ maxWidth: 'calc(var(--app-max) - 2 * var(--app-pad))', animation: 'pop-in 0.28s ease-out' }}
       >
         {/* Antetul: cufărul, ca să se vadă în continuare ce ai deschis */}
         <div className="relative flex flex-shrink-0 items-center gap-4 border-b border-[#2A2A2A] p-4 sm:gap-5 sm:p-5">
@@ -315,14 +319,19 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
             </div>
           </div>
 
+          {/* Două rânduri care derulează împreună, nu unul singur: fereastra e
+              lată acum, iar un singur rând ar lăsa jumătate din ea goală. Cu
+              grid pe coloane, săgeţile duc tot orizontal, deci rămân utile.
+              Sub şapte tactici trece pe un rând, ca să nu iasă o coloană
+              singuratică lângă un gol. */}
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-2 snap-x scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className={`grid ${cards.length > 6 ? 'grid-rows-2' : 'grid-rows-1'} auto-cols-[15rem] grid-flow-col gap-4 overflow-x-auto pb-2 snap-x scroll-smooth sm:auto-cols-[16rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
           >
             {cards.map(({ cat, total, solvedCount }, i) => (
               <div
                 key={cat.id}
-                className="w-60 shrink-0 snap-start sm:w-64"
+                className="snap-start"
                 // Se aşază pe rând, stânga→dreapta. Întârzierea se opreşte după
                 // al optulea: cu paisprezece tactici, ultimele ar fi apărut la
                 // peste o secundă, adică o aşteptare, nu o animaţie.
