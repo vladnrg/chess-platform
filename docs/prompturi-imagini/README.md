@@ -62,7 +62,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 4 | `attraction.png` | Atragerea și devierea | — |
 | 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
 | 6 | `skewer.png` | Țeapă și atacul cu raze X | — |
-| 7 | `trapped.png` | Prinderea piesei | — |
+| 7 | `trapped.png` | Prinderea piesei | [07-prinderea-piesei.md](07-prinderea-piesei.md) |
 | 8 | `mate.png` | Dă mat în N mutări | — |
 | 9 | `forced-draws.png` | Resurse defensive | — |
 | 10 | `zwischenzug.png` | Mutarea intermediară | — |
