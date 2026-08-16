@@ -28,7 +28,7 @@ import sharp from 'sharp'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const SRC = 'Imagini openings/League System logos'
+const SRC = 'surse-imagini/ligi'
 const OUT = process.argv.includes('--apply') ? 'public/leagues' : '.tmp-leagues'
 
 /** Latura siglei. Cea mai mare afişare e 112px, deci 256 ajunge şi pe ecrane dense. */

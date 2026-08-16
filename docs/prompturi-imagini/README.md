@@ -11,7 +11,7 @@ copiază din blocul de cod — VS Code pune un buton de copiere pe el.
 
 Fiecare prompt cere o **imagine de referință atașată la mesaj**. Începând cu a
 doua tactică, referința e chiar prima plăcuță din serie —
-[`furculita.png`](../../public/tactics/Tipuri%20de%20tactici/furculita.png) —
+[`furculita.png`](../../surse-imagini/tactici/furculita.png) —
 nu logoul Colle: ea are deja rama, aurul și fuziunea dintre obiect și piese.
 Click dreapta pe fișier în editor → *Reveal in File Explorer* → trage-l în ChatGPT.
 

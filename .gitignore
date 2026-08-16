@@ -42,3 +42,4 @@ supabase/.temp/
 
 # Artefacte test Playwright
 .playwright-mcp/
+.tmp-leagues/

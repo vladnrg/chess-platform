@@ -16,7 +16,7 @@ Ce spune fiecare element:
 | raza dreaptă, de la nebun la turn | *linia care s-a deschis* |
 | turnul care se răstoarnă | *prada* |
 
-**Atașează la mesaj:** [`furculita.png`](../../public/tactics/Tipuri%20de%20tactici/furculita.png)
+**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
 
 ---
