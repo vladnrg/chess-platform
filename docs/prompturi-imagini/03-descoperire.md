@@ -3,6 +3,70 @@
 **Scena:** un pion tocmai a pășit într-o parte, iar raza nebunului din spatele
 lui — până atunci blocată — trece prin locul rămas gol și lovește un turn.
 
+> **Starea:** imaginea există, dar a fost generată înainte de
+> [codul culorilor](README.md#codul-culorilor-alb-și-negru) — totul e din același
+> aur. Se corectează cu promptul de mai jos, nu se generează din nou.
+
+---
+
+## Corecție — culorile
+
+**Turnul devine negru.** El e ținta: piesa adversă lovită de raza care s-a
+deschis. Nebunul care trage și pionul care s-a dat la o parte rămân deschise —
+sunt ale noastre, ele au făcut mutarea.
+
+Așa se citește și tactica, nu doar culorile: două piese albe lucrează împreună,
+una neagră plătește.
+
+**Atașează la mesaj:** poza actuală,
+[`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png).
+
+```text
+Here is an image you made earlier. Change one thing only: the metal the rook is made of. Everything else in the picture must stay exactly as it is.
+
+DO NOT CHANGE, in any way:
+- the ornamental gold frame, its corner pieces and its four diamonds;
+- the brown chessboard background, its pattern, and the warm glow;
+- the composition: the position, size, angle and shape of all three chess pieces;
+- the beam of light — its path, its length, its width, its brightness and its warm colour;
+- the bishop in the lower left and the pawn in the middle right, which keep their present pale gold exactly as it is;
+- the lighting direction, the highlights, the shadows and the drop shadows;
+- the square format and the framing.
+
+This is a recolour of one object in the existing image, not a new illustration. If anything moves, resizes or changes shape, it is wrong.
+
+THE ROOK — the piece in the UPPER RIGHT, the one tipped over at an angle with the beam of light striking it — becomes DARK: a near-black bronze, with highlight #4A3A1C, mid-tone #241A0A and deep shadow #0E0A04. Keep a thin warm gold rim light along its edges so its silhouette stays crisp against the brown board behind it. It must read instantly as a black chess piece would on a real board — clearly the dark side.
+
+It keeps exactly the shape, the size, the tilt and the position it already has. Only its material changes.
+
+Where the beam of light meets the rook, the beam itself stays bright and warm as it is now, and it should throw a warm glow onto the dark metal at the point of impact — so it is still obvious that the light is hitting this piece.
+
+The bishop and the pawn stay pale and bright, as the light side: highlight #FFF0C0, mid-tone #E4C071, shadow #A07C30. The contrast between them and the dark rook must be strong and immediate.
+
+Keep the same square size, at least 1024x1024.
+```
+
+---
+
+**Salvează ca:** peste poza actuală.
+
+**Verificare**
+
+1. **Doar turnul s-a schimbat?** Pune-le una lângă alta. Nebunul, pionul, raza,
+   rama și fundalul trebuie să fie identice.
+2. **Raza a rămas luminoasă acolo unde atinge turnul?** Dacă s-a stins pe metalul
+   închis, se pierde legătura dintre nebun și țintă. Cere: *„keep the beam bright
+   where it touches the rook, and add a warm glow at the point of impact"*.
+3. **Contrastul e puternic?** Turnul trebuie citit ca „piesă neagră", nu ca aur
+   mai închis.
+4. **Turnul a rămas înclinat la fel?** Poziția și unghiul nu se schimbă.
+
+---
+
+## Promptul original
+
+*Păstrat pentru referință — corecția de sus e cea care se folosește acum.*
+
 Trei piese, o singură rază. Nu e diagramă: piesele nu stau pe pătrate, sunt
 sculptate în aur ca furculița. Dar povestea trebuie să se citească — cine s-a
 dat la o parte, cine trage, pe cine.
