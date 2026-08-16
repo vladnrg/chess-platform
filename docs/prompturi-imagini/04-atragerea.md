@@ -1,34 +1,46 @@
 # 4. Atragerea și devierea → `attraction.png`
 
-**Scena:** un **pion alb**, cu un magnet mic prins de el, trage la o parte
-**nebunul negru**. Nebunul păzea, de pe diagonala lui, **turnul negru** din
-capăt. Odată tras de pe diagonală, turnul rămâne singur.
+**Scena:** nebunul negru stă la intersecția a două diagonale. Pe una, la un
+pătrat în jos-dreapta, îl cheamă un **pion alb cu magnet**. Pe cealaltă, trei
+pătrate în sus-dreapta, păzește un **turn negru**. Ca să ia pionul, trebuie să
+părăsească diagonala turnului.
 
-Mecanismul e cel real din șah: pionul atacă nebunul, nebunul n-are unde să se
-retragă pe diagonala aia, deci trebuie s-o părăsească — și pleacă odată cu ea și
-apărarea turnului.
+Asta e devierea, întreagă, într-o singură imagine: nu e nevoie să se vadă
+consecința, fiindcă se vede **alegerea imposibilă**.
+
+## Poziția, verificată cu motorul
+
+```
+    a  b  c  d  e  f  g  h
+  +------------------------+
+8 | .  .  .  .  .  .  r  . |     nebun negru  d5
+7 | .  .  .  .  .  .  .  . |     pion alb     e4
+6 | .  .  .  .  .  .  .  . |     turn negru   g8
+5 | .  .  .  b  .  .  .  . |
+4 | .  .  .  .  P  .  .  . |
+3 | .  .  .  .  .  .  .  . |
+2 | .  .  .  .  .  .  .  . |
+1 | .  .  .  .  .  .  .  . |
+  +------------------------+
+```
+
+Verificat cu chess.js, nu compus din cap:
+
+- pionul de pe **e4** atacă nebunul de pe **d5** — un pion alb bate în diagonală
+  înainte, deci ţine sub bătaie d5 și f5;
+- de pe **d5**, nebunul apără turnul de pe **g8**, pe diagonala d5–e6–f7–g8;
+- după ce ia pionul și ajunge pe **e4**, diagonalele lui devin e4–f5–g6–h7 și
+  e4–d5–c6–b7–a8. **g8 nu e pe niciuna** — turnul rămâne fără apărare.
+
+Nebunul stă exact în punctul în care cele două diagonale se încrucișează. De
+aceea imaginea funcționează fără explicații: se vede că, mergând într-o parte,
+pierde cealaltă.
 
 | element | ce spune |
 | --- | --- |
-| pionul alb, cu magnetul | *cine deviază — și cât de puțin costă* |
-| nebunul negru, tras într-o parte | *piesa forțată să plece* |
-| soclul gol, pe diagonala turnului | *de acolo apăra* |
-| turnul negru, singur în capăt | *ce rămâne de luat* |
-
-## Ce face imaginea să meargă
-
-**Diagonala.** Turnul și soclul gol trebuie să stea pe aceeași linie oblică, iar
-nebunul să fie tras *lateral*, în afara ei. Fără asta, nu se vede că a fost
-scos de pe o linie anume — pare doar că se plimbă.
-
-**Nebunul privește înapoi.** Corpul tras spre magnet, capul întors spre turn. E
-detaliul care spune că pleacă fără să vrea și că știe ce lasă în urmă.
-
-**Pionul e mic.** Contrastul de mărime e gluma: cea mai neînsemnată piesă mută un
-nebun de pe locul lui. Magnetul e mic și el, prins de pion, nu un obiect separat.
-
-Turnul rămâne în picioare. Captura vine după — plăcuța arată clipa în care el
-rămâne descoperit, nu clipa în care cade.
+| pionul alb, mic, cu magnetul | *cine cheamă — și cât de puțin costă* |
+| nebunul negru, aplecat spre el | *e obligat să vină* |
+| turnul negru, sus-dreapta pe diagonală | *ce lasă în urmă* |
 
 **Atașează la mesaj DOUĂ imagini:**
 1. [`furculita.png`](../../surse-imagini/tactici/furculita.png) — rama, fundalul, finisajul;
@@ -41,29 +53,33 @@ Here are two images you made earlier. Use them as the style reference: the first
 
 KEEP IDENTICAL TO THE REFERENCES:
 - Square 1024x1024, filled edge to edge.
-- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the pieces are NOT placed on its squares and do not line up with them.
+- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — with the same warm radial glow behind the scene (#63421D) falling off to near-black in the four corners (#171513).
 - FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides.
 - FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief.
 
+DIFFERENT THIS TIME — THE PIECES STAND ON THE SQUARES. Unlike the earlier tiles, where the board was only a backdrop, here the chessboard is a real board seen at a low angle, and each piece stands squarely on its own square, aligned to the grid. The squares must be clearly readable, because the whole meaning of this tile is which piece stands on which diagonal.
+
 THE TWO METALS:
-- The PAWN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Strong contrast between light and shade — polished metal, never pale matte cream or ivory.
-- The BISHOP and the ROOK are DARK, and they must be the same metal as each other: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges so their silhouettes stay crisp against the brown board. They belong to the same side; that must be obvious.
+- The PAWN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale matte cream or ivory.
+- The BISHOP and the ROOK are DARK, and the same metal as each other: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges. They belong to the same side, and that must be obvious.
 
-THE SCENE — a small pawn pulls a bishop off the line it was guarding. Four things, filling about 80 percent of the tile:
+THE POSITION — only three pieces on the whole board, and nothing else:
 
-1. UPPER RIGHT: a DARK ROOK, standing upright, alone, with clear open space around it. It is untouched, but nothing protects it any more.
+1. A DARK BISHOP, standing near the middle of the board. It is the centre of everything.
 
-2. AN IMAGINARY DIAGONAL runs from the rook down towards the lower left. On that diagonal, a short way below and to the left of the rook, there is an EMPTY ROUND SOCKET on the ground — a plain shallow base with nothing standing on it. This is where the bishop used to stand, guarding the rook along that diagonal. The rook and this empty socket must sit on one clean straight diagonal line, so a viewer can see the line that has been abandoned.
+2. A LIGHT PAWN, standing exactly ONE SQUARE diagonally DOWN AND TO THE RIGHT of the bishop — the two pieces touch corners on that diagonal, with no square between them. Fixed to the front of the pawn, turned towards the bishop, is a SMALL HORSESHOE MAGNET: a compact gold U-shape with two flat pole tips, each with two simple raised bands. The magnet is part of the pawn, not a separate object beside it, and small enough that the pawn still reads as a pawn. The pawn is much smaller than the bishop, about half its height.
 
-3. TO THE LEFT of that empty socket, clearly OFF the diagonal and lower down: a DARK BISHOP, dragged sideways out of position. Its body leans hard to the left, out of balance, its base skidding — the far edge lifted, the near edge scraping the ground. Its head is TURNED BACK over its shoulder, towards the rook it has just stopped defending. It is being pulled, and it does not want to go.
+3. A DARK ROOK, standing THREE SQUARES diagonally UP AND TO THE RIGHT of the bishop, on the opposite diagonal from the pawn. The two empty squares between the bishop and the rook must be plainly visible and completely empty, so the line joining them is unmistakable.
 
-4. FAR LEFT, low and small: a LIGHT PAWN, standing calmly on its base. It is much smaller than the bishop — about half its height. Fixed to the front of the pawn, facing the bishop, is a SMALL HORSESHOE MAGNET: a compact gold U-shape with two flat pole tips, each marked with two simple raised bands. The magnet is attached to the pawn and is clearly part of it, not a separate object lying nearby. It is small enough that the pawn still reads as a pawn.
+THE GEOMETRY IS THE WHOLE POINT. The bishop sits where two diagonals cross. One diagonal runs down-right to the pawn, one square away. The other runs up-right to the rook, three squares away. A viewer must be able to trace both lines across the squares of the board.
 
-THE GEOMETRY IS THE POINT. A viewer must be able to see three things at once: the rook stands at the end of a diagonal; the spot on that diagonal in front of it is empty; and the piece that used to fill it is being hauled off sideways by a much smaller opponent.
+THE BISHOP IS BEING PULLED. It leans over towards the pawn, down and to the right, off balance — the far edge of its base lifting off its square. Its head is TURNED BACK over its shoulder, up towards the rook. It is going where it does not want to go, and it knows what it is leaving.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — a small light shape low on the left, a dark shape leaning towards it, an empty base, and a dark upright shape alone at the upper right. Keep everything large and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+Everything else on the board is empty. No other pieces anywhere.
 
-NOT: no chess diagram, no board position, no drawn lines or dotted paths, no arrows, no beams of light, no magnetic field lines, no motion lines, no sparks, no chains, no ropes, no letters or numbers, no coordinates, no hands, no king or queen, no cartoon faces, no eyes, no sparkles, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+READABILITY: this tile is displayed small, so keep the three pieces large relative to the board and keep the board's squares clean and clearly separated. No small ornaments, no engraving, no fine detail on the pieces.
+
+NOT: no arrows, no drawn lines, no dotted paths, no highlighted squares, no beams of light, no magnetic field lines, no motion lines, no letters or numbers, no coordinates around the board, no hands, no king or queen, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -74,15 +90,13 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Turnul și soclul gol sunt pe o diagonală?** Ăsta e testul principal. Dacă
-   soclul e oriunde altundeva, nu se mai vede ce linie a fost părăsită. Cere:
-   *„put the rook and the empty socket on one clean diagonal line"*.
-2. **Nebunul e în afara diagonalei?** Trebuie tras lateral, nu de-a lungul ei.
-   Dacă rămâne pe linie, arată că se retrage cuminte, nu că e deviat.
-3. **Se uită înapoi?** Capul întors spre turn. Fără asta, e doar o piesă care
-   cade într-o parte.
-4. **Pionul e mult mai mic decât nebunul?** Cam jumătate. Disproporția e gluma.
-5. **Magnetul e prins de pion?** Nu alături de el. Și destul de mic cât pionul să
-   rămână pion.
-6. **Nebunul și turnul sunt din același metal?** Amândouă întunecate — sunt din
-   aceeași tabără. Doar pionul e auriu.
+1. **Pionul e la exact un pătrat de nebun, în jos-dreapta?** Colț la colț, fără
+   pătrat între ei. Dacă e mai departe, nu se mai vede că îl atacă.
+2. **Turnul e pe cealaltă diagonală, cu două pătrate goale între ei?** Aia e
+   linia care se pierde. Cere: *„put the rook three squares diagonally up-right
+   from the bishop, with the two squares between them empty"*.
+3. **Se numără pătratele?** Tabla trebuie citită ca tablă, nu ca fundal. Dacă
+   pătratele se pierd, se pierde toată geometria.
+4. **Nebunul se apleacă spre pion și privește înapoi spre turn?** Cele două
+   direcții opuse sunt exact dilema lui.
+5. **Doar pionul e auriu.** Nebunul și turnul, amândouă întunecate.
