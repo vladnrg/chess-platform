@@ -12,30 +12,9 @@ surse-imagini/           originalele — rămân aici
 
 public/                  ce se descarcă efectiv în browser
   openings/<slug>.png    logourile cursurilor, 512px
-  leagues/<nume>.png     emblemele de ligă, decupate
+  leagues/<id>.png       emblemele de ligă, decupate
   tactics/<treaptă>.png  cuferele
 ```
-
-## Numele ligilor
-
-Fişierele din  poartă şi numărul treptei, şi numele văzut de utilizator,
-şi identificatorul intern:
-
-| # | Ce scrie în aplicaţie | Identificator | Fişier sursă |
-| --- | --- | --- | --- |
-| 1 | Iniţiat |  |  |
-| 2 | Integrat |  |  |
-| 3 | Pretendent |  |  |
-| 4 | Bazat |  |  |
-| 5 | Avansat |  |  |
-| 6 | Remarcabil |  |  |
-| 7 | Legendar |  |  |
-
-**Identificatorul nu se schimbă.** E scris în baza de date, în
- şi , amândouă cu
-constrângere pe cele şapte valori — plus că din el se construieşte calea imaginii
-servite, . Eticheta e doar ce se afişează şi se
-poate schimba oricând, dintr-un singur loc:  în .
 
 ## De ce sunt în două locuri
 
@@ -49,6 +28,29 @@ servită are **94 KB**. Cu 22 de cursuri, asta înseamnă 2 MB în loc de 50.
 
 Deci regula e simplă: **originalul aici, versiunea mică în `public/`.**
 
+## Numele ligilor
+
+Fișierele din `ligi/` poartă treapta, numele văzut de utilizator și
+identificatorul intern, toate trei:
+
+| # | Ce scrie în aplicație | Identificator | Fișier sursă |
+| --- | --- | --- | --- |
+| 1 | Inițiat | `cherestea` | `1-initiat-cherestea.png` |
+| 2 | Integrat | `tinichea` | `2-integrat-tinichea.png` |
+| 3 | Pretendent | `bronz` | `3-pretendent-bronz.png` |
+| 4 | Bazat | `argint` | `4-bazat-argint.png` |
+| 5 | Avansat | `aur` | `5-avansat-aur.png` |
+| 6 | Remarcabil | `smarald` | `6-remarcabil-smarald.png` |
+| 7 | Legendar | `diamant` | `7-legendar-diamant.png` |
+
+**Identificatorul nu se schimbă.** E scris în baza de date, în
+`profiles.current_league` și în `league_history.league_at_week_start`, amândouă
+cu constrângere pe exact cele șapte valori — și tot din el se construiește calea
+imaginii servite, `/leagues/<identificator>.png`.
+
+Eticheta, în schimb, e doar ce se afișează. Se poate schimba oricând, dintr-un
+singur loc: `LEAGUES` în [`src/types/index.ts`](../src/types/index.ts).
+
 ## Cum se face versiunea mică
 
 Micșorare la 512px și compresie cu paletă:
@@ -60,8 +62,16 @@ sharp(sursa)
   .toFile(destinatia)
 ```
 
-Pentru emblemele de ligă există deja un script care face și decuparea:
-[`scripts/league-logos.mjs`](../scripts/league-logos.mjs).
+Pentru emblemele de ligă există deja un script care face și decuparea din
+fundalul alb: [`scripts/league-logos.mjs`](../scripts/league-logos.mjs). Rulat
+fără argumente scrie în `.tmp-leagues/` ca să te uiți întâi; cu `--apply` scrie
+peste `public/leagues/`.
+
+Scriptul își găsește sursa după coada numelui de fișier — `4-bazat-argint.png`
+→ `argint`. Dacă un fișier lipsește sau e prost numit, se oprește cu eroare.
+Înainte lua fișierele în ordine alfabetică dintr-o listă scrisă de mână, ceea ce
+însemna că o simplă redenumire muta emblemele de la o ligă la alta fără niciun
+semn — s-a și întâmplat.
 
 ## De reținut
 
