@@ -9,11 +9,11 @@ odată cu imaginile pe care le-au produs.
 Deschide fișierul, apasă **Ctrl+Shift+V** (previzualizare markdown) și
 copiază din blocul de cod — VS Code pune un buton de copiere pe el.
 
-Fiecare prompt cere o **imagine de referință atașată la mesaj**:
-[`public/openings/colle-system.png`](../../public/openings/colle-system.png).
-E logoul Sistemului Colle, plăcuța după care se ia stilul întregii serii.
-Click dreapta pe fișier în editor → *Reveal in File Explorer* → trage-l în
-ChatGPT.
+Fiecare prompt cere o **imagine de referință atașată la mesaj**. Începând cu a
+doua tactică, referința e chiar prima plăcuță din serie —
+[`furculita.png`](../../public/tactics/Tipuri%20de%20tactici/furculita.png) —
+nu logoul Colle: ea are deja rama, aurul și fuziunea dintre obiect și piese.
+Click dreapta pe fișier în editor → *Reveal in File Explorer* → trage-l în ChatGPT.
 
 ## De unde vin culorile
 
@@ -37,6 +37,10 @@ Logourile de curs **nu sunt diagrame, sunt metafore**: Sistemul Londra e o
 cafea cu biscuiți, Partida Italiană e o felie de pizza, Jocul Vienez sunt doi
 dansatori. Tacticile urmează același registru — se desenează ideea, nu poziția
 de pe tablă.
+
+Obiectul și piesele se topesc într-o singură sculptură de aur — la furculiță,
+cei doi dinți din margine *sunt* turnul și dama. Nu obiect plus piese alături,
+ci o singură piesă turnată.
 
 Metafora se ia, pe cât se poate, din descrierea pe care o are deja tactica în
 [`src/data/tactics.ts`](../../src/data/tactics.ts). Acolo sunt scrise în cuvinte
