@@ -21,7 +21,7 @@ export const TACTIC_TIERS: TacticTier[] = [
   { id: 'master', label: 'Master', floor: 2200, ceil: 2600 },
 ]
 
-export const TACTIC_PATH_SIZE = 12
+export const TACTIC_PATH_SIZE = 20
 
 // Minimul necesar pentru selecție/progres (Puzzle complet îl satisface implicit)
 interface PuzzleLike {

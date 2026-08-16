@@ -10,7 +10,7 @@ export interface TacticCategory {
 export const TACTIC_CATEGORIES: TacticCategory[] = [
   {
     id: 'fork',
-    title: 'Furculiță și atac dublu',
+    title: 'Furculița',
     description: 'O piesă atacă simultan două ținte, iar adversarul nu le poate salva pe amândouă. E momentul în care un singur cal valorează cât o regină furată.',
     lichessThemes: ['fork'],
     isPro: false,
@@ -26,7 +26,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'discovered',
-    title: 'Atac prin descoperire și șah dublu',
+    title: 'Atac prin descoperire',
     description: 'Muți o piesă și dezvălui atacul alteia din spatele ei — uneori două șahuri deodată. E trădarea perfectă: una se dă la o parte, cealaltă lovește.',
     lichessThemes: ['discoveredAttack', 'doubleCheck'],
     isPro: false,
@@ -42,7 +42,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'remove-defender',
-    title: 'Îndepărtarea apărătorului',
+    title: 'Eliminarea apărătorului',
     description: 'Elimini sau supraîncarci piesa care ține totul pe loc, iar apărarea se prăbușește. Scoți un bolț — și se dărâmă toată construcția.',
     lichessThemes: ['capturingDefender'],
     isPro: true,
@@ -50,7 +50,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'skewer',
-    title: 'Țeapă și atacul cu raze X',
+    title: 'Atacul cu raze X',
     description: 'Ataci o piesă valoroasă care, când se ferește, lasă descoperită prada din spate. E furculița întoarsă pe dos — și la fel de dureroasă.',
     lichessThemes: ['skewer', 'xRayAttack'],
     isPro: true,
@@ -66,7 +66,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'mate',
-    title: 'Dă mat în N mutări',
+    title: 'Mat în N mutări',
     description: 'Secvențe forțate care se termină inevitabil cu mat — în 1, 2 sau 3 mutări. Vezi finalul înainte să se întâmple și execută-l fără milă.',
     lichessThemes: ['mateIn1', 'mateIn2', 'mateIn3', 'smotheredMate', 'backRankMate'],
     isPro: true,
@@ -82,7 +82,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'zwischenzug',
-    title: 'Mutarea intermediară (Zwischenzug)',
+    title: 'Mutarea intermediară',
     description: 'În loc să răspunzi cuminte, strecori o mutare-surpriză care schimbă tot calculul. Cuvântul e german, durerea pentru adversar e universală.',
     lichessThemes: ['intermezzo', 'interference'],
     isPro: true,
@@ -90,7 +90,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'sacrifice',
-    title: 'Sacrificii',
+    title: 'Sacrificiu',
     description: 'Cedezi material intenționat pentru atac, inițiativă sau mat — și înveți să deosebești geniul de sinucidere. Nu orice damă dăruită e o capodoperă.',
     lichessThemes: ['sacrifice'],
     isPro: true,
@@ -98,7 +98,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   },
   {
     id: 'subscribers',
-    title: 'Combinații complete',
+    title: 'Combinații de tactici',
     description: 'Mai multe tactici înlănțuite într-o singură partidă — nivelul „wow". Mai greu de calculat, dar finalul e spectaculos și rapid.',
     lichessThemes: ['clearance', 'quietMove', 'zugzwang'],
     isPro: true,

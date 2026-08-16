@@ -9,6 +9,7 @@ import { TACTIC_CATEGORIES, type TacticCategory } from '@/data/tactics'
 import { TACTIC_TIERS, type TacticTier, pickPathIds } from '@/lib/tactics-path'
 import { tacticVisual, tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
+import { TacticTile } from '@/components/chess/TacticTile'
 
 interface PuzzleIndexRow {
   id: string
@@ -410,7 +411,7 @@ function TacticCard({ category, total, solvedCount, locked, onClick }: {
   locked: boolean
   onClick: () => void
 }) {
-  const { icon: Icon, color } = tacticVisual(category.id)
+  const { color } = tacticVisual(category.id)
   const pct = total > 0 ? Math.round((solvedCount / total) * 100) : 0
   const done = pct === 100
 
@@ -425,12 +426,7 @@ function TacticCard({ category, total, solvedCount, locked, onClick }: {
         className="relative h-28 flex items-center justify-center"
         style={{ background: `radial-gradient(circle at 50% 42%, ${color}22, transparent 72%)` }}
       >
-        <span
-          className="flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-110"
-          style={{ backgroundColor: `${color}1A`, color, boxShadow: `0 8px 26px ${color}22` }}
-        >
-          <Icon className="h-8 w-8" strokeWidth={2} />
-        </span>
+        <TacticTile id={category.id} size="h-24 w-24" iconSize="h-8 w-8" />
         {locked && (
           <span className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-[#E2B340]">
             <Lock className="h-3 w-3" /> PRO

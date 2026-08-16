@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES } from '@/data/tactics'
 import { TACTIC_TIERS, pickPath } from '@/lib/tactics-path'
 import { tacticVisual, tierColor } from '@/lib/tactic-visuals'
+import { TacticTile } from '@/components/chess/TacticTile'
 import { PuzzleModal } from '@/components/chess/PuzzleModal'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
@@ -27,7 +28,7 @@ export function TacticsCategoryPage() {
   const tier = TACTIC_TIERS.find(t => t.id === tierId)
   const locked = !!category?.isPro && !isPro
 
-  // Traseul fix: puzzle-urile categoriei din intervalul nivelului, sortate după id → primele 12.
+  // Traseul fix: puzzle-urile categoriei din intervalul nivelului, sortate după id → primele TACTIC_PATH_SIZE.
   const { data: nodes, isLoading } = useQuery({
     queryKey: ['tactic-path', categoryId, tierId],
     queryFn: async () => {
@@ -87,7 +88,7 @@ export function TacticsCategoryPage() {
     )
   }
 
-  const { icon: CatIcon, color: catColor } = tacticVisual(category.id)
+  const { color: catColor } = tacticVisual(category.id)
   const tColor = tierColor(tier.id)
 
   return (
@@ -111,11 +112,8 @@ export function TacticsCategoryPage() {
           style={{ background: `radial-gradient(circle, ${catColor}22, transparent 70%)` }}
         />
         <div className="relative flex items-start gap-4 mb-2">
-          <span
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: `${catColor}1A`, color: catColor, boxShadow: `0 8px 26px ${catColor}22` }}
-          >
-            <CatIcon className="h-7 w-7" strokeWidth={2} />
+          <span className="shrink-0">
+            <TacticTile id={category.id} size="h-16 w-16" iconSize="h-7 w-7" />
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
