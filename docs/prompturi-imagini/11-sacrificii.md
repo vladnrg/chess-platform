@@ -1,32 +1,28 @@
 # 11. Sacrificii → `sacrifice.png`
 
-**Scena:** dama cade, luată de un pion. Din ea se desprinde o picătură de sânge.
-Iar dincolo de ea, regele rămâne singur, cu drumul deschis.
+**Metafora:** o **balanță** ținută pe capul unui pion. Pe un taler, dama. Pe
+celălalt, coroana regelui advers. Talerul cu coroana atârnă mai greu.
 
-Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts) numește chiar
-piesa:
+Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts) nu vorbește
+despre pierdere, ci despre **judecată**:
 
-> Nu orice damă dăruită e o capodoperă.
+> Cedezi material intenționat pentru atac, inițiativă sau mat — și înveți să
+> deosebești geniul de sinucidere.
 
-Trei lucruri trebuie să se vadă, în ordinea asta:
+Un sacrificiu nu e o jertfă tristă, e un **calcul**. Balanța spune exact asta:
+dai dama, dar ce primești atârnă mai greu. Iar cine se uită la plăcuță înțelege
+din prima și partea a doua a lecției — dacă talerul s-ar apleca invers, aceeași
+mutare ar fi sinucidere.
+
+Pionul care ține balanța e gluma din spate: piesa cea mai mică e cea care
+cântărește dacă merită.
 
 | element | ce spune |
 | --- | --- |
-| dama, mare, căzând | *ce dai* |
-| pionul de sub ea, mic | *cui — și cât de puțin valorează* |
-| regele singur, cu spațiu gol în față | *de ce a meritat* |
-
-Diferența de mărime dintre damă și pion **este** sacrificiul. Dacă cele două
-piese arată la fel de mari, imaginea e doar o captură oarecare.
-
-## Picătura
-
-E singurul element care nu e auriu din toată seria — un roșu adânc, aproape
-rubiniu. Merită să fie o excepție tocmai aici: e singura tactică în care dai
-ceva cu adevărat, iar accentul de culoare face plăcuța să se distingă imediat
-între celelalte treisprezece.
-
-Una singură. Două ar arăta a violență, nu a jertfă.
+| dama pe talerul de sus | *ce dai* |
+| coroana pe talerul de jos | *ce primești* |
+| înclinarea spre coroană | *a meritat* |
+| pionul care ține totul | *cine judecă* |
 
 **Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
@@ -38,25 +34,25 @@ Use the attached image as the exact style reference. This is another tile in the
 
 KEEP IDENTICAL TO THE REFERENCE:
 - Square 1024x1024, filled edge to edge.
-- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the pieces are NOT placed on its squares and do not line up with them.
+- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the subject is not placed on its squares and does not line up with them.
 - FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides.
-- RENDERING: the same sculpted polished gold — bright highlights (#FAC339), mid-tones (#6F4D15), deep shadow (#5A340A), soft rounded bevels, a gentle sheen, soft drop shadows. Solid three-dimensional gold Staunton chess pieces, exactly like the rook and queen in the reference.
+- RENDERING: the same sculpted polished gold — bright highlights (#FAC339), mid-tones (#6F4D15), deep shadow (#5A340A), soft rounded bevels, a gentle sheen, a soft drop shadow. Everything is one continuous piece of gold, exactly as the fork and its two chess pieces are one continuous piece of gold in the reference.
 
-THE SCENE — the queen is given up, and the road to the king opens. Three chess pieces and one drop, filling about 76 percent of the tile:
+THE SUBJECT — "the scales of sacrifice". One fused gold sculpture, standing dead centre and filling about 68 percent of the tile:
 
-1. LEFT OF CENTRE: a chess QUEEN, large and richly modelled, TOPPLING — tilted far over to the left, her crown swinging down, caught in the moment of falling. She is the biggest piece in the tile.
+1. THE STAND: a chess PAWN, standing on its base, large and solid. It is not next to the scales — it IS the stand. The balance beam rests directly on top of its round head, exactly the way the two outer tines of the fork are the rook and the queen in the reference. One continuous casting.
 
-2. Directly BENEATH her, standing straight on its base: a chess PAWN, small and plain, the piece that has just taken her. The size difference must be obvious and almost comic — the pawn should be roughly a third of the queen's height. That contrast is the whole point of this tile: something enormous has been handed to something tiny.
+2. THE BEAM: a single thick straight bar lying across the pawn's head, clearly TILTED — its left end raised high, its right end dipped low. From each end hangs a shallow round PAN, held by two short thick rods. No chains, no fine links, no ornament: heavy and simple, so it survives being seen small.
 
-3. THE DROP: a single drop of deep ruby-red blood, about to fall from the lowest point of the toppling queen, hanging just clear of her. It is the ONLY thing in the entire image that is not gold — a rich dark crimson with one small bright highlight, like a polished garnet. Exactly one drop. It must be small but instantly noticeable against all the gold around it.
+3. ON THE RAISED LEFT PAN: a chess QUEEN, lying on her side across the pan, large and richly modelled. She is the biggest chess piece in the tile. Her pan is the one that went UP — she has been given away.
 
-4. RIGHT, standing apart: a chess KING, alone and upright, leaning very slightly back. Between the falling queen and the king there is a WIDE OPEN EMPTY LANE — a clear corridor of untouched background, with nothing standing in it at all. No pieces, no shapes, no shields. The king has nothing left in front of him.
+4. ON THE LOWERED RIGHT PAN: a KING'S CROWN alone — a solid gold crown with a cross on top, no king beneath it, resting in the pan. Its pan hangs clearly LOWER than the queen's. The crown is much smaller than the queen, and that is the whole joke: the small thing weighs more.
 
-The story must read in one glance, left to right: the great piece is going down, a small piece took her, and the way to the king is now clear.
+The tilt must be unmistakable — the difference in height between the two pans should be large, a quarter of the tile at least. A viewer must see at once that the crown side won.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — a big crowned shape falling on the left, a tiny shape beneath it, a lone upright shape on the right, and clear dark space between the two groups. Keep everything bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+READABILITY: this tile is displayed small, so the silhouette carries it — a pawn shape at the bottom, a strong diagonal bar across the middle, a big crowned piece high on the left, a small crown low on the right. Keep everything bold and thick. No small ornaments, no engraving, no chains, no fine detail, no chessboard squares drawn on the pieces, no measuring marks on the beam.
 
-NOT: no chess diagram, no board position, no arrows, no beams of light, no swords, no wounds or cuts on the pieces, no pools or splashes of blood, no more than one drop, no letters or numbers, no coordinates, no hands, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+NOT: no chess diagram, no board position, no arrows, no beams of light, no blood, no wounds, no letters or numbers, no coordinates, no hands, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -67,14 +63,20 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Cât de mic e pionul?** Trebuie să fie vizibil de vreo trei ori mai scund
-   decât dama. Dacă seamănă ca mărime, se pierde ideea de sacrificiu — arată ca
-   un schimb obișnuit. Cere: *„make the pawn much smaller, about a third of the
-   queen's height"*.
-2. **O singură picătură, roșie.** Dacă apar mai multe, sau bălți, sau răni pe
-   piese, imaginea trece de la jertfă la măcel. Cere: *„exactly one drop, no
-   splashes, no wounds"*.
-3. **E gol între damă și rege?** Coridorul liber e motivul pentru care merită
-   sacrificiul. Dacă e ceva în el, nu se mai înțelege ce ai câștigat.
-4. **Regele stă drept și singur.** Nu căzut, nu în șah — doar descoperit.
+1. **Se vede clar care taler e jos?** Înclinarea trebuie să fie mare, nu o
+   nuanță. Dacă balanța pare aproape dreaptă, se pierde tot înțelesul — nu se
+   mai știe dacă a meritat. Cere: *„tilt the beam much more, the crown's pan
+   must hang far lower"*.
+2. **Coroana e mai mică decât dama?** Contrastul de mărime e ce face gluma:
+   lucrul mic atârnă mai greu.
+3. **Balanța stă pe capul pionului**, nu lângă el. O singură piesă turnată, ca
+   la furculiță.
+4. **Fără lanțuri.** Tije scurte și groase — lanțurile dispar la mărime mică și
+   fac talerele să pară că plutesc.
 5. Aceeași ramă și același fundal ca la furculiță.
+
+---
+
+*Încercare abandonată: dama care cade, luată de un pion, cu o picătură de sânge
+și regele descoperit în dreapta. Spunea ce dai, dar arăta sacrificiul ca pe o
+pierdere — iar tactica e despre socoteală, nu despre jertfă.*
