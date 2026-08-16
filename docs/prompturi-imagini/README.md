@@ -46,16 +46,16 @@ Metafora se ia, pe cât se poate, din descrierea pe care o are deja tactica în
 [`src/data/tactics.ts`](../../src/data/tactics.ts). Acolo sunt scrise în cuvinte
 simple, iar textul ăla e deja aprobat.
 
-## Săgețile: interzise peste tot, în afară de una
+## Săgețile: interzise peste tot, fără excepție
 
 Fiecare prompt are „no arrows" în lista de interdicții, și e intenționat:
-plăcuțele desenează **un moment** — o rază, un magnet, un rege căzut. O săgeată
-ar transforma imaginea în diagramă.
+plăcuțele desenează cu **obiecte care se ating** — un lanț care ține, un bolț
+care se scoate, un magnet care trage. O săgeată e desenată *pe deasupra* scenei,
+nu face parte din ea, și transformă imaginea în diagramă.
 
-Singura excepție e **[Combinații complete](12-combinatii.md)**, fiindcă acolo
-subiectul nu e un moment, ci un **lanț de mutări** — și un lanț nu se poate arăta
-fără drum. Excepția merită să rămână una singură: dacă apar săgeți și în altă
-parte, plăcuța aia nu mai are cu ce să iasă în față.
+Excepția a existat o vreme, la [Combinații complete](12-combinatii.md): acolo
+subiectul e un lanț de mutări, și părea că nu se poate arăta fără un drum. Se
+poate — cu un lanț adevărat. Vezi în fișier de ce a căzut varianta cu săgeți.
 
 ## Rama: romburile se taie mereu
 

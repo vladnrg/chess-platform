@@ -3,108 +3,94 @@
 Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 
 > **Mai multe tactici înlănțuite** într-o singură partidă — nivelul „wow".
-> **Mai greu de calculat**, dar finalul e spectaculos și rapid.
+> Mai greu de calculat, dar **finalul e spectaculos și rapid**.
 
-Trei lucruri de spus, și fiecare are elementul lui în imagine:
+## „Înlănțuite" nu e o figură de stil
 
-| ce spune descrierea | ce se desenează |
-| --- | --- |
-| *mai multe tactici înlănțuite* | trei săgeți diferite, prinse cap la coadă |
-| *mai greu de calculat* | ramurile stinse care se desprind din drum și se pierd |
-| *finalul e spectaculos și rapid* | ultima săgeată, cea mai groasă și mai luminoasă |
+E chiar un lanț. Și lanțul îl avem deja desenat, la
+[Legarea absolută](02-legarea.md) — gros, auriu, cu zale mari.
 
-## Singura plăcuță cu săgeți
+Deci plăcuța asta e **un singur lanț care trece prin mai multe tactici, una după
+alta**. Nu trei obiecte puse alături: un obiect, care le face pe toate, fiindcă
+sunt legate între ele. Trage de un capăt și se duce tot.
 
-Toate celelalte au săgețile interzise pe nume, și dinadins: acolo se desenează
-**un moment** — o rază, un magnet, un rege căzut. O săgeată ar fi fost o
-diagramă, nu o imagine.
+Ăsta e și motivul pentru care combinațiile sunt grele: nu poți lua o bucată
+separat. Ori ține tot lanțul, ori nu ține nimic.
 
-Aici e invers. Combinația **nu e un moment, e un lanț** — asta e chiar definiția
-ei. Iar un lanț de mutări nu se poate arăta fără drum. De aceea plăcuța asta e
-excepția, și e bine să rămână singura: dacă apar săgeți și în altă parte, se
-pierde tocmai ce o face pe asta specială.
+## Ce se ia din fiecare plăcuță
 
-## Cele trei săgeți
+**Din [Legarea absolută](02-legarea.md):** lanțul auriu gros, cu zale mari și
+simple, care pleacă de la baza unei piese aurii și se înfășoară de două ori în
+jurul unei piese negre. Tot de acolo se ia și compoziția — o diagonală din
+stânga-jos spre dreapta-sus, cu piese mari și puține.
 
-Nu sunt trei săgeți la fel repetate. Fiecare are altă formă, fiindcă fiecare e
-altă tactică — și se leagă cap la coadă, fiecare pornind exact din vârful celei
-dinainte:
+**Din [Îndepărtarea apărătorului](05-indepartarea-aparatorului.md):** bolțul cu
+vârf de lance, gaura rotundă rămasă în talpă și crăpătura zimțată care urcă din
+ea. Acolo, scos bolțul, se prăbușea toată construcția — și exact asta trebuie să
+se întâmple aici, doar că e abia prima verigă.
 
-1. **Dreaptă**, din damă în turn. Lovitura care începe totul.
-2. **În L**, plecând din turn: se rupe brusc și cotește. E mutarea care nu vine
-   pe drumul așteptat — sare.
-3. **Dreaptă și lungă**, până în rege. Cea mai groasă, cea mai luminoasă.
-   „Spectaculos și rapid" e chiar asta: după toate ocolișurile, ultima merge
-   drept.
+## Cum se citește, de la un capăt la altul
 
-Cap la coadă înseamnă **forțat**: nu sunt trei idei bune puse alături, e una
-singură din care nu se poate ieși.
-
-## Ce face imaginea „grea"
-
-Ramurile stinse. Din fiecare cot al drumului se desprind două-trei săgeți
-subțiri, întunecate, care se sting după puțin și se pierd în tablă.
-
-Alea sunt **variantele calculate și aruncate**. Fără ele, imaginea ar spune „am
-găsit un drum". Cu ele, spune „am găsit *drumul*, dintre toate" — care e cu totul
-altceva, și e exact ce înseamnă „mai greu de calculat".
-
-Contrastul trebuie să fie mare: drumul bun, aur strălucitor și gros; ramurile
-moarte, subțiri, mate, aproape topite în fundal.
-
-## Așezarea
-
-| element | coloana | rândul |
+| pe lanț | ce e | ce spune |
 | --- | --- | --- |
-| dama aurie — de unde pleacă | 2 | 1 |
-| turnul negru, răsturnându-se | 4 | 3 |
-| regele negru — unde se termină | 7 | 6 |
+| **capătul de jos** | dama aurie, dreaptă, neclintită | *cine trage — și singura care nu se mișcă* |
+| **la mijloc** | bolțul cu vârf de lance, ieșit din talpa turnului | *prima tactică: apărătorul scos* |
+| **tot acolo** | turnul negru, cu gaura și crăpătura, căzând | *și ce se dărâmă din asta* |
+| **capătul de sus** | lanțul înfășurat pe rege, întins la maximum | *ultima tactică, și cea care termină partida* |
+
+Lanțul e **o singură bucată**: zale, apoi bolț, apoi iar zale. Dacă se rupe în
+trei obiecte separate, imaginea spune „trei tactici" — adică exact ce nu trebuie.
+
+## Ce se schimbă față de plăcuțele-surse
+
+- La *Legare*, lanțul **ține pe loc**. Aici **trage**, și lucrurile cad. Legarea
+  e despre nemișcare, combinația e despre prăbușire.
+- La *Îndepărtarea apărătorului*, bolțul e scos de un pion mic, iar turnul auriu
+  e victima. Aici **victima e neagră** și bolțul face parte din lanț — nu e
+  sfârșitul poveștii, e mijlocul ei.
+- Nici cheia de la *Legare* nu se ia. Aia zicea „nu se dezleagă"; aici nu se pune
+  problema să se dezlege.
 
 **Atașează la mesaj DOUĂ imagini, în ordinea asta:**
-1. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
-   — fundalul plat, rama, cele două metale și felul în care arată aurul luminos
-   pe tabla maro;
-2. [`Sacrificiu.png`](../../surse-imagini/tactici/Sacrificiu.png) — de acolo se ia
-   felul în care arată o piesă care cade.
+1. [`Legarea absoluta si relativa.png`](../../surse-imagini/tactici/Legarea%20absoluta%20si%20relativa.png)
+   — lanțul, compoziția, rama, fundalul și cele două metale;
+2. [`Eliminarea aparatorului.png`](../../surse-imagini/tactici/Eliminarea%20aparatorului.png)
+   — bolțul cu vârf de lance, gaura din talpă și crăpătura.
 
 ---
 
 ```text
-Here are two images you made earlier, both from the same set of chess tiles. Copy their look exactly: the same flat decorative background, the same ornamental frame, the same way the pieces are sculpted and lit, the same two metals. The FIRST one also has the glowing golden light I want for the arrows here.
+Here are two images you made earlier, both from the same set of chess tiles. This new tile combines them, and it must look like it was made by the same hand in the same session: identical frame, identical background, identical metals, identical lighting and finish. From the FIRST image take the heavy gold CHAIN and the whole composition. From the SECOND image take the BOLT WITH THE SPEAR POINT, and the round hole and the jagged crack it leaves behind in a piece.
 
-COPY FROM THEM, WITHOUT CHANGING ANYTHING:
+KEEP IDENTICAL TO THE REFERENCES:
 - Square 1024x1024, filled edge to edge.
-- The BACKGROUND is a FLAT chessboard pattern seen straight on — alternating brown squares in low contrast, darker #4B3317 and lighter #7F5425, with a warm radial glow behind the subject (#63421D) falling off to near-black in the corners (#171513). It is a printed pattern, not a real board: no tilt, no perspective, no vanishing point, no thickness, no board edge, no horizon. Exactly 8 columns and 8 rows fill the tile, and the squares stay the same size all over it, corner to corner.
-- The FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners and angular gold corner pieces at the four corners, plus one small gold diamond centred on each of the four sides. Draw all four diamonds COMPLETE and entirely inside the picture, each moved inwards far enough that no part of it is cropped by the edge.
-- The PIECES: solid sculpted Staunton figures in relief, seen from the side, with the same proportions, the same soft rounded bevels, the same polished sheen, the same lighting from the upper left and the same soft drop shadows.
+- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the pieces are NOT placed on its squares and do not line up with them. It is flat and seen straight on — no tilt, no perspective, no board edge.
+- FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides. Draw all four diamonds COMPLETE and entirely inside the picture, none of them cropped by the edge.
+- FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief, big and few.
 
 THE TWO METALS:
-- The QUEEN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A.
-- The ROOK and the KING are DARK: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges. They belong to the same side.
+- LIGHT pieces are rich warm gold: highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale cream or ivory.
+- DARK pieces are near-black bronze: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges so their silhouettes stay crisp against the brown board.
 
-THE PIECES — read the background as a grid of 8 columns and 8 rows. Number the columns 1 to 8 from the left and the rows 1 to 8 from the bottom. Three pieces, each on the square it is given, its base on that square:
+THE SCENE — "pull one end and the whole thing comes down". ONE single unbroken gold line runs across the tile from the lower left to the upper right, filling about 80 percent of it. It is not three objects placed next to each other: it is one continuous piece of gold, and it changes shape along its length. Following it from the bottom up:
 
-- the GOLD QUEEN on the square in column 2, row 1 — low on the left. She stands upright and firm. This is where it starts.
-- the DARK ROOK on the square in column 4, row 3 — in the middle. It is TOPPLING: tipped hard over to the right, off balance, already going down, drawn the way the fallen piece is drawn in the second image.
-- the DARK KING on the square in column 7, row 6 — high on the right. He stands upright but leans back and away, as if bracing. This is where it ends.
+1. LOWER LEFT — a GOLD QUEEN, standing upright, firmly planted, calm and completely still. She is the only thing in the tile that is not moving. Fixed to her base, the gold line begins.
 
-THE MAIN PATH — three GOLDEN ARROWS, joined head to tail, forming one single unbroken route from the queen to the king. Each arrow starts exactly where the one before it ended, so it reads as one forced sequence and not as three separate ideas. They are made of the same glowing warm gold light as the beam in the first image: solid, bright, with a soft glow around them, and each one ends in a clean solid arrowhead.
+2. Leaving her base, the line is a heavy CHAIN: thick, large, simple links, six or seven of them, no fine ironwork, pulled absolutely taut and straight as it climbs to the right. Same warm gold as the queen, so it clearly belongs to her.
 
-- ARROW ONE: STRAIGHT. It leaves the gold queen's crown and runs up and to the right in one straight line, its head striking the toppling dark rook. Medium thickness.
-- ARROW TWO: BENT IN AN L. It starts at the rook, where the first arrow ended, runs upwards for a short way, then turns SHARPLY at a right angle and continues to the right — one clean corner, like a knight's move drawn out. Slightly thicker than the first.
-- ARROW THREE: STRAIGHT AND LONG. It starts where the second one stopped and runs in one straight line all the way to the dark king, its head coming to rest against his crown. It is clearly THE THICKEST AND THE BRIGHTEST of the three — the brightest thing in the whole tile.
+3. AT THE MIDDLE OF THE TILE the chain stops being chain: for one short stretch it becomes a single heavy BOLT with a sharp SPEAR POINT, exactly like the bolt in the second image — a straight shaft with a slim four-sided spearhead. Chain links are attached to BOTH of its ends, so the bolt is part of the same line, threaded onto it like a bead. Its spear point is bare and free: it has just been dragged out of something.
 
-The three arrows get thicker and brighter in that order, so the eye is pulled along them from the queen to the king.
+4. And that something is right there: a DARK ROOK, large, and it is COLLAPSING. In its flared base is a round HOLE where the bolt came out, and from that hole a jagged CRACK runs up through the base and into its body, exactly like the broken rook in the second image. The rook is tipping over hard to one side, off balance, already going down. The chain does not touch it — it does not need to. Taking the bolt out was enough.
 
-THE DEAD BRANCHES — this is what makes the picture feel hard. At each of the two points where the path bends or joins, TWO OR THREE much thinner arrows split off it in other directions, and every one of them FADES OUT and dies after a short distance, dissolving into the board without ever reaching anything. They are the lines that were calculated and thrown away.
+5. UPPER RIGHT — the line goes on past the falling rook as chain again, and its far end is WRAPPED TWICE around the body of a DARK KING, tight and pulled taut, the way the chain wraps the knight in the first image.
 
-They must be plainly weaker than the main path: thin, dull, dark, unlit, no glow, no arrowheads, half swallowed by the background, like cold ash next to the bright route. From a distance the eye must see one bright road with faint dead ends around it, never a bush of equal branches. Five or six of them in total, no more.
+6. The KING is being dragged. He is hauled over towards the lower left, along the line, leaning hard off balance, the far edge of his base lifting off the ground. His crown is still on. He is not lying down and he is not on the ground — he is on his way there.
 
-THE BOARD IS OTHERWISE EMPTY. Three pieces, three bright arrows, a few faint dead branches, nothing else.
+The whole tile must read in one glance as one taut line under strain, with a still gold figure at the bottom end of it and everything else on the way down.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — one bright golden zig-zag crossing the tile from the bottom left to the top right, getting brighter as it goes, with a gold crowned shape at its start, a dark piece falling over in the middle, and a dark crowned shape at its end. Keep everything bold and simple, no fine detail.
+READABILITY: this tile is displayed small, so the silhouette carries it — a gold crowned shape standing at the bottom left, one thick bright line running up to the right, a dark tower falling over in the middle of it, and a dark crowned shape at the top right being pulled over. Keep everything bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
 
-NOT: no three-dimensional board, no perspective, no tilted board, no board edge, no board thickness, no dotted paths, no dashed lines, no curved or swirling arrows, no circles, no highlighted or glowing squares, no crosses, no target rings, no diagrams, no charts, no letters or numbers, no coordinates, no move notation, no hands, no bishop, no knight, no pawn, no second queen, no cartoon faces, no eyes, no sparkles, no smoke, no explosions, no lightning bolts, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+NOT: no key, no padlock, no ropes, no nets, no second chain, no loose or slack chain, no broken links, no three-dimensional board, no perspective, no board edge, no arrows, no arrowheads, no beams of light, no rays, no glowing lines, no dotted paths, no highlighted squares, no motion lines, no speed lines, no dust, no explosions, no rubble, no blood, no letters or numbers, no coordinates, no hands, no bishop, no knight, no pawn, no second queen, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -115,18 +101,33 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Săgețile se ating cap la coadă?** Ăsta e testul principal. Dacă sunt trei
-   săgeți răzlețe, imaginea spune „trei tactici", nu „o combinație". Cere:
-   *„each arrow must start exactly where the previous one ended, one unbroken
-   route"*.
-2. **Cele trei au forme diferite?** Dreaptă, în L, dreaptă și lungă. Dacă ies
-   toate la fel, se pierde ideea că sunt tactici diferite înlănțuite.
-3. **Ultima e clar cea mai groasă și mai luminoasă?** Ea e „finalul spectaculos".
-4. **Ramurile moarte sunt vizibil mai slabe?** Subțiri, stinse, fără vârf, fără
-   strălucire. Dacă au ieșit la fel de tari ca drumul bun, iese un desen încâlcit
-   în loc de o combinație. Cere: *„much thinner, dull and unlit, fading out"*.
-5. **Se mai citește de la distanță?** Mijește ochii: trebuie să rămână un
-   zig-zag luminos, nu un ghem.
-6. **Turnul chiar cade?** Nu doar înclinat — răsturnat, în cădere.
-7. **Dama e aurie, turnul și regele negre?**
+1. **Lanțul e o singură bucată, de la damă până la rege?** Ăsta e testul
+   principal. Zale, bolț, zale — fără întreruperi. Dacă bolțul plutește separat,
+   imaginea spune „două tactici alăturate", nu „înlănțuite". Cere: *„chain links
+   attached to both ends of the bolt, one continuous line"*.
+2. **Lanțul e întins, nu moale?** Toată imaginea stă pe tensiune. Un lanț care
+   atârnă spune că nu trage nimeni.
+3. **Turnul are gaura și crăpătura?** Rotundă în talpă, crăpătura zimțată urcând
+   din ea — ca în „Îndepărtarea apărătorului". Fără ele nu se înțelege de ce cade.
+4. **Turnul chiar cade?** Răsturnat, nu doar aplecat.
+5. **Lanțul e înfășurat de două ori pe rege și îl trage?** Aplecat tare, cu talpa
+   ridicată de-o parte. Dar **nu culcat pe tablă** — ăla e matul, altă plăcuță.
+6. **Dama stă perfect dreaptă?** Ea e singurul lucru nemișcat; de-aia se vede că
+   ea trage.
+7. **Dama aurie, turnul și regele negre?**
 8. **Cele patru romburi sunt întregi?** Niciunul tăiat de marginea imaginii.
+
+---
+
+## Ce am încercat înainte
+
+Prima variantă era **un drum de trei săgeți aurii**, prinse cap la coadă, cu
+ramuri stinse desprinzându-se din coturi — variantele calculate și aruncate.
+
+Ideea era bună pe hârtie, dar imaginea ieșea o **diagramă**: săgeți peste o tablă,
+adică fix ce evită restul seriei. Pusă lângă *Legare* și *Îndepărtarea
+apărătorului*, se vedea că e din altă familie — celelalte au obiecte care se
+ating, se rup și trag, iar asta avea linii desenate pe deasupra.
+
+Lanțul spune același lucru — o înșiruire din care nu se poate ieși — dar cu un
+obiect adevărat, în registrul plăcuțelor bune.
