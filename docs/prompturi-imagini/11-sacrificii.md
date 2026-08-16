@@ -1,59 +1,68 @@
 # 11. Sacrificii → `sacrifice.png`
 
-**Metafora:** un șir de domino. Dama cade prima, cu bună știință, și lovind
-lanțul îl răstoarnă până la capăt — unde cade regele.
+**Scena:** dama albă zace la picioarele regelui negru. Turnul și nebunul negru —
+apărătorii lui — sunt aruncați în lături, unul la stânga, unul la dreapta.
+Regele rămâne singur, descoperit.
 
-Asta e ce lipsea celorlalte încercări: **legătura dintre ce dai și ce primești.**
-Balanța arăta o socoteală abstractă; picătura de sânge arăta o pierdere.
-Dominoul arată **cauza și efectul într-o singură imagine** — și e chiar ce e un
-sacrificiu bun: o mutare care declanșează un lanț forțat.
+Ea a plătit; el a rămas gol. Amândouă se văd în aceeași imagine, și de-aia merge:
+sacrificiul se înțelege numai dacă se vede ce a cumpărat.
 
 | element | ce spune |
 | --- | --- |
-| dama, prima, deja căzută | *ce dai — și că a fost intenționat* |
-| piesele din mijloc, fiecare mai puțin înclinată | *lanțul e în desfășurare* |
-| regele, ultimul, abia începând să cadă | *ce primești* |
+| dama **albă**, căzută în față | *ce am dat* |
+| turnul și nebunul **negre**, azvârliți în lături | *apărarea lui, spulberată* |
+| regele **negru**, drept și singur | *ce am cumpărat* |
 
-Înclinarea în trepte e cea care face imaginea să se citească. Dacă toate piesele
-sunt căzute la fel, iese o grămadă răsturnată — adică dezastru, nu plan. Dacă
-sunt scalonate, ochiul citește ordinea singur, de la stânga la dreapta.
+## Culorile — regulă nouă pentru toată seria
 
-## O grijă anume
+Piesele nu mai sunt toate aurii. **Albele rămân aurii-deschis, negrele devin
+închise**, exact ca pe o tablă adevărată.
 
-La încercarea trecută, dama și coroana regelui arătau la fel. Aici sunt singurele
-două piese cu coroană din imagine, la cele două capete, așa că promptul cere
-explicit să nu se confunde: **dama are diademă cu vârfuri, regele are cruce și e
-mai înalt.**
+Motivul e simplu: în șah culoarea *este* informație. Cine atacă, cine suferă,
+a cui e piesa care cade — toate se pierd când totul e din același metal. La
+plăcuța asta se vede cel mai bine: fără culori, dama căzută și regele descoperit
+ar părea din aceeași tabără, iar imaginea n-ar mai însemna nimic.
+
+Atmosfera rămâne neatinsă: aceeași ramă aurie, aceeași tablă maro, același
+relief lustruit. Se schimbă doar metalul din care sunt turnate piesele.
+
+**De refăcut și celelalte două**, cu aceeași regulă: `furculita.png` (turnul și
+dama prinse în dinți ar trebui să fie negre — sunt prada) și `descoperire.png`
+(nebunul alb trage, pionul care se dă la o parte e alb, turnul lovit e negru).
 
 **Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
-— rama, fundalul și aurul se copiază de acolo.
+— dar **numai pentru ramă, fundal și finisaj**. Piesele din ea sunt toate aurii;
+aici nu mai sunt.
 
 ---
 
 ```text
-Use the attached image as the exact style reference. This is another tile in the same set, and it must look like it was made by the same hand, in the same session: identical frame, identical background, identical gold, identical lighting and finish.
+Use the attached image as the style reference for the FRAME, the BACKGROUND and the FINISH only. Copy those exactly. The pieces themselves are different this time: in the reference every piece is the same gold, while here white and black pieces must be clearly distinguishable, as on a real chessboard.
 
 KEEP IDENTICAL TO THE REFERENCE:
 - Square 1024x1024, filled edge to edge.
 - BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the pieces are NOT placed on its squares and do not line up with them.
 - FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides.
-- RENDERING: the same sculpted polished gold — bright highlights (#FAC339), mid-tones (#6F4D15), deep shadow (#5A340A), soft rounded bevels, a gentle sheen, soft drop shadows. Solid three-dimensional gold Staunton chess pieces, exactly like the rook and queen in the reference.
+- FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief exactly like the ones in the reference.
 
-THE SCENE — a line of chess pieces going over like dominoes, left to right. FOUR pieces stand in a row that runs slightly uphill from the lower left to the upper right, filling about 78 percent of the tile. Each one is caught at a different stage of falling, and each is toppling to the right, into the next one.
+THE TWO METALS — this is the one thing that differs from the reference:
+- WHITE pieces are pale, bright gold, almost ivory: highlight #FFF0C0, mid-tone #E4C071, shadow #A07C30.
+- BLACK pieces are dark, near-black bronze: highlight #4A3A1C, mid-tone #241A0A, shadow #0E0A04, with a thin warm gold rim light along their edges so their silhouettes stay crisp against the brown board.
+The contrast between the two must be strong and immediate. A viewer must never wonder which side a piece belongs to.
 
-1. FIRST, far LEFT: a chess QUEEN, large. She is ALREADY DOWN — fallen almost flat, lying at a steep angle with her crown near the ground, her base lifted and swung up behind her. She started this. She is the biggest and the most fallen of the four.
+THE SCENE — the white queen has been given up, and the black king stands stripped of his guards. Four pieces, filling about 78 percent of the tile:
 
-2. SECOND: a chess ROOK, medium sized, tipped over at roughly forty-five degrees, its base just lifting off the ground, leaning into the piece ahead of it.
+1. CENTRE, upright and tall: the BLACK KING, standing perfectly straight, alone. He is the tallest piece in the tile, with a plain smooth head topped by a clear CROSS. Nothing stands in front of him — there is open, empty space all around him. He is not falling and not damaged. He is simply exposed.
 
-3. THIRD: a chess BISHOP, tipped only slightly — maybe twenty degrees off upright, just beginning to go, still mostly standing.
+2. FRONT AND BELOW HIM, lying flat: the WHITE QUEEN, large, fallen right at the king's feet, stretched almost horizontally across the bottom of the tile with her coronet toward the left. She is pale bright gold against everything else, the brightest object in the image, and she is unmistakably down. She wears a coronet of several short points — clearly a queen, never confusable with the king's cross.
 
-4. LAST, far RIGHT and highest: a chess KING, the tallest piece in the tile. He is barely tilted at all, caught at the very first instant of falling, still almost upright. He is the end of the chain, and he is going down too.
+3. FAR LEFT: a BLACK ROOK, hurled outwards to the left, tipped over at a steep angle, its base swinging up off the ground, falling AWAY from the king.
 
-THE STAGING IS THE WHOLE POINT: the amount of tilt must increase steadily from right to left — king almost upright, bishop slightly over, rook halfway, queen flat on the ground. That progression is what tells the viewer this is one chain reaction moving in one direction, and not a random heap of knocked-over pieces. Keep the four evenly spaced, close enough that each clearly touches or nearly touches the next.
+4. FAR RIGHT: a BLACK BISHOP, hurled outwards to the right, likewise steeply tipped and falling AWAY from the king, mirroring the rook.
 
-TELLING THE TWO CROWNED PIECES APART: the queen and the king are the only crowned pieces here, and they must be impossible to confuse. The QUEEN wears a coronet of several short points around a rounded head. The KING is distinctly TALLER, with a plain smooth head topped by a clear CROSS. Give them clearly different silhouettes.
+The rook and the bishop must both fall OUTWARD, away from the centre, like two doors blown open. That outward motion is what says the king's shelter has been torn off him. If they lean inward, towards the king, the image says the opposite.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — four gold shapes in a rising row, leaning over more and more the further left you look, the biggest one flat at the near end and a tall crowned one just tipping at the far end. Keep every piece bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+READABILITY: this tile is displayed small, so the silhouette carries it — a tall dark crowned shape standing dead centre, two dark shapes flung outwards low on either side, and one bright pale shape lying flat across the bottom. The pale queen against the dark king is the strongest contrast in the tile and must read instantly. Keep every piece bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
 
 NOT: no chess diagram, no board position, no arrows, no beams of light, no blood, no wounds, no dust or debris, no motion lines, no letters or numbers, no coordinates, no hands, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
@@ -66,20 +75,21 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Se vede progresia?** Din dreapta spre stânga, piesele trebuie să fie tot
-   mai înclinate. Dacă sunt căzute la fel, iese o grămadă și se pierde ideea de
-   lanț. Cere: *„stagger the tilt: king almost upright, queen flat on the
-   ground, the two in between progressively more tipped"*.
-2. **Dama e prima și cea mai căzută?** Ea e sacrificiul; dacă e undeva la mijloc
-   sau abia înclinată, nu se mai înțelege că de la ea a pornit totul.
-3. **Regele se deosebește de damă?** Mai înalt, cu cruce. Dacă amândoi arată a
-   damă, imaginea nu mai spune ce câștigi.
-4. **Piesele se ating între ele?** Dacă sunt depărtate, nu se vede că una o
-   împinge pe următoarea.
+1. **Se deosebesc albul de negru dintr-o privire?** Dama trebuie să fie
+   evident deschisă la culoare, iar celelalte trei evident închise. Dacă toate
+   arată la fel de aurii, s-a pierdut tot rostul schimbării. Cere: *„make the
+   white queen much paler and the three black pieces much darker"*.
+2. **Turnul și nebunul cad spre exterior?** Dacă se apleacă spre rege, imaginea
+   spune că îl apără, nu că au fost măturați de lângă el.
+3. **Regele stă drept?** Nu căzut, nu înclinat. El e singurul neatins — asta îl
+   face să pară descoperit, nu învins.
+4. **Dama e cea mai luminoasă din imagine?** Ea e sacrificiul; dacă se pierde
+   printre celelalte, nu se mai vede ce s-a dat.
 5. Aceeași ramă și același fundal ca la furculiță.
 
 ---
 
-*Încercări abandonate: balanța cu dama sus și coroana jos (talerul de jos citea
-tot ca damă, iar imaginea arăta o socoteală, nu un sacrificiu); dama căzând sub
-un pion, cu o picătură de sânge (arăta pierderea, nu câștigul de după).*
+*Încercări abandonate: lanțul de domino, toate piesele aurii (bun ca idee, dar
+fără culori nu se vedea a cui e fiecare piesă); balanța cu dama sus și coroana
+jos (talerul de jos citea tot ca damă); dama căzând sub un pion, cu o picătură
+de sânge (arăta pierderea, nu câștigul).*

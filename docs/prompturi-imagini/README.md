@@ -46,6 +46,32 @@ Metafora se ia, pe cât se poate, din descrierea pe care o are deja tactica în
 [`src/data/tactics.ts`](../../src/data/tactics.ts). Acolo sunt scrise în cuvinte
 simple, iar textul ăla e deja aprobat.
 
+## Codul culorilor: alb și negru
+
+**Piesele nu sunt toate aurii.** Albele sunt aurii-deschis, negrele sunt închise
+— exact ca pe o tablă adevărată.
+
+| | lumină | ton mediu | umbră |
+| --- | --- | --- | --- |
+| Piese **albe** | `#FFF0C0` | `#E4C071` | `#A07C30` |
+| Piese **negre** | `#4A3A1C` | `#241A0A` | `#0E0A04` |
+
+Negrele primesc în plus un contur subțire de lumină caldă pe muchii, ca silueta
+lor să rămână limpede pe tabla maro.
+
+Motivul nu e estetic: **în șah, culoarea piesei e informație.** Cine atacă, cine
+suferă, a cui e piesa care cade. Totul-auriu pierde tocmai asta. La „Sacrificii"
+se vede cel mai bine — fără culori, dama căzută și regele descoperit ar părea din
+aceeași tabără, iar imaginea n-ar mai însemna nimic.
+
+Restul rămâne neatins: aceeași ramă aurie, aceeași tablă maro, același relief
+lustruit. Se schimbă doar metalul din care sunt turnate piesele.
+
+> **De refăcut:** `furculita.png` și `descoperire.png` au fost generate înainte
+> de regula asta și au toate piesele aurii. La furculiță, turnul și dama prinse
+> în dinți ar trebui să fie negre — sunt prada. La descoperire, nebunul care
+> trage și pionul care se dă la o parte sunt albi, turnul lovit e negru.
+
 ## Unde ajung imaginile
 
 `public/tactics/tipuri/<id>.png`, unde `<id>` e id-ul categoriei din
