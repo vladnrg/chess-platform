@@ -42,44 +42,44 @@ pierde cealaltă.
 | nebunul negru, aplecat spre el | *e obligat să vină* |
 | turnul negru, sus-dreapta pe diagonală | *ce lasă în urmă* |
 
-**Atașează la mesaj DOUĂ imagini:**
-1. [`furculita.png`](../../surse-imagini/tactici/furculita.png) — rama, fundalul, finisajul;
-2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul pentru cele două metale.
+**Atașează la mesaj DOUĂ imagini, în ordinea asta:**
+1. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
+   — **nu furculița.** Acolo sunt tot trei piese, pe fundal plat, cu exact
+   modelarea și lumina care trebuie copiate;
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — cele două metale.
 
 ---
 
 ```text
-Here are two images you made earlier. Use them as the style reference: the first for the frame, the background and the finish, the second for the two metals — the pale gold of its fallen queen and the dark near-black bronze of its three standing pieces.
+Here are two images you made earlier. The FIRST is the discovered-attack tile — copy its look exactly: the same flat decorative background, the same ornamental frame, the same way the chess pieces are modelled and lit, the same three-piece arrangement floating on that background. The SECOND is the sacrifice tile — take its two metals from there, the pale gold and the dark near-black bronze.
 
-KEEP IDENTICAL TO THE REFERENCES:
+COPY FROM THE FIRST IMAGE, WITHOUT CHANGING ANYTHING:
 - Square 1024x1024, filled edge to edge.
-- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — with the same warm radial glow behind the scene (#63421D) falling off to near-black in the four corners (#171513).
-- FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides.
-- FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief.
-
-DIFFERENT THIS TIME — THE PIECES STAND ON THE SQUARES. Unlike the earlier tiles, where the board was only a backdrop, here the chessboard is a real board seen at a low angle, and each piece stands squarely on its own square, aligned to the grid. The squares must be clearly readable, because the whole meaning of this tile is which piece stands on which diagonal.
+- The BACKGROUND is a FLAT decorative chessboard pattern seen straight on — alternating brown squares in low contrast, darker #4B3317 and lighter #7F5425, with a warm radial glow behind the pieces (#63421D) falling off to near-black in the corners (#171513). It is a flat backdrop behind the pieces, exactly as in the first image. It is NOT a real board in perspective: no tilt, no vanishing point, no three-dimensional board, no thickness, no viewing angle. The pieces float in front of it and do not stand on its squares.
+- The FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides.
+- The PIECES are modelled exactly as in the first image: solid sculpted Staunton figures in relief, seen from the side, with the same proportions, the same soft rounded bevels, the same polished sheen, the same lighting from the upper left and the same soft drop shadows.
 
 THE TWO METALS:
-- The PAWN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale matte cream or ivory.
-- The BISHOP and the ROOK are DARK, and the same metal as each other: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges. They belong to the same side, and that must be obvious.
+- The PAWN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A — exactly like the bishop in the first image.
+- The BISHOP and the ROOK are DARK, and the same metal as each other: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges. They belong to the same side, and that must be obvious at a glance.
 
-THE POSITION — only three pieces on the whole board, and nothing else:
+THE ARRANGEMENT — three pieces, placed like this:
 
-1. A DARK BISHOP, standing near the middle of the board. It is the centre of everything.
+1. LOWER LEFT OF CENTRE: a DARK BISHOP, the largest piece in the tile.
 
-2. A LIGHT PAWN, standing exactly ONE SQUARE diagonally DOWN AND TO THE RIGHT of the bishop — the two pieces touch corners on that diagonal, with no square between them. Fixed to the front of the pawn, turned towards the bishop, is a SMALL HORSESHOE MAGNET: a compact gold U-shape with two flat pole tips, each with two simple raised bands. The magnet is part of the pawn, not a separate object beside it, and small enough that the pawn still reads as a pawn. The pawn is much smaller than the bishop, about half its height.
+2. CLOSE TO IT, DOWN AND TO THE RIGHT: a LIGHT PAWN, small — about half the bishop's height. It sits near the bishop, at the bishop's lower right, close enough that the two almost touch. It stands calmly upright.
 
-3. A DARK ROOK, standing THREE SQUARES diagonally UP AND TO THE RIGHT of the bishop, on the opposite diagonal from the pawn. The two empty squares between the bishop and the rook must be plainly visible and completely empty, so the line joining them is unmistakable.
+3. FAR UP AND TO THE RIGHT: a DARK ROOK, alone, with plenty of empty background between it and the bishop.
 
-THE GEOMETRY IS THE WHOLE POINT. The bishop sits where two diagonals cross. One diagonal runs down-right to the pawn, one square away. The other runs up-right to the rook, three squares away. A viewer must be able to trace both lines across the squares of the board.
+THE ALIGNMENT MATTERS MORE THAN ANYTHING ELSE. The bishop and the rook must sit on one clean straight diagonal running at exactly 45 degrees, up and to the right — draw an imaginary line through the centre of the bishop's head and the centre of the rook's crown, and that line must be a perfect 45-degree diagonal, not almost. Nothing stands between them; the space along that line is completely empty. The pawn sits on the OTHER 45-degree diagonal, going down and to the right from the bishop, so the two lines leave the bishop at right angles to each other and open towards the right like an arrowhead.
 
-THE BISHOP IS BEING PULLED. It leans over towards the pawn, down and to the right, off balance — the far edge of its base lifting off its square. Its head is TURNED BACK over its shoulder, up towards the rook. It is going where it does not want to go, and it knows what it is leaving.
+THE MAGNET — make it big and impossible to miss. Fixed to the front of the pawn and turned towards the bishop is a HORSESHOE MAGNET in bright polished gold, drawn large: as tall as the pawn's own body, a thick U-shape with two broad flat pole faces aimed straight at the bishop, each pole marked with two or three bold raised bands. It is the brightest object in the whole tile. It is fused to the pawn as one piece of metal, but it must be large and clear enough to be recognised as a magnet at a glance, even when the picture is shrunk down.
 
-Everything else on the board is empty. No other pieces anywhere.
+THE BISHOP IS BEING PULLED. It leans over towards the pawn and its magnet, down and to the right, off balance, the far edge of its base lifting. Its head is TURNED BACK over its shoulder, up towards the rook. Two opposite directions in one figure: the body dragged one way, the gaze held the other.
 
-READABILITY: this tile is displayed small, so keep the three pieces large relative to the board and keep the board's squares clean and clearly separated. No small ornaments, no engraving, no fine detail on the pieces.
+Nothing else anywhere. Three pieces and one magnet, on the flat patterned background.
 
-NOT: no arrows, no drawn lines, no dotted paths, no highlighted squares, no beams of light, no magnetic field lines, no motion lines, no letters or numbers, no coordinates around the board, no hands, no king or queen, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+NOT: no three-dimensional board, no perspective, no tilted board, no board edge, no squares under the pieces, no arrows, no drawn lines, no dotted paths, no highlighted squares, no beams of light, no magnetic field lines, no motion lines, no letters or numbers, no coordinates, no hands, no king or queen, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -88,15 +88,28 @@ OUTPUT: square image, at least 1024x1024.
 
 **Salvează ca:** `attraction.png`, lângă celelalte.
 
+## Ce s-a stricat data trecută
+
+Cerusem „tabla să fie o tablă adevărată, văzută în unghi, cu piesele pe pătrate".
+De acolo au venit toate trei problemele: tabla a devenit 3D cu perspectivă,
+piesele au fost redesenate în alt stil ca să stea pe ea, iar magnetul s-a făcut
+mic. Plăcuța a ieșit din familie.
+
+Promptul de acum **interzice explicit perspectiva** și cere copiat fundalul plat
+din „Atac prin descoperire". Geometria se ține doar din poziționare — merge, așa
+cum a mers și acolo cu raza pe diagonală.
+
 **Verificare**
 
-1. **Pionul e la exact un pătrat de nebun, în jos-dreapta?** Colț la colț, fără
-   pătrat între ei. Dacă e mai departe, nu se mai vede că îl atacă.
-2. **Turnul e pe cealaltă diagonală, cu două pătrate goale între ei?** Aia e
-   linia care se pierde. Cere: *„put the rook three squares diagonally up-right
-   from the bishop, with the two squares between them empty"*.
-3. **Se numără pătratele?** Tabla trebuie citită ca tablă, nu ca fundal. Dacă
-   pătratele se pierd, se pierde toată geometria.
-4. **Nebunul se apleacă spre pion și privește înapoi spre turn?** Cele două
-   direcții opuse sunt exact dilema lui.
-5. **Doar pionul e auriu.** Nebunul și turnul, amândouă întunecate.
+1. **Fundalul e plat?** Fără unghi, fără muchie de tablă, fără pătrate sub
+   piese. Pus lângă „Atac prin descoperire", trebuie să pară aceeași lume.
+2. **Nebunul și turnul sunt pe o diagonală de fix 45°?** Ăsta e testul greu.
+   Ține o riglă pe ecran, din capul nebunului spre coroana turnului. Dacă e
+   „aproape", cere: *„the bishop and the rook must be on one exact 45-degree
+   diagonal, nothing between them"*.
+3. **Magnetul se vede de la distanță?** Trebuie să fie cât corpul pionului și
+   cel mai luminos lucru din imagine. Dacă e o bucățică, cere-l mai mare.
+4. **Piesele arată ca în „Atac prin descoperire"?** Aceleași proporții, aceeași
+   lumină. Dacă par alt set, atașează poza din nou și cere-i s-o copieze.
+5. **Nebunul se apleacă spre pion și privește înapoi spre turn?**
+6. **Doar pionul e auriu.** Nebunul și turnul, amândouă întunecate.
