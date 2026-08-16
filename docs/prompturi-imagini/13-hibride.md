@@ -1,116 +1,92 @@
 # 13. Tactici hibride → `hybrid.png`
 
-**Scena: șahul perpetuu.** O damă aurie și un rege negru, prinși într-un du-te-vino
-din care nu iese nimeni. Fiecare apare în **două locuri deodată** — unul solid,
-unul rămas în urmă ca o dâră — și se vede că a doua poziție e prima, iar prima e
-a doua.
+Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 
-> **De verificat cu tine:** categoria din aplicație se cheamă „Tactici hibride"
-> (*mai multe teme se suprapun, din mijloc de joc și finaluri*), iar șahul
-> perpetuu e altceva — e remiza forțată, adică tema plăcuței 9,
-> [Resurse defensive](09-resurse-defensive.md). Imaginea e mult mai concludentă,
-> așa că am construit-o; dacă vrei, o mutăm pe `forced-draws.png` și îi căutăm
-> altceva plăcuței 13.
+> Combinații în care **mai multe teme se suprapun**, din mijloc de joc și
+> finaluri. Aici se vede **cine doar memorează și cine chiar gândește**.
 
-## Poziția, verificată cu motorul
+## Scena: furculița care înghite și apărarea
 
-Două poziții care se schimbă între ele la nesfârșit:
+O furculiță aurie, cu patru dinți, ca aia din [Furculiță și atac
+dublu](01-furculita.md). În dinții ei, două capturi — dar **de feluri diferite**:
 
-```
-      A                        B
-    f  g  h                  f  g  h
-  +---------+              +---------+
-8 | r  .  k |            8 | r  k  . |
-7 | .  .  . |            7 | .  .  . |
-6 | .  .  Q |            6 | .  Q  . |
-  +---------+              +---------+
-```
+- pe un dinte, un **turn negru**, ridicat de pe tablă, prins normal;
+- pe celălalt dinte, **pionul negru cu armură și scut** de la
+  [Resurse defensive](09-resurse-defensive.md) — apărătorul, luat cu tot cu
+  apărare. Dintele i-a trecut **prin scut**.
 
-- **A:** rege negru h8, damă albă h6. Dama dă șah pe coloana h.
-- **B:** rege negru g8, damă albă g6. Dama dă șah pe coloana g.
+Asta e succesiunea neobișnuită: aceeași mutare face **două lucruri care de obicei
+nu se întâmplă împreună** — câștigă material *și* scoate din joc resursa
+defensivă care ar fi trebuit să salveze poziția. Una e temă de atac, cealaltă e
+temă de apărare, și de obicei se învață separat.
 
-Rulat prin chess.js, și ăsta e lucrul care merită spus:
+**Scutul lovit, cu adânciturile lui, e tot acolo.** Nu a cedat — a fost ridicat
+cu totul. Aia e diferența dintre „am spart apărarea" și „apărarea nici n-a mai
+apucat să conteze".
 
-> **În fiecare dintre cele două poziții, negrul are exact o mutare legală. Una
-> singură.** În A doar `Kg8`, în B doar `Kh8`. După `Qh6+ Kg8 Qg6+ Kh8`, poziția
-> de pe tablă e **identică** cu cea de la început.
+## De unde se ia fiecare bucată
 
-Regele nu alege nimic. Merge unde e împins, și ajunge de unde a plecat. Asta e
-tot ce trebuie să spună imaginea.
+| de la | ce se ia |
+| --- | --- |
+| [Furculiță și atac dublu](01-furculita.md) | forma furculiței: patru dinți, capturile pe cei doi din margine |
+| [Resurse defensive](09-resurse-defensive.md) | pionul cu coif și scutul mare, cu adâncituri și zgârietură |
 
-Turnul negru de pe f8 — cel care îi taie ieșirea prin f8 — și regele alb, undeva
-departe, rămân în afara desenului, ca la toate plăcuțele.
+Astea sunt **singurele două referințe atașate**. Plăcuțele care s-au tot folosit
+până acum — descoperirea, sacrificiul — rămân deoparte, ca desenul să pornească
+din altă parte.
 
-## Cum se desenează „la infinit" cu doar două poziții
+## O corectură care intră pe furiș
 
-**Fiecare piesă apare de două ori:** o dată solidă, o dată ca o urmă translucidă
-rămasă în aer, pe pătratul de alături. Nu o umbră pe tablă — o **copie palidă a
-ei înseși**, aceeași formă, aceeași ținută, doar stinsă.
+La *Furculiță*, furculița e **întunecată** și piesele prinse în ea sunt **aurii**.
+Imaginea aia e făcută înainte de codul culorilor, iar
+[README](README.md#codul-culorilor-alb-și-negru) o are deja pe lista de refăcut:
+prada ar fi trebuit să fie neagră.
 
-Cele două perechi stau alături, **fiecare damă exact sub regele ei**. Așezarea e
-oglindită, dinadins: **nu trebuie să se poată spune care poziție a fost prima.**
-Ăsta e tot trucul — dacă niciuna nu e începutul, imaginea nu are cum să se
-termine.
+Aici se face invers, cum trebuie: **furculița e aurie — e a noastră** — iar ce
+prinde în ea e **negru**. Aceeași formă, culorile pe dos, și dintr-odată are sens
+cine pe cine ține.
 
 | element | ce spune |
 | --- | --- |
-| dama aurie, solidă, sub rege | *șah* |
-| dama palidă, un pătrat alături | *și tot ea, acum o clipă* |
-| regele negru, aplecat, ferindu-se | *singura mutare pe care o are* |
-| regele palid, pe celălalt pătrat | *unde tocmai era, și unde se întoarce* |
-
-## Ce nu intră în imagine
-
-Nicio săgeată circulară, niciun semn de infinit, niciun ceas. Sunt exact
-lucrurile pe care le desenează oricine când aude „la nesfârșit", și toate ar
-transforma plăcuța în pictogramă. Repetiția trebuie să se vadă **din piese**, nu
-dintr-un simbol pus peste ele.
+| furculița aurie, cu patru dinți | *o singură mutare* |
+| turnul negru, ridicat pe un dinte | *materialul câștigat* |
+| pionul cu scut, ridicat pe celălalt | *și apărătorul, luat odată cu el* |
+| dintele trecut prin scut | *apărarea n-a apucat să conteze* |
 
 **Atașează la mesaj DOUĂ imagini, în ordinea asta:**
-1. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
-   — fundalul plat, rama și cele două metale;
-2. [`Sacrificiu.png`](../../surse-imagini/tactici/Sacrificiu.png) — de acolo se
-   ia damă aurie și negrul cum trebuie.
+1. [`Furculita.png`](../../surse-imagini/tactici/Furculita.png) — forma furculiței,
+   rama, fundalul și felul în care capturile stau pe dinții din margine;
+2. [`Resurse defensive.png`](../../surse-imagini/tactici/Resurse%20defensive.png)
+   — pionul cu coif și scutul lovit, cu adânciturile și zgârietura lui.
 
 ---
 
 ```text
-Here are two images you made earlier, both from the same set of chess tiles. This new tile belongs to the same set and must look like it was made by the same hand in the same session: identical frame, identical background, identical metals, identical lighting and finish.
+Here are two images you made earlier, both from the same set of chess tiles. This new tile is built from the two of them and must look like it was made by the same hand in the same session: identical frame, identical background, identical metals, identical lighting and finish. From the FIRST image take the shape of the FORK. From the SECOND image take the ARMOURED PAWN WITH THE BATTERED SHIELD.
 
 KEEP IDENTICAL TO THE REFERENCES:
 - Square 1024x1024, filled edge to edge.
-- BACKGROUND: a FLAT chessboard pattern seen straight on — alternating brown squares in low contrast, darker #4B3317 and lighter #7F5425, with a warm radial glow behind the pieces (#63421D) falling off to near-black in the four corners (#171513). It is a printed pattern, not a real board: no tilt, no perspective, no vanishing point, no thickness, no board edge, no horizon. In THIS tile the squares are drawn BIGGER than in the references: exactly 6 columns and 6 rows fill the tile, so each square is large. They stay the same size all over the tile, corner to corner.
+- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: nothing is placed on its squares and nothing lines up with them. It is flat and seen straight on — no tilt, no perspective, no board edge.
 - FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides. Draw all four diamonds COMPLETE and entirely inside the picture, none of them cropped by the edge.
-- FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief, seen from the side, lit from the upper left.
+- FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows.
 
-THE TWO METALS:
-- The QUEEN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale cream or ivory.
-- The KING is DARK: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along his edges so his silhouette stays crisp against the brown board.
+THE COLOURS ARE SWAPPED FROM THE FIRST IMAGE, AND THIS MATTERS. In that image the fork is dark and the two chess pieces on it are gold. Here it is the other way round:
+- The FORK is GOLD: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale cream or ivory.
+- EVERYTHING CAUGHT IN IT IS DARK: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along the edges so the silhouettes stay crisp against the brown board.
 
-THE SUBJECT — "the same two moves, over and over, for ever". There are only TWO pieces in this tile, a gold queen and a dark king, but EACH OF THEM IS DRAWN TWICE: once solid, and once as a pale after-image left behind on the square it just came from. Four figures on the board, two pieces.
+THE SUBJECT — one gold fork, holding two catches. It stands upright in the middle of the tile, filling about 75 percent of it, exactly like the fork in the first image: a broad flat handle at the bottom widening into a shoulder, and FOUR straight tines rising from it, the two middle ones bare and pointing up at nothing.
 
-Read the background as a grid of 6 columns and 6 rows, numbered 1 to 6 from the left and 1 to 6 from the bottom. Place them like this:
+ON THE LEFT OUTER TINE: a DARK ROOK, lifted clean off the board and sitting on the point of the tine, the way the rook sits on the fork in the first image. It is upright, whole, and completely helpless — its base is in the air, nothing under it.
 
-- the SOLID DARK KING standing on the square in column 3, row 1;
-- his AFTER-IMAGE standing on the square in column 4, row 1, right beside him;
-- the SOLID GOLD QUEEN standing on the square in column 3, row 3 — two squares directly below the solid king, in the same column;
-- her AFTER-IMAGE standing on the square in column 4, row 3 — two squares directly below the king's after-image, in the same column.
+ON THE RIGHT OUTER TINE: the ARMOURED PAWN FROM THE SECOND IMAGE, lifted the same way — but now in the DARK metal. Copy it exactly as it is drawn there: a small pawn wearing a plain rounded helmet with a narrow eye slit, standing behind a LARGE kite SHIELD that is taller and wider than the pawn itself, with a broad raised rim, and with the same battle damage on its face — two or three deep dents and one long diagonal scrape. Pawn and shield are one continuous casting, as they are in that image.
 
-Each queen therefore stands directly under the king she is checking, in the same column, with one empty square between them. The two pairs stand side by side, and because the pieces are wider than one square, each after-image OVERLAPS its solid piece a little — the pale one behind, the solid one in front. That overlap is what makes it read as one piece caught in two places, rather than as four pieces.
+THE TINE HAS GONE STRAIGHT THROUGH THE SHIELD. The point of the right outer tine has punched clean through the middle of the shield's face and comes out in front of it, so the pawn and its shield hang on the tine together. Around the hole the metal of the shield is pushed outwards in a small ragged burr. The shield is NOT broken apart, NOT split and NOT in pieces — it is whole, dented, still doing its job, and simply carried off with its owner. The dents and the scrape must stay clearly visible on the dark metal, catching a bright warm highlight on their upper edges.
 
-THE AFTER-IMAGES are exactly the same figure as the solid piece next to them: same shape, same size, same pose, same metal, just faint. They are TRANSLUCENT — you can see the squares of the board through them — dimmed down and softened, with no bright highlights, no rim light and no shadow of their own, as if they were still hanging in the air where the piece stood a moment ago. They are NOT flat shadows lying on the board, NOT silhouettes, NOT outlines, and NOT different pieces: each one is a ghost of the solid piece beside it.
+The two catches sit at the same height, one on each outer tine, balanced left and right, so the tile reads as one move that took both at once.
 
-THE KING IS DODGING. Both dark kings — the solid one and the pale one — lean away from the queen below them, tipped slightly to the side, caught mid-step. They are the ones being moved.
+READABILITY: this tile is displayed small, so the silhouette carries it — a broad gold fork shape standing dead centre with four tines, a squat dark battlemented shape on the tine to the left, and a dark shield shape with a small helmeted head above it on the tine to the right. Keep everything bold and simple. No small ornaments, no engraving, no heraldry on the shield, no fine detail, no chessboard squares drawn on the pieces.
 
-THE QUEEN IS CALM. Both gold queens stand bolt upright, planted, still, facing straight up at the king above them. She is the one doing the moving.
-
-MAKE IT SYMMETRICAL. The left pair and the right pair are drawn as near-mirror images of each other, at exactly the same height and the same size, so that a viewer cannot tell which one came first. Neither pair is the beginning and neither is the end.
-
-THE BOARD IS OTHERWISE EMPTY. Two solid pieces, two after-images, nothing else on any square.
-
-READABILITY: this tile is displayed small, so the silhouette carries it — two dark crowned shapes side by side low down, one solid and one faint, and two gold crowned shapes side by side directly below them, one solid and one faint, each gold one looking straight up at a dark one. Keep everything bold and simple, no fine detail.
-
-NOT: no circular arrow, no looping arrow, no arrows of any kind, no infinity symbol, no figure of eight, no clock, no hourglass, no spiral, no repeated ghost trail of three or more copies, no motion lines, no speed lines, no beams of light, no rays, no dotted paths, no highlighted or glowing squares, no three-dimensional board, no perspective, no board edge, no letters or numbers, no coordinates, no hands, no bishop, no knight, no pawn, no rook, no second king that is a different piece, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+NOT: no third catch, no piece on the two middle tines, no hand holding the fork, no chains, no key, no bolt, no spear separate from the fork, no rope, no net, no sword, no arrows, no beams of light, no rays, no dotted paths, no highlighted or glowing squares, no cracks running through the shield, no shattered pieces, no broken chess pieces, no blood, no fire, no smoke, no motion lines, no letters or numbers, no coordinates, no three-dimensional board, no perspective, no board edge, no queen, no king, no bishop, no knight, no fused or invented chess pieces, no cartoon faces, no eyes, no sparkles, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -121,37 +97,44 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Urmele sunt translucide, nu umbre?** Ăsta e testul principal. Trebuie să se
-   vadă tabla prin ele, dar să rămână aceeași piesă, în picioare, nu o pată
-   culcată pe jos. Cere: *„translucent ghost of the same piece, standing, board
-   visible through it, not a shadow on the floor"*.
-2. **Se suprapun puțin cu piesele solide?** Suprapunerea e cea care spune „aceeași
-   piesă, două locuri". Dacă stau la distanță, par patru piese.
-3. **Fiecare damă e exact sub regele ei, pe aceeași coloană?** Fără asta nu se
-   vede că e șah.
-4. **Cele două perechi sunt la aceeași înălțime și la fel de mari?** Simetria e
-   ce face imaginea să nu aibă început.
-5. **Regii se apleacă, damele stau drepte?** Una împinge, celălalt e împins.
-6. **Sunt exact patru figuri?** Nu șase, nu o dâră lungă de copii. Două solide,
-   două palide.
-7. **N-a apărut niciun semn de infinit și nicio săgeată circulară?**
+1. **Furculița e aurie și prada neagră?** Ăsta e testul principal, și e pe dos
+   față de imaginea de referință. Dacă a copiat cuminte culorile de acolo,
+   cere: *„swap the colours: the fork is gold, everything caught in it is dark"*.
+2. **Dintele trece prin scut?** Vârful trebuie să iasă în față, prin mijlocul lui.
+   Dacă scutul e doar sprijinit de dinte, se pierde toată ideea.
+3. **Scutul e întreg, doar găurit?** Cu adânciturile și zgârietura la locul lor.
+   Un scut spart ar spune „apărarea a cedat" — aici apărarea n-a apucat să
+   conteze, ceea ce e altceva.
+4. **Se mai văd adânciturile pe metal negru?** Pe închis dispar primele. Dacă
+   scutul a ieșit neted, cere: *„keep the dents and the scrape, catch a bright
+   highlight on their upper edges"*.
+5. **Cele două capturi sunt la aceeași înălțime?** Una nu e mai importantă decât
+   cealaltă — au fost luate în aceeași mutare.
+6. **Dinții din mijloc sunt goi?** Doi dinți, două capturi. Un al treilea lucru
+   agățat acolo ar încărca degeaba.
+7. **Turnul e ridicat, cu talpa în aer?** Dacă stă pe tablă lângă furculiță, nu
+   pare prins.
 8. **Cele patru romburi sunt întregi?** Niciunul tăiat de marginea imaginii.
 
 ---
 
 ## Ce am încercat înainte
 
-**Prima variantă:** o piesă **turnată din două** — corp de turn, mitră de nebun —
-cu două raze plecând din ea. Spunea *piesă* hibridă, nu *tactici* hibride.
+Plăcuța asta a luat patru încercări. Le las scrise, fiindcă fiecare a picat din
+alt motiv și motivele sunt de ținut minte:
 
-**A doua variantă:** trei **bare verticale de aur** în fața regelui, luate de la
-[Prinderea piesei](07-prinderea-piesei.md). Greșeala merită scrisă: acolo
-gratiile **sunt corpul turnului** — piesa care prinde *este* temnița, aia e toată
-gluma. Rupte de turn, rămân trei bare de aur care nu trimit la nimic.
+1. **Piesă turnată din două** — corp de turn, mitră de nebun, două raze plecând
+   din ea. Spunea *piesă* hibridă, nu *tactici* hibride.
+2. **Trei bare de aur** în fața regelui, luate de la
+   [Prinderea piesei](07-prinderea-piesei.md). Acolo gratiile **sunt corpul
+   turnului**; rupte de turn, nu mai trimit la nimic. De aici a ieșit regula din
+   [README](README.md#obiectele-se-țin-de-piesa-lor): obiectele se țin de piesa
+   lor.
+3. **Rege încolțit de trei lucruri deodată** — o rază, un magnet și propriul lui
+   pion. Corectă ca idee, dar trei limbaje într-o plăcuță care se vede la 64 de
+   pixeli.
+4. **Șahul perpetuu**, cu fiecare piesă desenată de două ori. Imaginea era bună,
+   dar tema e remiza forțată — adică plăcuța 9, nu asta.
 
-**A treia variantă:** rege negru încolțit de trei lucruri deodată — o rază, un
-magnet și propriul lui pion. Corectă ca idee, dar aglomerată: trei limbaje într-o
-plăcuță care se vede la 64 de pixeli.
-
-Lecția, aceeași de fiecare dată: **plăcuțele bune au un singur lucru de spus.**
-Șahul perpetuu are unul singur, și e ușor de recunoscut.
+Ce le lega: ori spuneau altceva, ori spuneau prea multe. Varianta de acum spune
+**un singur lucru**, și îl spune cu obiecte care există deja în serie.
