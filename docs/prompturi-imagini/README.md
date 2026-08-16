@@ -57,6 +57,17 @@ Excepția a existat o vreme, la [Combinații complete](12-combinatii.md): acolo
 subiectul e un lanț de mutări, și părea că nu se poate arăta fără un drum. Se
 poate — cu un lanț adevărat. Vezi în fișier de ce a căzut varianta cu săgeți.
 
+## Obiectele se țin de piesa lor
+
+Furculița are dinții care *sunt* turnul și dama. Colivia de la *Prinderea piesei*
+**e** corpul turnului. Magnetul e lipit de un pion. Raza iese din tăietura
+mitrei. Lanțul pleacă de la baza nebunului.
+
+Asta nu e stil, e condiția ca obiectul să însemne ceva. La *Tactici hibride* am
+încercat o dată gratiile **fără turn**, singure în fața unui rege — și au ieșit
+trei bare de aur care nu trimit la nimic. Un obiect rupt de piesa lui devine
+decor.
+
 ## Rama: romburile se taie mereu
 
 Rama are câte un romb mic pe fiecare din cele patru laturi. ChatGPT le pune

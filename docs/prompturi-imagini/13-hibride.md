@@ -5,61 +5,65 @@ Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 > Combinații în care **mai multe teme se suprapun**, din mijloc de joc și
 > finaluri. Aici se vede **cine doar memorează și cine chiar gândește**.
 
-## Plăcuța e ea însăși hibridă
+## Trei necazuri deodată, de trei feluri diferite
 
-Nu se inventează niciun obiect nou. Se iau **trei limbaje deja folosite în
-serie** și se pun toate trei peste aceeași piesă:
+Un rege negru, în mijloc. Trei lucruri se întâmplă cu el în aceeași clipă — și,
+important, **fiecare e desenat altfel**:
 
-| de unde vine | ce se ia | ce temă e |
+| tema | cum e desenată | ce fel de lucru e |
 | --- | --- | --- |
-| [Prinderea piesei](07-prinderea-piesei.md) | gratiile aurii, groase, cu goluri late | *n-are unde să se ducă* |
-| [Atragerea și devierea](04-atragerea.md) | magnetul potcoavă, pe un pion auriu | *e tras de unde stă* |
-| [Atac prin descoperire](03-descoperire.md) | raza aurie, dreaptă, care lovește | *e sub bătaie pe o linie* |
+| e sub bătaie pe o linie | **raza aurie** din nebun | lumină |
+| e tras de unde stă | **magnetul** de pe pion | obiect |
+| n-are unde să se retragă | **propriul lui pion**, lipit de el | piesă, nimic altceva |
 
-Cine a parcurs cursul le recunoaște pe toate trei dintr-o privire. **Asta e
-definiția tacticii hibride: nimic nou, dar totul deodată.**
-
-Și tot de-aici vine și a doua jumătate a descrierii. Dacă ai memorat plăcuțele
-una câte una, aici le vezi pe toate trei și **niciuna nu-ți mai spune ce să
-faci** — fiindcă răspunsul la fiecare îl strică pe celălalt.
+Asta e diversitatea din plăcuță: una e lumină, una e metal, una nu e niciun
+obiect — e doar o piesă care stă unde nu trebuie. Trei limbaje, nu trei desene
+ale aceluiași lucru.
 
 ## De ce se contrazic între ele
 
-Asta e partea care face imaginea să funcționeze, nu doar să fie plină:
+Partea care face imaginea să funcționeze, nu doar să fie plină:
 
 - magnetul îl **trage spre dreapta**;
-- gratiile îi **taie exact drumul într-acolo**;
-- raza îl lovește **cât timp stă între ele**.
+- în stânga, unde s-ar retrage, **stă pionul lui**;
+- iar raza îl lovește **cât timp stă între ele**.
 
-Nu e o grămadă de tactici puse una peste alta la întâmplare. E o poziție în care
-**fiecare scăpare e blocată de altă temă** — și de-aia sunt grele.
+Fiecare ieșire e închisă de altă temă. **Nu poți răspunde la toate deodată** — și
+exact asta înseamnă o poziție hibridă.
 
-## De ce nu mai fuzionez piesele
+## Pionul negru face jumătate din treabă
 
-Prima variantă avea o piesă turnată din două — turn jos, mitră de nebun sus — și
-două raze plecând din ea. Ideea era „două piese într-una", dar tactica nu e
-despre piese hibride, ci despre **teme** hibride. Piesele rămân piese normale;
-ce se amestecă sunt **felurile de a le ataca**.
+E ideea de la [matul pe ultima linie](08-mat.md), mutată în mijlocul tablei:
+**zidul e făcut din oamenii tăi.** Propria ta piesă e mereu exact acolo unde ai
+fi vrut să te duci.
 
-## Ce se schimbă față de plăcuțele-surse
+Și e singurul dintre cele trei care **nu e un obiect**. De-aia contează: arată că
+o temă tactică nu are nevoie de nimic desenat pe deasupra — uneori e doar o piesă
+care stă prost.
 
-- La *Prinderea piesei*, gratiile sunt corpul unui turn și înconjoară complet.
-  Aici sunt **doar câteva bare, în față** — nu-l închid, îi taie o direcție.
-- La *Atragerea*, magnetul e singurul lucru care se întâmplă. Aici e **unul din
-  trei**, deci se desenează la fel, dar nu mai e vedeta.
-- La *Descoperire*, raza pleca dintr-un nebun și lovea o singură piesă. Rămâne
-  exact așa — ea e singurul lucru care nu se schimbă.
+## Ce se ia din serie și ce se schimbă
+
+**Raza** e cea de la [Atac prin descoperire](03-descoperire.md), neatinsă: pleacă
+din tăietura mitrei unui nebun auriu și lovește o singură piesă.
+
+**Magnetul** e cel de la [Atragerea și devierea](04-atragerea.md), tot neatins:
+potcoavă groasă de aur, lipită de un pion auriu, cât corpul lui. Acolo era
+singurul lucru care se întâmpla; aici e unul din trei, deci se desenează la fel,
+dar nu mai e vedeta.
+
+**Pionul negru** e nou ca imagine, dar nu ca idee — vine din
+[Dă mat în N mutări](08-mat.md), unde regele e zidit de pionii lui.
 
 **Atașează la mesaj DOUĂ imagini, în ordinea asta:**
 1. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
    — fundalul plat, rama, cele două metale și raza aurie;
-2. [`Prinderea piesei.png`](../../surse-imagini/tactici/Prinderea%20piesei.png) —
-   de acolo se iau gratiile: groase, puține, cu goluri late între ele.
+2. [`Sacrificiu.png`](../../surse-imagini/tactici/Sacrificiu.png) — încă un model
+   de negru, unde a ieșit bine.
 
 ---
 
 ```text
-Here are two images you made earlier, both from the same set of chess tiles. This new tile is built out of pieces of that same set, and it must look like it was made by the same hand in the same session: identical frame, identical background, identical metals, identical lighting and finish. From the FIRST image take the golden RAY. From the SECOND image take the thick gold BARS.
+Here are two images you made earlier, both from the same set of chess tiles. This new tile belongs to the same set and must look like it was made by the same hand in the same session: identical frame, identical background, identical metals, identical lighting and finish. From the FIRST image take the golden RAY exactly as it is.
 
 KEEP IDENTICAL TO THE REFERENCES:
 - Square 1024x1024, filled edge to edge.
@@ -68,24 +72,26 @@ KEEP IDENTICAL TO THE REFERENCES:
 - FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief.
 
 THE TWO METALS:
-- LIGHT pieces and all the gold objects are rich warm gold: highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale cream or ivory.
-- The DARK piece is near-black bronze: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along its edges so its silhouette stays crisp against the brown board.
+- LIGHT pieces and the gold objects are rich warm gold: highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Polished metal, never pale cream or ivory.
+- DARK pieces are near-black bronze: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges so their silhouettes stay crisp against the brown board.
 
-THE SUBJECT — "three different attacks at once, on one piece". In the middle of the tile stands ONE DARK KING, large, the biggest figure in the picture. Three completely different gold things are closing on him at the same moment, and each one is drawn in a different way. He is upright but under strain: leaning over to the right, off balance, the far edge of his base lifting.
+THE SUBJECT — "three different kinds of trouble at once, on one piece". Four chess pieces, and they fill about 80 percent of the tile.
 
-1. THE BARS — standing on the ground directly IN FRONT of the king, between him and the viewer, are THREE thick vertical gold bars, exactly like the bars of the cage in the second image: heavy, round, few, with wide dark gaps between them. They rise from below the bottom of his base up past his shoulders, and they stop there — they are open at the top and they do not join up, do not curve round him and do not enclose him. He is plainly visible between them. They are a fence across his way, not a cage around him.
+1. IN THE MIDDLE, and the biggest figure in the picture: a DARK KING. He is upright but under strain, leaning over to the RIGHT, off balance, the far edge of his base lifting off the ground.
 
-2. THE MAGNET — to the RIGHT of the king, and clearly separate from him with open board in between, stands a small GOLD PAWN, no more than half his height, upright and calm. Fixed to the front of the pawn and turned towards the king is a big HORSESHOE MAGNET in bright polished gold: a thick U-shape, as tall as the pawn's own body, with two broad flat pole faces aimed straight at the king, each pole marked with two or three bold raised bands. It is fused to the pawn as one piece of metal. It is the brightest object in the whole tile. The king leans towards it, dragged, and the bars are in his way.
+2. IMMEDIATELY TO HIS LEFT, standing so close that they almost touch: a small DARK PAWN, about half his height. It is the SAME dark metal as the king — it is one of his own men, and that must be obvious at a glance. It stands perfectly upright, calm, planted, completely indifferent, blocking the way back. It is not doing anything to him; it is simply in the way, and that is the point.
 
-3. THE RAY — in the LOWER LEFT of the tile stands a GOLD BISHOP, upright and firmly planted, its mitre with the diagonal slit turned up along the line. From that slit a single straight golden beam of light shoots up and to the right at an exact 45-degree angle — the same beam, the same thickness and the same glow as the one crossing the first image — and it strikes the dark king in the chest, passing above the bars. One unbroken straight line, nothing crossing it.
+3. ON THE RIGHT, clearly separate from the king with open board in between: a small GOLD PAWN, about half his height, upright and calm. Fixed to the front of it and turned towards the king is a big HORSESHOE MAGNET in bright polished gold — a thick U-shape, as tall as the pawn's own body, with two broad flat pole faces aimed straight at the king, each pole marked with two or three bold raised bands. It is fused to the pawn as one piece of metal, and it is the brightest object in the whole tile. The king is leaning towards it, dragged, while his own pawn stands behind him.
 
-THE THREE MUST STAY DIFFERENT FROM EACH OTHER. Bars are solid metal standing on the ground. The magnet is a solid object carried by a piece. The ray is light. Do not turn them into the same kind of thing: no bars made of light, no glowing magnet, no beam coming out of the bars.
+4. IN THE LOWER LEFT: a GOLD BISHOP, upright and firmly planted, its mitre with the diagonal slit turned up along the line. From that slit a single straight golden beam of light shoots up and to the right at an exact 45-degree angle — the same beam, the same thickness and the same glow as the one crossing the first image — and strikes the dark king in the chest. One unbroken straight line, with nothing standing on it and nothing crossing it.
 
-The whole tile must read in one glance as one dark piece caught in three ways at once, each of them a different kind of trouble.
+THE THREE THINGS MUST STAY DIFFERENT IN KIND. The ray is light. The magnet is a solid metal object carried by a piece. The dark pawn is only a chess piece, with no object on it and nothing coming out of it — it carries nothing, holds nothing, and emits nothing. Do not give the dark pawn a weapon, a tool, a chain, a glow or a beam. Its whole job is to stand there.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — a dark crowned shape in the middle with three thick gold uprights in front of it, one bright straight line coming up from a gold mitre at the lower left, and a small gold shape with a bright U on it at the right. Keep everything bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+The tile must read in one glance as one dark king caught three ways at once: pulled to one side, walled in on the other by one of his own, and hit where he stands.
 
-NOT: no cage closing over the king, no roof or top on the bars, no bars behind him, no chains, no key, no padlock, no bolt, no spear, no net, no rope, no shield, no second ray, no branching rays, no magnetic field lines, no arrows, no arrowheads, no dotted paths, no highlighted or glowing squares, no three-dimensional board, no perspective, no board edge, no motion lines, no letters or numbers, no coordinates, no hands, no queen, no rook, no knight, no second king, no fused or hybrid chess pieces, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+READABILITY: this tile is displayed small, so the silhouette carries it — a dark crowned shape in the middle leaning right, a small dark round-headed shape pressed against its left side, a small gold shape with a bright U on it out to the right, and one bright straight line running up from a gold mitre at the lower left. Keep everything bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+
+NOT: no bars, no cage, no fence, no railings, no posts, no walls, no chains, no key, no padlock, no bolt, no spear, no net, no rope, no shield, no sword, no second ray, no branching rays, no magnetic field lines, no glow around the dark pawn, no arrows, no arrowheads, no dotted paths, no highlighted or glowing squares, no three-dimensional board, no perspective, no board edge, no motion lines, no letters or numbers, no coordinates, no hands, no queen, no rook, no knight, no second king, no fused or hybrid chess pieces, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -96,32 +102,38 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Se văd toate trei, și sunt clar diferite?** Bare de metal, un magnet solid,
-   o rază de lumină. Dacă au ieșit toate luminoase sau toate metalice, plăcuța
-   spune „o tactică desenată de trei ori", nu „trei teme".
-2. **Barele sunt doar în față, deschise sus?** Dacă s-au închis în jurul lui, e
-   „Prinderea piesei", nu „Hibride". Cere: *„three bars standing in front of him
-   only, open at the top, not a cage"*.
-3. **Magnetul se vede de la distanță?** Cât corpul pionului, cel mai luminos
-   lucru din imagine.
-4. **Raza e o singură linie dreaptă, la 45°?** Din tăietura mitrei până în pieptul
-   regelui, pe deasupra barelor.
-5. **Regele se apleacă spre magnet?** Ăsta e liantul: se vede că e tras într-acolo
-   și că barele îi stau exact în drum.
-6. **Regele e negru, restul auriu?** Un singur întuneric în plăcuță, el.
-7. **N-a fuzionat nimic?** Piesele rămân piese normale — nebun, pion, rege. Dacă
-   apare vreo piesă turnată din două, e din varianta veche.
+1. **Pionul din stânga e negru, ca regele?** Ăsta e testul principal. Dacă a ieșit
+   auriu, imaginea spune că-l încolțește adversarul din trei părți — banal. Negru,
+   spune că **a treia problemă e a lui**, și aia e ideea.
+2. **Pionul negru e lipit de rege?** Cât mai aproape, aproape atingându-se. Dacă
+   stă la distanță, nu se mai vede că-i blochează drumul.
+3. **Pionul negru nu are nimic pe el?** Fără obiect, fără strălucire, fără rază.
+   El e singurul care nu face nimic — doar stă.
+4. **Cele trei sunt de naturi diferite?** Lumină, metal, piesă simplă. Dacă
+   seamănă între ele, s-a pierdut tot ce trebuie să spună plăcuța.
+5. **Regele se apleacă spre magnet?** Se vede că e tras într-acolo, cu pionul lui
+   în spate.
+6. **Magnetul se vede de la distanță?** Cât corpul pionului, cel mai luminos lucru
+   din imagine.
+7. **Raza e o singură linie dreaptă, la 45°?** Din tăietura mitrei până în pieptul
+   regelui.
 8. **Cele patru romburi sunt întregi?** Niciunul tăiat de marginea imaginii.
 
 ---
 
 ## Ce am încercat înainte
 
-O piesă **turnată din două**: corp de turn, cu mitra unui nebun crescând din
-creneluri, și două raze plecând din ea — una dreaptă din creneluri, una oblică
-din mitră.
+**Prima variantă:** o piesă **turnată din două** — corp de turn, cu mitra unui
+nebun crescând din creneluri — și două raze plecând din ea. Spunea altceva decât
+trebuie: **piesă** hibridă, nu **tactici** hibride. Iar cele două raze, plecând
+din același loc, semănau prea mult între ele.
 
-Ieșise curat și se citea bine, dar spunea altceva decât trebuie: **piesă**
-hibridă, nu **tactici** hibride. Iar cele două raze, plecând din același loc,
-semănau prea mult între ele — două lucruri de același fel, nu teme diferite.
-Diversitatea e tot ce trebuie să spună plăcuța asta.
+**A doua variantă:** trei **bare verticale de aur** în fața regelui, luate de la
+[Prinderea piesei](07-prinderea-piesei.md). Aici e greșeala, și merită scrisă:
+acolo gratiile **sunt corpul turnului** — piesa care prinde *este* temnița, aia e
+toată gluma. Rupte de turn și puse singure pe tablă, nu mai sunt nici piesă, nici
+obiect de șah. Rămân trei bare de aur care nu trimit la nimic.
+
+Lecția: **un obiect din seria asta se ține de piesa lui.** Magnetul merge fiindcă
+e lipit de un pion; raza merge fiindcă iese din mitra unui nebun. Gratiile, fără
+turn, nu mai însemnau nimic.
