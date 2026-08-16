@@ -1,7 +1,79 @@
 # 9. Resurse defensive → `forced-draws.png`
 
-**Metafora:** un **pion** în armură, cu un scut mare înfipt în pământ, singurul
-rămas în picioare printre piese răsturnate.
+**Metafora:** un pion în armură, cu un scut mare, singurul rămas în picioare
+printre piese răsturnate.
+
+> **Starea:** plăcuța a ieșit bine. Rămâne o corecție — **pionul, coiful și
+> scutul devin negre**, iar piesele căzute din jur rămân aurii.
+
+---
+
+## Corecție — armura devine neagră
+
+Armura arată oricum mai bine în metal închis: fierul negru cu reflexii calde e
+mai credibil decât fierul auriu, iar o siluetă întunecată în mijlocul unor piese
+luminoase are mai multă forță.
+
+**O observație, ca s-o ai în vedere:** cu apărătorul negru și piesele căzute
+aurii, imaginea spune „ale noastre au căzut, a lui a rezistat". Dacă vrei
+invers — adică noi suntem cei care rezistăm — se schimbă piesele căzute în negru,
+nu apărătorul. Fraza de adăugat la sfârșitul promptului:
+
+> *Instead, keep the armoured pawn and its shield gold, and recolour the three
+> toppled pieces to the dark near-black bronze.*
+
+O grijă anume: **adânciturile din scut trebuie să rămână vizibile** după
+înnegrire. Pe metal închis dispar primele, iar fără ele scutul nu mai spune că a
+încasat lovituri — adică se pierde jumătate din poveste.
+
+**Atașează la mesaj DOUĂ imagini:**
+1. [`Resurse defensive.png`](../../surse-imagini/tactici/Resurse%20defensive.png) — cea de corectat;
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul de negru, unde a ieșit bine.
+
+```text
+Here are two images you made earlier. The first is the defensive-resources tile, which needs one correction. The second is the sacrifice tile — use the dark metal of its three black pieces as the model.
+
+In the FIRST image, recolour the standing figure in the centre — ALL of it — to DARK, near-black bronze, exactly like the king, the rook and the bishop in the second image: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along its edges so its silhouette stays crisp against the brown board.
+
+By "all of it" I mean these three things, which are one object: the armoured HELMET with its eye slit, the PAWN body behind and below the shield, and the large SHIELD itself with its raised rim. All three become the same dark metal. Nothing of the standing figure stays gold.
+
+KEEP THE BATTLE DAMAGE VISIBLE. The shield has two or three deep dents and a long diagonal scrape across its face. On dark metal these are the first things to disappear, and they must not: keep every dent and the scrape exactly where they are now, and make them read by catching a bright warm highlight along their upper edges and holding a deeper shadow inside them. After the change, a viewer must still see at a glance that this shield has taken heavy blows and held.
+
+DO NOT CHANGE ANYTHING ELSE:
+- the THREE TOPPLED PIECES lying around — the rook on the left, the knight on the right and the bishop at the bottom — stay exactly as they are, in their present gold, at their present size, angle and position;
+- the ornamental gold frame, its corner pieces and its four diamonds;
+- the brown chessboard background, its pattern and the warm glow;
+- the composition: the standing figure keeps exactly its present size, pose and position, and the shield keeps its shape and its raised rim;
+- the lighting direction and the drop shadows;
+- the square format and the framing.
+
+This is a recolour of one object in an existing image, not a new illustration. Nothing may move, resize or change shape.
+
+Keep the same square size, at least 1024x1024.
+```
+
+---
+
+**Salvează ca:** peste poza actuală.
+
+**Verificare**
+
+1. **Se mai văd adânciturile?** Ăsta e testul principal. Dacă scutul a ieșit
+   neted și întunecat, s-a pierdut ideea că a încasat lovituri. Cere: *„bring
+   back the dents and the scrape, catch a bright highlight on their upper
+   edges"*.
+2. **E negru tot?** Coif, corp și scut. Dacă doar scutul s-a schimbat, arată ca
+   un pion auriu care ține un scut împrumutat.
+3. **Piesele căzute au rămas aurii?** Turnul, calul și nebunul, în aceleași
+   poziții.
+4. **Silueta se desprinde de fundal?** Conturul cald pe muchii e ce o ține
+   vizibilă pe tabla maro.
+
+---
+
+## Promptul original
+
+*Păstrat pentru referință — corecția de sus e cea care se folosește acum.*
 
 Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts) cere ambele
 jumătăți ale imaginii:
