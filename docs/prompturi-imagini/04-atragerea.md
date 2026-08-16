@@ -1,29 +1,34 @@
 # 4. Atragerea și devierea → `attraction.png`
 
-**Metafora:** un **magnet** auriu care trage un cal negru spre el — iar nebunul
-pe care calul îl păzea rămâne singur, cu locul din fața lui gol.
+**Scena:** un **pion alb**, cu un magnet mic prins de el, trage la o parte
+**nebunul negru**. Nebunul păzea, de pe diagonala lui, **turnul negru** din
+capăt. Odată tras de pe diagonală, turnul rămâne singur.
 
-Magnetul nu e ales la întâmplare: e chiar iconița pe care aplicația o folosește
-deja pentru categoria asta ([`tactic-visuals.ts`](../../src/lib/tactic-visuals.ts),
-`attraction: Magnet`). Plăcuța continuă un simbol care există, nu inventează
-altul.
-
-Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts) cere ambele
-jumătăți ale tacticii, iar imaginea trebuie să le arate pe amândouă:
-
-> Forțezi o piesă adversă fix unde vrei tu **sau o tragi departe de ce apăra**.
-> Un mic „vino-ncoace" care se termină prost pentru ea.
+Mecanismul e cel real din șah: pionul atacă nebunul, nebunul n-are unde să se
+retragă pe diagonala aia, deci trebuie s-o părăsească — și pleacă odată cu ea și
+apărarea turnului.
 
 | element | ce spune |
 | --- | --- |
-| magnetul auriu, cu polii spre dreapta | *atragerea — „vino-ncoace"* |
-| calul negru, tras, cu talpa derapând | *piesa care nu se poate împotrivi* |
-| golul din fața nebunului | *devierea — de acolo a plecat* |
-| nebunul negru, singur | *ce nu mai e apărat* |
+| pionul alb, cu magnetul | *cine deviază — și cât de puțin costă* |
+| nebunul negru, tras într-o parte | *piesa forțată să plece* |
+| soclul gol, pe diagonala turnului | *de acolo apăra* |
+| turnul negru, singur în capăt | *ce rămâne de luat* |
 
-**Atragerea fără gol e doar o glumă cu un magnet.** Locul rămas liber e cel care
-transformă imaginea din „o piesă e trasă" în „o piesă e trasă *de undeva*" — și
-abia asta e tactica.
+## Ce face imaginea să meargă
+
+**Diagonala.** Turnul și soclul gol trebuie să stea pe aceeași linie oblică, iar
+nebunul să fie tras *lateral*, în afara ei. Fără asta, nu se vede că a fost
+scos de pe o linie anume — pare doar că se plimbă.
+
+**Nebunul privește înapoi.** Corpul tras spre magnet, capul întors spre turn. E
+detaliul care spune că pleacă fără să vrea și că știe ce lasă în urmă.
+
+**Pionul e mic.** Contrastul de mărime e gluma: cea mai neînsemnată piesă mută un
+nebun de pe locul lui. Magnetul e mic și el, prins de pion, nu un obiect separat.
+
+Turnul rămâne în picioare. Captura vine după — plăcuța arată clipa în care el
+rămâne descoperit, nu clipa în care cade.
 
 **Atașează la mesaj DOUĂ imagini:**
 1. [`furculita.png`](../../surse-imagini/tactici/furculita.png) — rama, fundalul, finisajul;
@@ -41,24 +46,24 @@ KEEP IDENTICAL TO THE REFERENCES:
 - FINISH: the same sculpted, polished, three-dimensional metal — soft rounded bevels, smooth gradients, a gentle sheen, soft drop shadows. Solid Staunton chess pieces, modelled in relief.
 
 THE TWO METALS:
-- LIGHT objects are rich warm gold: highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Strong contrast between light and shade — polished metal, never pale matte cream or ivory.
-- DARK pieces are near-black bronze: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges so their silhouettes stay crisp against the brown board.
+- The PAWN is LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. Strong contrast between light and shade — polished metal, never pale matte cream or ivory.
+- The BISHOP and the ROOK are DARK, and they must be the same metal as each other: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along their edges so their silhouettes stay crisp against the brown board. They belong to the same side; that must be obvious.
 
-THE SCENE — "come here". Read from left to right across the tile, filling about 78 percent of it:
+THE SCENE — a small pawn pulls a bishop off the line it was guarding. Four things, filling about 80 percent of the tile:
 
-1. LEFT: a large HORSESHOE MAGNET in polished gold, standing on its curved back with its two square pole faces turned to the RIGHT, towards the rest of the scene. Make it read unmistakably as a magnet: a thick U-shape with two flat, blunt pole tips, each tip marked with two or three simple raised bands around it. Bold and heavy, no fine detail.
+1. UPPER RIGHT: a DARK ROOK, standing upright, alone, with clear open space around it. It is untouched, but nothing protects it any more.
 
-2. MIDDLE: a DARK KNIGHT, being dragged towards the magnet. It leans hard to the left, out of balance, its head pulled forward and its base skidding — the rear edge of its base lifted off the ground, the front edge scraping. It is clearly not moving of its own will: it is being pulled.
+2. AN IMAGINARY DIAGONAL runs from the rook down towards the lower left. On that diagonal, a short way below and to the left of the rook, there is an EMPTY ROUND SOCKET on the ground — a plain shallow base with nothing standing on it. This is where the bishop used to stand, guarding the rook along that diagonal. The rook and this empty socket must sit on one clean straight diagonal line, so a viewer can see the line that has been abandoned.
 
-3. BEHIND THE KNIGHT, to the RIGHT: a plain empty patch of ground where it used to stand. Show it as a shallow round socket or a plain flat base with nothing on it, clearly unoccupied. This is the post the knight has been pulled away from, and it must be plainly visible.
+3. TO THE LEFT of that empty socket, clearly OFF the diagonal and lower down: a DARK BISHOP, dragged sideways out of position. Its body leans hard to the left, out of balance, its base skidding — the far edge lifted, the near edge scraping the ground. Its head is TURNED BACK over its shoulder, towards the rook it has just stopped defending. It is being pulled, and it does not want to go.
 
-4. FAR RIGHT, standing alone just beyond that empty spot: a DARK BISHOP, upright, still, and completely unprotected. There is open, empty space between it and the knight — nothing stands in front of it any more. This is what the knight was guarding.
+4. FAR LEFT, low and small: a LIGHT PAWN, standing calmly on its base. It is much smaller than the bishop — about half its height. Fixed to the front of the pawn, facing the bishop, is a SMALL HORSESHOE MAGNET: a compact gold U-shape with two flat pole tips, each marked with two simple raised bands. The magnet is attached to the pawn and is clearly part of it, not a separate object lying nearby. It is small enough that the pawn still reads as a pawn.
 
-The story must read in one glance, right to left: the bishop stands unguarded, the spot in front of it is empty, and the piece that used to stand there is being hauled off to the magnet.
+THE GEOMETRY IS THE POINT. A viewer must be able to see three things at once: the rook stands at the end of a diagonal; the spot on that diagonal in front of it is empty; and the piece that used to fill it is being hauled off sideways by a much smaller opponent.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — a bold U-shape on the left, a dark shape leaning towards it, a gap, and one dark upright shape alone on the right. Keep everything large and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+READABILITY: this tile is displayed small, so the silhouette carries it — a small light shape low on the left, a dark shape leaning towards it, an empty base, and a dark upright shape alone at the upper right. Keep everything large and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
 
-NOT: no chess diagram, no board position, no arrows, no beams of light, no magnetic field lines, no motion lines, no sparks, no chains, no ropes, no letters or numbers, no coordinates, no hands, no king or queen, no cartoon faces, no eyes, no sparkles, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+NOT: no chess diagram, no board position, no drawn lines or dotted paths, no arrows, no beams of light, no magnetic field lines, no motion lines, no sparks, no chains, no ropes, no letters or numbers, no coordinates, no hands, no king or queen, no cartoon faces, no eyes, no sparkles, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -69,14 +74,15 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Se vede locul gol?** Fără el, imaginea spune doar „un magnet trage un cal".
-   Cu el, spune „calul a fost tras **de undeva**" — adică tactica. Cere: *„show a
-   clearly empty base where the knight used to stand, between it and the
-   bishop"*.
-2. **Calul pare tras, nu mergând?** Aplecat, dezechilibrat, cu talpa derapând.
-   Dacă stă drept, arată că se plimbă spre magnet din proprie inițiativă.
-3. **Magnetul se recunoaște?** Formă de U groasă, doi poli plați cu benzi. În
-   aur, fără roșu și albastru, forma e singurul lucru care îl identifică.
-4. **Nebunul e singur?** Spațiu liber în jurul lui, nimic în față.
-5. **Contrastul alb/negru e puternic?** Magnetul auriu, cele două piese
-   întunecate.
+1. **Turnul și soclul gol sunt pe o diagonală?** Ăsta e testul principal. Dacă
+   soclul e oriunde altundeva, nu se mai vede ce linie a fost părăsită. Cere:
+   *„put the rook and the empty socket on one clean diagonal line"*.
+2. **Nebunul e în afara diagonalei?** Trebuie tras lateral, nu de-a lungul ei.
+   Dacă rămâne pe linie, arată că se retrage cuminte, nu că e deviat.
+3. **Se uită înapoi?** Capul întors spre turn. Fără asta, e doar o piesă care
+   cade într-o parte.
+4. **Pionul e mult mai mic decât nebunul?** Cam jumătate. Disproporția e gluma.
+5. **Magnetul e prins de pion?** Nu alături de el. Și destul de mic cât pionul să
+   rămână pion.
+6. **Nebunul și turnul sunt din același metal?** Amândouă întunecate — sunt din
+   aceeași tabără. Doar pionul e auriu.
