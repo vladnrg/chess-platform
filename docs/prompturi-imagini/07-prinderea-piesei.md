@@ -1,7 +1,70 @@
 # 7. Prinderea piesei → `trapped.png`
 
-**Metafora:** un **turn** al cărui corp e o colivie cu gratii, iar înăuntru stă
-închisă o **damă**.
+**Metafora:** un turn al cărui corp e o colivie cu gratii, iar înăuntru stă
+închisă o damă.
+
+> **Starea:** plăcuța a ieșit bine. Rămâne o corecție — **dama dinăuntru devine
+> neagră**: e piesa adversă, cea prinsă.
+
+---
+
+## Corecție — culoarea damei
+
+Schimbarea are și un câștig practic, dincolo de codul culorilor. Acum dama e din
+același aur ca gratiile din fața ei, așa că **se topește în colivie** — la mărime
+mică abia se distinge că e cineva înăuntru. În negru, silueta ei se desprinde
+imediat dintre bare.
+
+Colivia rămâne aurie: ea e a noastră, e piesa care prinde. Lacătul, la fel — face
+parte din colivie.
+
+**Atașează la mesaj DOUĂ imagini:**
+1. [`Prinderea piesei.png`](../../surse-imagini/tactici/Prinderea%20piesei.png) — cea de corectat;
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul de negru, unde a ieșit bine.
+
+```text
+Here are two images you made earlier. The first is the trapped-piece tile, which needs one correction. The second is the sacrifice tile — use the dark metal of its three black pieces as the model.
+
+In the FIRST image, the QUEEN standing inside the cage — the piece seen between the vertical bars, with the padlock hanging in front of her — is currently the same gold as the cage around her. Recolour her, and only her, to DARK, near-black bronze, exactly like the king, the rook and the bishop in the second image: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along her edges so her silhouette stays crisp.
+
+She is the captive, and the cage is her captor, so the two must no longer look like the same object. Right now she blends into the bars in front of her; after the change, her dark shape must separate from them at a glance.
+
+Recolour the whole of her — her crown, her collar, her body and her base — including the parts of her that show between the bars and any part visible behind them.
+
+DO NOT CHANGE ANYTHING ELSE:
+- the ROOK-CAGE stays exactly as it is and stays GOLD: its battlemented top, its vertical bars, the ring around them, its flared base, its size, its position;
+- the PADLOCK hanging on the front bars stays gold and untouched — it belongs to the cage, not to her;
+- the ornamental gold frame, its corner pieces and its four diamonds;
+- the brown chessboard background, its pattern and the warm glow;
+- the composition: the queen keeps exactly her present size, pose and position inside the cage;
+- the lighting direction and the drop shadow;
+- the square format and the framing.
+
+This is a recolour of one object in an existing image, not a new illustration. Nothing may move, resize or change shape.
+
+Keep the same square size, at least 1024x1024.
+```
+
+---
+
+**Salvează ca:** peste poza actuală.
+
+**Verificare**
+
+1. **Se desprinde dama de gratii?** Ăsta e testul: privește plăcuța mică. Trebuie
+   să se vadă din prima că e o formă închisă la culoare între bare aurii.
+2. **Lacătul a rămas auriu?** El ține de colivie. Dacă s-a înnegrit și el, se
+   pierde în silueta damei.
+3. **Colivia e neatinsă?** Creneluri, bare, inel, talpă — toate în același aur ca
+   înainte.
+4. **Dama e neagră pe toată înălțimea?** Coroană, guler, corp, talpă. Dacă doar
+   partea dintre bare s-a schimbat, arată tăiată în felii.
+
+---
+
+## Promptul original
+
+*Păstrat pentru referință — corecția de sus e cea care se folosește acum.*
 
 Puna e dublă, și de-aia merge: turnul e piesa care de obicei prinde, dar e și
 literalmente un turn — locul unde ești închis. Piesa care capturează *este*
