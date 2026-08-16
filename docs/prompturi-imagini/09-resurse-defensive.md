@@ -28,7 +28,7 @@ O grijă anume: **adânciturile din scut trebuie să rămână vizibile** după
 
 **Atașează la mesaj DOUĂ imagini:**
 1. [`Resurse defensive.png`](../../surse-imagini/tactici/Resurse%20defensive.png) — cea de corectat;
-2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul de negru, unde a ieșit bine.
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificiu.png) — modelul de negru, unde a ieșit bine.
 
 ```text
 Here are two images you made earlier. The first is the defensive-resources tile, which needs one correction. The second is the sacrifice tile — use the dark metal of its three black pieces as the model.
@@ -94,7 +94,7 @@ arată ca o minune.
 | pionul, singurul drept | *o singură mutare* |
 | scutul mare, lovit dar întreg | *și ea ține* |
 
-**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
+**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/Furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
 
 ---

@@ -23,7 +23,7 @@ Piesele negre nu se ating. Au ieșit exact cum trebuie — bronz închis, cu con
 cald pe muchii.
 
 **Atașează la mesaj DOUĂ imagini:**
-1. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — cea de corectat;
+1. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificiu.png) — cea de corectat;
 2. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
    — modelul de aur.
 
@@ -102,7 +102,7 @@ relief lustruit. Se schimbă doar metalul din care sunt turnate piesele.
 dama prinse în dinți ar trebui să fie negre — sunt prada) și `descoperire.png`
 (nebunul alb trage, pionul care se dă la o parte e alb, turnul lovit e negru).
 
-**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
+**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/Furculita.png)
 — dar **numai pentru ramă, fundal și finisaj**. Piesele din ea sunt toate aurii;
 aici nu mai sunt.
 

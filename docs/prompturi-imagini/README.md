@@ -11,7 +11,7 @@ copiază din blocul de cod — VS Code pune un buton de copiere pe el.
 
 Fiecare prompt cere o **imagine de referință atașată la mesaj**. Începând cu a
 doua tactică, referința e chiar prima plăcuță din serie —
-[`furculita.png`](../../surse-imagini/tactici/furculita.png) —
+[`furculita.png`](../../surse-imagini/tactici/Furculita.png) —
 nu logoul Colle: ea are deja rama, aurul și fuziunea dintre obiect și piese.
 Click dreapta pe fișier în editor → *Reveal in File Explorer* → trage-l în ChatGPT.
 
@@ -98,7 +98,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 3 | `discovered.png` | Atac prin descoperire și șah dublu | [03-descoperire.md](03-descoperire.md) |
 | 4 | `attraction.png` | Atragerea și devierea | [04-atragerea.md](04-atragerea.md) |
 | 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
-| 6 | `skewer.png` | Țeapă și atacul cu raze X | — |
+| 6 | `skewer.png` | Țeapă și atacul cu raze X | [06-teapa.md](06-teapa.md) |
 | 7 | `trapped.png` | Prinderea piesei | [07-prinderea-piesei.md](07-prinderea-piesei.md) |
 | 8 | `mate.png` | Dă mat în N mutări | — |
 | 9 | `forced-draws.png` | Resurse defensive | [09-resurse-defensive.md](09-resurse-defensive.md) |

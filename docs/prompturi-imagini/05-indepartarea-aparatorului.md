@@ -25,7 +25,7 @@ adaugă la sfârșit:
 
 **Atașează la mesaj DOUĂ imagini:**
 1. [`Eliminarea aparatorului.png`](../../surse-imagini/tactici/Eliminarea%20aparatorului.png) — cea de corectat;
-2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul de negru, unde a ieșit bine.
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificiu.png) — modelul de negru, unde a ieșit bine.
 
 ```text
 Here are two images you made earlier. The first is the remove-the-defender tile, which needs two corrections. The second is the sacrifice tile — use the dark metal of its three black pieces as the model.
@@ -91,7 +91,7 @@ ordinea în care se petrece tactica:
 Nu e o poziție de pe tablă — piesele nu stau pe pătrate. Se păstrează doar ideea:
 lovești paznicul, iar ce păzea el rămâne la vedere.
 
-**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
+**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/Furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
 
 ---

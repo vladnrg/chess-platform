@@ -35,8 +35,8 @@ nemișcare — și nu pe o rază care străpunge. Când ajungem la Țeapă, acee
 mișcare și o linie care trece prin, nu lanțuri.
 
 **Atașează la mesaj DOUĂ imagini:**
-1. [`furculita.png`](../../surse-imagini/tactici/furculita.png) — rama, fundalul, finisajul;
-2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul pentru cele două metale, alb și negru.
+1. [`furculita.png`](../../surse-imagini/tactici/Furculita.png) — rama, fundalul, finisajul;
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificiu.png) — modelul pentru cele două metale, alb și negru.
 
 ---
 

@@ -26,7 +26,7 @@ Vina e a paletei pe care o scrisesem eu: cerea `#FFF0C0 / #E4C071 / #A07C30`,
 adică exact fildeș. ChatGPT a ascultat-o cuminte.
 
 **Atașează la mesaj DOUĂ imagini:**
-1. [`furculita.png`](../../surse-imagini/tactici/furculita.png) — cea de corectat;
+1. [`furculita.png`](../../surse-imagini/tactici/Furculita.png) — cea de corectat;
 2. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
    — modelul de aur.
 

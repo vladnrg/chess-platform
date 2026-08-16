@@ -80,7 +80,7 @@ Ce spune fiecare element:
 | raza dreaptă, de la nebun la turn | *linia care s-a deschis* |
 | turnul care se răstoarnă | *prada* |
 
-**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
+**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/Furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
 
 ---

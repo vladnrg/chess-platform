@@ -20,7 +20,7 @@ parte din colivie.
 
 **Atașează la mesaj DOUĂ imagini:**
 1. [`Prinderea piesei.png`](../../surse-imagini/tactici/Prinderea%20piesei.png) — cea de corectat;
-2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul de negru, unde a ieșit bine.
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificiu.png) — modelul de negru, unde a ieșit bine.
 
 ```text
 Here are two images you made earlier. The first is the trapped-piece tile, which needs one correction. The second is the sacrifice tile — use the dark metal of its three black pieces as the model.
@@ -85,7 +85,7 @@ Deci colivia stă singură în mijloc, cu spațiu liber în toate părțile. Nu 
 | lacătul de pe față | *închis, nu doar înconjurat* |
 | tabla goală în jur | *are unde fugi, dar nu poate* |
 
-**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
+**Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/Furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
 
 ---
