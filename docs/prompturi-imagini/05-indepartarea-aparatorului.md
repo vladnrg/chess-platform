@@ -1,5 +1,80 @@
 # 5. Îndepărtarea apărătorului → `remove-defender.png`
 
+Imaginea folosită e cea cu **bolțul**: un pion-șurub scos din soclul unui turn
+care se crapă și se înclină.
+
+> **Starea:** compoziția e bună. Rămân două corecții — **pionul devine negru**
+> (el e apărătorul advers, cel scos din joc) și **filetul devine vârf de lance**,
+> ca să arate a armă, nu a piesă de mobilă.
+
+---
+
+## Corecție — culoarea și vârful
+
+### Despre turn
+
+Dacă pionul e negru fiindcă e apărătorul advers, atunci **turnul ar trebui logic
+să fie tot negru** — e construcția lui care cedează. Lăsat auriu, imaginea spune
+că piesa noastră se prăbușește când i se scoate un bolț advers, adică pe dos.
+
+Promptul de mai jos lasă turnul neatins, cum ai cerut. Dacă vrei și turnul negru,
+adaugă la sfârșit:
+
+> *Also recolour the rook to the same dark near-black bronze as the pawn, keeping
+> its shape, tilt, crack and the empty socket exactly as they are.*
+
+**Atașează la mesaj DOUĂ imagini:**
+1. [`Eliminarea aparatorului.png`](../../surse-imagini/tactici/Eliminarea%20aparatorului.png) — cea de corectat;
+2. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — modelul de negru, unde a ieșit bine.
+
+```text
+Here are two images you made earlier. The first is the remove-the-defender tile, which needs two corrections. The second is the sacrifice tile — use the dark metal of its three black pieces as the model.
+
+CORRECTION 1 — THE PAWN BECOMES BLACK.
+In the first image, the pawn-headed bolt on the left is currently gold. Recolour the whole of it — the pawn head, its collar, and the shaft below it — to the same DARK, near-black bronze as the king, the rook and the bishop in the second image: highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along its edges so its silhouette stays crisp against the brown board. It must read instantly as a black chess piece.
+
+CORRECTION 2 — THE SCREW BECOMES A LANCE.
+The shaft between the pawn head and the rook is currently a threaded screw. Replace that thread with a SMOOTH, TAPERED SHAFT ending in a sharp LANCE HEAD: a slim leaf-shaped blade with a raised central ridge running down it and two clean cutting edges, like the head of a spear. No screw thread anywhere, no spiral, no grooves — the shaft is plain and polished.
+
+The lance head sits just clear of the round hole in the rook's base, pointing away from the tower, as if it has this moment been drawn back out of it. Its two edges catch a bright highlight so it reads as sharp. The blade is dark like the rest of the pawn-bolt, with its cutting edges picked out in a brighter warm gold line.
+
+DO NOT CHANGE ANYTHING ELSE:
+- the ROOK stays exactly as it is — same gold, same tilt, same crack at its base, same round empty socket, same size and position;
+- the ornamental gold frame, its corner pieces and its four diamonds;
+- the brown chessboard background, its pattern and the warm glow;
+- the composition: where the pawn-bolt sits, its angle, and how far it is from the rook;
+- the lighting direction and the drop shadows;
+- the square format and the framing.
+
+This is a recolour and a small reshape of one object in an existing image, not a new illustration. Nothing else may move, resize or change shape.
+
+Keep the same square size, at least 1024x1024.
+```
+
+---
+
+**Salvează ca:** peste poza actuală.
+
+**Verificare**
+
+1. **Se vede că e lance, nu șurub?** Lama trebuie să aibă nervură pe mijloc și
+   două muchii ascuțite, cu lumină pe ele. Dacă a rămas vreo spirală, cere:
+   *„no thread at all, a plain polished shaft with a leaf-shaped spear head"*.
+2. **Vârful e afară din gaură?** Trebuie să se vadă lama întreagă. Dacă intră în
+   soclu, nu se mai înțelege ce e.
+3. **Pionul e negru pe tot?** Cap, guler și tijă. Dacă doar capul s-a schimbat,
+   arată ca două obiecte lipite.
+4. **Turnul e neatins?** Aceeași înclinare, aceeași crăpătură, aceeași gaură.
+5. **Contrastul e puternic?** Pionul-lance trebuie citit ca piesă neagră, nu ca
+   aur mai închis.
+
+---
+
+## Varianta cu trei piese *(nefolosită)*
+
+*Scrisă când păreau că bolțul nu se citește. Bolțul a ieșit bine până la urmă,
+deci rămâne aici doar ca alternativă.*
+
 **Scena:** un turn lovește calul care stătea în fața pionului. Calul zboară din
 loc, iar pionul rămâne singur, descoperit.
 
