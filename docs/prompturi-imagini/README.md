@@ -46,6 +46,17 @@ Metafora se ia, pe cât se poate, din descrierea pe care o are deja tactica în
 [`src/data/tactics.ts`](../../src/data/tactics.ts). Acolo sunt scrise în cuvinte
 simple, iar textul ăla e deja aprobat.
 
+## Săgețile: interzise peste tot, în afară de una
+
+Fiecare prompt are „no arrows" în lista de interdicții, și e intenționat:
+plăcuțele desenează **un moment** — o rază, un magnet, un rege căzut. O săgeată
+ar transforma imaginea în diagramă.
+
+Singura excepție e **[Combinații complete](12-combinatii.md)**, fiindcă acolo
+subiectul nu e un moment, ci un **lanț de mutări** — și un lanț nu se poate arăta
+fără drum. Excepția merită să rămână una singură: dacă apar săgeți și în altă
+parte, plăcuța aia nu mai are cu ce să iasă în față.
+
 ## Rama: romburile se taie mereu
 
 Rama are câte un romb mic pe fiecare din cele patru laturi. ChatGPT le pune
@@ -115,6 +126,6 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 9 | `forced-draws.png` | Resurse defensive | [09-resurse-defensive.md](09-resurse-defensive.md) |
 | 10 | `zwischenzug.png` | Mutarea intermediară | [10-mutarea-intermediara.md](10-mutarea-intermediara.md) |
 | 11 | `sacrifice.png` | Sacrificii | [11-sacrificii.md](11-sacrificii.md) |
-| 12 | `subscribers.png` | Combinații complete | — |
+| 12 | `subscribers.png` | Combinații complete | [12-combinatii.md](12-combinatii.md) |
 | 13 | `hybrid.png` | Tactici hibride | — |
 | 14 | `mixed-bonus.png` | Tactici mixte bonus | — |
