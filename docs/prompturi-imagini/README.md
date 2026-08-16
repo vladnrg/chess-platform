@@ -64,7 +64,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 6 | `skewer.png` | Țeapă și atacul cu raze X | — |
 | 7 | `trapped.png` | Prinderea piesei | [07-prinderea-piesei.md](07-prinderea-piesei.md) |
 | 8 | `mate.png` | Dă mat în N mutări | — |
-| 9 | `forced-draws.png` | Resurse defensive | — |
+| 9 | `forced-draws.png` | Resurse defensive | [09-resurse-defensive.md](09-resurse-defensive.md) |
 | 10 | `zwischenzug.png` | Mutarea intermediară | — |
 | 11 | `sacrifice.png` | Sacrificii | — |
 | 12 | `subscribers.png` | Combinații complete | — |
