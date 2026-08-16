@@ -9,35 +9,40 @@ oricine a învățat finalul.
 Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 
 > Secvențe forțate care se termină inevitabil cu mat — în 1, 2 sau 3 mutări.
-> **Vezi finalul înainte să se întâmple** și execută-l fără milă.
+> Vezi finalul înainte să se întâmple și **execută-l fără milă**.
 
-De aceea plăcuța **nu arată matul**, ci vânătoarea: regele negru în colț, cele
-două piese aurii strângând plasa. Matul n-a căzut încă, dar se știe. Iar pentru
-partea de „se știe", metafora: **regele stă în picioare, dar umbra lui a căzut
-deja.**
+Plăcuța arată **capătul celor N mutări**: regele negru culcat pe tablă — gestul
+prin care se cedează — iar nebunul și calul stând liniștiți pe pătratele din
+jurul lui. Nu mai e nimic de calculat. S-a terminat.
 
 ## Poziția, verificată cu motorul
 
 ```
     a  b  c  d  e  f  g  h
   +------------------------+
-8 | .  .  .  .  .  .  .  . |     rege negru   a1
-7 | .  .  .  .  .  .  .  . |     nebun alb    f6
-6 | .  .  .  .  .  B  .  . |     cal alb      c4
+8 | .  .  .  .  .  .  .  . |     rege negru  a1
+7 | .  .  .  .  .  .  .  . |     nebun alb   b2
+6 | .  .  .  .  .  .  .  . |     cal alb     c3
 5 | .  .  .  .  .  .  .  . |
-4 | .  .  N  .  .  .  .  . |
-3 | .  .  .  .  .  .  .  . |
-2 | .  .  .  .  .  .  .  . |
-1 | k  .  .  .  .  .  .  . |
+4 | .  .  .  .  .  .  .  . |
+3 | .  .  N  .  .  .  .  . |
+2 | .  B  .  .  .  .  .  . |
+1 | k  .  K  .  .  .  .  . |
   +------------------------+
 ```
 
-Rulat prin chess.js:
+Rulat prin chess.js: **`isCheckmate()` întoarce `true`, zero mutări legale.**
 
-- nebunul de pe **f6** dă șah pe diagonala mare, f6–e5–d4–c3–b2–**a1**;
-- regele negru are exact **două mutări legale: Ka2 și Kb1**. Atât;
-- **b2**, singurul pătrat care l-ar scoate din colț pe diagonală, e ținut de
-  amândouă piesele deodată — și de nebun, și de cal.
+Cine ce ține:
+
+- **nebunul de pe b2** dă șahul, din pătratul de lângă rege;
+- **calul de pe c3** acoperă **a2** și **b1** — exact cele două pătrate de
+  scăpare rămase;
+- regele nu poate lua nebunul, fiindcă e apărat.
+
+Regele alb e și el în poziție, pe **c1** — fără el matul nu se poate da. În
+desen lipsește, ca la toate celelalte plăcuțe: ar fi a patra piesă și n-ar
+adăuga nimic la ce se vede.
 
 ## De ce colțul ăsta și nu altul
 
@@ -45,78 +50,75 @@ Aici e partea frumoasă, și e chestie de șah adevărat: cu nebun și cal, **ma
 poate da doar într-un colț de culoarea nebunului**. Nebunul nostru merge pe
 pătrate negre, iar **a1 e pătrat negru** — deci acolo se termină, obligatoriu.
 
-Nu regele fuge în colțul ăla. **E dus acolo.** De-asta linia nebunului din
-imagine cade fix pe colțul în care stă regele: nu e o coincidență de compoziție,
-e regula finalului.
+Nu regele fuge în colțul ăla. **E dus acolo**, mutare cu mutare, timp de zeci de
+mutări.
+
+Se vede și în desen: **a1, b2 și c3 sunt toate pe aceeași diagonală**, și toate
+trei sunt pătrate de culoarea nebunului. Cele două piese aurii urcă pe diagonala
+lui, iar la capătul ei zace regele.
 
 | element | ce spune |
 | --- | --- |
-| regele negru, în colțul de jos | *unde se termină, și n-are încotro* |
-| nebunul auriu, sus, pe diagonala mare | *cine alege colțul* |
-| calul auriu, între ei | *cine taie pătratele de care nebunul nu se atinge* |
-| umbra răsturnată, întinsă lângă rege | *finalul, deja vizibil* |
+| regele negru, culcat pe tablă | *s-a cedat — capătul celor N mutări* |
+| nebunul auriu, în pătratul de lângă el | *cine dă șahul, și cine alege colțul* |
+| calul auriu, un pas mai sus | *cine taie pătratele de care nebunul nu se atinge* |
+| tabla goală, sus-dreapta | *de acolo a fost adus, pas cu pas* |
 
 Cele două piese aurii lucrează pe culori diferite — nebunul ține doar pătratele
 negre, calul le acoperă pe celelalte. **De-asta e nevoie de amândouă**, și de-asta
 durează atât.
 
-Regele alb lipsește din imagine, ca la toate celelalte plăcuțe. În partidă e și
-el acolo — fără el matul nu se poate da — dar în desen ar fi a patra piesă și ar
-aglomera degeaba.
-
 ## Distanțele, numărate în pătrate
 
-Grila desenată **e chiar tabla**: 8 pe 8, cu coloana și rândul din prompt egale
-cu litera și cifra din poziția de sus.
+Plăcuța arată colțul **de aproape**: grila e desenată cu **5 pătrate pe latură**,
+nu 8, fiindcă doar colțul contează.
 
 | piesă | pătrat real | coloana | rândul |
 | --- | --- | --- | --- |
-| regele negru | a1 | 1 | 1 |
-| calul auriu | c4 | 3 | 4 |
-| nebunul auriu | f6 | 6 | 6 |
+| regele negru, căzut | a1 | 1 | 1 |
+| nebunul auriu | b2 | 2 | 2 |
+| calul auriu | c3 | 3 | 3 |
+
+Colțul din stânga-jos al modelului **e colțul tablei**.
 
 **Atașează la mesaj DOUĂ imagini, în ordinea asta:**
 1. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
    — fundalul plat, rama și cele două metale;
-2. [`Sacrificiu.png`](../../surse-imagini/tactici/Sacrificiu.png) — încă un model
-   de negru, unde a ieșit bine.
+2. [`Sacrificiu.png`](../../surse-imagini/tactici/Sacrificiu.png) — de acolo se ia
+   felul în care arată o piesă căzută, culcată pe tablă.
 
 ---
 
 ```text
-Here are two images you made earlier, both from the same set of chess tiles. Copy their look exactly: the same flat decorative background, the same ornamental frame, the same way the pieces are sculpted and lit, the same two metals.
+Here are two images you made earlier, both from the same set of chess tiles. Copy their look exactly: the same flat decorative background, the same ornamental frame, the same way the pieces are sculpted and lit, the same two metals. The SECOND one also shows a chess piece lying toppled on its side — copy the way that fallen piece is drawn.
 
 COPY FROM THEM, WITHOUT CHANGING ANYTHING:
 - Square 1024x1024, filled edge to edge.
-- The BACKGROUND is a FLAT chessboard pattern seen straight on — alternating brown squares in low contrast, darker #4B3317 and lighter #7F5425, with a warm radial glow behind the pieces (#63421D) falling off to near-black in the corners (#171513). It is a printed pattern, not a real board: no tilt, no perspective, no vanishing point, no thickness, no board edge, no horizon. Exactly 8 columns and 8 rows fill the tile, and the squares stay the same size all over it, corner to corner.
+- The BACKGROUND is a FLAT chessboard pattern seen straight on — alternating brown squares in low contrast, darker #4B3317 and lighter #7F5425, with a warm radial glow behind the pieces (#63421D) falling off to near-black in the corners (#171513). It is a printed pattern, not a real board: no tilt, no perspective, no vanishing point, no thickness, no board edge, no horizon. In THIS tile the squares are drawn BIGGER than in the reference: exactly 5 columns and 5 rows fill the tile, so each square is large. They stay the same size all over the tile, corner to corner.
 - The FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners and angular gold corner pieces at the four corners, plus one small gold diamond centred on each of the four sides. Draw all four diamonds COMPLETE and entirely inside the picture, each moved inwards far enough that no part of it is cropped by the edge.
 - The PIECES: solid sculpted Staunton figures in relief, seen from the side, with the same proportions, the same soft rounded bevels, the same polished sheen, the same lighting from the upper left and the same soft drop shadows.
 
 THE TWO METALS:
-- The BISHOP and the KNIGHT are LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. They are the same metal as each other — they are hunting together, and that must be obvious at a glance.
+- The BISHOP and the KNIGHT are LIGHT: rich warm gold, highlight #FFD86A rising to #FCCB43 on the brightest edges, mid-tone #E7AD3E, shadows going deep to #8C4A01 and #5A340A. They are the same metal as each other — they finished this together, and that must be obvious at a glance.
 - The KING is DARK: near-black bronze, highlight #4A3A1C, mid-tone #241A0A, deep shadow #0E0A04, with a thin warm gold rim light along his edges so his silhouette stays crisp. He is alone against the two of them.
 
-THE PLACEMENT — read the background as a grid of 8 columns and 8 rows. Number the columns 1 to 8 from the left and the rows 1 to 8 from the bottom. Three pieces, each standing on the square it is given, its base resting on that square:
+THE PLACEMENT — read the background as a grid of 5 columns and 5 rows. Number the columns 1 to 5 from the left and the rows 1 to 5 from the bottom. Three pieces:
 
-- the KING on the square in column 1, row 1 — the bottom left corner square, pressed right into the corner;
-- the KNIGHT on the square in column 3, row 4 — out in the middle of the board, closer to the king;
-- the BISHOP on the square in column 6, row 6 — far away, up and to the right.
+- the KING is LYING DOWN in the bottom left corner. He is toppled flat on his side along the bottom row, his base on the corner square in column 1, row 1, and his body stretched out to the right so that his crown comes to rest on the square in column 2, row 1. He lies fully horizontal, flat on the board.
+- the BISHOP stands upright on the square in column 2, row 2 — the square diagonally next to the king's corner, directly above his fallen crown.
+- the KNIGHT stands upright on the square in column 3, row 3 — one more square along the same diagonal, up and to the right.
 
-THE BISHOP'S LINE POINTS INTO THE CORNER. The bishop and the king stand on the same long diagonal, the one that runs from the bottom left corner of the board up to the top right. Draw an imaginary straight line through the bishop and the king: it must be a clean 45-degree diagonal, and every square along it between them must be completely empty. The bishop is turned so that its mitre, and the diagonal slit cut into it, face down along that line towards the king. Nothing is drawn on the line — no ray, no beam, no arrow — the alignment alone does the work.
+The king's corner square, the bishop's square and the knight's square are all on ONE straight 45-degree diagonal running up and to the right from the bottom left corner. The two gold pieces are close in — they are standing on the squares immediately around him, not far away across the board.
 
-THE KNIGHT IS OFF THAT LINE, standing clearly to the left of it, and its head is turned towards the king, looking down at him.
+THE KING HAS BEEN RESIGNED. He is lying on his side exactly the way a player lays their king down to give up the game: flat on the board, fully horizontal, his crown pointing to the right, his base towards the corner. He is not falling and not tilted — he is already down and still. He is drawn as a solid piece in the same dark metal, with his own soft shadow on the board beneath him. His crown lies right at the foot of the bishop.
 
-THE KING IS CORNERED. He stands in the corner square, upright, calm and perfectly still, with no square left behind him: the board simply ends there, on two sides of him at once.
+THE TWO GOLD PIECES STAND CALM. Both are bolt upright, quiet and still, standing squarely on their squares — no leaning, no triumphal pose. The bishop's mitre, with its diagonal slit, is turned down and to the left, towards the fallen king. The knight's head is turned the same way, looking down at him.
 
-THE BOARD IS OTHERWISE EMPTY. Three pieces, nothing else on any square — that emptiness matters, because the whole point is that one king is alone out there with two pieces closing in on him.
+THE BOARD IS OTHERWISE EMPTY. Three pieces, nothing else on any square. The whole upper right of the tile is open empty board with the warm glow on it — that emptiness is deliberate: it is all the room the king had, before he was walked into this corner.
 
-THE SHADOW HAS ALREADY FALLEN. The long shadow the king throws is NOT the shadow of a standing piece: it is the silhouette of a king LYING TOPPLED ON HIS SIDE, fallen over, his crown pointing away to the right. It stretches out from his base across the empty squares along the bottom of the board, long and dark and unmistakable in shape. He is still standing; his shadow is already down.
+READABILITY: this tile is displayed small, so the silhouette carries it — one long dark crowned shape lying flat across the bottom left, one slim gold mitre standing just above it, one gold horse's head standing a step further up and to the right, and open board above. Keep every piece bold and simple, no fine detail.
 
-The shadow must read as a shadow and not as a second piece: completely flat on the board, one soft dark shape with soft edges, no modelling, no highlights, no metal, no rim light, no detail inside it — only an outline, and the outline is a fallen king with a clear crown at its end. The standing king stays fully solid and fully upright.
-
-READABILITY: this tile is displayed small, so the silhouette carries it — a dark crowned shape jammed in the bottom left corner, one long dark fallen-king shape lying beside it, a gold horse's head out in the middle, and a gold mitre high on the right pointing down at the corner. Keep every piece bold and simple, no fine detail.
-
-NOT: no three-dimensional board, no perspective, no tilted board, no board edge drawn as an object, no board thickness, no arrows, no beams of light, no rays, no glowing lines, no dotted paths, no highlighted or glowing squares, no chains, no nets, no cracks, no broken crown, no blood, no motion lines, no letters or numbers, no coordinates, no clock, no hourglass, no hands, no queen, no rook, no pawn, no second king as a solid piece, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+NOT: no three-dimensional board, no perspective, no tilted board, no board edge drawn as an object, no board thickness, no arrows, no beams of light, no rays, no glowing lines, no dotted paths, no highlighted or glowing squares, no shadow shaped like a fallen king, no chains, no nets, no cracks, no broken crown, no blood, no motion lines, no letters or numbers, no coordinates, no clock, no hourglass, no hands, no handshake, no queen, no rook, no pawn, no second king, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -127,31 +129,32 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Nebunul și regele sunt pe aceeași diagonală?** Ține o riglă din mitra
-   nebunului spre coroana regelui — trebuie să cadă fix în colț. Dacă nebunul e
-   deplasat, cere: *„put the bishop and the king on one exact 45-degree diagonal,
-   nothing between them"*.
-2. **Umbra e umbră, nu a doua piesă?** Plată, dintr-o bucată, fără metal și fără
-   lumini. Dacă a ieșit un al doilea rege culcat, cere: *„make it a flat soft
-   shadow lying on the board, no modelling, no metal, only a silhouette"*.
-3. **Se vede că umbra e un rege răsturnat?** Coroana la capăt. Dacă e o pată
-   oarecare, s-a pierdut ideea.
-4. **Regele e chiar în colț?** Lipit de colțul de jos-stânga, cu tabla
-   terminându-se pe două laturi ale lui.
-5. **Calul e în afara diagonalei?** Dacă a ajuns pe ea, blochează linia nebunului
-   și strică tocmai ce arată imaginea.
-6. **Nebunul și calul sunt amândoi aurii, regele negru?** Cele două piese
-   vânează împreună; dacă una a ieșit închisă, se pierde „doi contra unul".
+1. **Regele e complet culcat, nu înclinat?** Ăsta e testul principal: orizontal,
+   pe o parte, cu coroana în dreapta. Dacă e doar aplecat, arată ca și cum ar
+   cădea, nu ca și cum s-a cedat. Cere: *„fully horizontal, lying flat on the
+   board on its side"*.
+2. **Nebunul și calul sunt aproape de el?** Pe pătratele din jur, pe diagonală.
+   Dacă au ajuns hăt în mijlocul tablei, se pierde ideea de „l-au încolțit".
+3. **Cele trei pătrate sunt pe o diagonală de fix 45°?** Colțul, apoi nebunul,
+   apoi calul.
+4. **Coroana ajunge la piciorul nebunului?** Detaliul ăsta face jumătate din
+   imagine.
+5. **Cele două piese aurii stau drepte și liniștite?** Fără poze de învingător.
+6. **Nebunul și calul sunt amândoi aurii, regele negru?** Dacă una a ieșit
+   închisă, se pierde „doi contra unul".
 7. **Cele patru romburi sunt întregi?** Niciunul tăiat de marginea imaginii.
 
 ---
 
 ## Ce am încercat înainte
 
-Prima variantă era **matul pe ultima linie**: rege negru în colț, zidit de
-propriii lui pioni, cu un turn auriu venind pe linia a 8-a. Poziția era corectă —
-mat verificat, zero mutări legale — și ideea „zidul e făcut din oamenii lui" ținea.
+**Prima variantă:** matul pe ultima linie — rege negru în colț, zidit de propriii
+lui pioni, cu un turn auriu venind pe linia a 8-a. Poziția era corectă, dar matul
+pe ultima linie e **mat într-o mutare**, nu în N. Imaginea arăta un sfârșit brusc,
+nu o vânătoare lungă.
 
-Doar că matul pe ultima linie e **mat într-o mutare**, nu în N. Imaginea arăta un
-sfârșit brusc, nu o vânătoare lungă. Nebunul și calul spun exact pe dos: e
-finalul care se numără, cel care durează.
+**A doua variantă:** tot nebun și cal, dar prinse la mijlocul vânătorii — regele
+încă în picioare, cele două piese departe de el, iar inevitabilul spus printr-o
+umbră răsturnată întinsă pe tablă. Umbra era o ocolire: spunea „o să cadă" în loc
+să arate că a căzut. Regele culcat de-a binelea spune același lucru direct, și
+mai apropie piesele de el, ceea ce face plăcuța mai limpede la mărime mică.
