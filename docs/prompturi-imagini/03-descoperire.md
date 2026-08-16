@@ -36,15 +36,26 @@ oricare dintre ele, `2.Bxc6` ia dama. Am verificat toate șapte.
 Pionul de pe **d4** nu e decor: fără el, regele ar mânca pur și simplu pionul
 care dă șah și tactica s-ar face praf.
 
+**Culorile sunt cele reale ale aplicației**, măsurate din tabla de la
+[/analiza](../../src/pages/AnalysisPage.tsx): pătrate `#F0D9B5` și `#3A3A3A`,
+piese vectoriale plate Staunton — alb pur cu contur negru, negru pur cu contur
+alb. Nu piese turnate în relief auriu: alea nu semănau cu nimic din aplicație.
+Rama aurie rămâne, ca plăcuța să stea în aceeași familie cu logourile de curs.
+
 ```text
-A square chess diagram tile, framed in the style of the attached reference — same ornamental gold frame, same warm palette, same polished finish.
+A square chess diagram tile with an ornamental frame, in the style of the attached reference.
 
 THE TILE:
 - Square 1024x1024, filled edge to edge.
-- FRAME: an ornamental border inset about 4 percent from the edge — a thin double line in warm metallic gold (#DEB863), with angular L-shaped gold corner brackets at the four corners and one small solid gold diamond (rhombus) centred on each of the four sides.
-- INSIDE THE FRAME: a complete 8x8 chessboard, filling the whole area within the frame, seen straight from above — a flat top-down view, no perspective, no tilt, no 3D board. Dark squares #4B3317, light squares #7F5425. No file letters, no rank numbers, no coordinates of any kind.
+- FRAME: an ornamental border inset about 4 percent from the edge — a thin double line in warm metallic gold (#DEB863), with angular L-shaped gold corner brackets at the four corners and one small solid gold diamond (rhombus) centred on each of the four sides. This frame is the only decorative element; everything inside it is a clean chess diagram.
+- INSIDE THE FRAME: a complete 8x8 chessboard filling the whole area within the frame, seen straight from above — a flat, face-on 2D diagram, no perspective, no tilt, no 3D board, no thickness, no shadow under the board. Light squares #F0D9B5, dark squares #3A3A3A. No file letters, no rank numbers, no coordinates of any kind.
 
-THE POSITION — place exactly these six pieces and nothing else. Ranks are numbered 1 at the bottom and 8 at the top; files run a to h from left to right.
+THE PIECES — flat two-dimensional vector chess pieces, the classic Staunton silhouettes used in standard online chess diagrams. Solid flat fills with thin clean outlines. No gradients, no metal, no relief, no bevels, no gloss, no drop shadows, no 3D modelling of any kind.
+- White pieces: pure white fill (#FFFFFF) with a thin black outline and thin black interior detail lines.
+- Black pieces: pure black fill (#000000) with a thin white outline and thin white interior detail lines.
+- Each piece is drawn upright and centred in its square, filling about 85 percent of the square's height.
+
+THE POSITION — place exactly these six pieces and nothing else. Files run a to h from left to right; ranks run 1 at the bottom to 8 at the top.
 - WHITE BISHOP on f3
 - WHITE PAWN on e4
 - WHITE PAWN on d4
@@ -52,21 +63,22 @@ THE POSITION — place exactly these six pieces and nothing else. Ranks are numb
 - BLACK QUEEN on c6
 - BLACK KING on f6
 
-Every other square is empty. Do not add any extra pieces.
+Every other square is completely empty. Do not add any other pieces anywhere.
 
-THE PIECES: classic Staunton silhouettes, seen from above but drawn as recognisable upright shapes, moulded in relief. White pieces are bright polished gold — highlight #FAC339, mid-tone #6F4D15, shadow #5A340A. Black pieces are near-black (#1C160E) with a thin warm gold rim light, so both sides read clearly against the brown squares. The pieces must be large and bold, filling most of their squares.
+THE TWO ARROWS — these carry the whole meaning, and their geometry matters more than anything else in this image.
 
-THE TWO ARROWS — these carry the whole meaning and must be the most visible thing in the tile:
-- ARROW 1, bright green (#4ade80): a thick straight arrow from the centre of e4 to the centre of e5, pointing up. This is the pawn stepping forward and giving check.
-- ARROW 2, bright coral red (#FB7185): a thick straight arrow running along the diagonal from the centre of f3, through e4 and d5, ending with its head on c6, on top of the black queen. This is the bishop's line, opened by the pawn leaving, capturing the queen.
+Every arrow starts at the exact CENTRE POINT of its origin square and ends with the tip of its arrowhead at the exact CENTRE POINT of its destination square. An arrow must never begin at the edge of a square, never begin at the base of a piece, and never continue past the centre of its destination square. It must not touch the far edge of the destination square, and it must not extend into any square beyond it.
 
-Both arrows are opaque, clean-edged, with solid triangular heads, drawn ON TOP of the board and pieces. Arrow 2 must clearly pass over the squares e4 and d5 and end exactly on the black queen. The two arrows must not be the same colour and must not blur into each other.
+- ARROW 1, bright green (#4ade80): from the centre of e4 to the centre of e5. This arrow is exactly ONE SQUARE long — a short, stubby arrow pointing straight up, whose head stops dead in the middle of e5. It must not reach e6 or even the top edge of e5. This is the pawn stepping forward and giving check.
+- ARROW 2, bright coral red (#FB7185): from the centre of f3, running up and to the left along the diagonal, passing over the centres of e4 and d5, with its head stopping at the centre of c6, on top of the black queen. This arrow is exactly THREE SQUARES long. This is the bishop's line, opened by the pawn leaving, reaching the queen.
 
-Mark the black king on f6 with a soft red glow around its square, to show it is the one in check.
+Both arrows are opaque and clean-edged, with a straight shaft and a solid triangular head, drawn ON TOP of the board and the pieces. The two arrows must be clearly different colours and must not overlap or blur into each other.
 
-BOLD AND SIMPLE: this tile may be displayed small, so the two arrows, the six pieces and the board grid are all that should be there. No move notation, no captions, no legend, no annotations, no decorative flourishes, no shadows cast outside the board.
+Mark the square f6, under the black king, with a soft red translucent highlight, to show that this is the king being checked.
 
-NOT: no letters, no numbers, no text of any kind, no watermark, no logo, no extra pieces, no 3D perspective, no tilted board, no photorealism, no cartoon faces. No border outside the ornamental frame described above.
+BOLD AND SIMPLE: nothing on this tile except the ornamental frame, the board, those six pieces, the two arrows and the highlighted square. No move notation, no captions, no legend, no annotations, no dots, no circles, no extra markings.
+
+NOT: no letters, no numbers, no text of any kind, no watermark, no logo, no extra pieces, no 3D pieces, no gold or metallic pieces, no perspective, no tilted board, no photorealism, no cartoon faces, no board border outside the ornamental frame described above.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -162,10 +174,17 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-- La **C**: numără piesele — trebuie să fie exact șase. Verifică pe rând că
-  fiecare stă unde trebuie: nebunul pe f3, pionii pe d4 și e4, regele alb pe g1,
-  dama neagră pe c6, regele negru pe f6. Săgeata roșie trebuie să se termine
-  **pe damă**, nu lângă ea.
+- La **C**, în ordinea asta:
+  1. **Săgeata verde** — trebuie să fie de exact un pătrat, cu vârful oprit în
+     mijlocul lui e5. Dacă trece de e5 sau atinge marginea lui de sus, cere-i
+     din nou: *„the green arrow must be exactly one square long and its tip must
+     stop at the centre of e5"*.
+  2. **Săgeata roșie** — vârful pe damă, nu lângă ea, nu dincolo de ea.
+  3. **Piesele** — trebuie să arate ca într-o diagramă obișnuită de șah: plate,
+     alb pur și negru pur. Dacă sunt aurii sau în relief, cere-i *„flat 2D
+     vector chess pieces, no 3D, no metal"*.
+  4. **Numără-le**: exact șase. Nebun f3, pioni d4 și e4, rege alb g1, damă
+     neagră c6, rege negru f6. Orice piesă în plus strică poziția.
 - La **A**: trebuie să se vadă curba trecând pe deasupra calului, cu spațiu
   limpede între ele. Dacă pare că lovește calul sau că merge drept, cere arc mai
   înalt.
