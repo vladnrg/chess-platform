@@ -94,7 +94,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | # | Fișier imagine | Tactica | Prompt |
 | --- | --- | --- | --- |
 | 1 | `fork.png` | Furculiță și atac dublu | [01-furculita.md](01-furculita.md) |
-| 2 | `pin.png` | Legarea absolută și relativă | — |
+| 2 | `pin.png` | Legarea absolută și relativă | [02-legarea.md](02-legarea.md) |
 | 3 | `discovered.png` | Atac prin descoperire și șah dublu | [03-descoperire.md](03-descoperire.md) |
 | 4 | `attraction.png` | Atragerea și devierea | — |
 | 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
