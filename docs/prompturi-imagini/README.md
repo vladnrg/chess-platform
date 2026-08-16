@@ -96,7 +96,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 1 | `fork.png` | Furculiță și atac dublu | [01-furculita.md](01-furculita.md) |
 | 2 | `pin.png` | Legarea absolută și relativă | [02-legarea.md](02-legarea.md) |
 | 3 | `discovered.png` | Atac prin descoperire și șah dublu | [03-descoperire.md](03-descoperire.md) |
-| 4 | `attraction.png` | Atragerea și devierea | — |
+| 4 | `attraction.png` | Atragerea și devierea | [04-atragerea.md](04-atragerea.md) |
 | 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
 | 6 | `skewer.png` | Țeapă și atacul cu raze X | — |
 | 7 | `trapped.png` | Prinderea piesei | [07-prinderea-piesei.md](07-prinderea-piesei.md) |
