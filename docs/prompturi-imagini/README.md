@@ -60,7 +60,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 2 | `pin.png` | Legarea absolută și relativă | — |
 | 3 | `discovered.png` | Atac prin descoperire și șah dublu | [03-descoperire.md](03-descoperire.md) |
 | 4 | `attraction.png` | Atragerea și devierea | — |
-| 5 | `remove-defender.png` | Îndepărtarea apărătorului | — |
+| 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
 | 6 | `skewer.png` | Țeapă și atacul cu raze X | — |
 | 7 | `trapped.png` | Prinderea piesei | — |
 | 8 | `mate.png` | Dă mat în N mutări | — |
