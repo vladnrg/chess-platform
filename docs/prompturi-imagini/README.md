@@ -51,13 +51,24 @@ simple, iar textul ăla e deja aprobat.
 **Piesele nu sunt toate aurii.** Albele sunt aurii-deschis, negrele sunt închise
 — exact ca pe o tablă adevărată.
 
-| | lumină | ton mediu | umbră |
-| --- | --- | --- | --- |
-| Piese **albe** | `#FFF0C0` | `#E4C071` | `#A07C30` |
-| Piese **negre** | `#4A3A1C` | `#241A0A` | `#0E0A04` |
+| | lumină | ton mediu | umbră | umbră adâncă |
+| --- | --- | --- | --- | --- |
+| Piese **albe** | `#FFD86A` | `#E7AD3E` | `#8C4A01` | `#5A340A` |
+| Piese **negre** | `#4A3A1C` | `#241A0A` | `#0E0A04` | — |
 
 Negrele primesc în plus un contur subțire de lumină caldă pe muchii, ca silueta
 lor să rămână limpede pe tabla maro.
+
+**„Alb" înseamnă aur cald, nu fildeș.** Piesele deschise păstrează aurul bogat al
+seriei — se schimbă doar raportul cu cele negre, nu materialul. Valorile de mai
+sus sunt măsurate din `Atac prin descoperire.png`, unde a ieșit cum trebuie.
+
+Prima paletă pe care am scris-o cerea `#FFF0C0` / `#E4C071` / `#A07C30`, iar
+ChatGPT a ascultat-o cuminte: la *Furculiță* și *Sacrificii* piesele au ieșit
+crem mat, cu saturația la 0,27–0,50 în loc de 0,73–0,99. Problema nu era doar
+că sunt prea albe, ci că **umbrele rămâneau tot deschise** — fără interval tonal,
+metalul arată ca plasticul. De aceea coloana „umbră adâncă" contează cel mai
+mult din tabel.
 
 Motivul nu e estetic: **în șah, culoarea piesei e informație.** Cine atacă, cine
 suferă, a cui e piesa care cade. Totul-auriu pierde tocmai asta. La „Sacrificii"

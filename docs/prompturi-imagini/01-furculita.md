@@ -3,66 +3,75 @@
 **Metafora:** o furculiță de masă, cu două piese de șah prinse în dinții ei.
 O furculiță, două prăzi — exact ce înseamnă tactica.
 
-> **Starea:** imaginea există, dar a fost generată înainte de
-> [codul culorilor](README.md#codul-culorilor-alb-și-negru) — totul e din același
-> aur. Se corectează cu promptul de mai jos, nu se generează din nou.
+> **Starea:** furculița e deja neagră, cum trebuie. Rămâne de corectat **tenta
+> pieselor albe**: au ieșit crem mat, în loc de aurul cald al seriei.
 
 ---
 
-## Corecție — culorile
+## Corecție — aurul pieselor deschise
 
-Furculița devine **neagră**, cele două piese prinse în ea rămân **deschise**.
-Adică: negrul prinde turnul și dama albului.
+Turnul și dama au ieșit **fildeș**, nu aur. Diferența e măsurabilă, comparând cu
+`Atac prin descoperire.png`, unde a ieșit cum trebuie:
 
-### Dacă vrei invers
+| | saturație | umbra cea mai închisă |
+| --- | --- | --- |
+| Atac prin descoperire | **0,73–0,99** | `#8C4A01` |
+| Furculiță, acum | 0,27–0,50 | `#EFC978` |
 
-În seria de până acum, „noi" suntem albul — la *Sacrificii*, dama care se dă e
-albă, regele advers e negru. Ca să rămână așa și aici, furculița ar trebui să fie
-**deschisă** și cele două prăzi **negre**.
+Problema nu e doar că sunt prea albe. E că **umbrele rămân tot deschise** — fără
+interval tonal, metalul arată ca plasticul. Aurul are nevoie de contrast mare
+între lumină și umbră ca să pară metal.
 
-E o singură propoziție de schimbat în prompt: interschimbă cele două paragrafe
-care încep cu `THE FORK ITSELF` și `THE TWO CAPTURED PIECES`. Nimic altceva.
+Vina e a paletei pe care o scrisesem eu: cerea `#FFF0C0 / #E4C071 / #A07C30`,
+adică exact fildeș. ChatGPT a ascultat-o cuminte.
 
-**Atașează la mesaj:** poza actuală, [`furculita.png`](../../surse-imagini/tactici/furculita.png).
+**Atașează la mesaj DOUĂ imagini:**
+1. [`furculita.png`](../../surse-imagini/tactici/furculita.png) — cea de corectat;
+2. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
+   — modelul de aur.
+
+Cu a doua atașată, „aurul cald" nu mai e o descriere, ci un exemplu de copiat.
 
 ```text
-Here is an image you made earlier. Change one thing only: the metal the fork is made of. Everything else in the picture must stay exactly as it is.
+Here are two images you made earlier. The first is the fork tile, which needs one correction. The second is the discovered-attack tile, which is the correct look — use its metal as the model.
 
-DO NOT CHANGE, in any way:
+In the FIRST image, the two light chess pieces — the rook on the left tine and the queen on the right tine — came out the wrong material. They are pale matte cream, almost ivory. They should be RICH WARM GOLD, exactly like the bishop and the pawn in the SECOND image.
+
+Recolour those two pieces so that their metal matches the light pieces in the second image:
+- lit surfaces around #FFD86A rising to #FCCB43 on the brightest edges;
+- mid-tones around #E7AD3E;
+- shadowed sides going deep, down to #8C4A01 and #5A340A in the darkest folds.
+
+THE RANGE IS THE POINT. The problem now is not only that they are too pale, it is that their shadows are almost as light as their highlights, which makes them look like matte plastic. Real gold needs a wide gap between light and dark: bright, almost white-hot highlights on the edges facing the light, and deep warm brown shadows underneath the collars, inside the crown and along the shaded side of each piece. Give them strong specular highlights and clear reflected warmth, exactly as the bishop in the second image has.
+
+DO NOT CHANGE ANYTHING ELSE:
+- the dark, near-black fork stays exactly as it is — same metal, same colour, same thin gold rim light;
 - the ornamental gold frame, its corner pieces and its four diamonds;
-- the brown chessboard background, its pattern, and the warm glow behind the subject;
-- the composition: the position, size, angle and shape of the fork and of the two chess pieces on its outer tines;
-- the lighting direction, the highlights, the shadows and the drop shadow;
+- the brown chessboard background, its pattern and the warm glow behind the subject;
+- the composition: the position, size, angle and shape of the fork, the rook and the queen;
+- the lighting direction and the drop shadow;
 - the square format and the framing.
 
-This is a recolour of the existing image, not a new illustration. If anything moves, resizes or changes shape, it is wrong.
+This is a recolour of two objects in an existing image, not a new illustration. If anything moves, resizes or changes shape, it is wrong.
 
-THE FORK ITSELF — its handle, its neck and all four of its tines — becomes DARK: a near-black bronze, with highlight #4A3A1C, mid-tone #241A0A and deep shadow #0E0A04. Keep a thin warm gold rim light along its edges so that its silhouette stays crisp against the brown board behind it. It must read instantly as a black chess piece would on a real board — clearly the dark side.
-
-THE TWO CAPTURED PIECES — the rook on the left tine and the queen on the right tine — stay PALE and BRIGHT, as the light side: highlight #FFF0C0, mid-tone #E4C071, shadow #A07C30. They keep exactly the shapes and positions they already have.
-
-Where each piece meets the tine it sits on, the change of metal should be a clean, definite break — dark below, pale above — not a gradient or a fade between the two.
-
-The contrast between the dark fork and the two pale pieces must be strong and immediate: a viewer must never wonder which side is which.
+Keep the clean, definite break where each piece meets the tine it sits on: dark fork below, gold piece above, no gradient between them.
 
 Keep the same square size, at least 1024x1024.
 ```
 
 ---
 
-**Salvează ca:** `fork.png`, peste cea de acum.
+**Salvează ca:** peste poza actuală.
 
 **Verificare**
 
-1. **Compoziția e neatinsă?** Pune-le una lângă alta. Furculița și piesele
-   trebuie să fie în exact aceleași locuri, la aceeași mărime. Dacă s-a mișcat
-   ceva, cere din nou: *„this is a recolour only, do not move or redraw
-   anything"*.
-2. **Rama și fundalul sunt identice?** Alea nu au voie să se schimbe deloc.
-3. **Se vede net unde se termină negrul?** Trecerea de la dinte la piesă
-   trebuie să fie tăiată clar, nu topită.
-4. **Contrastul e puternic?** Furculița trebuie citită ca „piesă neagră", nu ca
-   aur mai închis.
+1. **Pune-le una lângă alta cu `Atac prin descoperire.png`.** Piesele deschise
+   trebuie să pară din același metal. Dacă cele de la furculiță sunt mai palide,
+   cere: *„make them richer and deeper, match the bishop in the second image"*.
+2. **Au umbre adânci?** Sub gulere, în interiorul coroanei, pe partea ferită de
+   lumină. Fără ele rămân plate, oricât de aurii ar fi la culoare.
+3. **Furculița a rămas neagră**, neschimbată.
+4. **Compoziția e neatinsă?** Nimic nu s-a mutat, nimic nu și-a schimbat mărimea.
 
 ---
 
