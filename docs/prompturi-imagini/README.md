@@ -111,7 +111,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
 | 6 | `skewer.png` | Țeapă și atacul cu raze X | [06-teapa.md](06-teapa.md) |
 | 7 | `trapped.png` | Prinderea piesei | [07-prinderea-piesei.md](07-prinderea-piesei.md) |
-| 8 | `mate.png` | Dă mat în N mutări | — |
+| 8 | `mate.png` | Dă mat în N mutări | [08-mat.md](08-mat.md) |
 | 9 | `forced-draws.png` | Resurse defensive | [09-resurse-defensive.md](09-resurse-defensive.md) |
 | 10 | `zwischenzug.png` | Mutarea intermediară | — |
 | 11 | `sacrifice.png` | Sacrificii | [11-sacrificii.md](11-sacrificii.md) |
