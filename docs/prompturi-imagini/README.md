@@ -66,7 +66,7 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 8 | `mate.png` | Dă mat în N mutări | — |
 | 9 | `forced-draws.png` | Resurse defensive | [09-resurse-defensive.md](09-resurse-defensive.md) |
 | 10 | `zwischenzug.png` | Mutarea intermediară | — |
-| 11 | `sacrifice.png` | Sacrificii | — |
+| 11 | `sacrifice.png` | Sacrificii | [11-sacrificii.md](11-sacrificii.md) |
 | 12 | `subscribers.png` | Combinații complete | — |
 | 13 | `hybrid.png` | Tactici hibride | — |
 | 14 | `mixed-bonus.png` | Tactici mixte bonus | — |
