@@ -1,28 +1,29 @@
 # 11. Sacrificii → `sacrifice.png`
 
-**Metafora:** o **balanță** ținută pe capul unui pion. Pe un taler, dama. Pe
-celălalt, coroana regelui advers. Talerul cu coroana atârnă mai greu.
+**Metafora:** un șir de domino. Dama cade prima, cu bună știință, și lovind
+lanțul îl răstoarnă până la capăt — unde cade regele.
 
-Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts) nu vorbește
-despre pierdere, ci despre **judecată**:
-
-> Cedezi material intenționat pentru atac, inițiativă sau mat — și înveți să
-> deosebești geniul de sinucidere.
-
-Un sacrificiu nu e o jertfă tristă, e un **calcul**. Balanța spune exact asta:
-dai dama, dar ce primești atârnă mai greu. Iar cine se uită la plăcuță înțelege
-din prima și partea a doua a lecției — dacă talerul s-ar apleca invers, aceeași
-mutare ar fi sinucidere.
-
-Pionul care ține balanța e gluma din spate: piesa cea mai mică e cea care
-cântărește dacă merită.
+Asta e ce lipsea celorlalte încercări: **legătura dintre ce dai și ce primești.**
+Balanța arăta o socoteală abstractă; picătura de sânge arăta o pierdere.
+Dominoul arată **cauza și efectul într-o singură imagine** — și e chiar ce e un
+sacrificiu bun: o mutare care declanșează un lanț forțat.
 
 | element | ce spune |
 | --- | --- |
-| dama pe talerul de sus | *ce dai* |
-| coroana pe talerul de jos | *ce primești* |
-| înclinarea spre coroană | *a meritat* |
-| pionul care ține totul | *cine judecă* |
+| dama, prima, deja căzută | *ce dai — și că a fost intenționat* |
+| piesele din mijloc, fiecare mai puțin înclinată | *lanțul e în desfășurare* |
+| regele, ultimul, abia începând să cadă | *ce primești* |
+
+Înclinarea în trepte e cea care face imaginea să se citească. Dacă toate piesele
+sunt căzute la fel, iese o grămadă răsturnată — adică dezastru, nu plan. Dacă
+sunt scalonate, ochiul citește ordinea singur, de la stânga la dreapta.
+
+## O grijă anume
+
+La încercarea trecută, dama și coroana regelui arătau la fel. Aici sunt singurele
+două piese cu coroană din imagine, la cele două capete, așa că promptul cere
+explicit să nu se confunde: **dama are diademă cu vârfuri, regele are cruce și e
+mai înalt.**
 
 **Atașează la mesaj:** [`furculita.png`](../../surse-imagini/tactici/furculita.png)
 — rama, fundalul și aurul se copiază de acolo.
@@ -34,25 +35,27 @@ Use the attached image as the exact style reference. This is another tile in the
 
 KEEP IDENTICAL TO THE REFERENCE:
 - Square 1024x1024, filled edge to edge.
-- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the subject is not placed on its squares and does not line up with them.
+- BACKGROUND: the same chessboard pattern of alternating brown squares in low contrast — darker squares #4B3317, lighter squares #7F5425 — covering the whole tile, with the same warm radial glow behind the subject (#63421D) falling off to near-black in the four corners (#171513). The board is only a backdrop: the pieces are NOT placed on its squares and do not line up with them.
 - FRAME: the same ornamental border — a thin double line in warm metallic gold (#DEB863) with rounded corners, angular gold corner pieces at the four corners, and one small gold diamond centred on each of the four sides.
-- RENDERING: the same sculpted polished gold — bright highlights (#FAC339), mid-tones (#6F4D15), deep shadow (#5A340A), soft rounded bevels, a gentle sheen, a soft drop shadow. Everything is one continuous piece of gold, exactly as the fork and its two chess pieces are one continuous piece of gold in the reference.
+- RENDERING: the same sculpted polished gold — bright highlights (#FAC339), mid-tones (#6F4D15), deep shadow (#5A340A), soft rounded bevels, a gentle sheen, soft drop shadows. Solid three-dimensional gold Staunton chess pieces, exactly like the rook and queen in the reference.
 
-THE SUBJECT — "the scales of sacrifice". One fused gold sculpture, standing dead centre and filling about 68 percent of the tile:
+THE SCENE — a line of chess pieces going over like dominoes, left to right. FOUR pieces stand in a row that runs slightly uphill from the lower left to the upper right, filling about 78 percent of the tile. Each one is caught at a different stage of falling, and each is toppling to the right, into the next one.
 
-1. THE STAND: a chess PAWN, standing on its base, large and solid. It is not next to the scales — it IS the stand. The balance beam rests directly on top of its round head, exactly the way the two outer tines of the fork are the rook and the queen in the reference. One continuous casting.
+1. FIRST, far LEFT: a chess QUEEN, large. She is ALREADY DOWN — fallen almost flat, lying at a steep angle with her crown near the ground, her base lifted and swung up behind her. She started this. She is the biggest and the most fallen of the four.
 
-2. THE BEAM: a single thick straight bar lying across the pawn's head, clearly TILTED — its left end raised high, its right end dipped low. From each end hangs a shallow round PAN, held by two short thick rods. No chains, no fine links, no ornament: heavy and simple, so it survives being seen small.
+2. SECOND: a chess ROOK, medium sized, tipped over at roughly forty-five degrees, its base just lifting off the ground, leaning into the piece ahead of it.
 
-3. ON THE RAISED LEFT PAN: a chess QUEEN, lying on her side across the pan, large and richly modelled. She is the biggest chess piece in the tile. Her pan is the one that went UP — she has been given away.
+3. THIRD: a chess BISHOP, tipped only slightly — maybe twenty degrees off upright, just beginning to go, still mostly standing.
 
-4. ON THE LOWERED RIGHT PAN: a KING'S CROWN alone — a solid gold crown with a cross on top, no king beneath it, resting in the pan. Its pan hangs clearly LOWER than the queen's. The crown is much smaller than the queen, and that is the whole joke: the small thing weighs more.
+4. LAST, far RIGHT and highest: a chess KING, the tallest piece in the tile. He is barely tilted at all, caught at the very first instant of falling, still almost upright. He is the end of the chain, and he is going down too.
 
-The tilt must be unmistakable — the difference in height between the two pans should be large, a quarter of the tile at least. A viewer must see at once that the crown side won.
+THE STAGING IS THE WHOLE POINT: the amount of tilt must increase steadily from right to left — king almost upright, bishop slightly over, rook halfway, queen flat on the ground. That progression is what tells the viewer this is one chain reaction moving in one direction, and not a random heap of knocked-over pieces. Keep the four evenly spaced, close enough that each clearly touches or nearly touches the next.
 
-READABILITY: this tile is displayed small, so the silhouette carries it — a pawn shape at the bottom, a strong diagonal bar across the middle, a big crowned piece high on the left, a small crown low on the right. Keep everything bold and thick. No small ornaments, no engraving, no chains, no fine detail, no chessboard squares drawn on the pieces, no measuring marks on the beam.
+TELLING THE TWO CROWNED PIECES APART: the queen and the king are the only crowned pieces here, and they must be impossible to confuse. The QUEEN wears a coronet of several short points around a rounded head. The KING is distinctly TALLER, with a plain smooth head topped by a clear CROSS. Give them clearly different silhouettes.
 
-NOT: no chess diagram, no board position, no arrows, no beams of light, no blood, no wounds, no letters or numbers, no coordinates, no hands, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
+READABILITY: this tile is displayed small, so the silhouette carries it — four gold shapes in a rising row, leaning over more and more the further left you look, the biggest one flat at the near end and a tall crowned one just tipping at the far end. Keep every piece bold and simple. No small ornaments, no engraving, no fine detail, no chessboard squares drawn on the pieces.
+
+NOT: no chess diagram, no board position, no arrows, no beams of light, no blood, no wounds, no dust or debris, no motion lines, no letters or numbers, no coordinates, no hands, no cartoon faces, no eyes, no sparkles, no smoke, no photorealism, no thin outlines, no plastic gloss. No text, no lettering, no logo, no watermark, no border outside the ornamental frame.
 
 OUTPUT: square image, at least 1024x1024.
 ```
@@ -63,20 +66,20 @@ OUTPUT: square image, at least 1024x1024.
 
 **Verificare**
 
-1. **Se vede clar care taler e jos?** Înclinarea trebuie să fie mare, nu o
-   nuanță. Dacă balanța pare aproape dreaptă, se pierde tot înțelesul — nu se
-   mai știe dacă a meritat. Cere: *„tilt the beam much more, the crown's pan
-   must hang far lower"*.
-2. **Coroana e mai mică decât dama?** Contrastul de mărime e ce face gluma:
-   lucrul mic atârnă mai greu.
-3. **Balanța stă pe capul pionului**, nu lângă el. O singură piesă turnată, ca
-   la furculiță.
-4. **Fără lanțuri.** Tije scurte și groase — lanțurile dispar la mărime mică și
-   fac talerele să pară că plutesc.
+1. **Se vede progresia?** Din dreapta spre stânga, piesele trebuie să fie tot
+   mai înclinate. Dacă sunt căzute la fel, iese o grămadă și se pierde ideea de
+   lanț. Cere: *„stagger the tilt: king almost upright, queen flat on the
+   ground, the two in between progressively more tipped"*.
+2. **Dama e prima și cea mai căzută?** Ea e sacrificiul; dacă e undeva la mijloc
+   sau abia înclinată, nu se mai înțelege că de la ea a pornit totul.
+3. **Regele se deosebește de damă?** Mai înalt, cu cruce. Dacă amândoi arată a
+   damă, imaginea nu mai spune ce câștigi.
+4. **Piesele se ating între ele?** Dacă sunt depărtate, nu se vede că una o
+   împinge pe următoarea.
 5. Aceeași ramă și același fundal ca la furculiță.
 
 ---
 
-*Încercare abandonată: dama care cade, luată de un pion, cu o picătură de sânge
-și regele descoperit în dreapta. Spunea ce dai, dar arăta sacrificiul ca pe o
-pierdere — iar tactica e despre socoteală, nu despre jertfă.*
+*Încercări abandonate: balanța cu dama sus și coroana jos (talerul de jos citea
+tot ca damă, iar imaginea arăta o socoteală, nu un sacrificiu); dama căzând sub
+un pion, cu o picătură de sânge (arăta pierderea, nu câștigul de după).*
