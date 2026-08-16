@@ -53,17 +53,24 @@ const PRAG_CONTUR = 60
 const MARGINE = 0.03
 
 /**
- * Care sursă e care ligă, după piesă şi culoare.
- * Fişierele sunt luate în ordine alfabetică, aşa cum le dă sistemul.
+ * Ligile, în ordinea urcării. Numele scurt e identificatorul din baza de date
+ * (`profiles.current_league`) şi tot el dă numele fişierului servit; eticheta e
+ * ce vede omul în aplicaţie.
+ *
+ * Sursa fiecăreia se recunoaşte după coada numelui de fişier:
+ * `4-bazat-argint.png` -> `argint`. Înainte se lua după poziţia alfabetică
+ * într-o listă scrisă de mână — adică era de ajuns să resalvezi sau să
+ * redenumeşti un fişier ca toate emblemele să se mute de la o ligă la alta,
+ * fără niciun semn că s-a stricat ceva.
  */
-const HARTA = [
-  'argint',      // nebun argintiu pe scut întunecat
-  'cherestea',   // pion de bronz în medalion de lemn
-  'tinichea',    // rege argintiu pe scut întunecat
-  'bronz',       // cal de bronz pe scut
-  'aur',         // turn auriu cu aripi
-  'smarald',     // damă verde pe scut ornat
-  'diamant',     // damă albastră cu coroană şi lauri
+const LIGI = [
+  { id: 'cherestea', eticheta: 'Iniţiat' },     // pion de bronz în medalion de lemn
+  { id: 'tinichea', eticheta: 'Integrat' },     // rege argintiu pe scut întunecat
+  { id: 'bronz', eticheta: 'Pretendent' },      // cal de bronz pe scut
+  { id: 'argint', eticheta: 'Bazat' },          // nebun argintiu pe scut întunecat
+  { id: 'aur', eticheta: 'Avansat' },           // turn auriu cu aripi
+  { id: 'smarald', eticheta: 'Remarcabil' },    // damă verde pe scut ornat
+  { id: 'diamant', eticheta: 'Legendar' },      // damă albastră cu coroană şi lauri
 ]
 
 const lum = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b
@@ -159,14 +166,18 @@ async function construieste(fisier, liga) {
 }
 
 const { readdirSync } = await import('node:fs')
-const fisiere = readdirSync(SRC).filter(f => /\.(png|jpe?g|webp)$/i.test(f)).sort()
+const fisiere = readdirSync(SRC).filter(f => /\.(png|jpe?g|webp)$/i.test(f))
 
-if (fisiere.length !== HARTA.length) {
-  throw new Error(`aştept ${HARTA.length} fişiere, am găsit ${fisiere.length}`)
+// Fiecare ligă îşi caută sursa după identificatorul din coada numelui, nu după
+// poziţie: aşa, un fişier lipsă sau prost numit opreşte scriptul pe loc, în loc
+// să mute emblemele de la o ligă la alta.
+for (const { id, eticheta } of LIGI) {
+  const gasite = fisiere.filter(f => f.replace(/\.[^.]+$/, '').endsWith('-' + id))
+  if (gasite.length !== 1) {
+    throw new Error(`pentru "${id}" aştept exact un fişier terminat în "-${id}", am găsit ${gasite.length}`)
+  }
+  const r = await construieste(gasite[0], id)
+  console.log(`${eticheta.padEnd(12)} (${id.padEnd(9)}) <- ${gasite[0].padEnd(26)} fundal ${r.fundal}%  contur ${r.contur}`)
 }
 
-for (let i = 0; i < fisiere.length; i++) {
-  const r = await construieste(fisiere[i], HARTA[i])
-  console.log(`${HARTA[i].padEnd(11)} ← ${fisiere[i].slice(0, 30).padEnd(32)} fundal ${r.fundal}%  contur ${r.contur}`)
-}
 console.log(`\nScris în ${OUT}`)

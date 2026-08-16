@@ -7,7 +7,7 @@ mai mult. Nu ajung niciodată în browserul nimănui.
 surse-imagini/           originalele — rămân aici
   cursuri/               logourile cursurilor (initiale, alb, negru)
   legende-cursuri/       ilustrațiile de legendă
-  ligi/                  emblemele de ligă
+  ligi/                  emblemele de ligă (vezi tabelul de mai jos)
   tactici/               plăcuțele tipurilor de tactică
 
 public/                  ce se descarcă efectiv în browser
@@ -15,6 +15,27 @@ public/                  ce se descarcă efectiv în browser
   leagues/<nume>.png     emblemele de ligă, decupate
   tactics/<treaptă>.png  cuferele
 ```
+
+## Numele ligilor
+
+Fişierele din  poartă şi numărul treptei, şi numele văzut de utilizator,
+şi identificatorul intern:
+
+| # | Ce scrie în aplicaţie | Identificator | Fişier sursă |
+| --- | --- | --- | --- |
+| 1 | Iniţiat |  |  |
+| 2 | Integrat |  |  |
+| 3 | Pretendent |  |  |
+| 4 | Bazat |  |  |
+| 5 | Avansat |  |  |
+| 6 | Remarcabil |  |  |
+| 7 | Legendar |  |  |
+
+**Identificatorul nu se schimbă.** E scris în baza de date, în
+ şi , amândouă cu
+constrângere pe cele şapte valori — plus că din el se construieşte calea imaginii
+servite, . Eticheta e doar ce se afişează şi se
+poate schimba oricând, dintr-un singur loc:  în .
 
 ## De ce sunt în două locuri
 
