@@ -81,6 +81,72 @@ litera și cifra din poziția de sus:
 Trei pătrate de la damă la rege, două de la rege la turn — și toate pe aceeași
 diagonală, fiindcă pătratele care se ating în colț *sunt* diagonala.
 
+---
+
+## Corecție — trei retușuri
+
+Plăcuța a ieșit. Raza trece prin rege, sticla fumurie se vede, înclinarea e cât
+trebuie. Rămân trei lucruri mărunte, toate de așezare:
+
+**1. Dama nu stă pe pătratul ei.** Cele trei piese sunt pe o diagonală, deci
+stau obligatoriu pe **pătrate de aceeași culoare** — regele și turnul sunt pe
+închise, dama pare pe unul deschis. Ăsta e testul care se face din ochi: pe o
+diagonală, culoarea pătratului nu se schimbă niciodată.
+
+**2. Turnul plutește.** Talpa lui e prea sus în pătrat, așa că pare agățat
+deasupra lui. Trebuie coborât spre marginea de jos a pătratului, cu umbra de
+contact pe pătrat, nu sub el.
+
+**3. Romburile sunt tăiate.** Cele patru de pe laturile ramei ies din imagine și
+se văd pe jumătate. Trebuie întregi, toate patru.
+
+**Unde se dă:** în aceeași conversație în care a ieșit plăcuța. Imaginea e deja
+acolo, nu trebuie atașată nimic.
+
+```text
+This is a correction to the tile you just made, not a new image. It is nearly right and almost everything must stay exactly as it is.
+
+KEEP EVERYTHING EXACTLY AS IT IS:
+- the flat chessboard background, its pattern, its colours and its warm glow;
+- the ornamental gold frame, its double line and its four corner pieces;
+- the gold queen, the dark see-through king and the dark rook, at their present sizes, in their present metals, with the same modelling and the same lighting;
+- the king's transparency — the golden ray burning inside his dark smoked-glass body — and his tilt;
+- the single unbroken golden ray running in one straight line from the queen, through the king, to the rook.
+
+THREE THINGS TO FIX, and nothing else:
+
+1. THE QUEEN IS NOT STANDING ON HER SQUARE. All three pieces stand on one diagonal, so all three of their squares are THE SAME COLOUR. The king and the rook are standing on dark squares, but the queen looks as if she were standing on a light one. Move the queen onto the dark square — the one of the same colour as the king's and the rook's squares — so her base sits fully inside it, centred left to right, not straddling the line between two squares. She keeps her present size, pose and metal, and she stays on the same diagonal as the other two: three squares below the king, down and to the left.
+
+2. THE ROOK IS FLOATING. Its base sits too high inside its square, so it looks as if it were hovering above the board. Move the rook DOWN, keeping it on the same square, until its foot rests on the lower part of that square, close to the square's bottom edge — exactly the way the queen's foot rests on hers. Its contact shadow must fall on the square itself, tucked under its base. It must read as standing on the board, not above it. The ray still ends on the rook's base and stays one single straight unbroken line from the queen to it.
+
+3. THE DIAMONDS ARE BEING CUT. The ornamental frame has one small gold diamond centred on each of its four sides. In this image they are sliced by the edge of the picture and only half of each shows. Draw all four COMPLETE — whole four-pointed diamonds, entirely inside the picture, each one moved inwards far enough that no part of it is cropped. All four the same size and the same gold as the frame.
+
+Nothing else changes: not the composition, not the colours, not the lighting, not the ray, not the king.
+
+Keep the same square size, at least 1024x1024.
+```
+
+**Verificare**
+
+1. **Toate trei pe pătrate de aceeași culoare?** Ăsta e testul: pe o diagonală
+   culoarea nu se schimbă. Dacă dama e tot pe deschis, cere: *„all three pieces
+   stand on squares of the same colour"*.
+2. **Turnul atinge pătratul?** Talpa jos în pătrat, umbra pe pătrat. Dacă tot
+   plutește, cere: *„move the rook down until its foot touches the bottom edge
+   of its square"*.
+3. **Cele patru romburi sunt întregi?** Sus, jos, stânga, dreapta — niciunul
+   ciuntit de marginea imaginii.
+4. **Raza a rămas o singură linie dreaptă?** După coborârea turnului trebuie să
+   ajungă tot la talpa lui, nefrântă.
+5. **Restul e neatins?** Regele transparent și înclinat, dama aurie, aceeași
+   ramă, același fundal.
+
+---
+
+## Promptul original
+
+*Păstrat pentru referință — corecția de sus e cea care se folosește acum.*
+
 **Atașează la mesaj DOUĂ imagini, în ordinea asta:**
 1. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
    — fundalul plat, rama, raza aurie și cele două metale, toate de acolo;

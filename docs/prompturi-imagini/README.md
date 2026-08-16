@@ -46,6 +46,17 @@ Metafora se ia, pe cât se poate, din descrierea pe care o are deja tactica în
 [`src/data/tactics.ts`](../../src/data/tactics.ts). Acolo sunt scrise în cuvinte
 simple, iar textul ăla e deja aprobat.
 
+## Rama: romburile se taie mereu
+
+Rama are câte un romb mic pe fiecare din cele patru laturi. ChatGPT le pune
+prea aproape de margine și le ciuntește — se vede pe jumătate din ele chiar și
+în `Atac prin descoperire.png`, care e altfel referința bună.
+
+De aceea în fiecare prompt nou se cere explicit:
+
+> *one small gold diamond centred on each of the four sides, each one drawn
+> COMPLETE and entirely inside the picture, none of them cropped by the edge*
+
 ## Codul culorilor: alb și negru
 
 **Piesele nu sunt toate aurii.** Albele sunt aurii-deschis, negrele sunt închise
