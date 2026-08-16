@@ -2,7 +2,79 @@
 
 **Scena:** dama albă zace la picioarele regelui negru. Turnul și nebunul negru —
 apărătorii lui — sunt aruncați în lături, unul la stânga, unul la dreapta.
-Regele rămâne singur, descoperit.
+
+> **Starea:** scena e exact cum trebuie, iar piesele negre au ieșit foarte bine.
+> Rămâne de corectat **dama**: a ieșit fildeș mat, în loc de aurul cald al seriei.
+
+---
+
+## Corecție — aurul damei
+
+Partea luminată a damei măsoară `#FDE4A4`, cu saturația **0,35**. Aurul bun, din
+`Atac prin descoperire.png`, stă la **0,73–0,99**. Aceeași abatere ca la
+furculiță, și din aceeași cauză: paleta pe care o scrisesem cerea fildeș.
+
+Aici e o singură piesă de reparat, dar contează mai mult decât oriunde: dama e
+**sacrificiul**, adică subiectul plăcuței. Dacă arată din alt material decât
+restul seriei, plăcuța iese din familie tocmai prin lucrul cel mai important
+din ea.
+
+Piesele negre nu se ating. Au ieșit exact cum trebuie — bronz închis, cu conturul
+cald pe muchii.
+
+**Atașează la mesaj DOUĂ imagini:**
+1. [`Sacrificii.png`](../../surse-imagini/tactici/Sacrificii.png) — cea de corectat;
+2. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
+   — modelul de aur.
+
+```text
+Here are two images you made earlier. The first is the sacrifice tile, which needs one correction. The second is the discovered-attack tile, which is the correct look — use its metal as the model.
+
+In the FIRST image, the light chess piece — the QUEEN lying flat across the bottom, at the black king's feet — came out the wrong material. She is pale matte cream, almost ivory. She should be RICH WARM GOLD, exactly like the bishop and the pawn in the SECOND image.
+
+Recolour only that queen, so that her metal matches the light pieces in the second image:
+- lit surfaces around #FFD86A rising to #FCCB43 on the brightest edges;
+- mid-tones around #E7AD3E;
+- shadowed sides going deep, down to #8C4A01 and #5A340A in the darkest folds.
+
+THE RANGE IS THE POINT. The problem is not only that she is too pale, it is that her shadows are almost as light as her highlights, which makes her look like matte plastic. Real gold needs a wide gap between light and dark: bright, almost white-hot highlights along the edges facing the light, and deep warm brown shadows under her collars, between the points of her coronet, and along her whole shaded underside where she lies against the ground. Give her strong specular highlights and clear reflected warmth, exactly as the bishop in the second image has.
+
+She must still be the brightest object in the tile — the eye should go to her first.
+
+DO NOT CHANGE ANYTHING ELSE:
+- the three dark pieces — the standing king in the centre, the rook falling to the left and the bishop falling to the right — stay exactly as they are: same near-black bronze, same warm rim light on their edges. They came out correctly and must not be touched;
+- the ornamental gold frame, its corner pieces and its four diamonds;
+- the brown chessboard background, its pattern and the warm glow;
+- the composition: the position, size, angle and shape of all four pieces;
+- the lighting direction, the highlights on the dark pieces, and all the drop shadows;
+- the square format and the framing.
+
+This is a recolour of one object in an existing image, not a new illustration. If anything moves, resizes or changes shape, it is wrong.
+
+Keep the same square size, at least 1024x1024.
+```
+
+---
+
+**Salvează ca:** peste poza actuală.
+
+**Verificare**
+
+1. **Pune-le una lângă alta cu `Atac prin descoperire.png`.** Dama trebuie să
+   pară din același metal ca nebunul de acolo. Dacă e mai palidă, cere: *„make
+   her richer and deeper, match the bishop in the second image"*.
+2. **Are umbre adânci?** Sub gulere, între vârfurile coroanei, pe partea cu care
+   stă lipită de pământ. Fără ele rămâne plată, oricât de aurie ar fi.
+3. **Rămâne cel mai luminos lucru din imagine?** Ea e sacrificiul; ochiul trebuie
+   să meargă întâi la ea.
+4. **Cele trei piese negre sunt neatinse?** Regele drept, turnul și nebunul
+   căzând spre exterior, în aceleași poziții.
+
+---
+
+## Promptul original
+
+*Păstrat pentru referință — corecția de sus e cea care se folosește acum.*
 
 Ea a plătit; el a rămas gol. Amândouă se văd în aceeași imagine, și de-aia merge:
 sacrificiul se înțelege numai dacă se vede ce a cumpărat.
