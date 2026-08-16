@@ -72,11 +72,21 @@ desprinsă, umbra căzută dedesubt, corpul tras spre magnet.
 De-asta merge: dacă toate trei ar pluti, ridicarea nu s-ar vedea. Ridicarea
 înseamnă ceva doar când celelalte stau pe loc.
 
-**Atașează la mesaj DOUĂ imagini, în ordinea asta:**
-1. **plăcuța cu magnet primită acum** — aia se corectează. Rama, fundalul,
-   metalele, magnetul și modelarea pieselor sunt deja bune;
-2. [`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
-   — de acolo se ia fundalul plat, dacă cel din prima s-a pierdut pe drum.
+## Unde se dă promptul
+
+**În aceeași conversație în care a ieșit plăcuța cu magnet.** Acolo imaginea e
+deja în discuție — nu trebuie atașată, nu trebuie descărcată, nu trebuie
+salvată. Dai promptul ca mesaj nou și „the FIRST image" e chiar ea, ultima
+generată.
+
+Doar a doua imagine se atașează:
+[`Atac prin descoperire.png`](../../surse-imagini/tactici/Atac%20prin%20descoperire.png)
+— de acolo se ia fundalul plat, dacă cel din prima s-a pierdut pe drum.
+
+Dacă totuși conversația s-a închis, descarcă plăcuța cu magnet din ea (butonul
+de descărcare de sub imagine), pune-o în
+[`surse-imagini/tactici/`](../../surse-imagini/tactici/) și atașeaz-o prima,
+înaintea celei de descoperire.
 
 ---
 
