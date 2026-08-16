@@ -127,5 +127,5 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 | 10 | `zwischenzug.png` | Mutarea intermediară | [10-mutarea-intermediara.md](10-mutarea-intermediara.md) |
 | 11 | `sacrifice.png` | Sacrificii | [11-sacrificii.md](11-sacrificii.md) |
 | 12 | `subscribers.png` | Combinații complete | [12-combinatii.md](12-combinatii.md) |
-| 13 | `hybrid.png` | Tactici hibride | — |
+| 13 | `hybrid.png` | Tactici hibride | [13-hibride.md](13-hibride.md) |
 | 14 | `mixed-bonus.png` | Tactici mixte bonus | — |
