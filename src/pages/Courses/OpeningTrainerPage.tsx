@@ -333,7 +333,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // Pagina umple ecranul: antetul rămâne sus, iar tabla primeşte toată înălţimea
     // rămasă. Înainte, un `max-w-4xl` plafona totul la 896px şi tabla lua 2/3 din
     // atât — pe un ecran lat rezulta o tablă mică într-o mare de negru.
-    <div className="flex flex-col gap-4" style={{ height: 'var(--app-page-h)' }}>
+    <div className="flex flex-col gap-4 lg:h-[var(--app-page-h)]">
       {/* Back */}
       <Link
         to={`/courses/${slug}`}
@@ -388,11 +388,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
-        {/* Tabla — pătrată, dimensionată din înălţimea rămasă şi centrată.
-            `aspect-square h-full` îi dă lăţimea din înălţime; `max-w-full` o
-            împiedică să depăşească pe ecrane mai înguste decât înalte. */}
+        {/* Tabla — pătrată şi centrată, dar dimensionată din altceva după ecran.
+            Pe lat, din înălţime (`lg:h-full`): pagina e blocată la înălţimea
+            ecranului şi tabla ia tot ce rămâne pe verticală.
+            Pe telefon, din lăţime (`w-full`): acolo panourile stau sub tablă, nu
+            lângă ea, deci înălţimea rămasă e mică — luată din ea, tabla ieşea de
+            127px, cu pătrate de 16px pe care nu poţi juca (măsurat). Tot de-aia
+            înălţimea fixă a paginii e şi ea doar de la `lg` în sus: pe telefon
+            pagina se derulează, în loc să înghesuie totul într-un ecran. */}
         <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
-          <div className="aspect-square h-full max-h-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A]">
+          <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
             <Chessboard
               options={{
                 position: state.game.fen(),

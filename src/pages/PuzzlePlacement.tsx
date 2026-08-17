@@ -154,7 +154,7 @@ export function PuzzlePlacement() {
   // ---- UI ----
   if (!puzzles) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-full bg-[#0A0A0A] flex flex-col items-center justify-center gap-3">
         <Spinner className="h-7 w-7" />
         <p className="text-[#A0A0A0] text-sm">Pregătim testul de plasament...</p>
       </div>
@@ -163,7 +163,7 @@ export function PuzzlePlacement() {
 
   if (submitting || idx >= puzzles.length) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-full bg-[#0A0A0A] flex flex-col items-center justify-center gap-3">
         <Spinner className="h-7 w-7" />
         <p className="text-[#A0A0A0] text-sm">Îți calculăm rating-ul...</p>
       </div>
@@ -173,18 +173,18 @@ export function PuzzlePlacement() {
   const pct = Math.round((idx / total) * 100)
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-full bg-[#0A0A0A] flex flex-col items-center justify-center px-2 py-3 sm:px-4 sm:py-8">
       <div className="w-full max-w-3xl">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1">Pentru început, hai să-ți aflăm nivelul</h1>
+        <div className="mb-4 text-center sm:mb-6">
+          <h1 className="mb-1 text-xl font-bold text-[#F0F0F0] sm:text-2xl">Pentru început, hai să-ți aflăm nivelul</h1>
           <p className="text-[#A0A0A0] text-sm">
             Puzzle-ul {idx + 1} din {total} — devin progresiv mai grele. Găsește cea mai bună mutare.
           </p>
         </div>
 
-        <Progress value={pct} className="mb-6 h-2" />
+        <Progress value={pct} className="mb-4 h-2 sm:mb-6" />
 
-        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
+        <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-3 sm:p-5">
           <div className="flex items-center justify-between mb-3 text-sm">
             <span className="text-[#A0A0A0]">
               Joci cu{' '}

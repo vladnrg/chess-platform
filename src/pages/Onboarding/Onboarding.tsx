@@ -142,7 +142,7 @@ export function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] px-2 py-6 sm:px-4 sm:py-12">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -162,7 +162,7 @@ export function Onboarding() {
         <Progress value={pct} className="mb-8 h-2" />
 
         {/* Question */}
-        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
+        <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-3 sm:p-6">
           {current?.type === 'tactics' && tacticsState && (
             <TacticsQuestion
               question={current}

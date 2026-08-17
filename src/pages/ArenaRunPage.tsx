@@ -309,7 +309,7 @@ export function ArenaRunPage() {
   const roundDone = phase === 'runda-gata' && results.length > idx
 
   return (
-    <div className="flex flex-col gap-4" style={{ height: 'var(--app-page-h)' }}>
+    <div className="flex flex-col gap-4 lg:h-[var(--app-page-h)]">
       {/* Antet: ceas, rundă, scor */}
       <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -347,7 +347,7 @@ export function ArenaRunPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
         {/* Tabla */}
         <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
-          <div className="aspect-square h-full max-h-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A]">
+          <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
             {round ? (
               <Chessboard
                 options={{
