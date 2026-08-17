@@ -49,11 +49,15 @@ export function AppLayout() {
                 : 'var(--app-max)',
             padding: 'var(--app-pad)',
             gap: 'var(--app-gap)',
-            // Mărirea unei pagini întregi (vezi `pageZoomFor`). Stă pe acest
-            // container, nu pe pagină, ca să prindă şi titlul — altfel „Bârlogul
-            // şahistului" ar fi rămas singurul rând mic din ecran.
-            zoom,
           }}
+          // Mărirea unei pagini întregi (vezi `pageZoomFor`). Stă pe acest
+          // container, nu pe pagină, ca să prindă şi titlul — altfel „Bârlogul
+          // şahistului" ar fi rămas singurul rând mic din ecran.
+          //
+          // Atribut, nu stil inline: mărirea se aplică din CSS şi numai de la
+          // 1024px în sus. Pe telefon, un zoom de 1.25 însemna o pagină aşezată
+          // ca pe 307px din 390 disponibili.
+          data-zoom={zoom > 1 ? 'marit' : undefined}
         >
           {/* Fără titlu de pagină şi fără mesaje de întâmpinare. Numele paginii
               se vede deja în bara de sus, iar un salut sau o vorbă de duh nu

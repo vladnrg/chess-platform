@@ -120,6 +120,20 @@
   :root {
     --app-pad: 1rem;
     --app-gap: 1rem;
+
+    /* Fără mărire pe telefon. Bara are 358px utili la 390px lăţime, iar cu
+       conţinutul mărit cu 25% logoul şi grupul din dreapta cereau 381px —
+       ieşeau 7px din ecran, pe fiecare pagină. Măsurat, nu presupus. */
+    --app-header-zoom: 1;
+  }
+}
+
+/* Paginile „mărite" (vezi `pageZoomFor`) se măresc doar de la 1024px în sus.
+   Pe un ecran de 390px, zoom-ul de 1.25 făcea pagina să se aşeze ca pe 307px:
+   tot ce era înăuntru se strângea cu un sfert, degeaba. */
+@media (min-width: 1024px) {
+  [data-zoom='marit'] {
+    zoom: 1.25;
   }
 }
 
