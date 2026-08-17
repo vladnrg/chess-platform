@@ -78,7 +78,7 @@ export function PricingPage() {
     <div className="min-h-screen bg-[#0A0A0A] px-6 py-16">
       <div className="mx-auto max-w-5xl">
         <div className="mb-4">
-          <Link to="/" className="flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
+          <Link to="/" className="-ml-1 inline-flex items-center gap-1.5 px-1 py-2.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <ArrowLeft className="h-4 w-4" /> Înapoi
           </Link>
         </div>

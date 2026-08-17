@@ -54,7 +54,7 @@ export function ResourcesPage() {
       <div className="mx-auto max-w-3xl space-y-10">
         {/* Header */}
         <div>
-          <Link to="/tactics" className="inline-flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors mb-4">
+          <Link to="/tactics" className="-ml-1 mb-4 inline-flex items-center gap-1.5 px-1 py-2.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <ArrowLeft className="h-4 w-4" /> Înapoi la Cufărul de tactici
           </Link>
           <div className="flex items-center gap-3">
@@ -76,7 +76,7 @@ export function ResourcesPage() {
               <a
                 key={s.id}
                 href={`#${s.id}`}
-                className="rounded-full border border-[#2A2A2A] px-3 py-1 text-sm text-[#A0A0A0] hover:border-[#E2B340] hover:text-[#E2B340] transition-colors"
+                className="inline-flex items-center rounded-full border border-[#2A2A2A] px-3 py-2 text-sm text-[#A0A0A0] transition-colors hover:border-[#E2B340] hover:text-[#E2B340]"
               >
                 {i + 1}. {s.label}
               </a>

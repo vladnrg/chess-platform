@@ -97,11 +97,14 @@ export function Landing() {
             <span className="font-bold text-[#F0F0F0] text-lg">CleanChess</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
+            <Link to="/login" className="flex items-center px-2 py-2.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors">
               Conectare
             </Link>
             <Link to="/register">
-              <Button size="sm">Fă prima mutare</Button>
+              <Button size="sm">
+                <span className="sm:hidden">Începe</span>
+                <span className="max-sm:hidden">Fă prima mutare</span>
+              </Button>
             </Link>
           </div>
         </div>
@@ -114,7 +117,7 @@ export function Landing() {
             <span>Fă prima mutare</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </Link>
-          <h1 className="text-5xl md:text-6xl font-bold text-[#F0F0F0] leading-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#F0F0F0] leading-tight mb-6">
             Mulți doar joacă șah.<br />
             Alții fac din șah o artă.<br />
             <span className="text-[#E2B340]">Arată-ți măiestria în universul celor 64 de pătrate.</span>
@@ -246,10 +249,10 @@ export function Landing() {
       <footer className="border-t border-[#141414] px-6 py-8 text-center text-sm text-[#6B6B6B]">
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© 2026 CleanChess. Toate drepturile rezervate.</span>
-          <div className="flex gap-6">
-            <Link to="/terms" className="hover:text-[#A0A0A0]">Termeni</Link>
-            <Link to="/privacy" className="hover:text-[#A0A0A0]">Confidențialitate</Link>
-            <Link to="/pricing" className="hover:text-[#A0A0A0]">Prețuri</Link>
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-1">
+            <Link to="/terms" className="py-2.5 hover:text-[#A0A0A0]">Termeni</Link>
+            <Link to="/privacy" className="py-2.5 hover:text-[#A0A0A0]">Confidențialitate</Link>
+            <Link to="/pricing" className="py-2.5 hover:text-[#A0A0A0]">Prețuri</Link>
           </div>
         </div>
       </footer>

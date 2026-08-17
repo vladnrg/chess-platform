@@ -30,7 +30,7 @@ export function NotationGuide() {
     <div className="min-h-screen bg-[#0A0A0A] text-[#F0F0F0] px-4 py-10">
       <div className="mx-auto max-w-2xl space-y-8">
         <div>
-          <Link to="/tactics" className="inline-flex items-center gap-1.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors mb-4">
+          <Link to="/tactics" className="-ml-1 mb-4 inline-flex items-center gap-1.5 px-1 py-2.5 text-sm text-[#6B6B6B] hover:text-[#F0F0F0] transition-colors">
             <ArrowLeft className="h-4 w-4" /> Înapoi la Cufărul de tactici
           </Link>
           <h1 className="text-3xl font-bold">Ghid de notație algebrică</h1>

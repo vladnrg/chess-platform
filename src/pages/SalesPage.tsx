@@ -177,11 +177,14 @@ export function SalesPage() {
             <span className="text-lg font-bold text-[#F0F0F0]">CleanChess</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm text-[#A0A0A0] transition-colors hover:text-[#F0F0F0]">
+            <Link to="/login" className="flex items-center px-2 py-2.5 text-sm text-[#A0A0A0] transition-colors hover:text-[#F0F0F0]">
               Conectare
             </Link>
             <Link to="/register">
-              <Button size="sm">Începe gratis</Button>
+              <Button size="sm">
+                <span className="sm:hidden">Începe</span>
+                <span className="max-sm:hidden">Începe gratis</span>
+              </Button>
             </Link>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-40 cursor-pointer',
+  'inline-flex items-center justify-center gap-2 text-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-40 cursor-pointer',
   {
     variants: {
       variant: {
@@ -14,12 +14,20 @@ const buttonVariants = cva(
         danger: 'bg-danger text-[#0A0A0A] hover:brightness-110',
         outline: 'border border-accent text-accent hover:bg-accent-dim',
       },
+      // `min-h`, nu `h`: cu înălţime fixă, o etichetă care se rupe pe două
+      // rânduri ieşea din casetă pe telefon („Fă prima mutare"). Am încercat
+      // întâi `whitespace-nowrap`, dar aia mută problema în depăşire pe
+      // orizontală — pagina se derulează lateral, ceea ce e mai rău. Aşa,
+      // butonul creşte în înălţime şi nimic nu iese din ecran.
+      //
+      // Sub 640px mărimile mici urcă la cel puţin 40px: un deget nu nimereşte
+      // o ţintă de 32px. Pe ecran lat rămâne exact designul de dinainte.
       size: {
-        sm: 'h-8 px-3 text-sm rounded-lg',
-        md: 'h-10 px-4 text-sm rounded-xl',
-        lg: 'h-12 px-6 text-base rounded-full',
-        xl: 'h-14 px-8 text-lg rounded-full',
-        icon: 'h-9 w-9 rounded-xl',
+        sm: 'min-h-8 max-sm:min-h-10 px-3 max-sm:px-4 py-1 text-sm rounded-lg',
+        md: 'min-h-10 px-4 py-1.5 text-sm rounded-xl',
+        lg: 'min-h-12 px-6 py-2 text-base rounded-full',
+        xl: 'min-h-14 px-8 py-2.5 text-lg rounded-full',
+        icon: 'h-9 w-9 max-sm:h-11 max-sm:w-11 rounded-xl',
       },
     },
     defaultVariants: {
