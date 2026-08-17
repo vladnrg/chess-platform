@@ -7,7 +7,7 @@ import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES, type TacticCategory } from '@/data/tactics'
 import { TACTIC_TIERS, type TacticTier, pickPathIds, categoryInTier } from '@/lib/tactics-path'
-import { tacticVisual, tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
+import { tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { TacticTile } from '@/components/chess/TacticTile'
 
@@ -304,6 +304,21 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
   const scrollRef = useRef<HTMLDivElement>(null)
   const scroll = (dir: number) => scrollRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' })
 
+  // Când tacticile încap toate în fereastră nu e nimic de derulat, deci nici
+  // săgeţile şi nici linia de deasupra lor n-au ce căuta acolo. Se măsoară, nu
+  // se ghiceşte din numărul de carduri: acelaşi număr încape sau nu, după cât
+  // de lat e ecranul.
+  const [poateDerula, setPoateDerula] = useState(false)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const masoara = () => setPoateDerula(el.scrollWidth > el.clientWidth + 1)
+    masoara()
+    const ro = new ResizeObserver(masoara)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [cards.length])
+
   // Escape închide, iar pagina de dedesubt nu mai derulează cât e fereastra
   // deschisă. Scroll-ul nu e pe `body`, ci pe `<main>` — vezi AppLayout.
   useEffect(() => {
@@ -373,30 +388,38 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
 
         {/* Corpul: săgețile și caruselul */}
         <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
-            <div className="ml-4 flex flex-shrink-0 gap-1.5">
-              {[-1, 1].map(dir => (
-                <button
-                  key={dir}
-                  onClick={() => scroll(dir)}
-                  aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
-                >
-                  {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
-              ))}
+          {poateDerula && (
+            <div className="mb-3 flex items-center justify-between">
+              <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${color}66, transparent)` }} />
+              <div className="ml-4 flex flex-shrink-0 gap-1.5">
+                {[-1, 1].map(dir => (
+                  <button
+                    key={dir}
+                    onClick={() => scroll(dir)}
+                    aria-label={dir < 0 ? 'Înapoi' : 'Înainte'}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
+                  >
+                    {dir < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Două rânduri care derulează împreună, nu unul singur: fereastra e
               lată acum, iar un singur rând ar lăsa jumătate din ea goală. Cu
               grid pe coloane, săgeţile duc tot orizontal, deci rămân utile.
               Sub şapte tactici trece pe un rând, ca să nu iasă o coloană
-              singuratică lângă un gol. */}
+              singuratică lângă un gol.
+
+              Coloanele sunt `minmax(...,1fr)`, nu lăţime fixă: cu lăţime fixă,
+              cinci carduri de 16rem cereau 1344px pe 1229 disponibili, deci
+              ultimul rămânea tăiat de marginea ferestrei degeaba. Aşa, când
+              încap, se întind până în capăt; când nu încap, se opresc la minim
+              şi carusélul îşi face treaba. */}
           <div
             ref={scrollRef}
-            className={`grid ${cards.length > 6 ? 'grid-rows-2' : 'grid-rows-1'} auto-cols-[15rem] grid-flow-col gap-4 overflow-x-auto pb-2 snap-x scroll-smooth sm:auto-cols-[16rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+            className={`grid ${cards.length > 6 ? 'grid-rows-2' : 'grid-rows-1'} auto-cols-[minmax(13rem,1fr)] grid-flow-col gap-4 overflow-x-auto pb-2 snap-x scroll-smooth sm:auto-cols-[minmax(14rem,1fr)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
           >
             {cards.map(({ cat, total, solvedCount }, i) => (
               <div
@@ -435,7 +458,13 @@ function TacticCard({ category, total, solvedCount, locked, onClick }: {
   locked: boolean
   onClick: () => void
 }) {
-  const { color } = tacticVisual(category.id)
+  // Un singur accent pentru toate cardurile: galbenul aplicaţiei.
+  //
+  // Fiecare tactică avea culoarea ei (teal, violet, coral, oţel...), iar
+  // paisprezece accente diferite pe un ecran nu spuneau nimic — doar trăgeau
+  // ochiul în paisprezece direcţii. Culoarea rămâne informaţie doar unde chiar
+  // înseamnă ceva: verde când traseul e gata.
+  const color = '#E2B340'
   const pct = total > 0 ? Math.round((solvedCount / total) * 100) : 0
   const done = pct === 100
 
