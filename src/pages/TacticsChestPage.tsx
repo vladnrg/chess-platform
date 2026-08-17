@@ -109,7 +109,10 @@ export function TacticsChestPage() {
           <p className="text-sm text-[#A0A0A0]">
             Găsește mutarea cea mai potrivită în poziții variate, pe diverse grade de dificultate.
           </p>
-          <div className="mt-5 flex flex-wrap justify-center gap-6">
+          {/* Trei cifre: pe telefon intră două pe rând, deci a treia rămânea
+              singură şi dezechilibra antetul. În grilă, ultima se întinde pe
+              toată lăţimea şi arată intenţionat. */}
+          <div className="mt-5 grid grid-cols-2 justify-items-center gap-x-4 gap-y-5 sm:flex sm:flex-wrap sm:justify-center sm:gap-6 [&>*:last-child:nth-child(odd)]:col-span-2">
             <HeroStat
               icon={Dumbbell}
               bifa
@@ -134,7 +137,10 @@ export function TacticsChestPage() {
           materialelor — lemn, argint, aur, smarald. Eticheta, numărătoarea şi
           tacticile apar abia după ce deschizi unul, ca să nu se reverse tot
           conţinutul din prima. */}
-      <div className="flex flex-wrap items-end justify-center gap-2 sm:gap-6">
+      {/* 2×2 pe telefon, un rând pe ecran lat. Cu `flex-wrap`, patru cufere de
+          112px pe un ecran de 390 se rupeau 3+1 — un rând plin şi unul cu un
+          singur cufăr rătăcit sub el. */}
+      <div className="grid grid-cols-2 place-items-center gap-x-2 gap-y-5 sm:flex sm:flex-wrap sm:items-end sm:justify-center sm:gap-6">
         {tierData.map(({ tier, cards }) => cards.length > 0 && (
           <ChestButton
             key={tier.id}
@@ -179,7 +185,7 @@ function ChestButton({ tier, open, onClick }: { tier: TacticTier; open: boolean;
       title={`${tier.label} · ELO ${tier.floor}–${tier.ceil}`}
       aria-label={`${tier.label}, ELO ${tier.floor}–${tier.ceil}`}
       aria-expanded={open}
-      className="group flex w-28 flex-col items-center gap-2 rounded-2xl p-1 transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 sm:w-48"
+      className="group flex w-full max-w-[9.5rem] flex-col items-center gap-2 rounded-2xl p-1 transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 sm:w-48 sm:max-w-none"
       style={{ outlineColor: color }}
     >
       <span

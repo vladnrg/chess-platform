@@ -804,8 +804,13 @@ export function PuzzlesPage() {
       {/* Provocările zilei, cu rating-ul pe acelaşi rând.
           Stăteau pe rânduri separate şi împingeau tabla sub marginea ecranului;
           caseta de rating e oricum mai înaltă decât titlul, deci alăturarea lor
-          nu costă niciun pixel în plus. */}
-      <div>
+          nu costă niciun pixel în plus.
+
+          Pe telefon, cât rezolvi o provocare, blocul se ascunde cu totul:
+          măsurat, tabla începea la 440px de sus şi rămâneau 289px sub marginea
+          ecranului, deci butoanele de sub ea cereau derulare. Întoarcerea la
+          listă o face oricum „Înapoi la provocări", chiar sub el. */}
+      <div className={mode === 'daily' ? 'max-sm:hidden' : undefined}>
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="text-base font-bold text-[#F0F0F0] uppercase tracking-wider">Provocările zilei</h2>
 
