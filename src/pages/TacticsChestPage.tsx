@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES, type TacticCategory } from '@/data/tactics'
-import { TACTIC_TIERS, type TacticTier, pickPathIds } from '@/lib/tactics-path'
+import { TACTIC_TIERS, type TacticTier, pickPathIds, categoryInTier } from '@/lib/tactics-path'
 import { tacticVisual, tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { TacticTile } from '@/components/chess/TacticTile'
@@ -33,11 +33,27 @@ export function TacticsChestPage() {
   const { user, profile } = useAuth()
 
   // Index ușor (id + rating + teme) — o singură interogare pentru toate traseele.
+  //
+  // Cerut pe pagini, nu dintr-o dată: PostgREST întoarce cel mult 1000 de rânduri
+  // şi nu spune nicăieri că a tăiat restul. Cu 1298 de puzzle-uri în bancă,
+  // pagina primea 1000, iar tacticile ale căror puzzle-uri cădeau în coadă
+  // arătau „0/2 rezolvate" în loc de „0/20" — traseul părea gol, deşi era plin.
   const { data: rows } = useQuery({
     queryKey: ['tactics-index'],
     queryFn: async () => {
-      const { data } = await supabase.from('puzzles').select('id, rating, themes')
-      return (data ?? []) as PuzzleIndexRow[]
+      const PAGINA = 1000
+      const tot: PuzzleIndexRow[] = []
+      for (let deLa = 0; ; deLa += PAGINA) {
+        const { data, error } = await supabase
+          .from('puzzles')
+          .select('id, rating, themes')
+          .order('id')
+          .range(deLa, deLa + PAGINA - 1)
+        if (error || !data?.length) break
+        tot.push(...(data as PuzzleIndexRow[]))
+        if (data.length < PAGINA) break
+      }
+      return tot
     },
   })
 
@@ -63,6 +79,8 @@ export function TacticsChestPage() {
   const tierData = useMemo(() => {
     return TACTIC_TIERS.map(tier => {
       const cards: CardData[] = TACTIC_CATEGORIES
+        // Fiecare cufăr arată doar tacticile de la nivelul lui în sus.
+        .filter(cat => categoryInTier(cat, tier))
         .map(cat => {
           const ids = pickPathIds(puzzles, cat, tier)
           return { cat, total: ids.length, solvedCount: ids.filter(id => solved.has(id)).length }

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES } from '@/data/tactics'
-import { TACTIC_TIERS, pickPath } from '@/lib/tactics-path'
+import { TACTIC_TIERS, pickPath, categoryInTier } from '@/lib/tactics-path'
 import { tacticVisual, tierColor } from '@/lib/tactic-visuals'
 import { TacticTile } from '@/components/chess/TacticTile'
 import { PuzzleModal } from '@/components/chess/PuzzleModal'
@@ -24,8 +24,12 @@ export function TacticsCategoryPage() {
   // Indexul nodului deschis în modal (null = închis)
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
-  const category = TACTIC_CATEGORIES.find(c => c.id === categoryId)
+  const gasita = TACTIC_CATEGORIES.find(c => c.id === categoryId)
   const tier = TACTIC_TIERS.find(t => t.id === tierId)
+  // Perechile sub pragul categoriei nu există: un link vechi către
+  // /tactics/sacrifice/incepator trebuie să cadă pe „traseul nu a fost găsit",
+  // nu să deschidă un traseu care nu mai e în niciun cufăr.
+  const category = gasita && tier && categoryInTier(gasita, tier) ? gasita : undefined
   const locked = !!category?.isPro && !isPro
 
   // Traseul fix: puzzle-urile categoriei din intervalul nivelului, sortate după id → primele TACTIC_PATH_SIZE.

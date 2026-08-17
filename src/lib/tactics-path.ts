@@ -23,6 +23,20 @@ export const TACTIC_TIERS: TacticTier[] = [
 
 export const TACTIC_PATH_SIZE = 20
 
+/**
+ * Apare tactica în cufărul ăsta?
+ *
+ * Fiecare categorie are un prag (`minTier`) — primul cufăr în care se arată.
+ * Peste el se arată în toate: o furculiţă rămâne furculiţă şi la 2400, doar că
+ * e ascunsă mai adânc în poziţie. Tăierea se face doar la bază, unde un
+ * sacrificiu sau o combinaţie n-au ce căuta.
+ */
+export function categoryInTier(category: TacticCategory, tier: TacticTier): boolean {
+  const prag = TACTIC_TIERS.findIndex(t => t.id === category.minTier)
+  const acum = TACTIC_TIERS.findIndex(t => t.id === tier.id)
+  return prag >= 0 && acum >= prag
+}
+
 // Minimul necesar pentru selecție/progres (Puzzle complet îl satisface implicit)
 interface PuzzleLike {
   id: string

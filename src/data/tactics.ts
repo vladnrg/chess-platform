@@ -5,6 +5,17 @@ export interface TacticCategory {
   lichessThemes: string[]
   isPro: boolean
   coverFen: string
+  /**
+   * Primul cufăr în care apare tactica. Peste el apare în toate.
+   *
+   * Nu toate tacticile au ce căuta la începător: un sacrificiu cere să vezi trei
+   * mutări înainte şi să accepţi că pierzi material pe moment — n-ai ce face cu
+   * el înainte să recunoşti o furculiţă. Ordinea de aici e cea în care se învaţă
+   * la şah, nu una alfabetică sau după câte puzzle-uri există.
+   *
+   * Vezi `TACTIC_TIERS` din `src/lib/tactics-path.ts` pentru cele patru trepte.
+   */
+  minTier: 'incepator' | 'intermediar' | 'avansat'
 }
 
 export const TACTIC_CATEGORIES: TacticCategory[] = [
@@ -15,6 +26,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['fork'],
     isPro: false,
     coverFen: '4k3/3q1r2/8/4N3/8/8/8/4K3 w - - 0 1',
+    minTier: 'incepator',
   },
   {
     id: 'pin',
@@ -23,6 +35,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['pin'],
     isPro: false,
     coverFen: '4k3/8/2n5/1B6/8/8/8/4K3 w - - 0 1',
+    minTier: 'incepator',
   },
   {
     id: 'discovered',
@@ -31,6 +44,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['discoveredAttack', 'doubleCheck'],
     isPro: false,
     coverFen: '1q2k3/8/8/8/8/1B6/8/1R2K3 w - - 0 1',
+    minTier: 'incepator',
   },
   {
     id: 'attraction',
@@ -39,6 +53,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['attraction', 'deflection'],
     isPro: true,
     coverFen: '3k4/3q4/8/8/8/8/3Q4/3K4 w - - 0 1',
+    minTier: 'intermediar',
   },
   {
     id: 'remove-defender',
@@ -47,6 +62,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['capturingDefender'],
     isPro: true,
     coverFen: '5k2/5ppp/8/8/8/5N2/5PPP/5RK1 w - - 0 1',
+    minTier: 'intermediar',
   },
   {
     id: 'skewer',
@@ -55,6 +71,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['skewer', 'xRayAttack'],
     isPro: true,
     coverFen: '4k3/4r3/8/8/8/8/8/4R3 w - - 0 1',
+    minTier: 'incepator',
   },
   {
     id: 'trapped',
@@ -63,6 +80,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['trappedPiece'],
     isPro: true,
     coverFen: '8/8/5k2/6p1/5Bp1/8/8/5K2 b - - 0 1',
+    minTier: 'intermediar',
   },
   {
     id: 'mate',
@@ -71,6 +89,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['mateIn1', 'mateIn2', 'mateIn3', 'smotheredMate', 'backRankMate'],
     isPro: true,
     coverFen: '6rk/6pp/8/8/8/8/8/4R1K1 w - - 0 1',
+    minTier: 'incepator',
   },
   {
     id: 'forced-draws',
@@ -79,6 +98,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['defensiveMove'],
     isPro: true,
     coverFen: '6k1/5ppp/8/8/8/8/8/4Q1K1 w - - 0 1',
+    minTier: 'avansat',
   },
   {
     id: 'zwischenzug',
@@ -87,6 +107,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['intermezzo', 'interference'],
     isPro: true,
     coverFen: 'r1bqk2r/ppp2ppp/2n2n2/3pp3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 7',
+    minTier: 'avansat',
   },
   {
     id: 'sacrifice',
@@ -95,6 +116,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     lichessThemes: ['sacrifice'],
     isPro: true,
     coverFen: 'r1bqk2r/pp2bppp/2np1n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w kq - 0 9',
+    minTier: 'avansat',
   },
   {
     id: 'subscribers',
@@ -111,5 +133,6 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     ],
     isPro: true,
     coverFen: '8/8/8/3k4/3P4/3K4/8/8 w - - 0 1',
+    minTier: 'avansat',
   },
 ]
