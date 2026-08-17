@@ -437,6 +437,7 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
                   category={cat}
                   total={total}
                   solvedCount={solvedCount}
+                  culoareTreapta={color}
                   locked={cat.isPro && !isPro}
                   onClick={() => navigate(cat.isPro && !isPro ? '/pricing' : `/tactics/${cat.id}/${tier.id}`)}
                 />
@@ -451,19 +452,21 @@ function TacticsModal({ tier, cards, isPro, onClose }: {
 
 
 // Cardul unui tip de tactică: ICON + CULOARE proprie + progres Duolingo.
-function TacticCard({ category, total, solvedCount, locked, onClick }: {
+function TacticCard({ category, total, solvedCount, culoareTreapta, locked, onClick }: {
   category: TacticCategory
   total: number
   solvedCount: number
+  /** Culoarea materialului din care e cufărul: lemn, argint, aur, smarald. */
+  culoareTreapta: string
   locked: boolean
   onClick: () => void
 }) {
-  // Un singur accent pentru toate cardurile: galbenul aplicaţiei.
+  // Două culori, fiecare cu rolul ei — nu paisprezece, câte una per tactică.
   //
-  // Fiecare tactică avea culoarea ei (teal, violet, coral, oţel...), iar
-  // paisprezece accente diferite pe un ecran nu spuneau nimic — doar trăgeau
-  // ochiul în paisprezece direcţii. Culoarea rămâne informaţie doar unde chiar
-  // înseamnă ceva: verde când traseul e gata.
+  // `color` e galbenul aplicaţiei: îndemnul la acţiune, „Începe →".
+  // `culoareTreapta` e materialul cufărului — lemn, argint, aur, smarald — şi
+  // ţine progresul: cât ai făcut în cufărul ăsta se vede în culoarea lui.
+  // Verdele rămâne doar pentru traseele terminate.
   const color = '#E2B340'
   const pct = total > 0 ? Math.round((solvedCount / total) * 100) : 0
   const done = pct === 100
@@ -501,7 +504,7 @@ function TacticCard({ category, total, solvedCount, locked, onClick }: {
               done ? (
                 <span className="font-semibold text-[#4ade80]">✓ Complet</span>
               ) : solvedCount > 0 ? (
-                <span className="font-semibold" style={{ color }}>{pct}%</span>
+                <span className="font-semibold" style={{ color: culoareTreapta }}>{pct}%</span>
               ) : (
                 <span className="flex items-center gap-0.5 font-semibold" style={{ color }}>
                   Începe <ArrowRight className="h-3 w-3" />
@@ -512,7 +515,7 @@ function TacticCard({ category, total, solvedCount, locked, onClick }: {
           <div className="h-1.5 rounded-full bg-[#1C1C1C] overflow-hidden">
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${locked ? 0 : pct}%`, backgroundColor: done ? '#4ade80' : color }}
+              style={{ width: `${locked ? 0 : pct}%`, backgroundColor: done ? '#4ade80' : culoareTreapta }}
             />
           </div>
         </div>
