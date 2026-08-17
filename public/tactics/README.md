@@ -21,8 +21,9 @@ Se randează la 128px pe ecran lat și 64px pe mobil, cu `object-contain`.
 ## Plăcuțele tacticilor — în `tipuri/`
 
 Apar pe cardul fiecărei tactici (în fereastra care se deschide la click pe cufăr)
-și în capul paginii de traseu. Numele fișierului **trebuie** să fie exact id-ul
-categoriei din [`src/data/tactics.ts`](../../src/data/tactics.ts):
+și în capul paginii de traseu. **Fiecare categorie are plăcuța ei** — dacă
+adaugi una nouă, adaug-o și aici. Numele fișierului **trebuie** să fie exact
+id-ul categoriei din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 
 | Fișier                  | Tactica                       |
 | ----------------------- | ----------------------------- |
@@ -38,8 +39,6 @@ categoriei din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 | `zwischenzug.png`       | Mutarea intermediară          |
 | `sacrifice.png`         | Sacrificiu                    |
 | `subscribers.png`       | Combinații de tactici         |
-| *(lipsă)*               | Tactici hibride               |
-| *(lipsă)*               | Tactici mixte bonus           |
 
 Pătrate 256×256, cu rama aurie a seriei mergând până la muchie. Se randează la
 96px pe card și 64px în antetul traseului.

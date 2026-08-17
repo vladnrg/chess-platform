@@ -126,17 +126,22 @@ fiecare prompt cere siluetă groasă și zero detalii fine.
 
 | # | Fișier imagine | Tactica | Prompt |
 | --- | --- | --- | --- |
-| 1 | `fork.png` | Furculiță și atac dublu | [01-furculita.md](01-furculita.md) |
+| 1 | `fork.png` | Furculița | [01-furculita.md](01-furculita.md) |
 | 2 | `pin.png` | Legarea absolută și relativă | [02-legarea.md](02-legarea.md) |
-| 3 | `discovered.png` | Atac prin descoperire și șah dublu | [03-descoperire.md](03-descoperire.md) |
+| 3 | `discovered.png` | Atac prin descoperire | [03-descoperire.md](03-descoperire.md) |
 | 4 | `attraction.png` | Atragerea și devierea | [04-atragerea.md](04-atragerea.md) |
-| 5 | `remove-defender.png` | Îndepărtarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
-| 6 | `skewer.png` | Țeapă și atacul cu raze X | [06-teapa.md](06-teapa.md) |
+| 5 | `remove-defender.png` | Eliminarea apărătorului | [05-indepartarea-aparatorului.md](05-indepartarea-aparatorului.md) |
+| 6 | `skewer.png` | Atacul cu raze X | [06-teapa.md](06-teapa.md) |
 | 7 | `trapped.png` | Prinderea piesei | [07-prinderea-piesei.md](07-prinderea-piesei.md) |
-| 8 | `mate.png` | Dă mat în N mutări | [08-mat.md](08-mat.md) |
+| 8 | `mate.png` | Mat în N mutări | [08-mat.md](08-mat.md) |
 | 9 | `forced-draws.png` | Resurse defensive | [09-resurse-defensive.md](09-resurse-defensive.md) |
 | 10 | `zwischenzug.png` | Mutarea intermediară | [10-mutarea-intermediara.md](10-mutarea-intermediara.md) |
-| 11 | `sacrifice.png` | Sacrificii | [11-sacrificii.md](11-sacrificii.md) |
-| 12 | `subscribers.png` | Combinații complete | [12-combinatii.md](12-combinatii.md) |
-| 13 | `hybrid.png` | Tactici hibride | [13-hibride.md](13-hibride.md) |
-| 14 | `mixed-bonus.png` | Tactici mixte bonus | — |
+| 11 | `sacrifice.png` | Sacrificiu | [11-sacrificii.md](11-sacrificii.md) |
+| 12 | `subscribers.png` | Combinații de tactici | [12-combinatii.md](12-combinatii.md) |
+
+**Toate douăsprezece au plăcuța lor.** Seria e completă.
+
+Categoriile 13 și 14 — *Tactici hibride* și *Tactici mixte bonus* — au fost
+scoase din aplicație; conținutul lor a intrat în *Combinații de tactici*.
+[13-hibride.md](13-hibride.md) rămâne pentru cele patru încercări pe care le-a
+luat plăcuța aia și pentru regulile ieșite din ele.

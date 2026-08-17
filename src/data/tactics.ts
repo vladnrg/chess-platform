@@ -99,25 +99,17 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   {
     id: 'subscribers',
     title: 'Combinații de tactici',
-    description: 'Mai multe tactici înlănțuite într-o singură partidă — nivelul „wow". Mai greu de calculat, dar finalul e spectaculos și rapid.',
-    lichessThemes: ['clearance', 'quietMove', 'zugzwang'],
+    // Aici s-au strâns şi „Tactici hibride" şi „Tactici mixte bonus": caseta
+    // ţine acum şi combinaţiile înlănţuite, şi poziţiile fără temă anunţată.
+    // De-aia temele ei sunt largi — e singura categorie care nu-ţi spune
+    // dinainte ce cauţi.
+    description: 'Mai multe tactici înlănțuite într-o singură partidă, plus poziții din mijloc de joc și finaluri fără temă anunțată. Tu descoperi lovitura — exact ca într-o partidă adevărată.',
+    lichessThemes: [
+      'clearance', 'quietMove', 'zugzwang',
+      'middlegame', 'endgame', 'exposedKing',
+      'crushing', 'equality', 'advantage',
+    ],
     isPro: true,
     coverFen: '8/8/8/3k4/3P4/3K4/8/8 w - - 0 1',
-  },
-  {
-    id: 'hybrid',
-    title: 'Tactici hibride',
-    description: 'Combinații în care mai multe teme se suprapun, din mijloc de joc și finaluri. Aici se vede cine doar memorează și cine chiar gândește.',
-    lichessThemes: ['middlegame', 'endgame', 'exposedKing'],
-    isPro: true,
-    coverFen: 'r1bqr1k1/pp3pbp/2np1np1/3Np3/2B1P3/2N1BP2/PPP3PP/R2Q1RK1 w - - 0 12',
-  },
-  {
-    id: 'mixed-bonus',
-    title: 'Tactici mixte bonus',
-    description: 'Poziții de top alese din partide reale de mare nivel, fără temă anunțată. Tu descoperi lovitura — exact ca într-o partidă adevărată.',
-    lichessThemes: ['crushing', 'equality', 'advantage'],
-    isPro: true,
-    coverFen: 'r2qk2r/pb1nbppp/1p2pn2/2pp4/3P4/2PBP3/PP1N1PPP/R1BQK2R w KQkq - 0 9',
   },
 ]

@@ -26,9 +26,9 @@ const THEMES_MAP: Record<string, string[]> = {
   'forced-draws': ['perpetualCheck', 'stalemate'],
   zwischenzug:    ['zwischenzug', 'interference'],
   sacrifice:      ['sacrifice'],
-  subscribers:    ['clearance', 'quietMove', 'zugzwang', 'coercion'],
-  hybrid:         ['middlegame', 'endgame', 'exposedKing'],
-  'mixed-bonus':  ['crushing', 'equality', 'advantage'],
+  subscribers:    ['clearance', 'quietMove', 'zugzwang',
+                   'middlegame', 'endgame', 'exposedKing',
+                   'crushing', 'equality', 'advantage'],
 }
 
 const TARGET_PER_THEME = 150

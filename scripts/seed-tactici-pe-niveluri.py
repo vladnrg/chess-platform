@@ -36,9 +36,9 @@ CATEGORIES = [
     ("forced-draws", ["defensiveMove"]),
     ("zwischenzug", ["intermezzo", "interference"]),
     ("sacrifice", ["sacrifice"]),
-    ("subscribers", ["clearance", "quietMove", "zugzwang"]),
-    ("hybrid", ["middlegame", "endgame", "exposedKing"]),
-    ("mixed-bonus", ["crushing", "equality", "advantage"]),
+    ("subscribers", ["clearance", "quietMove", "zugzwang",
+                     "middlegame", "endgame", "exposedKing",
+                     "crushing", "equality", "advantage"]),
 ]
 
 TARGET = 26              # cerinţa e „măcar 20"; 26 lasă marjă

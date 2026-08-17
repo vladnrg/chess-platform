@@ -5,10 +5,10 @@ import { tacticVisual } from '@/lib/tactic-visuals'
 /**
  * Plăcuţa desenată a unei tactici, cu iconiţa ca rezervă.
  *
- * Douăsprezece din cele paisprezece categorii au imaginea lor în
- * `public/tactics/tipuri/<id>.png`; ultimele două încă nu. De aceea randarea
- * trebuie să meargă în ambele feluri, iar `onError` acoperă pe deasupra şi
- * cazul unui fişier care nu ajunge în build — nu rămâne niciodată un pătrat gol.
+ * Toate categoriile au acum imaginea lor în `public/tactics/tipuri/<id>.png`.
+ * Iconiţa lucide rămâne totuşi ca rezervă: `onError` acoperă cazul unui fişier
+ * care nu ajunge în build sau al unei categorii adăugate fără plăcuţă — nu
+ * rămâne niciodată un pătrat gol.
  */
 export function TacticTile({ id, size, iconSize }: {
   id: string

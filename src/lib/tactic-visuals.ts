@@ -4,7 +4,7 @@
 
 import {
   GitFork, Pin, Zap, Magnet, Axe, ArrowLeftRight, Lock, Crown, Shield,
-  Shuffle, Flame, Layers, Combine, Sparkles, Target,
+  Shuffle, Flame, Layers, Target,
   Sprout, Swords,
   type LucideIcon,
 } from 'lucide-react'
@@ -27,8 +27,6 @@ export const TACTIC_VISUALS: Record<string, TacticVisual> = {
   zwischenzug:       { icon: Shuffle,        color: '#A78BFA' }, // light violet
   sacrifice:         { icon: Flame,          color: '#FB7185' }, // coral
   subscribers:       { icon: Layers,         color: '#2DD4BF' }, // teal
-  hybrid:            { icon: Combine,        color: '#818CF8' }, // indigo
-  'mixed-bonus':     { icon: Sparkles,       color: '#E2B340' }, // amber
 }
 
 const FALLBACK: TacticVisual = { icon: Target, color: '#E2B340' }

@@ -1,5 +1,14 @@
 # 13. Tactici hibride → `hybrid.png`
 
+> **Categoria a fost scoasă din aplicație.** „Tactici hibride" și „Tactici mixte
+> bonus" nu mai apar în Cuferele cu tactici; temele lor au intrat în
+> [Combinații de tactici](12-combinatii.md), care e acum singura casetă fără
+> temă anunțată. Plăcuța nu se mai generează.
+>
+> Fișierul rămâne fiindcă cele patru încercări de mai jos sunt de ținut minte —
+> din a doua a ieșit regula „obiectele se țin de piesa lor" din
+> [README](README.md#obiectele-se-țin-de-piesa-lor).
+
 Descrierea din [`src/data/tactics.ts`](../../src/data/tactics.ts):
 
 > Combinații în care **mai multe teme se suprapun**, din mijloc de joc și
