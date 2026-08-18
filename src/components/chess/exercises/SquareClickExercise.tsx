@@ -35,8 +35,6 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[#A0A0A0] leading-relaxed">{exercise.instruction}</p>
-
       <div className="rounded-xl overflow-hidden border border-[#2A2A2A] select-none">
         <Chessboard
           options={{

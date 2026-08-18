@@ -46,8 +46,6 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#A0A0A0] leading-relaxed">{exercise.instruction}</p>
-
       {exercise.fen && (
         <div className="rounded-xl overflow-hidden border border-[#2A2A2A] pointer-events-none select-none max-w-xs">
           <Chessboard

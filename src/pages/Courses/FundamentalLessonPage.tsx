@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Target } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
@@ -27,6 +27,9 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
   const exercises: Exercise[] = lesson.exercises ?? []
   const [exerciseIndex, setExerciseIndex] = useState(0)
   const [allDone, setAllDone] = useState(exercises.length === 0)
+  // Cel mai departe ajuns. „Înapoi" merge oriunde ai fost deja; „înainte" doar
+  // până aici, ca să nu se sară peste un exerciţiu nerezolvat.
+  const [maxAtins, setMaxAtins] = useState(0)
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -69,7 +72,10 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
 
   function handleExerciseCorrect() {
     if (exerciseIndex < exercises.length - 1) {
-      setExerciseIndex(i => i + 1)
+      setExerciseIndex(i => {
+        setMaxAtins(m => Math.max(m, i + 1))
+        return i + 1
+      })
     } else {
       setAllDone(true)
     }
@@ -95,12 +101,26 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
       <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 space-y-3">
         <h1 className="text-xl font-bold text-[#F0F0F0]">{lesson.title}</h1>
 
-        {/* Teorie */}
-        {lesson.theory_html && (
+        {/* Teoria e scrisă pentru începutul lecţiei, nu pentru fiecare pas: la
+            „Tabla şi setup-ul" explică notaţia pătratelor, ceea ce ajută la
+            primul exerciţiu (apasă e4) şi nu mai spune nimic la al doilea.
+            De aceea rămâne doar cât timp eşti la primul, iar de acolo încolo îi
+            ia locul cerinţa exerciţiului curent. */}
+        {lesson.theory_html && exerciseIndex === 0 && !allDone && (
           <div
             className="prose prose-sm prose-invert max-w-none text-[#A0A0A0] leading-relaxed"
             dangerouslySetInnerHTML={{ __html: lesson.theory_html }}
           />
+        )}
+
+        {/* Ce ai de făcut ACUM, sus, mare şi colorat.
+            Stătea sub numărul exerciţiului, scrisă mic şi gri — adică exact
+            lucrul de care are omul nevoie era cel mai greu de găsit din pagină. */}
+        {!allDone && currentExercise && (
+          <p className="flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]">
+            <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
+            {currentExercise.instruction}
+          </p>
         )}
 
         {/* Progress exerciții */}
@@ -118,10 +138,38 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
       {/* Exercițiu curent */}
       {!allDone && currentExercise && (
         <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-medium text-[#E2B340] bg-[rgba(226,179,64,0.15)] rounded-full px-3 py-1">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <span className="rounded-full bg-[rgba(226,179,64,0.15)] px-3 py-1 text-xs font-medium text-[#E2B340]">
               Exercițiu {exerciseIndex + 1} din {exercises.length}
             </span>
+
+            {/* Înapoi la un exerciţiu deja făcut, şi înapoi de unde ai venit.
+                Până acum se putea doar înainte, deci cine voia să recitească
+                prima poziţie trebuia să reîncarce toată lecţia. */}
+            {exercises.length > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
+                  disabled={exerciseIndex === 0}
+                  aria-label="Exercițiul anterior"
+                  title="Exercițiul anterior"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExerciseIndex(i => Math.min(maxAtins, i + 1))}
+                  disabled={exerciseIndex >= maxAtins}
+                  aria-label="Exercițiul următor"
+                  title="Exercițiul următor"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* `key={exerciseIndex}` NU e decorativ, e reparaţia unui blocaj.
