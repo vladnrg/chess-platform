@@ -24,3 +24,19 @@ Node să poată importa direct din `src/` fără bundler.
 - harta punctelor slabe, pe încercări simulate din aceeaşi bandă de dificultate;
 - repetiţia la interval: pragurile de 3 / 10 / 30 de zile;
 - tema zilei: stabilă în aceeaşi zi, alta mâine, şi XP-ul dublu.
+
+## Ce acoperă `exercitii-lectii.mjs`
+
+```
+node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/exercitii-lectii.mjs
+```
+
+Ia fiecare exerciţiu de mutat piesa din baza reală şi îi face mutarea declarată
+corectă. Trece doar dacă mutarea e acceptată **şi** piesa chiar ajunge unde
+trebuie — altfel „a mers" n-ar însemna nimic. Verificarea îşi citeşte tabla
+singură din şirul FEN, cu totul altfel decât `mutare-pe-tabla.ts`, ca să nu
+confirme aceeaşi greşeală de două ori.
+
+A apărut după ce „mută tura de la a1 la h1" răspundea „Nu e mutarea potrivită"
+la a1→h1: `chess.js` refuză poziţiile fără cei doi regi, iar tablele din lecţii
+au pe ele doar piesa despre care e lecţia. Erau 14 exerciţii blocate din 21.

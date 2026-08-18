@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
-import { Chess } from 'chess.js'
 import type { MovePieceExerciseData } from '@/types'
+import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
 import { RamaTablei } from './rama-tablei'
 import { CULORI_TABLA } from './culori-tabla'
 
@@ -24,24 +24,21 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
     const expectedFrom = exercise.correct_move.slice(0, 2)
     const expectedTo = exercise.correct_move.slice(2, 4)
+    // „e7e8q" — ultima literă spune în ce se transformă pionul
+    const promovare = exercise.correct_move.slice(4) || 'q'
 
     if (sourceSquare === expectedFrom && targetSquare === expectedTo) {
-      try {
-        const g = new Chess(exercise.fen)
-        const result = g.move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
-        if (result) {
-          setFen(g.fen())
-          setStatus('correct')
-          setHighlight({
-            [sourceSquare]: { background: 'rgba(74, 222, 128, 0.35)' },
-            [targetSquare]: { background: 'rgba(74, 222, 128, 0.5)' },
-          })
-          setTimeout(() => onCorrect(), 700)
-          return true
-        }
-      } catch {
-        // invalid position
-      }
+      // Lecţia şi-a declarat mutarea aşteptată, iar ea e cea făcută: răspunsul e
+      // bun, indiferent ce iese mai jos. Dacă poziţia de după nu poate fi
+      // calculată, rămâne tabla dinainte — nu se transformă într-un „ai greşit".
+      setFen(aplicaMutarea(exercise.fen, sourceSquare, targetSquare, promovare) ?? exercise.fen)
+      setStatus('correct')
+      setHighlight({
+        [sourceSquare]: { background: 'rgba(74, 222, 128, 0.35)' },
+        [targetSquare]: { background: 'rgba(74, 222, 128, 0.5)' },
+      })
+      setTimeout(() => onCorrect(), 700)
+      return true
     }
 
     setStatus('wrong')
