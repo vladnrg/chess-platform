@@ -124,20 +124,33 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
             </span>
           </div>
 
+          {/* `key={exerciseIndex}` NU e decorativ, e reparaţia unui blocaj.
+              Fiecare exerciţiu îşi ţine starea la el (rezolvat / greşit / pătrate
+              colorate, iar la „mută piesa" chiar poziţia de pe tablă). Fără key,
+              React refoloseşte aceeaşi componentă când se schimbă exerciţiul,
+              deci starea veche rămâne: `status` era încă 'correct', iar prima
+              linie din handler e `if (status === 'correct') return` — adică
+              tabla nu mai răspundea deloc la clicuri. Se vedea la „Tabla şi
+              setup-ul": după e4, întrebarea trecea la d5, dar e4 rămânea verde,
+              „Corect! Super!" rămânea pe ecran şi nu se mai putea da click.
+              Cu key, componenta se remontează şi porneşte curată. */}
           {currentExercise.type === 'click_square' && (
             <SquareClickExerciseComponent
+              key={exerciseIndex}
               exercise={currentExercise}
               onCorrect={handleExerciseCorrect}
             />
           )}
           {currentExercise.type === 'move_piece' && (
             <MovePieceExerciseComponent
+              key={exerciseIndex}
               exercise={currentExercise}
               onCorrect={handleExerciseCorrect}
             />
           )}
           {currentExercise.type === 'identify_square' && (
             <IdentifyNotationExerciseComponent
+              key={exerciseIndex}
               exercise={currentExercise}
               onCorrect={handleExerciseCorrect}
             />
