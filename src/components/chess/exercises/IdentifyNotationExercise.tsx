@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { IdentifySquareExercise } from '@/types'
+import { RamaTablei } from './rama-tablei'
+import { CULORI_TABLA } from './culori-tabla'
 
 interface Props {
   exercise: IdentifySquareExercise
@@ -47,18 +49,17 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
   return (
     <div className="space-y-4">
       {exercise.fen && (
-        <div className="rounded-xl overflow-hidden border border-[#2A2A2A] pointer-events-none select-none max-w-xs">
+        <RamaTablei inerta>
           <Chessboard
             options={{
               position: exercise.fen,
               allowDragging: false,
               squareStyles: highlight,
               boardStyle: { borderRadius: 0 },
-              darkSquareStyle: { backgroundColor: '#3A3A3A' },
-              lightSquareStyle: { backgroundColor: '#f0d9b5' },
+              ...CULORI_TABLA,
             }}
           />
-        </div>
+        </RamaTablei>
       )}
 
       <div className="grid grid-cols-2 gap-2">

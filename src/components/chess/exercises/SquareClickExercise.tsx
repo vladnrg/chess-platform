@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { ClickSquareExercise } from '@/types'
+import { RamaTablei } from './rama-tablei'
+import { CULORI_TABLA } from './culori-tabla'
 
 interface Props {
   exercise: ClickSquareExercise
@@ -35,7 +37,7 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl overflow-hidden border border-[#2A2A2A] select-none">
+      <RamaTablei>
         <Chessboard
           options={{
             position: exercise.fen,
@@ -43,11 +45,10 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
             onSquareClick: handleSquareClick,
             squareStyles: highlighted,
             boardStyle: { borderRadius: 0, cursor: 'pointer' },
-            darkSquareStyle: { backgroundColor: '#3A3A3A' },
-            lightSquareStyle: { backgroundColor: '#f0d9b5' },
+            ...CULORI_TABLA,
           }}
         />
-      </div>
+      </RamaTablei>
 
       {status === 'correct' && (
         <p className="text-sm font-medium text-[#4ade80]">Corect! Super!</p>

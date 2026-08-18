@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import type { MovePieceExerciseData } from '@/types'
+import { RamaTablei } from './rama-tablei'
+import { CULORI_TABLA } from './culori-tabla'
 
 interface Props {
   exercise: MovePieceExerciseData
@@ -57,7 +59,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
+      <RamaTablei>
         <Chessboard
           options={{
             position: fen,
@@ -65,11 +67,10 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
             onPieceDrop: onDrop,
             squareStyles: highlight,
             boardStyle: { borderRadius: 0 },
-            darkSquareStyle: { backgroundColor: '#3A3A3A' },
-            lightSquareStyle: { backgroundColor: '#f0d9b5' },
+            ...CULORI_TABLA,
           }}
         />
-      </div>
+      </RamaTablei>
 
       {status === 'correct' && (
         <p className="text-sm font-medium text-[#4ade80]">Mutare corectă!</p>

@@ -42,7 +42,7 @@ export function LessonPage() {
     enabled: !!lessonId,
   })
 
-  const { data: course } = useQuery({
+  const { data: course, isLoading: cursulSeIncarca } = useQuery({
     queryKey: ['course', slug],
     queryFn: async () => {
       const { data, error } = await supabase.from('courses').select('*').eq('slug', slug!).single()
@@ -121,14 +121,23 @@ export function LessonPage() {
   const prevLesson = myIdx > 0 ? siblings?.[myIdx - 1] : null
   const nextLesson = myIdx >= 0 && myIdx < (siblings?.length ?? 0) - 1 ? siblings?.[myIdx + 1] : null
 
-  if (isLoading) return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
+  // Se aşteaptă AMÂNDOUĂ interogările. `isLoading` e doar al lecţiei, iar cursul
+  // vine din altă cerere: intrând direct pe adresa unei lecţii, lecţia sosea
+  // prima, se randa pagina cu `course` încă `undefined`, iar `course!` de mai jos
+  // doar păcălea TypeScript-ul — pagina cădea albă, cu „Cannot read properties of
+  // undefined (reading 'slug')". Din pagina cursului nu se vedea, fiindcă acolo
+  // cursul era deja în cache.
+  if (isLoading || cursulSeIncarca) {
+    return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
+  }
   if (!lesson) return <p className="text-[#6B6B6B]">Lecția nu a fost găsită.</p>
+  if (!course) return <p className="text-[#6B6B6B]">Cursul nu a fost găsit.</p>
 
   if (lesson.lesson_type === 'rules' || lesson.lesson_type === 'notation') {
     return (
       <FundamentalLessonPage
         lesson={lesson}
-        course={course!}
+        course={course}
         prevLesson={prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null}
         nextLesson={nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null}
       />
