@@ -32,9 +32,57 @@ export const TACTIC_PATH_SIZE = 20
  * sacrificiu sau o combinaţie n-au ce căuta.
  */
 export function categoryInTier(category: TacticCategory, tier: TacticTier): boolean {
-  const prag = TACTIC_TIERS.findIndex(t => t.id === category.minTier)
+  const jos = TACTIC_TIERS.findIndex(t => t.id === category.minTier)
+  const sus = category.maxTier ? TACTIC_TIERS.findIndex(t => t.id === category.maxTier) : TACTIC_TIERS.length - 1
   const acum = TACTIC_TIERS.findIndex(t => t.id === tier.id)
-  return prag >= 0 && acum >= prag
+  return jos >= 0 && acum >= jos && acum <= sus
+}
+
+/** Câte poziţii are proba unui cufăr. */
+export const TRIAL_SIZE = 10
+
+/**
+ * Cele zece poziţii ale probei, luate pe rând din fiecare temă a cufărului.
+ *
+ * Nu se ia „primele zece după id" ca la trasee: aşa ar ieşi zece furculiţe şi
+ * proba n-ar mai însemna nimic. Se merge în cerc prin temele cufărului şi se ia
+ * câte una din fiecare, până se strâng zece — deci o probă atinge cât mai multe
+ * teme diferite, care e chiar rostul ei.
+ *
+ * Alegerea rămâne fixă (sortare după id, fără aleatoriu), ca progresul să se
+ * poată deduce din `user_puzzle_attempts`, exact ca la trasee.
+ */
+export function pickTrial<T extends PuzzleLike>(
+  puzzles: T[],
+  categories: TacticCategory[],
+  tier: TacticTier,
+  size: number = TRIAL_SIZE,
+): T[] {
+  // Temele arătate în cufărul ăsta. La master nu se mai arată niciuna — acolo
+  // proba se întinde peste toate, ceea ce e chiar rostul cufărului de sus.
+  const aleCufarului = categories.filter(c => !c.fel && categoryInTier(c, tier))
+  const teme = aleCufarului.length > 0 ? aleCufarului : categories.filter(c => !c.fel)
+  if (teme.length === 0) return []
+  const cozi = teme.map(cat =>
+    puzzles
+      .filter(p => p.rating >= tier.floor && p.rating < tier.ceil && matchesCategory(p.themes, cat))
+      .sort(byId),
+  )
+  const alese: T[] = []
+  const vazute = new Set<string>()
+  for (let rand = 0; alese.length < size && rand < 60; rand++) {
+    let sAdaugat = false
+    for (const coada of cozi) {
+      const p = coada[rand]
+      if (!p || vazute.has(p.id)) continue
+      vazute.add(p.id)
+      alese.push(p)
+      sAdaugat = true
+      if (alese.length === size) break
+    }
+    if (!sAdaugat) break
+  }
+  return alese
 }
 
 // Minimul necesar pentru selecție/progres (Puzzle complet îl satisface implicit)

@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES } from '@/data/tactics'
-import { TACTIC_TIERS, pickPath, categoryInTier } from '@/lib/tactics-path'
+import { temaZilei } from '@/lib/tactici-progres'
+import { TACTIC_TIERS, pickPath, pickTrial, categoryInTier } from '@/lib/tactics-path'
 import { tacticVisual, tierColor } from '@/lib/tactic-visuals'
 import { TacticTile } from '@/components/chess/TacticTile'
 import { PuzzleModal } from '@/components/chess/PuzzleModal'
@@ -24,12 +25,18 @@ export function TacticsCategoryPage() {
   // Indexul nodului deschis în modal (null = închis)
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
+  // Seria de rezolvări la rând, din sesiunea curentă. Nu se salvează: e o
+  // măsură de moment („câte ai luat acum, fără să greşeşti"), nu un scor.
+  const [serie, setSerie] = useState(0)
+  const [serieMaxima, setSerieMaxima] = useState(0)
+
   const gasita = TACTIC_CATEGORIES.find(c => c.id === categoryId)
   const tier = TACTIC_TIERS.find(t => t.id === tierId)
   // Perechile sub pragul categoriei nu există: un link vechi către
   // /tactics/sacrifice/incepator trebuie să cadă pe „traseul nu a fost găsit",
   // nu să deschidă un traseu care nu mai e în niciun cufăr.
   const category = gasita && tier && categoryInTier(gasita, tier) ? gasita : undefined
+  const temaDeAzi = temaZilei(TACTIC_CATEGORIES)
   const locked = !!category?.isPro && !isPro
 
   // Traseul fix: puzzle-urile categoriei din intervalul nivelului, sortate după id → primele TACTIC_PATH_SIZE.
@@ -43,7 +50,13 @@ export function TacticsCategoryPage() {
         .overlaps('themes', category.lichessThemes)
         .gte('rating', tier.floor)
         .lt('rating', tier.ceil)
-      return pickPath((data ?? []) as Puzzle[], category, tier)
+        .limit(2000)
+      const toate = (data ?? []) as Puzzle[]
+      // Proba ia zece poziţii pe rând din fiecare temă a cufărului; o temă
+      // obişnuită ia primele douăzeci ale ei.
+      return category.fel === 'proba'
+        ? pickTrial(toate, TACTIC_CATEGORIES, tier)
+        : pickPath(toate, category, tier)
     },
     enabled: !!category && !!tier && !locked,
   })
@@ -143,7 +156,16 @@ export function TacticsCategoryPage() {
         {!locked && total > 0 && (
           <>
             <div className="relative flex justify-between text-xs text-[#6B6B6B] mt-4 mb-1.5">
-              <span>Progres</span>
+              <span className="flex items-center gap-2">
+                Progres
+                {/* Seria din sesiunea curentă. Apare de la două în sus: „1 la rând"
+                    n-ar fi o serie, ar fi doar ultima poziţie. */}
+                {serieMaxima > 1 && (
+                  <span className="font-semibold text-[#4ade80]">
+                    🔥 {serie > 1 ? `${serie} la rând` : `cea mai lungă serie: ${serieMaxima}`}
+                  </span>
+                )}
+              </span>
               <span className={pct === 100 ? 'text-[#4ade80]' : ''} style={pct === 100 ? undefined : { color: catColor }}>
                 {doneCount}/{total} {pct === 100 ? '· ✓ Complet' : `· ${pct}%`}
               </span>
@@ -261,6 +283,26 @@ export function TacticsCategoryPage() {
           key={activeIndex}
           theme={nodeList[activeIndex].themes[0] ?? category.lichessThemes[0]}
           initialPuzzle={nodeList[activeIndex]}
+          // La „Fără temă anunţată" şi la probă nu se spune ce se caută — asta e
+          // tot rostul lor.
+          ascundeTema={category.fel === 'proba' || category.fel === 'mixt'}
+          cuCeas={category.mod === 'cronometru'}
+          xpDublu={temaDeAzi?.id === category.id}
+          serie={serie}
+          onRezultat={reusit => {
+            if (reusit) {
+              setSerie(s => {
+                const nou = s + 1
+                setSerieMaxima(m => Math.max(m, nou))
+                return nou
+              })
+            } else {
+              setSerie(0)
+              // La formatul „Fără greşeală" o ratare rupe seria de la capăt:
+              // te întorci la primul nod, nu continui de unde ai rămas.
+              if (category.mod === 'fara-greseala') setActiveIndex(0)
+            }
+          }}
           onSolved={refreshSolved}
           onNext={() => {
             const next = activeIndex + 1

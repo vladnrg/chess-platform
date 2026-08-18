@@ -4,7 +4,7 @@
 
 import {
   GitFork, Pin, Zap, Magnet, Axe, ArrowLeftRight, Lock, Crown, Shield,
-  Shuffle, Flame, Layers, Target,
+  Shuffle, Flame, Layers, Target, KeyRound, EyeOff, Timer, ShieldCheck,
   Sprout, Swords,
   type LucideIcon,
 } from 'lucide-react'
@@ -27,6 +27,13 @@ export const TACTIC_VISUALS: Record<string, TacticVisual> = {
   zwischenzug:       { icon: Shuffle,        color: '#A78BFA' }, // light violet
   sacrifice:         { icon: Flame,          color: '#FB7185' }, // coral
   subscribers:       { icon: Layers,         color: '#2DD4BF' }, // teal
+
+  // Cartonaşele care nu sunt teme: proba de la capătul fiecărui cufăr şi cele
+  // trei formate de la master. N-au plăcuţă desenată, deci iconiţa chiar se vede.
+  proba:                    { icon: KeyRound,    color: '#E2B340' },
+  'master-mixt':            { icon: EyeOff,      color: '#818CF8' },
+  'master-cronometru':      { icon: Timer,       color: '#FB7185' },
+  'master-fara-greseala':   { icon: ShieldCheck, color: '#4ade80' },
 }
 
 const FALLBACK: TacticVisual = { icon: Target, color: '#E2B340' }

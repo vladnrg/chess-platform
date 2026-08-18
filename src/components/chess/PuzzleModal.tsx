@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { themeLabel, displayThemes } from '@/lib/puzzle-themes'
 import type { Puzzle } from '@/types'
+import { xpPentru } from '@/lib/tactici-progres'
 
 // Obiectivul tacticii, explicat în termeni simpli (comentariu lateral)
 const TACTIC_OBJECTIVES: Record<string, string> = {
@@ -47,7 +48,9 @@ const TACTIC_OBJECTIVES: Record<string, string> = {
   equality: 'Poziția e dificilă — găsește mutarea care îți menține echilibrul.',
 }
 
-function getObjective(theme: string, puzzleThemes: string[]): string {
+/** Ce se cere în poziţie. La probă şi la formate rămâne ascuns dinadins. */
+function getObjective(theme: string, puzzleThemes: string[], ascuns?: boolean): string {
+  if (ascuns) return 'Nu ți se spune ce cauți. Uită-te la poziție și găsește lovitura.'
   if (TACTIC_OBJECTIVES[theme]) return TACTIC_OBJECTIVES[theme]
   const match = puzzleThemes.find(t => TACTIC_OBJECTIVES[t])
   if (match) return TACTIC_OBJECTIVES[match]
@@ -60,11 +63,22 @@ interface Props {
   onClose: () => void
   onSolved?: () => void    // apelat după o rezolvare reușită (ex. pe traseu → actualizează progresul)
   onNext?: () => void      // dacă e dat, „Următor" avansează pe traseu în loc de un puzzle aleatoriu
+  /** Ascunde obiectivul: la probă şi la formatele de master nu se spune ce cauţi. */
+  ascundeTema?: boolean
+  /** Porneşte ceasul: un minut de poziţie, la formatul „Contra cronometru". */
+  cuCeas?: boolean
+  /** Tema zilei — poziţiile ei valorează dublu. */
+  xpDublu?: boolean
+  /** Câte ai luat la rând până acum, ca să se vadă seria în antet. */
+  serie?: number
+  /** Raportează fiecare încercare terminată, ca părintele să ţină seria. */
+  onRezultat?: (reusit: boolean) => void
 }
 
 const FREE_LIMIT = 10
 
-export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }: Props) {
+export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
+  ascundeTema, cuCeas, xpDublu, serie, onRezultat }: Props) {
   const { user, profile, fetchProfile } = useAuth()
   const { isPro } = useSubscription()
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
@@ -137,7 +151,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
         time_seconds: timeSeconds,
       })
       if (solved) {
-        const xp = currentPuzzle.rating < 1000 ? 10 : currentPuzzle.rating < 1500 ? 20 : 30
+        const xp = xpPentru(currentPuzzle.rating, !!xpDublu)
         await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: xp })
         await fetchProfile(user.id)
         setTodayCount(c => c + 1)
@@ -223,6 +237,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
           setPuzzleState(s => s ? { ...s, status: 'wrong' } : null)
           const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
           attemptMutation.mutate({ solved: false, timeSeconds: elapsed })
+          onRezultat?.(false)
           return false
         }
 
@@ -236,8 +251,9 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
         if (isLast) {
           setPuzzleState(s => s ? { ...s, game: gameCopy, status: 'correct', currentMoveIdx: nextIdx } : null)
           const elapsed = Math.round((Date.now() - puzzleState.startTime) / 1000)
-          toast.success('Corect!')
+          toast.success(xpDublu ? 'Corect! XP dublu — tema zilei.' : 'Corect!')
           attemptMutation.mutate({ solved: true, timeSeconds: elapsed })
+          onRezultat?.(true)
           return true
         }
 
@@ -257,7 +273,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
         return false
       }
     },
-    [puzzleState, currentPuzzle, attemptMutation],
+    [puzzleState, currentPuzzle, attemptMutation, onRezultat, xpDublu],
   )
 
   // Mutarea pe care trebuie să o facă jucătorul acum (UCI)
@@ -301,9 +317,39 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
     ? [{ startSquare: expFrom, endSquare: expTo, color: '#E2B340' }]
     : []
 
+  // Ceasul formatului „Contra cronometru": un minut de poziţie.
+  //
+  // Timpul rămas se CALCULEAZĂ din `startTime`, care există deja pe poziţie şi
+  // se schimbă la fiecare puzzle nou — deci nu trebuie repornit nimic cu mâna.
+  // Ceasul doar bate, ca să se re-randeze cifra.
+  const SECUNDE = 60
+  const [acum, setAcum] = useState(() => Date.now())
+  useEffect(() => {
+    if (!cuCeas) return
+    const t = setInterval(() => setAcum(Date.now()), 500)
+    return () => clearInterval(t)
+  }, [cuCeas])
+
+  const ramase = cuCeas && puzzleState
+    ? Math.max(0, SECUNDE - Math.floor((acum - puzzleState.startTime) / 1000))
+    : SECUNDE
+
+  // Când se scurge, poziţia se socoteşte ratată — la fel ca o mutare greşită, ca
+  // să intre şi în harta punctelor slabe, nu doar în seria din antet. `expirat`
+  // ţine minte pentru care poziţie am raportat deja, ca să n-o raportăm de două ori.
+  const expirat = useRef<string | null>(null)
+  useEffect(() => {
+    if (!cuCeas || ramase > 0 || !puzzleState || puzzleState.status !== 'playing') return
+    if (expirat.current === currentPuzzle?.id) return
+    expirat.current = currentPuzzle?.id ?? null
+    setPuzzleState(st => (st ? { ...st, status: 'wrong' } : null))
+    attemptMutation.mutate({ solved: false, timeSeconds: SECUNDE })
+    onRezultat?.(false)
+  }, [cuCeas, ramase, puzzleState, currentPuzzle?.id, attemptMutation, onRezultat])
+
   const limitReached = !isPro && todayCount >= FREE_LIMIT
-  const categoryLabel = themeLabel(theme)
-  const objective = getObjective(theme, currentPuzzle?.themes ?? [])
+  const categoryLabel = ascundeTema ? 'Fără temă anunțată' : themeLabel(theme)
+  const objective = getObjective(theme, currentPuzzle?.themes ?? [], ascundeTema)
 
   return (
     <div
@@ -320,8 +366,17 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext }:
             <h2 className="text-base font-semibold text-[#F0F0F0]">
               {currentPuzzle?.title ?? `Exersează: ${categoryLabel}`}
             </h2>
-            <p className="text-xs text-[#6B6B6B] mt-0.5">
-              {categoryLabel} · {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} puzzle-uri azi`}
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-[#6B6B6B]">
+              <span>{categoryLabel} · {isPro ? 'Nelimitat' : `${todayCount} / ${FREE_LIMIT} puzzle-uri azi`}</span>
+              {cuCeas && (
+                <span className={`font-semibold tabular-nums ${ramase <= 10 ? 'text-[#FB7185]' : 'text-[#E2B340]'}`}>
+                  ⏱ 0:{String(ramase).padStart(2, '0')}
+                </span>
+              )}
+              {!!serie && serie > 1 && (
+                <span className="font-semibold text-[#4ade80]">🔥 {serie} la rând</span>
+              )}
+              {xpDublu && <span className="font-semibold text-[#4ade80]">XP dublu</span>}
             </p>
           </div>
           <button

@@ -15,8 +15,34 @@ export interface TacticCategory {
    *
    * Vezi `TACTIC_TIERS` din `src/lib/tactics-path.ts` pentru cele patru trepte.
    */
-  minTier: 'incepator' | 'intermediar' | 'avansat'
+  minTier: 'incepator' | 'intermediar' | 'avansat' | 'master'
+  /**
+   * Ultimul cufăr în care mai apare. Lipsă = până sus.
+   *
+   * Temele obişnuite se opresc la avansat: la master nu mai primeşti cartonaşe
+   * cu nume, fiindcă diferenţa dintre 1800 şi 2400 nu e că ştii mai multe teme,
+   * ci că le recunoşti fără să ţi le anunţe cineva.
+   */
+  maxTier?: 'incepator' | 'intermediar' | 'avansat' | 'master'
+  /**
+   * Ce fel de cartonaş e. Lipsă = temă obişnuită.
+   *
+   * `proba` — cele zece poziţii amestecate de la capătul fiecărui cufăr.
+   * `mixt`  — formatele de la master: trag din toate temele deodată.
+   */
+  fel?: 'proba' | 'mixt'
+  /** Regula de joc, doar la formatele de la master. */
+  mod?: 'cronometru' | 'fara-greseala'
 }
+
+/** Temele Lichess folosite de cartonaşele care trag din tot (proba, formatele). */
+export const TOATE_TEMELE = [
+  'fork', 'pin', 'discoveredAttack', 'doubleCheck', 'attraction', 'deflection',
+  'capturingDefender', 'skewer', 'xRayAttack', 'trappedPiece',
+  'mateIn1', 'mateIn2', 'mateIn3', 'smotheredMate', 'backRankMate',
+  'defensiveMove', 'intermezzo', 'interference', 'sacrifice',
+  'clearance', 'quietMove', 'zugzwang',
+]
 
 export const TACTIC_CATEGORIES: TacticCategory[] = [
   {
@@ -27,6 +53,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: false,
     coverFen: '4k3/3q1r2/8/4N3/8/8/8/4K3 w - - 0 1',
     minTier: 'incepator',
+    maxTier: 'avansat',
   },
   {
     id: 'pin',
@@ -36,6 +63,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: false,
     coverFen: '4k3/8/2n5/1B6/8/8/8/4K3 w - - 0 1',
     minTier: 'incepator',
+    maxTier: 'avansat',
   },
   {
     id: 'discovered',
@@ -45,6 +73,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: false,
     coverFen: '1q2k3/8/8/8/8/1B6/8/1R2K3 w - - 0 1',
     minTier: 'incepator',
+    maxTier: 'avansat',
   },
   {
     id: 'attraction',
@@ -54,6 +83,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '3k4/3q4/8/8/8/8/3Q4/3K4 w - - 0 1',
     minTier: 'intermediar',
+    maxTier: 'avansat',
   },
   {
     id: 'remove-defender',
@@ -63,6 +93,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '5k2/5ppp/8/8/8/5N2/5PPP/5RK1 w - - 0 1',
     minTier: 'intermediar',
+    maxTier: 'avansat',
   },
   {
     id: 'skewer',
@@ -72,6 +103,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '4k3/4r3/8/8/8/8/8/4R3 w - - 0 1',
     minTier: 'incepator',
+    maxTier: 'avansat',
   },
   {
     id: 'trapped',
@@ -81,6 +113,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '8/8/5k2/6p1/5Bp1/8/8/5K2 b - - 0 1',
     minTier: 'intermediar',
+    maxTier: 'avansat',
   },
   {
     id: 'mate',
@@ -90,6 +123,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '6rk/6pp/8/8/8/8/8/4R1K1 w - - 0 1',
     minTier: 'incepator',
+    maxTier: 'avansat',
   },
   {
     id: 'forced-draws',
@@ -99,6 +133,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '6k1/5ppp/8/8/8/8/8/4Q1K1 w - - 0 1',
     minTier: 'avansat',
+    maxTier: 'avansat',
   },
   {
     id: 'zwischenzug',
@@ -108,6 +143,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: 'r1bqk2r/ppp2ppp/2n2n2/3pp3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 7',
     minTier: 'avansat',
+    maxTier: 'avansat',
   },
   {
     id: 'sacrifice',
@@ -117,6 +153,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: 'r1bqk2r/pp2bppp/2np1n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w kq - 0 9',
     minTier: 'avansat',
+    maxTier: 'avansat',
   },
   {
     id: 'subscribers',
@@ -134,5 +171,51 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
     isPro: true,
     coverFen: '8/8/8/3k4/3P4/3K4/8/8 w - - 0 1',
     minTier: 'avansat',
+    maxTier: 'avansat',
+  },
+  {
+    // Proba stă în fiecare cufăr, la capătul rândului. Zece poziţii din temele
+    // cufărului, amestecate şi fără să ţi se spună ce cauţi — cufărul are
+    // desenată o broască de lacăt, iar asta e cheia.
+    id: 'proba',
+    title: 'Proba cufărului',
+    description: 'Zece poziții din tot ce e în cufărul ăsta, amestecate. Nu ți se spune tema — exact ca într-o partidă. Le iei pe toate, cufărul e al tău.',
+    lichessThemes: TOATE_TEMELE,
+    isPro: false,
+    coverFen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1',
+    minTier: 'incepator',
+    fel: 'proba',
+  },
+  {
+    id: 'master-mixt',
+    title: 'Fără temă anunțată',
+    description: 'Poziții din toate temele, la rând, fără etichetă. Aici nu se mai verifică dacă știi tema, ci dacă o vezi.',
+    lichessThemes: TOATE_TEMELE,
+    isPro: true,
+    coverFen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1',
+    minTier: 'master',
+    fel: 'mixt',
+  },
+  {
+    id: 'master-cronometru',
+    title: 'Contra cronometru',
+    description: 'Aceleași poziții, dar cu ceasul pornit. Ai un minut de fiecare. Tactica pe care o vezi în zece secunde e a ta; restul sunt de învățat.',
+    lichessThemes: TOATE_TEMELE,
+    isPro: true,
+    coverFen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1',
+    minTier: 'master',
+    fel: 'mixt',
+    mod: 'cronometru',
+  },
+  {
+    id: 'master-fara-greseala',
+    title: 'Fără greșeală',
+    description: 'Zece la rând, fără să greșești. O singură ratare și seria se rupe de la capăt. Precizia, nu numărul, e ce se măsoară aici.',
+    lichessThemes: TOATE_TEMELE,
+    isPro: true,
+    coverFen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1',
+    minTier: 'master',
+    fel: 'mixt',
+    mod: 'fara-greseala',
   },
 ]

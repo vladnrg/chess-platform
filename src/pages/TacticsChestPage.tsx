@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Lock, ChevronLeft, ChevronRight, ArrowRight, X, Dumbbell, Check, TrendingUp, Gauge, type LucideIcon } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Lock, ChevronLeft, ChevronRight, ArrowRight, X, Dumbbell, Check, TrendingUp, Gauge, Target, RotateCcw, Flame, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useAuth } from '@/hooks/useAuth'
 import { TACTIC_CATEGORIES, type TacticCategory } from '@/data/tactics'
-import { TACTIC_TIERS, type TacticTier, pickPathIds, categoryInTier } from '@/lib/tactics-path'
+import { TACTIC_TIERS, type TacticTier, pickPathIds, pickTrial, categoryInTier } from '@/lib/tactics-path'
 import { tierColor, TIER_ICONS } from '@/lib/tactic-visuals'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { TacticTile } from '@/components/chess/TacticTile'
+import { niveluriPeTeme, temaSlaba, deRepetat, temaZilei, type Incercare } from '@/lib/tactici-progres'
+import { PuzzleModal } from '@/components/chess/PuzzleModal'
+import type { Puzzle } from '@/types'
 
 interface PuzzleIndexRow {
   id: string
@@ -26,9 +29,11 @@ interface CardData {
 // Valori implicite stabile: `?? []` / `?? new Set()` în corpul componentei ar crea
 // referințe noi la fiecare render și ar anula memoizarea de mai jos.
 const NO_ROWS: PuzzleIndexRow[] = []
-const NO_SOLVED: ReadonlySet<string> = new Set()
+const NO_INCERCARI: Incercare[] = []
 
 export function TacticsChestPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { isPro } = useSubscription()
   const { user, profile } = useAuth()
 
@@ -57,23 +62,46 @@ export function TacticsChestPage() {
     },
   })
 
-  // Puzzle-urile rezolvate de utilizator (o singură interogare pentru tot ansamblul).
-  const { data: solvedIds } = useQuery({
-    queryKey: ['tactics-solved', user?.id],
+  // Toate încercările, nu doar cele reuşite: din ratări ies harta punctelor
+  // slabe şi lista de repetat. Se cer o singură dată, tot pe pagini.
+  const { data: incercariRaw } = useQuery({
+    queryKey: ['tactics-attempts', user?.id],
     queryFn: async () => {
-      if (!user) return new Set<string>()
-      const { data } = await supabase
-        .from('user_puzzle_attempts')
-        .select('puzzle_id')
-        .eq('user_id', user.id)
-        .eq('solved', true)
-      return new Set((data ?? []).map((r: { puzzle_id: string }) => r.puzzle_id))
+      if (!user) return [] as Incercare[]
+      const PAGINA = 1000
+      const tot: Incercare[] = []
+      for (let deLa = 0; ; deLa += PAGINA) {
+        const { data, error } = await supabase
+          .from('user_puzzle_attempts')
+          .select('puzzle_id, solved, attempted_at')
+          .eq('user_id', user.id)
+          .order('attempted_at')
+          .range(deLa, deLa + PAGINA - 1)
+        if (error || !data?.length) break
+        tot.push(...(data as Incercare[]))
+        if (data.length < PAGINA) break
+      }
+      return tot
     },
     enabled: !!user,
   })
 
   const puzzles = rows ?? NO_ROWS
-  const solved: ReadonlySet<string> = solvedIds ?? NO_SOLVED
+  const incercari = incercariRaw ?? NO_INCERCARI
+  const solved: ReadonlySet<string> = useMemo(
+    () => new Set(incercari.filter(i => i.solved).map(i => i.puzzle_id)),
+    [incercari],
+  )
+
+  // Harta punctelor slabe, ce e de repetat azi şi tema zilei — toate din aceleaşi
+  // încercări, fără nicio interogare în plus.
+  const niveluri = useMemo(
+    () => niveluriPeTeme(incercari, puzzles, TACTIC_CATEGORIES),
+    [incercari, puzzles],
+  )
+  const slaba = useMemo(() => temaSlaba(niveluri), [niveluri])
+  const deRepetatAzi = useMemo(() => deRepetat(incercari), [incercari])
+  const temaDeAzi = useMemo(() => temaZilei(TACTIC_CATEGORIES), [])
 
   // Traseele + progresul, calculate o singură dată și partajate cu rândurile și hero-ul.
   const tierData = useMemo(() => {
@@ -82,7 +110,11 @@ export function TacticsChestPage() {
         // Fiecare cufăr arată doar tacticile de la nivelul lui în sus.
         .filter(cat => categoryInTier(cat, tier))
         .map(cat => {
-          const ids = pickPathIds(puzzles, cat, tier)
+          // Proba are zece poziţii luate pe rând din temele cufărului, nu primele
+          // douăzeci ale unei singure teme.
+          const ids = cat.fel === 'proba'
+            ? pickTrial(puzzles, TACTIC_CATEGORIES, tier).map(p => p.id)
+            : pickPathIds(puzzles, cat, tier)
           return { cat, total: ids.length, solvedCount: ids.filter(id => solved.has(id)).length }
         })
         .filter(c => c.total > 0 || (c.cat.isPro && !isPro))
@@ -106,6 +138,31 @@ export function TacticsChestPage() {
   }, [tierData])
 
   const playerElo = profile?.estimated_elo
+
+  // La ce cufăr trimitem pe cineva pentru o temă: cel care-i cuprinde nivelul,
+  // dar nu sub pragul temei — n-are rost să-l trimiţi la un cufăr unde tema nici
+  // nu apare.
+  function cufarulPotrivit(cat: TacticCategory): TacticTier {
+    const dupaElo = TACTIC_TIERS.find(t => (playerElo ?? 600) >= t.floor && (playerElo ?? 600) < t.ceil)
+    const candidat = dupaElo ?? TACTIC_TIERS[0]
+    return categoryInTier(cat, candidat)
+      ? candidat
+      : (TACTIC_TIERS.find(t => categoryInTier(cat, t)) ?? TACTIC_TIERS[0])
+  }
+
+  // Poziţiile de repetat, deschise una după alta în fereastra de puzzle.
+  const [repetitie, setRepetitie] = useState<Puzzle[] | null>(null)
+  const [indexRepetitie, setIndexRepetitie] = useState(0)
+  async function pornesteRepetitia() {
+    const { data } = await supabase
+      .from('puzzles')
+      .select('id, fen, rating, themes, moves, game_url, title')
+      .in('id', deRepetatAzi.slice(0, 10))
+    if (data?.length) {
+      setRepetitie(data as Puzzle[])
+      setIndexRepetitie(0)
+    }
+  }
 
   // Niciun cufăr deschis la intrare: pagina porneşte curată, cu patru cufere.
   const [openTier, setOpenTier] = useState<string | null>(null)
@@ -150,6 +207,59 @@ export function TacticsChestPage() {
           </div>
         </div>
       </div>
+
+      {/* Banda de antrenor: ce ştim despre tine din ce ai rezolvat până acum.
+          Apare doar când chiar avem ce spune — fără date, ar fi trei casete goale
+          care ocupă locul cuferelor. */}
+      {(slaba || deRepetatAzi.length > 0 || temaDeAzi) && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {slaba && (
+            <FisaAntrenor
+              icon={Target}
+              culoare="#FB7185"
+              eticheta="Punctul tău slab"
+              titlu={slaba.categorie.title}
+              detaliu={`nivel ~${slaba.nivel} · ${slaba.procentReusita}% reușite din ${slaba.incercari}`}
+              actiune="Antrenează asta"
+              onClick={() => navigate(`/tactics/${slaba.categorie.id}/${cufarulPotrivit(slaba.categorie).id}`)}
+            />
+          )}
+          {deRepetatAzi.length > 0 && (
+            <FisaAntrenor
+              icon={RotateCcw}
+              culoare="#E2B340"
+              eticheta="De repetat azi"
+              titlu={`${deRepetatAzi.length} ${deRepetatAzi.length === 1 ? 'poziție' : 'poziții'}`}
+              detaliu="Le-ai ratat mai demult. Se întorc până le vezi."
+              actiune="Repetă acum"
+              onClick={() => void pornesteRepetitia()}
+            />
+          )}
+          {temaDeAzi && (
+            <FisaAntrenor
+              icon={Flame}
+              culoare="#4ade80"
+              eticheta="Tema zilei · XP dublu"
+              titlu={temaDeAzi.title}
+              detaliu="Azi, fiecare poziție din tema asta valorează dublu."
+              actiune="Începe"
+              onClick={() => navigate(`/tactics/${temaDeAzi.id}/${cufarulPotrivit(temaDeAzi).id}`)}
+            />
+          )}
+        </div>
+      )}
+
+      {repetitie && (
+        <PuzzleModal
+          theme="mixed"
+          initialPuzzle={repetitie[indexRepetitie]}
+          onClose={() => setRepetitie(null)}
+          onSolved={() => void queryClient.invalidateQueries({ queryKey: ['tactics-attempts'] })}
+          onNext={indexRepetitie < repetitie.length - 1
+            ? () => setIndexRepetitie(i => i + 1)
+            : undefined}
+        />
+      )}
 
       {/* Cuferele, unul lângă altul. Închise, pagina nu arată decât scara
           materialelor — lemn, argint, aur, smarald. Eticheta, numărătoarea şi
@@ -520,6 +630,47 @@ function TacticCard({ category, total, solvedCount, culoareTreapta, locked, onCl
           </div>
         </div>
       </div>
+    </button>
+  )
+}
+
+/**
+ * O fişă din banda de antrenor: ce ştim despre tine şi ce poţi face cu asta.
+ *
+ * Trei bucăţi, mereu în aceeaşi ordine: eticheta (ce fel de sfat e), lucrul
+ * despre care e vorba, şi o cifră care spune de ce ţi-l dăm. Fără cifră ar fi
+ * doar o părere.
+ */
+function FisaAntrenor({ icon: Icon, culoare, eticheta, titlu, detaliu, actiune, onClick }: {
+  icon: LucideIcon
+  culoare: string
+  eticheta: string
+  titlu: string
+  detaliu: string
+  actiune: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex items-start gap-3 rounded-xl border border-[#2A2A2A] bg-[#141414] p-4 text-left transition-colors hover:border-[#3A3A3A]"
+    >
+      <span
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+        style={{ backgroundColor: `${culoare}1A`, color: culoare }}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] font-bold uppercase tracking-wider" style={{ color: culoare }}>
+          {eticheta}
+        </span>
+        <span className="mt-0.5 block truncate font-display text-sm font-bold text-[#F0F0F0]">{titlu}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-[#6B6B6B]">{detaliu}</span>
+        <span className="mt-1.5 flex items-center gap-1 text-xs font-semibold" style={{ color: culoare }}>
+          {actiune} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </span>
     </button>
   )
 }
