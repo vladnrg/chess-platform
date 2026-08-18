@@ -71,7 +71,7 @@ CROSS JOIN (VALUES
   ),
 
   (2, 'Pionul',
-   '<p>Pionul se mișcă <strong>înainte</strong> cu un pătrat (sau două din poziția de start). Capturează <strong>diagonal</strong>. Este cea mai mică piesă, dar poate deveni Damă la capătul tablei!</p>',
+   '<p>Pionul se mișcă <strong>înainte</strong> cu un pătrat (sau două din poziția de start). Capturează <strong>diagonal</strong>. La începutul partidei nu face nimic spectaculos, dar poate să-ți câștige meciul după promovarea în regină.</p>',
    '[{"type":"move_piece","fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","correct_move":"e2e4","instruction":"Mută pionul pe e4 — două pătrate din poziția de start"},{"type":"move_piece","fen":"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2","correct_move":"d2d4","instruction":"Atacă centrul cu d4"},{"type":"move_piece","fen":"rnbqkbnr/ppp2ppp/8/3pp3/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 3","correct_move":"e4d5","instruction":"Capturează pionul advers de pe d5 cu pionul de pe e4"}]'
   ),
 
