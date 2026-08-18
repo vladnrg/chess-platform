@@ -534,16 +534,24 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
                       <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-1">Rating puzzle</p>
                       <p className="text-2xl font-bold text-[#F0F0F0]">{currentPuzzle.rating}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Teme</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {displayThemes(currentPuzzle.themes).map(t => (
-                          <Badge key={t} variant="accent">
-                            {themeLabel(t)}
-                          </Badge>
-                        ))}
+                    {/* Temele se ascund la probă şi la formatele de master: acolo
+                        tot rostul e să nu ştii ce cauţi, iar lista asta le dădea
+                        pe faţă chiar lângă tablă. Se arată după ce rezolvi —
+                        atunci chiar e util să afli ce era. */}
+                    {(!ascundeTema || puzzleState?.status === 'correct') && (
+                      <div>
+                        <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">
+                          {ascundeTema ? 'Ce era, de fapt' : 'Teme'}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {displayThemes(currentPuzzle.themes).map(t => (
+                            <Badge key={t} variant="accent">
+                              {themeLabel(t)}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     {currentPuzzle.game_url && (
                       <a
                         href={currentPuzzle.game_url}
