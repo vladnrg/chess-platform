@@ -1,28 +1,27 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { LeagueWidget } from '@/components/dashboard/LeagueWidget'
-import { AppMap } from '@/components/dashboard/AppMap'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Progress } from '@/components/ui/Progress'
-import { levelProgress, MAX_LEVEL } from '@/lib/levels'
-import { formatXp } from '@/lib/utils'
+import { CardJucator } from '@/components/dashboard/CardJucator'
+import { GraficXp } from '@/components/dashboard/GraficXp'
+import { CursulCurent } from '@/components/dashboard/CursulCurent'
+import type { RandJurnal } from '@/lib/xp-istoric'
 
 /**
  * Bârlogul şahistului — pagina de start.
  *
- * Spune trei lucruri şi atât: unde eşti în ligă, ce nivel ai şi ce găseşti pe
- * site. Restul a plecat, fiindcă ocupa spaţiu fără să ajute pe nimeni:
+ * Două lucruri, atât: cine eşti (cu XP-ul tău, în timp) şi unde ai rămas.
  *
- *  - „Puzzle-uri azi": cine vrea puzzle-uri se duce direct pe pagina lor
- *  - misiunile zilei: au acum pagina lor, sub Antrenament
- *  - provocarea deschiderilor: e un eveniment, deci stă în Evenimente
- *  - cursurile recomandate: erau o a doua listă de cursuri, la un click de
- *    pagina care le are pe toate
+ * A avut, pe rând, casetă de ligă, hartă cu treisprezece zone, puzzle-uri ale
+ * zilei, misiuni şi cursuri recomandate. Toate au plecat. Motivul e acelaşi
+ * pentru toate: cine intră prima oară nu are ce face cu treisprezece uşi
+ * deschise deodată — le găseşte oricum, din bara de sus, când ajunge la ele.
+ * Pagina de start răspunde la o singură întrebare: „ce făceam?"
  */
 export function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -41,54 +40,33 @@ export function Dashboard() {
     }
   }, [searchParams, setSearchParams])
 
+  // Jurnalul de XP, pentru grafic. Fără limită de zile în interogare: fereastra
+  // se alege în pagină, iar o a doua cerere la fiecare schimbare de săgeată ar
+  // face ca butonul să pară că se gândeşte.
+  const { data: jurnal } = useQuery({
+    queryKey: ['xp-jurnal', user?.id],
+    enabled: !!user,
+    queryFn: async (): Promise<RandJurnal[]> => {
+      const { data } = await supabase
+        .from('xp_ledger')
+        .select('amount, created_at')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        .limit(5000)
+      return (data ?? []) as RandJurnal[]
+    },
+  })
+
   if (!profile) return null
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <LeagueWidget />
-        </div>
-        <div className="lg:col-span-1">
-          <LevelCard xp={profile.xp} />
-        </div>
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-start">
+      <div className="space-y-4">
+        <CardJucator profile={profile} />
+        <GraficXp jurnal={jurnal ?? []} xpTotal={profile.xp} />
       </div>
 
-      <AppMap />
+      <CursulCurent />
     </div>
-  )
-}
-
-/**
- * Nivelul jucătorului. A luat locul casetei „Elo estimat", care afişa un număr
- * dintr-un chestionar scurt de la înregistrare — se putea sări peste el, iar
- * rezultatul contrazicea rating-ul din testul serios de puzzle-uri.
- *
- * Nivelul e onest: vine din XP-ul pe care chiar l-ai adunat şi nu scade niciodată.
- */
-function LevelCard({ xp }: { xp: number }) {
-  const { level, xpToNext, percent, isMax } = levelProgress(xp)
-
-  return (
-    <Card className="h-full">
-      <CardContent className="flex h-full flex-col justify-center gap-2 p-4">
-        <div className="flex items-baseline justify-between">
-          <div>
-            <p className="text-xs text-[#6B6B6B]">Nivelul tău</p>
-            <p className="text-xl font-bold text-[#F0F0F0]">
-              {level}
-              <span className="ml-1 text-xs font-normal text-[#6B6B6B]">din {MAX_LEVEL}</span>
-            </p>
-          </div>
-          <p className="text-xs text-[#6B6B6B]">{formatXp(xp)} XP</p>
-        </div>
-
-        <Progress value={percent} barClassName="bg-[#2DD4BF]" />
-
-        <p className="text-xs text-[#A0A0A0]">
-          {isMax ? 'Nivel maxim ✦' : `Încă ${xpToNext} XP până la nivelul ${level + 1}`}
-        </p>
-      </CardContent>
-    </Card>
   )
 }

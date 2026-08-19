@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { TitlePicker } from '@/components/profile/TitlePicker'
 import { CosmeticPicker } from '@/components/profile/CosmeticPicker'
+import { SchimbaPoza } from '@/components/profile/SchimbaPoza'
+import { AvatarJucator } from '@/components/ui/AvatarJucator'
 import { getLeagueConfig } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -38,20 +40,26 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-lg space-y-6">
-      {/* Avatar + ligă */}
+      {/* Cine eşti: poza, numele, liga */}
       <Card>
         <CardContent className="flex items-center gap-5 p-5">
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white"
-            style={{ backgroundColor: `${leagueConfig.color}30`, border: `3px solid ${leagueConfig.color}` }}
-          >
-            {profile.username.slice(0, 2).toUpperCase()}
-          </div>
+          <AvatarJucator
+            src={profile.avatar_url}
+            nume={profile.username}
+            marime={64}
+            inel={leagueConfig.color}
+          />
           <div>
             <p className="text-lg font-bold text-[#F0F0F0]">{profile.username}</p>
             <p className="text-sm font-semibold" style={{ color: leagueConfig.color }}>{leagueConfig.label}</p>
             <p className="text-xs text-[#6B6B6B]">{profile.xp} XP · Elo ~{profile.estimated_elo}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-5">
+          <SchimbaPoza />
         </CardContent>
       </Card>
 

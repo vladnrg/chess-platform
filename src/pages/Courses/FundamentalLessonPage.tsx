@@ -52,6 +52,7 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
           completed_lesson_ids: [...prev, lesson.id],
           last_lesson_id: lesson.id,
           xp_earned: (existing?.xp_earned ?? 0) + 50,
+          last_activity_at: new Date().toISOString(),
         })
 
         await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 50 })

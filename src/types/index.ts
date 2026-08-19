@@ -363,6 +363,14 @@ export interface UserCourseProgress {
   xp_earned: number
   started_at: string
   completed_at: string | null
+  /**
+   * Ultima dată când ai deschis cursul (migrarea 090). Bârlogul îl arată pe cel
+   * mai recent — `started_at` n-ar fi bun, fiindcă cine începe trei cursuri într-o
+   * zi şi lucrează de-atunci la unul singur ar vedea mereu altul în faţă.
+   *
+   * Opţional în tip: bazele care n-au primit încă migrarea întorc rândul fără el.
+   */
+  last_activity_at?: string | null
 }
 
 export interface Puzzle {

@@ -133,18 +133,16 @@ export const ACCOUNT_ITEMS: NavLeaf[] = [
   { to: '/profile', label: 'Profil', icon: User },
 ]
 
-/** Toate paginile, aplatizate — pentru harta de pe Bârlog şi meniul de pe mobil. */
+/** Toate paginile, aplatizate — pentru meniul de pe mobil. */
 export const ALL_PAGES: NavLeaf[] = [
   ...NAV.flatMap(e => (isGroup(e) ? e.items : [e])),
   ...ACCOUNT_ITEMS,
 ]
 
-/**
- * Zonele din harta de pe Bârlog — exact paginile care şi-au declarat o descriere.
- * Bârlogul însuşi şi Profilul nu au, deci nu apar: harta arată unde poţi merge,
- * nu unde eşti deja.
- */
-export const MAP_ZONES: NavLeaf[] = ALL_PAGES.filter(p => p.description)
+// Aici era `MAP_ZONES`, harta cu toate zonele de pe Bârlog. Pagina de start nu
+// mai deschide treisprezece uşi deodată — descrierile de o linie au rămas
+// totuşi în `NAV`, fiindcă spun ce e fiecare pagină şi îşi găsesc oricând alt
+// loc unde să fie de folos.
 
 /**
  * Arhetipul de pagină — decide cum se comportă shell-ul.

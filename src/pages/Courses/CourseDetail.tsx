@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
 import { CourseChapters } from '@/components/courses/CourseChapters'
+import { useMarcheazaCursul } from '@/hooks/useMarcheazaCursul'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -60,6 +61,11 @@ export function CourseDetail() {
     },
     enabled: !!course?.id && (!openingLines || openingLines.length === 0),
   })
+
+  // Simpla deschidere a cursului contează ca vizită — Bârlogul îl arată pe cel
+  // mai recent, iar cine se întoarce să recitească un capitol vrea să-l
+  // găsească acolo, nu îngropat sub unul terminat luna trecută.
+  useMarcheazaCursul(course?.id)
 
   const { data: progress } = useQuery({
     queryKey: ['course-progress', user?.id, course?.id],

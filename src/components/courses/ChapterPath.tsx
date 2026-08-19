@@ -165,6 +165,11 @@ export function ChapterPath({ nodes }: { nodes: PathNode[] }) {
             <div
               className="flex flex-col items-center"
               style={{ transform: `translateX(${abatere(i)}px)` }}
+              // Semnul după care Bârlogul găseşte pasul curent ca să deruleze
+              // până la el. Aici, nu în pagina aceea: starea se calculează o
+              // singură dată, iar dacă ar recalcula-o altcineva, cele două ar
+              // putea arăta spre noduri diferite.
+              data-nod-curent={esteCurent || undefined}
             >
               <NodTraseu node={node} stare={stare} Icoana={Icoana} />
             </div>

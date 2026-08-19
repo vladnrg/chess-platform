@@ -140,6 +140,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       completed_lesson_ids: markDone && !already ? [...prev, line.id] : prev,
       last_lesson_id: line.id,
       xp_earned: (existing?.xp_earned ?? 0) + (markDone && !already ? 30 : 0),
+      last_activity_at: new Date().toISOString(),
     })
     if (markDone && !already) {
       await supabase.rpc('award_xp', { p_user_id: user.id, p_amount: 30 })
