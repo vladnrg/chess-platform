@@ -48,6 +48,44 @@ const itemClass = (active: boolean) => cn(
     : 'text-[#A0A0A0] hover:bg-[#1C1C1C] hover:text-[#F0F0F0]'
 )
 
+/**
+ * Un rând dintr-o listă de pagini, în dungi.
+ *
+ * Fără icoană: cele şase simboluri dintr-un meniu nu spuneau nimic unul faţă de
+ * altul (o eprubetă, o ţintă, o pensulă) şi trăgeau ochiul înaintea cuvintelor,
+ * care sunt singurele care chiar spun unde ajungi.
+ *
+ * În locul lor, rândurile alternează: galben cu scris negru, apoi negru cu scris
+ * galben. Ochiul are de ce se agăţa fără să fie nevoie de desene, iar rândurile
+ * se despart între ele fără linii.
+ *
+ * Pagina pe care eşti se îngroaşă şi se subliniază — culoarea e deja ocupată de
+ * alternanţă, deci starea are nevoie de alt semn.
+ */
+function RandDungat({ item, rand, onNavigate }: {
+  item: NavLeaf
+  /** Poziţia în listă; parul şi imparul dau cele două culori. */
+  rand: number
+  onNavigate: () => void
+}) {
+  const galben = rand % 2 === 0
+  return (
+    <NavLink
+      to={item.to}
+      onClick={onNavigate}
+      className={({ isActive }) => cn(
+        'block px-4 py-2.5 text-sm transition-colors',
+        galben
+          ? 'bg-[#E2B340] text-[#0A0A0A] hover:bg-[#F0C450]'
+          : 'bg-[#121212] text-[#E2B340] hover:bg-[#1C1C1C]',
+        isActive && 'font-bold underline decoration-2 underline-offset-4',
+      )}
+    >
+      {item.label}
+    </NavLink>
+  )
+}
+
 function MenuLink({ item, onNavigate }: { item: NavLeaf; onNavigate: () => void }) {
   const Icon = item.icon
   return (
@@ -170,9 +208,9 @@ export function TopNav() {
                 <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
               </button>
               {open && (
-                <div className="absolute left-0 top-full mt-1.5 w-60 rounded-xl border border-[#2A2A2A] bg-[#141414] p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
-                  {entry.items.map(item => (
-                    <MenuLink key={item.to} item={item} onNavigate={closeMenu} />
+                <div className="absolute left-0 top-full mt-1.5 w-60 overflow-hidden rounded-xl border border-[#2A2A2A] shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
+                  {entry.items.map((item, i) => (
+                    <RandDungat key={item.to} item={item} rand={i} onNavigate={closeMenu} />
                   ))}
                 </div>
               )}
@@ -204,11 +242,11 @@ export function TopNav() {
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           {mobileOpen && (
-            <div className="absolute inset-x-2 top-full mt-1.5 max-h-[70dvh] overflow-y-auto rounded-xl border border-[#2A2A2A] bg-[#141414] p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
-              {ALL_PAGES.map(item => (
-                <MenuLink key={item.to} item={item} onNavigate={closeMenu} />
+            <div className="absolute inset-x-2 top-full mt-1.5 max-h-[70dvh] overflow-hidden overflow-y-auto rounded-xl border border-[#2A2A2A] bg-[#141414] shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
+              {ALL_PAGES.map((item, i) => (
+                <RandDungat key={item.to} item={item} rand={i} onNavigate={closeMenu} />
               ))}
-              <div className="my-1.5 h-px bg-[#2A2A2A]" />
+              <div className="h-px bg-[#2A2A2A]" />
               <Link
                 to="/pricing"
                 onClick={closeMenu}
