@@ -218,12 +218,27 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
 
       {/* Navigare */}
       <div className="flex items-center gap-3">
-        {prevLesson && (
-          <Link to={`/courses/${course.slug}/lessons/${prevLesson.id}`} className="flex-1">
-            <Button variant="secondary" className="w-full">
-              <ChevronLeft className="h-4 w-4" /> Anterioară
+        {/* „Înapoi" înseamnă un pas înapoi, nu o lecţie înapoi.
+            Butonul ăsta ducea direct la lecţia dinainte, chiar dacă erai la
+            exerciţiul 3 din 3 — adică pierdeai toată lecţia ca să revezi o
+            poziţie. Acum se întoarce întâi prin exerciţiile lecţiei, şi abia de
+            la primul iese din ea. */}
+        {(exerciseIndex > 0 || prevLesson) && (
+          exerciseIndex > 0 ? (
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" /> Înapoi
             </Button>
-          </Link>
+          ) : (
+            <Link to={`/courses/${course.slug}/lessons/${prevLesson!.id}`} className="flex-1">
+              <Button variant="secondary" className="w-full">
+                <ChevronLeft className="h-4 w-4" /> Înapoi
+              </Button>
+            </Link>
+          )
         )}
         <Button
           className="flex-1"

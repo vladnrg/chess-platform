@@ -230,10 +230,13 @@ export function LessonPage() {
 
           {/* Navigare */}
           <div className="flex items-center gap-3">
+            {/* Aceeaşi etichetă ca la lecţiile cu exerciţii. Aici lecţia n-are
+                paşi de întors — mutările au deja săgeţile lor, sub tablă — deci
+                „Înapoi" chiar înseamnă lecţia dinainte. */}
             {prevLesson && (
               <Link to={`/courses/${slug}/lessons/${prevLesson.id}`} className="flex-1">
                 <Button variant="secondary" className="w-full" onClick={() => setMoveIndex(0)}>
-                  <ChevronLeft className="h-4 w-4" /> Anterioară
+                  <ChevronLeft className="h-4 w-4" /> Înapoi
                 </Button>
               </Link>
             )}
