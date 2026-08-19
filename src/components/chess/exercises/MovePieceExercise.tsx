@@ -10,7 +10,7 @@ interface Props {
   onCorrect: () => void
 }
 
-type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare'
+type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare' | 'alta-piesa'
 
 /**
  * În ce se poate transforma un pion ajuns la capăt.
@@ -38,6 +38,26 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
   /** Cine e la mutare, după FEN. Alb, dacă nu scrie altfel. */
   const laMutare = exercise.fen.split(' ')[1] === 'b' ? 'b' : 'w'
+
+  /**
+   * Ce se întâmplă după ce s-a ales piesa.
+   *
+   * La exerciţiile unde se învaţă că *poţi* alege, orice piesă e bună. La cel
+   * unde alegerea chiar contează — calul care dă şah şi atacă regina — o damă
+   * în plus nu rezolvă nimic, deci răspunsul se cere exact.
+   */
+  function alege(piesa: string) {
+    if (!deAles) return
+    const ceruta = exercise.correct_move.slice(4) || 'q'
+    if (!exercise.any_promotion && piesa !== ceruta) {
+      setDeAles(null)
+      setStatus('alta-piesa')
+      setTimeout(() => setStatus('idle'), 2200)
+      return
+    }
+    primeste(deAles.de, deAles.la, piesa)
+    setDeAles(null)
+  }
 
   /** Mutarea e bună: arătăm poziţia de după şi trecem mai departe. */
   function primeste(de: string, la: string, promovare: string) {
@@ -125,7 +145,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
                   <button
                     key={p.litera}
                     type="button"
-                    onClick={() => { primeste(deAles.de, deAles.la, p.litera); setDeAles(null) }}
+                    onClick={() => alege(p.litera)}
                     aria-label={p.nume}
                     title={p.nume}
                     className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#2A2A2A] bg-[#161616] p-1.5 transition-colors hover:border-[#E2B340] hover:bg-[#1C1C1C]"
@@ -144,6 +164,11 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
       )}
       {status === 'wrong' && (
         <p className="text-sm font-medium text-[#FB7185]">Nu e mutarea potrivită. Încearcă din nou!</p>
+      )}
+      {status === 'alta-piesa' && (
+        <p className="text-sm font-medium text-[#FB7185]">
+          Mutarea e bună, dar nu piesa. Uită-te ce ar ataca fiecare de acolo.
+        </p>
       )}
       {status === 'alta-culoare' && (
         <p className="text-sm font-medium text-[#FB7185]">

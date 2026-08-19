@@ -321,8 +321,21 @@ export interface ClickSquareExercise {
 export interface MovePieceExerciseData {
   type: 'move_piece'
   fen: string
+  /** `e2e4`, sau `e7e8n` când promovarea cere o anume piesă. */
   correct_move: string
   instruction: string
+  /**
+   * La promovare, orice piesă aleasă e bună.
+   *
+   * Există fiindcă promovarea se învaţă în doi paşi. Întâi că **poţi alege** —
+   * acolo regina, tura, nebunul şi calul sunt la fel de corecte, iar litera din
+   * `correct_move` nu decide nimic. Apoi că **alegerea contează**: la poziţia cu
+   * calul care dă şah şi atacă regina, o damă în plus nu face nimic, deci
+   * răspunsul e doar calul.
+   *
+   * Lipsă = piesa cerută e cea din `correct_move`.
+   */
+  any_promotion?: boolean
 }
 
 export interface IdentifySquareExercise {
