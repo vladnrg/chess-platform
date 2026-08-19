@@ -87,7 +87,7 @@ export const MCQ_QUESTIONS: McqQuestion[] = [
     type: 'mcq',
     id: 'k3',
     category: 'knowledge',
-    question: 'Ce urmărește Gambitul Reginei (1.d4 d5 2.c4)?',
+    question: 'Ce urmărește Gambitul Damei (1.d4 d5 2.c4)?',
     options: [
       { label: 'Câștigarea unui pion central', value: 'pion' },
       { label: 'Control spațiu + presiune centrală', value: 'spatiu' },

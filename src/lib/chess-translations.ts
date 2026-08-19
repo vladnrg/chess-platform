@@ -1,6 +1,6 @@
 // Full opening name replacements (checked first, longest match wins)
 const FULL_NAME_MAP: [string, string][] = [
-  ["Queen's Pawn Game", 'Jocul Reginei'],
+  ["Queen's Pawn Game", 'Jocul Damei'],
   ["King's Pawn Game", 'Jocul Regelui'],
   ["Italian Game", 'Jocul Italian'],
   ["Vienna Game", 'Jocul Vienez'],
@@ -15,7 +15,7 @@ const FULL_NAME_MAP: [string, string][] = [
   ["Pirc Defense", 'Apărarea Pirc'],
   ["Modern Defense", 'Apărarea Modernă'],
   ["King's Indian Defense", "Apărarea Indiană a Regelui"],
-  ["Queen's Indian Defense", "Apărarea Indiană a Reginei"],
+  ["Queen's Indian Defense", "Apărarea Indiană a Damei"],
   ["Nimzo-Indian Defense", 'Apărarea Nimzo-Indiană'],
   ["Bogo-Indian Defense", 'Apărarea Bogo-Indiană'],
   ["Dutch Defense", 'Apărarea Olandeză'],
@@ -25,7 +25,7 @@ const FULL_NAME_MAP: [string, string][] = [
   ["Grünfeld Defense", 'Apărarea Grünfeld'],
   ["Benoni Defense", 'Apărarea Benoni'],
   ["King's Gambit", "Gambitul Regelui"],
-  ["Queen's Gambit", "Gambitul Reginei"],
+  ["Queen's Gambit", "Gambitul Damei"],
   ["Englund Gambit", 'Gambitul Englund'],
   ["Budapest Gambit", 'Gambitul Budapesta'],
   ["Albin Countergambit", 'Contra-Gambitul Albin'],
