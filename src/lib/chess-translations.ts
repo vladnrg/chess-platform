@@ -1,6 +1,6 @@
 // Full opening name replacements (checked first, longest match wins)
 const FULL_NAME_MAP: [string, string][] = [
-  ["Queen's Pawn Game", 'Jocul Damei'],
+  ["Queen's Pawn Game", 'Jocul Reginei'],
   ["King's Pawn Game", 'Jocul Regelui'],
   ["Italian Game", 'Jocul Italian'],
   ["Vienna Game", 'Jocul Vienez'],
@@ -15,7 +15,7 @@ const FULL_NAME_MAP: [string, string][] = [
   ["Pirc Defense", 'Apărarea Pirc'],
   ["Modern Defense", 'Apărarea Modernă'],
   ["King's Indian Defense", "Apărarea Indiană a Regelui"],
-  ["Queen's Indian Defense", "Apărarea Indiană a Damei"],
+  ["Queen's Indian Defense", "Apărarea Indiană a Reginei"],
   ["Nimzo-Indian Defense", 'Apărarea Nimzo-Indiană'],
   ["Bogo-Indian Defense", 'Apărarea Bogo-Indiană'],
   ["Dutch Defense", 'Apărarea Olandeză'],
@@ -25,7 +25,7 @@ const FULL_NAME_MAP: [string, string][] = [
   ["Grünfeld Defense", 'Apărarea Grünfeld'],
   ["Benoni Defense", 'Apărarea Benoni'],
   ["King's Gambit", "Gambitul Regelui"],
-  ["Queen's Gambit", "Gambitul Damei"],
+  ["Queen's Gambit", "Gambitul Reginei"],
   ["Englund Gambit", 'Gambitul Englund'],
   ["Budapest Gambit", 'Gambitul Budapesta'],
   ["Albin Countergambit", 'Contra-Gambitul Albin'],
@@ -99,7 +99,7 @@ const SUBTYPE_MAP: [RegExp, string][] = [
 /**
  * Traduce notaţia SAN englezească (Rxg7, Qh6, Nf3) în română (Txg7, Dh6, Cf3).
  *
- * K=Rege→R, Q=Damă→D, R=Tură→T, B=Nebun→N, C=Cal→C. Se aplică doar când litera
+ * K=Rege→R, Q=Regină→D, R=Tură→T, B=Nebun→N, C=Cal→C. Se aplică doar când litera
  * e urmată de o coordonată — deci cuvintele întregi (Regele, Nebunul) rămân
  * neatinse, iar un text amestecat se poate trece prin ea fără grijă.
  */

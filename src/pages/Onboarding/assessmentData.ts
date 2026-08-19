@@ -37,7 +37,7 @@ export const TACTICS_QUESTIONS: TacticsQuestion[] = [
     id: 't3',
     fen: 'r1b1kb1r/pppp1ppp/2n2q2/4p3/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq d3 0 5',
     correctMove: 'f6f2',
-    hint: 'Dama albă este pe d1 — există o mișcare câștigătoare?',
+    hint: 'Regina albă este pe d1 — există o mișcare câștigătoare?',
   },
   {
     type: 'tactics',
@@ -87,12 +87,12 @@ export const MCQ_QUESTIONS: McqQuestion[] = [
     type: 'mcq',
     id: 'k3',
     category: 'knowledge',
-    question: 'Ce urmărește Gambitul Damei (1.d4 d5 2.c4)?',
+    question: 'Ce urmărește Gambitul Reginei (1.d4 d5 2.c4)?',
     options: [
       { label: 'Câștigarea unui pion central', value: 'pion' },
       { label: 'Control spațiu + presiune centrală', value: 'spatiu' },
       { label: 'Atac rapid pe flanc', value: 'flanc' },
-      { label: 'Schimb de dame rapid', value: 'dame' },
+      { label: 'Schimb de regine rapid', value: 'regine' },
     ],
     correct: 'spatiu',
   },
@@ -117,7 +117,7 @@ export const MCQ_QUESTIONS: McqQuestion[] = [
     options: [
       { label: 'Presiune pe f7 și control al centrului', value: 'f7' },
       { label: 'Schimb rapid de piese', value: 'schimb' },
-      { label: 'Atac pe flancul damei', value: 'dama' },
+      { label: 'Atac pe flancul reginei', value: 'regina' },
       { label: 'Structură de pioni solidă', value: 'pioni' },
     ],
     correct: 'f7',

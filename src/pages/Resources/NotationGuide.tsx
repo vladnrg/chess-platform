@@ -19,7 +19,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 const PIECES = [
   { l: 'R', name: 'Rege' },
-  { l: 'D', name: 'Damă' },
+  { l: 'D', name: 'Regină' },
   { l: 'T', name: 'Tură' },
   { l: 'N', name: 'Nebun' },
   { l: 'C', name: 'Cal' },
@@ -72,7 +72,7 @@ export function NotationGuide() {
           <ul className="space-y-1">
             <li><Move>Cf3</Move> — calul merge pe f3.</li>
             <li><Move>e4</Move> — pionul merge pe e4 (fără literă, e pion).</li>
-            <li><Move>Dh5</Move> — dama pe h5.</li>
+            <li><Move>Dh5</Move> — regina pe h5.</li>
           </ul>
         </Section>
 
@@ -89,8 +89,8 @@ export function NotationGuide() {
             <li><Move>+</Move> — șah (ex. <Move>Dh5+</Move>).</li>
             <li><Move>#</Move> — mat (ex. <Move>Df7#</Move>).</li>
             <li><Move>0-0</Move> — rocada mică (flancul regelui).</li>
-            <li><Move>0-0-0</Move> — rocada mare (flancul damei).</li>
-            <li><Move>e8=D</Move> — promovare: pionul ajunge pe rândul 8 și devine damă.</li>
+            <li><Move>0-0-0</Move> — rocada mare (flancul reginei).</li>
+            <li><Move>e8=D</Move> — promovare: pionul ajunge pe rândul 8 și devine regină.</li>
             <li><Move>e.p.</Move> — captură „en passant" (opțional).</li>
           </ul>
         </Section>

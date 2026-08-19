@@ -18,7 +18,7 @@ export const FAMOUS_GAMES: FamousGame[] = [
     year: 1851,
     event: 'Londra, partidă neoficială',
     description:
-      'Anderssen sacrifică ambele ture, nebunul și o damă pentru a da mat cu cele trei piese minore rămase. Considerată cea mai spectaculoasă combinație din istoria șahului.',
+      'Anderssen sacrifică ambele ture, nebunul și o regină pentru a da mat cu cele trei piese minore rămase. Considerată cea mai spectaculoasă combinație din istoria șahului.',
     keyLesson: 'Atacul de rege și sacrificiile de material',
     lichessUrl: 'https://lichess.org/study/EaKcWVp7',
     result: '1-0',
@@ -42,7 +42,7 @@ export const FAMOUS_GAMES: FamousGame[] = [
     year: 1852,
     event: 'Berlin, partidă privată',
     description:
-      'Anderssen sacrifică dama și ambele ture pentru a ataca regele negru rămas în centru. Finala include celebrul "Qxf7+!" — un sacrificiu ce a rămas în manuale ca exemplu de atac necontenit.',
+      'Anderssen sacrifică regina și ambele ture pentru a ataca regele negru rămas în centru. Finala include celebrul "Qxf7+!" — un sacrificiu ce a rămas în manuale ca exemplu de atac necontenit.',
     keyLesson: 'Pericole regale și control centru',
     lichessUrl: 'https://lichess.org/study/p5CdExRQ',
     result: '1-0',
@@ -78,8 +78,8 @@ export const FAMOUS_GAMES: FamousGame[] = [
     year: 1956,
     event: 'Rosenwald Trophy, New York',
     description:
-      'Fischer, la 13 ani, sacrifică dama pe mutarea 17 și construiește un atac devastator. Tabloul final, cu negrul câștigând prin material superior după ce regele alb este prins în centru, rămâne unul dintre cele mai frumoase din istoria șahului.',
-    keyLesson: 'Activarea pieselor și sacrificiul damei',
+      'Fischer, la 13 ani, sacrifică regina pe mutarea 17 și construiește un atac devastator. Tabloul final, cu negrul câștigând prin material superior după ce regele alb este prins în centru, rămâne unul dintre cele mai frumoase din istoria șahului.',
+    keyLesson: 'Activarea pieselor și sacrificiul reginei',
     lichessUrl: 'https://lichess.org/study/TsEJ24Tb',
     result: '0-1',
   },

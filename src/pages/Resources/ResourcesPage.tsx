@@ -23,7 +23,7 @@ const TOC = [
 
 const PIECES = [
   { l: 'R', name: 'Regele', move: 'Un câmp în orice direcție. Nu intră niciodată într-un câmp atacat și nu se poate pune singur în șah.' },
-  { l: 'D', name: 'Dama', move: 'Oricâte câmpuri pe linii, coloane și diagonale. Cea mai puternică piesă.' },
+  { l: 'D', name: 'Regina', move: 'Oricâte câmpuri pe linii, coloane și diagonale. Cea mai puternică piesă.' },
   { l: 'T', name: 'Tura', move: 'Oricâte câmpuri pe linii și coloane (drept).' },
   { l: 'N', name: 'Nebunul', move: 'Oricâte câmpuri pe diagonale — rămâne mereu pe culoarea de start.' },
   { l: 'C', name: 'Calul', move: 'În „L": două câmpuri într-o direcție + unul perpendicular. Singura piesă care sare peste altele.' },
@@ -100,14 +100,14 @@ export function ResourcesPage() {
           </Section>
 
           <Section id="asezare" title="2. Așezarea inițială">
-            <p>Fiecare jucător are 16 piese: 1 rege, 1 damă, 2 ture, 2 nebuni, 2 cai și 8 pioni.</p>
+            <p>Fiecare jucător are 16 piese: 1 rege, 1 regină, 2 ture, 2 nebuni, 2 cai și 8 pioni.</p>
             <ul className="space-y-1 pl-1">
               <li>• Turele în colțuri, apoi caii lângă ele, apoi nebunii.</li>
-              <li>• Dama pe culoarea ei: <strong className="text-[#F0F0F0]">dama albă pe câmp alb, dama neagră pe câmp negru</strong>.</li>
-              <li>• Regele lângă damă. Pionii pe tot rândul din față.</li>
+              <li>• Regina pe culoarea ei: <strong className="text-[#F0F0F0]">regina albă pe câmp alb, regina neagră pe câmp negru</strong>.</li>
+              <li>• Regele lângă regină. Pionii pe tot rândul din față.</li>
             </ul>
             <Card title="Regula de aur la așezare">
-              <p><strong className="text-[#F0F0F0]">Câmp alb în dreapta-jos</strong> și <strong className="text-[#F0F0F0]">dama pe culoarea ei</strong>. Dacă astea două sunt corecte, ai așezat tabla bine.</p>
+              <p><strong className="text-[#F0F0F0]">Câmp alb în dreapta-jos</strong> și <strong className="text-[#F0F0F0]">regina pe culoarea ei</strong>. Dacă astea două sunt corecte, ai așezat tabla bine.</p>
             </Card>
           </Section>
 
@@ -132,7 +132,7 @@ export function ResourcesPage() {
                 O mutare care implică <strong className="text-[#F0F0F0]">regele și o tură</strong> deodată: regele se mută două câmpuri spre tură, iar tura sare de partea cealaltă a lui. E singura mutare în care miști două piese odată și e cel mai bun mod de a-ți pune regele la adăpost.
               </p>
               <p className="text-[#6B6B6B]">
-                Condiții: nici regele, nici tura să nu se fi mișcat; câmpurile dintre ele libere; regele să nu fie în șah și să nu treacă prin/pe un câmp atacat. <Move>0-0</Move> = rocada mică (flancul regelui), <Move>0-0-0</Move> = rocada mare (flancul damei).
+                Condiții: nici regele, nici tura să nu se fi mișcat; câmpurile dintre ele libere; regele să nu fie în șah și să nu treacă prin/pe un câmp atacat. <Move>0-0</Move> = rocada mică (flancul regelui), <Move>0-0-0</Move> = rocada mare (flancul reginei).
               </p>
             </Card>
             <Card title="En passant (captura în trecere)">
@@ -142,7 +142,7 @@ export function ResourcesPage() {
             </Card>
             <Card title="Promovarea">
               <p>
-                Când pionul tău ajunge pe ultimul rând, îl transformi în <strong className="text-[#F0F0F0]">damă, tură, nebun sau cal</strong> (de regulă damă — cea mai puternică). Poți avea astfel mai multe dame pe tablă.
+                Când pionul tău ajunge pe ultimul rând, îl transformi în <strong className="text-[#F0F0F0]">regină, tură, nebun sau cal</strong> (de regulă regină — cea mai puternică). Poți avea astfel mai multe regine pe tablă.
               </p>
             </Card>
           </Section>

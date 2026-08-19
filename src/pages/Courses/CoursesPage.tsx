@@ -36,7 +36,7 @@ const FAMILY_RO: Record<string, string> = {
   'london-system': 'Sistemul Londra',
   'italian-game': 'Partida Italiană',
   'kings-gambit': 'Gambitul Regelui',
-  'queens-gambit': 'Gambitul Damei',
+  'queens-gambit': 'Gambitul Reginei',
   'catalan-opening': 'Deschiderea Catalană',
   'ruy-lopez': 'Partida Spaniolă',
   'english-opening': 'Deschiderea Engleză',

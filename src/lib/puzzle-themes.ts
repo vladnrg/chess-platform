@@ -32,7 +32,7 @@ export const PUZZLE_THEME_RO: Record<string, string> = {
   coercion: 'Constrângere',
   attackingF2F7: 'Atac pe f2/f7',
   kingsideAttack: 'Atac pe flancul regelui',
-  queensideAttack: 'Atac pe flancul damei',
+  queensideAttack: 'Atac pe flancul reginei',
 
   // Atacuri / mat
   mate: 'Mat',
@@ -67,8 +67,8 @@ export const PUZZLE_THEME_RO: Record<string, string> = {
   rookEndgame: 'Final de tură',
   bishopEndgame: 'Final de nebuni',
   knightEndgame: 'Final de cai',
-  queenEndgame: 'Final de dame',
-  queenRookEndgame: 'Final damă și tură',
+  queenEndgame: 'Final de regine',
+  queenRookEndgame: 'Final regină și tură',
 
   // Evaluare
   advantage: 'Avantaj',

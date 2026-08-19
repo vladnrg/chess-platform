@@ -74,7 +74,7 @@ export function PuzzleTask({ task, slug, onSolved }: PuzzleTaskProps) {
 
     const played = sourceSquare + targetSquare
     // Promovarea: comparăm doar cele patru caractere de poziţie, apoi lăsăm
-    // chess.js să pună dama (soluţiile de puzzle promovează în damă).
+    // chess.js să pună regina (soluţiile de puzzle promovează în regină).
     if (!expected.startsWith(played)) {
       setWrongFlash(true)
       window.setTimeout(() => setWrongFlash(false), 600)
