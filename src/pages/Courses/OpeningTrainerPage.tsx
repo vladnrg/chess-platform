@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
-import { ChevronLeft, ChevronRight, ChevronDown, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan } from '@/lib/trainer-line'
@@ -90,6 +90,25 @@ function buildResumedState(line: TrainerLine, plyIdx: number): TrainerState {
   return { game, plyIdx: target, part, partEnd, status, wrongFrom: null, wrongTo: null }
 }
 
+/**
+ * Poziţia după `ply` semi-mutări, plus mutarea care a dus la ea.
+ *
+ * Foloseşte aceeaşi rejucare ca `buildResumedState`, dar nu construieşte o stare
+ * de antrenament — doar arată. De aici vine derularea înapoi prin mutările deja
+ * jucate, fără să se atingă de partida în curs.
+ */
+function pozitiaLa(line: TrainerLine, ply: number): { fen: string; de: string | null; la: string | null } {
+  const moves = line.moves_uci.split(' ')
+  const tinta = Math.max(0, Math.min(ply, moves.length))
+  const game = new Chess(line.start_fen)
+  for (let i = 0; i < tinta; i++) {
+    const m = moves[i]
+    try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) } catch { break }
+  }
+  const ultima = tinta > 0 ? moves[tinta - 1] : null
+  return { fen: game.fen(), de: ultima?.slice(0, 2) ?? null, la: ultima?.slice(2, 4) ?? null }
+}
+
 const resumeKey = (lineId: string, stage: string) => `op-resume:${stage}:${lineId}`
 
 const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Spre jocul de mijloc']
@@ -124,6 +143,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   })
 
   const [state, setState] = useState<TrainerState | null>(null)
+  /**
+   * Ce semi-mutare priveşti acum. `null` = poziţia din partidă.
+   *
+   * Separată de starea de antrenament, nu amestecată cu ea: cât timp te uiţi
+   * înapoi, partida stă pe loc — nu mută nici adversarul, nici tu. Altfel
+   * derularea ar fi însemnat că pierzi ce ai jucat.
+   */
+  const [vazut, setVazut] = useState<number | null>(null)
 
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
   const persistProgress = useCallback(async (markDone: boolean) => {
@@ -193,6 +220,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // Auto-play computer moves
   useEffect(() => {
     if (!state || !line || state.status !== 'computer-thinking') return
+    if (vazut !== null) return // priveşti înapoi: partida aşteaptă
     const moves = line.moves_uci.split(' ')
     if (state.plyIdx >= state.partEnd || state.plyIdx >= moves.length) return
 
@@ -222,7 +250,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // Intenționat doar status + plyIdx: `state` conține instanța Chess, care se
     // schimbă la fiecare mutare și ar reporni cronometrul de 600 ms al calculatorului.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, plyIdx, line])
+  }, [status, plyIdx, line, vazut])
 
   // Auto-clear wrong feedback after 1.2s in practice mode
   useEffect(() => {
@@ -289,6 +317,20 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   function resetLine() {
     if (!line) return
     setState(buildInitialState(line))
+    setVazut(null)
+  }
+
+  /**
+   * Reia partida din poziţia pe care o priveşti.
+   *
+   * Nu „derulează" starea înapoi, ci o reconstruieşte de la zero până la
+   * semi-mutarea aceea — aceeaşi cale ca la reluarea de a doua zi. Aşa nu poate
+   * rămâne nimic din ce s-a jucat după, nici pe tablă, nici în status.
+   */
+  function reiaDeAici() {
+    if (!line || vazut === null) return
+    setState(buildResumedState(line, vazut))
+    setVazut(null)
   }
 
 
@@ -309,12 +351,32 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const totalParts = getTotalParts(moves.length, line.singlePart)
   const progressPct = moves.length > 0 ? (state.plyIdx / moves.length) * 100 : 0
 
-  // Current explanation (for whichever ply is being played now)
+  // Explicaţia mutării care TOCMAI s-a jucat, nu a celei care urmează.
+  //
+  // Înainte se arăta explicaţia mutării următoare — deci textul despre mutarea
+  // adversarului apărea cât timp scria „Calculez răspunsul teoretic...", iar
+  // după 600 ms, când mutarea chiar se făcea pe tablă, textul dispărea şi îi lua
+  // locul altul. Se citea despre ceva ce încă nu se întâmplase.
+  const plyVazut = vazut ?? state.plyIdx
+  const explicatiaUltimei = plyVazut > 0 ? line.move_explanations?.[String(plyVazut - 1)] ?? '' : ''
+  const ultimaEAAdversarului = plyVazut > 0
+    && !isUserPly(plyVazut - 1, line.user_color, whiteMovesFirst(line))
+  /** Îndrumarea pentru mutarea ta, în modul ghidat. */
   const explanation = line.move_explanations?.[String(state.plyIdx)] ?? ''
+
+  const priveste = vazut !== null
+  const vedere = priveste ? pozitiaLa(line, vazut) : null
 
   // Square highlights
   const squareStyles: Record<string, React.CSSProperties> = {}
-  if (state.status === 'user-turn') {
+  if (vazut !== null) {
+    // Cât timp priveşti înapoi, se marchează mutarea care a dus la poziţia
+    // aceea — nu îndrumarea aurie, care ar arăta un sfat pentru altă clipă.
+    const v = pozitiaLa(line, vazut)
+    if (v.de) squareStyles[v.de] = { backgroundColor: 'rgba(96,165,250,0.45)' }
+    if (v.la) squareStyles[v.la] = { backgroundColor: 'rgba(96,165,250,0.30)' }
+  }
+  if (vazut === null && state.status === 'user-turn') {
     const nextMove = moves[state.plyIdx]
     if (isGuided && nextMove) {
       squareStyles[nextMove.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.65)' }
@@ -401,9 +463,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
             <Chessboard
               options={{
-                position: state.game.fen(),
+                position: vedere ? vedere.fen : state.game.fen(),
                 onPieceDrop: handlePieceDrop,
-                allowDragging: state.status === 'user-turn',
+                allowDragging: !priveste && state.status === 'user-turn',
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
                 boardStyle: { borderRadius: 0 },
@@ -420,8 +482,66 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         <div
           className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[var(--app-rail)]"
         >
+          {/* Derularea prin mutările deja jucate.
+              Apare abia după prima mutare — până atunci n-are ce arăta. */}
+          {state.plyIdx > 0 && (
+            <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-3">
+              <div className="flex items-center justify-center gap-1">
+                {([
+                  ['La început', ChevronsLeft, () => setVazut(0), plyVazut === 0],
+                  ['Înapoi', ChevronLeft, () => setVazut(Math.max(0, plyVazut - 1)), plyVazut === 0],
+                  ['Înainte', ChevronRight, () => setVazut(plyVazut + 1 >= state.plyIdx ? null : plyVazut + 1), !priveste],
+                  ['La poziţia curentă', ChevronsRight, () => setVazut(null), !priveste],
+                ] as const).map(([eticheta, Icoana, apasa, stins]) => (
+                  <button
+                    key={eticheta}
+                    type="button"
+                    onClick={apasa}
+                    disabled={stins}
+                    aria-label={eticheta}
+                    title={eticheta}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icoana className="h-4 w-4" />
+                  </button>
+                ))}
+                <span className="ml-2 min-w-[3.5rem] text-center text-xs text-[#6B6B6B]">
+                  {plyVazut} / {state.plyIdx}
+                </span>
+              </div>
+
+              {priveste && (
+                <div className="mt-3 space-y-2 border-t border-[#2A2A2A] pt-3">
+                  <p className="text-xs text-[#60A5FA]">
+                    Priveşti o poziţie de mai devreme. Partida te aşteaptă.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={reiaDeAici}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-sm text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Reia de aici
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Status + explanation card */}
           <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+            {priveste ? (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
+                  {plyVazut === 0 ? 'Poziţia de plecare' : `Mutarea ${plyVazut}`}
+                </p>
+                <p className="text-sm text-[#A0A0A0]">
+                  {plyVazut === 0
+                    ? 'Aici a început varianta.'
+                    : explicatiaUltimei || 'Fără explicaţie pentru mutarea asta.'}
+                </p>
+              </div>
+            ) : <>
             {state.status === 'user-turn' && (
               <div>
                 <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider mb-2">
@@ -443,17 +563,22 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 )}
               </div>
             )}
+            {/* Ce tocmai a jucat adversarul. Stă cât timp e rândul tău, deci ai
+                timp să citeşti — nu 600 ms, cât dura înainte. */}
+            {state.status === 'user-turn' && ultimaEAAdversarului && explicatiaUltimei && (
+              <div className="mt-3 border-t border-[#2A2A2A] pt-3">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
+                  Adversarul a jucat
+                </p>
+                <p className="text-xs leading-relaxed text-[#A0A0A0]">{explicatiaUltimei}</p>
+              </div>
+            )}
             {state.status === 'computer-thinking' && (
               <div>
                 <p className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-2">
                   Adversarul mută
                 </p>
                 <p className="text-sm text-[#A0A0A0]">Calculez răspunsul teoretic...</p>
-                {isGuided && explanation && (
-                  <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
-                    <p className="text-xs text-[#A0A0A0] leading-relaxed">{explanation}</p>
-                  </div>
-                )}
               </div>
             )}
             {state.status === 'wrong' && (
@@ -478,6 +603,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 </p>
               </div>
             )}
+            </>}
           </div>
 
           {/* Planul variantei — doar la jocul de mijloc, unde există.
