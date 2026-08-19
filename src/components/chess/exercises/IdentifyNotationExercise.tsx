@@ -42,8 +42,24 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
     return `${base} border-[#2A2A2A] bg-[#141414] text-[#6B6B6B] cursor-default`
   }
 
-  const highlight = exercise.fen
-    ? { [exercise.square]: { background: 'rgba(226,179,64,0.5)' } }
+  /**
+   * Pătratul cu răspunsul se colorează abia DUPĂ ce omul a ales.
+   *
+   * Înainte era colorat de la bun început, adică întrebarea „pe ce pătrat se
+   * mută regele?" venea cu pătratul acela galben pe tablă. Nu era o întrebare,
+   * era o citire — patru lecţii aveau aceeaşi problemă.
+   *
+   * După răspuns e altceva: acolo culoarea chiar învaţă pe cineva ceva, fiindcă
+   * leagă numele pătratului de locul lui.
+   */
+  const highlight = exercise.fen && selected
+    ? {
+        [exercise.square]: {
+          background: selected === exercise.square
+            ? 'rgba(74,222,128,0.45)'   // ai nimerit
+            : 'rgba(226,179,64,0.5)',   // n-ai nimerit: uite unde era
+        },
+      }
     : undefined
 
   return (
