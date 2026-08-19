@@ -139,7 +139,7 @@ export function LessonPage() {
       <FundamentalLessonPage
         lesson={lesson}
         course={course}
-        prevLesson={prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null}
+
         nextLesson={nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null}
       />
     )

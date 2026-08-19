@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard, defaultPieces, type PieceDropHandlerArgs } from 'react-chessboard'
 import type { MovePieceExerciseData } from '@/types'
 import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
 import { RamaTablei } from './rama-tablei'
@@ -18,12 +18,15 @@ type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare'
  * Toate patru, în ordinea puterii. Regina prima fiindcă e alegerea de nouă ori
  * din zece, dar celelalte sunt acolo — asta e chiar regula pe care o predă
  * lecţia, iar dacă programul alege singur regina, regula rămâne o vorbă.
+ *
+ * `litera` e cea din notaţia mutării (`e7e8q`), `simbol` e cheia sub care
+ * react-chessboard ţine desenul piesei.
  */
 const PIESE_DE_PROMOVARE = [
-  { litera: 'q', nume: 'Regină', semn: '♛' },
-  { litera: 'r', nume: 'Tură', semn: '♜' },
-  { litera: 'b', nume: 'Nebun', semn: '♝' },
-  { litera: 'n', nume: 'Cal', semn: '♞' },
+  { litera: 'q', nume: 'regină', simbol: 'Q' },
+  { litera: 'r', nume: 'tură', simbol: 'R' },
+  { litera: 'b', nume: 'nebun', simbol: 'B' },
+  { litera: 'n', nume: 'cal', simbol: 'N' },
 ] as const
 
 export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
@@ -111,33 +114,27 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
             alegi, mutarea nu s-a terminat, iar un panou pe lângă tablă ar fi
             uşor de ratat exact în momentul în care e singurul lucru de făcut. */}
         {deAles && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl bg-[#0A0A0A]/85 p-4">
-            <p className="text-center text-sm font-semibold text-[#F0F0F0]">
-              În ce transformi pionul?
-            </p>
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#0A0A0A]/85 p-4">
             <div className="flex flex-wrap justify-center gap-2">
-              {PIESE_DE_PROMOVARE.map(p => (
-                <button
-                  key={p.litera}
-                  type="button"
-                  onClick={() => { primeste(deAles.de, deAles.la, p.litera); setDeAles(null) }}
-                  className="flex w-20 flex-col items-center gap-1 rounded-xl border border-[#2A2A2A] bg-[#161616] px-2 py-3 transition-colors hover:border-[#E2B340] hover:bg-[#1C1C1C]"
-                >
-                  <span
-                    className="text-3xl leading-none"
-                    style={{ color: laMutare === 'b' ? '#1A1A1A' : '#F0F0F0',
-                             textShadow: laMutare === 'b' ? '0 0 2px #6B6B6B' : undefined }}
-                    aria-hidden
+              {PIESE_DE_PROMOVARE.map(p => {
+                // Chiar desenul folosit pe tablă, cerut de la bibliotecă. Un set
+                // propriu ar fi însemnat că piesa aleasă arată altfel decât cea
+                // care apare o clipă mai târziu pe pătrat.
+                const Deseneaza = defaultPieces[`${laMutare}${p.simbol}`]
+                return (
+                  <button
+                    key={p.litera}
+                    type="button"
+                    onClick={() => { primeste(deAles.de, deAles.la, p.litera); setDeAles(null) }}
+                    aria-label={p.nume}
+                    title={p.nume}
+                    className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#2A2A2A] bg-[#161616] p-1.5 transition-colors hover:border-[#E2B340] hover:bg-[#1C1C1C]"
                   >
-                    {p.semn}
-                  </span>
-                  <span className="text-xs text-[#A0A0A0]">{p.nume}</span>
-                </button>
-              ))}
+                    <Deseneaza />
+                  </button>
+                )
+              })}
             </div>
-            <p className="max-w-xs text-center text-xs text-[#6B6B6B]">
-              De obicei se alege regina, dar poţi lua oricare.
-            </p>
           </div>
         )}
       </div>

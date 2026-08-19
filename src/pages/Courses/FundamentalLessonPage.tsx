@@ -15,11 +15,12 @@ import type { Lesson, Course, Exercise } from '@/types'
 interface Props {
   lesson: Lesson
   course: Course
-  prevLesson: { id: string; title: string } | null
+  // `prevLesson` nu se mai foloseşte: „Înapoi" merge prin exerciţiile lecţiei,
+  // iar de la primul iese la pagina de start, nu în lecţia vecină.
   nextLesson: { id: string; title: string } | null
 }
 
-export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }: Props) {
+export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
   const { user, fetchProfile } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -219,26 +220,27 @@ export function FundamentalLessonPage({ lesson, course, prevLesson, nextLesson }
       {/* Navigare */}
       <div className="flex items-center gap-3">
         {/* „Înapoi" înseamnă un pas înapoi, nu o lecţie înapoi.
-            Butonul ăsta ducea direct la lecţia dinainte, chiar dacă erai la
+            Butonul ducea direct la lecţia dinainte, chiar dacă erai la
             exerciţiul 3 din 3 — adică pierdeai toată lecţia ca să revezi o
-            poziţie. Acum se întoarce întâi prin exerciţiile lecţiei, şi abia de
-            la primul iese din ea. */}
-        {(exerciseIndex > 0 || prevLesson) && (
-          exerciseIndex > 0 ? (
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
-            >
-              <ChevronLeft className="h-4 w-4" /> Înapoi
+            poziţie.
+
+            De la primul exerciţiu nu mai duce în lecţia vecină: cine apasă
+            „înapoi" acolo vrea să iasă, nu să nimerească într-o altă lecţie pe
+            care n-a cerut-o. Îl scoate la pagina de start, şi o spune pe faţă. */}
+        {exerciseIndex > 0 ? (
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
+          >
+            <ChevronLeft className="h-4 w-4" /> Înapoi
+          </Button>
+        ) : (
+          <Link to="/dashboard" className="flex-1">
+            <Button variant="secondary" className="w-full">
+              <ChevronLeft className="h-4 w-4" /> Înapoi la pagina principală
             </Button>
-          ) : (
-            <Link to={`/courses/${course.slug}/lessons/${prevLesson!.id}`} className="flex-1">
-              <Button variant="secondary" className="w-full">
-                <ChevronLeft className="h-4 w-4" /> Înapoi
-              </Button>
-            </Link>
-          )
+          </Link>
         )}
         <Button
           className="flex-1"
