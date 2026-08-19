@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import type { Course, CourseLevel, PlayingStyle, Profile } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 import { Logo } from '@/components/ui/Logo'
+import { PozaCursului } from '@/components/ui/PozaCursului'
 
 // Color palette per ECO family
 function getEcoTheme(eco?: string | null) {
@@ -319,16 +320,13 @@ function CourseCard({ course, isPro, featured = false, recommended = false }: { 
   // Iconul cursului — tile pătrat decupat curat (object-cover + zoom ușor care taie
   // marginea transparentă / haloul exterior), colțuri rotunjite ca pe Chessly
   const tokenIcon = (sizeClass: string) => (
-    <div className={`relative ${sizeClass} ${LOGO_RADIUS} overflow-hidden shrink-0 bg-[#141414] shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}>
-      <img
-        src={`/openings/${course.slug}.png`}
-        alt={course.title}
-        loading="lazy"
-        onError={e => { e.currentTarget.style.display = 'none' }}
-        className={`h-full w-full object-cover ${LOGO_SCALE} ${LOGO_SCALE_HOVER} transition-transform duration-200 ${locked ? 'opacity-60' : ''}`}
-      />
-      {locked && <div className="absolute inset-0 bg-black/30" />}
-    </div>
+    <PozaCursului
+      slug={course.slug}
+      titlu={course.title}
+      stinsa={locked}
+      className={`${sizeClass} ${LOGO_RADIUS} shrink-0`}
+      zoom={`${LOGO_SCALE} ${LOGO_SCALE_HOVER} transition-transform duration-200`}
+    />
   )
 
   // Footer: număr de lecții + progres (reutilizat)

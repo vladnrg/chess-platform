@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Spinner } from '@/components/ui/Spinner'
 import { CourseChapters } from '@/components/courses/CourseChapters'
+import { PozaCursului } from '@/components/ui/PozaCursului'
 import { useMarcheazaCursul } from '@/hooks/useMarcheazaCursul'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
@@ -152,11 +153,10 @@ export function CourseDetail() {
       {/* Header — iconiță + titlu + descriere */}
       <div className="flex-shrink-0 rounded-xl bg-[#141414] border border-[#2A2A2A] p-6">
         <div className="flex items-start gap-4 mb-4">
-          <img
-            src={`/openings/${course.slug}.png`}
-            alt={course.title}
-            onError={e => { e.currentTarget.style.display = 'none' }}
-            className="h-20 w-20 rounded-xl object-cover shrink-0 bg-[#141414] shadow-[0_2px_10px_rgba(0,0,0,0.45)]"
+          <PozaCursului
+            slug={course.slug}
+            titlu={course.title}
+            className="h-20 w-20 rounded-xl shrink-0"
           />
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">

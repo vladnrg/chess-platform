@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
 import { ChapterPath, type PathNode } from '@/components/courses/ChapterPath'
-import { CourseIcon } from '@/components/ui/CourseIcon'
+import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
 import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent } from '@/lib/capitole-curs'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
@@ -113,9 +113,11 @@ function AntetCurs({ curs, cate, pozitie, onSchimba }: {
 }) {
   return (
     <div className="flex items-center gap-3 border-b border-[#2A2A2A] p-4">
-      <CourseIcon color={culoareaCursului(curs.slug)} size="md" className="flex-shrink-0">
-        {simbolulCursului(curs)}
-      </CourseIcon>
+      <PozaCursului
+        slug={curs.slug}
+        titlu={curs.title}
+        className="h-14 w-14 flex-shrink-0 rounded-xl"
+      />
 
       <div className="min-w-0 flex-1">
         <Link
@@ -276,23 +278,4 @@ function TraseuIncadrat({ noduri }: { noduri: PathNode[] }) {
       <ChapterPath nodes={noduri} />
     </div>
   )
-}
-
-/**
- * Culoarea plăcuţei, dedusă din numele scurt al cursului.
- *
- * Din nume, nu la întâmplare: aşa acelaşi curs are aceeaşi culoare de fiecare
- * dată, pe orice ecran, fără să ţinem o coloană în plus în bază.
- */
-function culoareaCursului(slug: string): string {
-  const paleta = ['#2DD4BF', '#E2B340', '#A78BFA', '#F472B6', '#60A5FA', '#4ADE80', '#FB923C']
-  let suma = 0
-  for (const semn of slug) suma = (suma + semn.charCodeAt(0)) % 9973
-  return paleta[suma % paleta.length]
-}
-
-/** Regele alb pentru repertoriul cu albul, cel negru pentru apărări, pionul la baze. */
-function simbolulCursului(curs: Course): string {
-  if (curs.is_foundational) return '♟'
-  return curs.slug.includes('defense') || curs.slug.includes('apararea') ? '♚' : '♔'
 }
