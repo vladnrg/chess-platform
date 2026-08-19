@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { IdentifySquareExercise } from '@/types'
 import { RamaTablei } from './rama-tablei'
-import { CULORI_TABLA } from './culori-tabla'
+import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 
 interface Props {
   exercise: IdentifySquareExercise
@@ -56,7 +56,8 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
               allowDragging: false,
               squareStyles: highlight,
               boardStyle: { borderRadius: 0 },
-              ...CULORI_TABLA,
+              boardOrientation: orientareaTablei(exercise.fen),
+            ...CULORI_TABLA,
             }}
           />
         </RamaTablei>

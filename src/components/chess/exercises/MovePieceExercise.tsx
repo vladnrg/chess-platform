@@ -3,21 +3,24 @@ import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import type { MovePieceExerciseData } from '@/types'
 import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
 import { RamaTablei } from './rama-tablei'
-import { CULORI_TABLA } from './culori-tabla'
+import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 
 interface Props {
   exercise: MovePieceExerciseData
   onCorrect: () => void
 }
 
-type Status = 'idle' | 'correct' | 'wrong'
+type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare'
 
 export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [fen, setFen] = useState(exercise.fen)
   const [highlight, setHighlight] = useState<Record<string, React.CSSProperties>>({})
 
-  function onDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
+  /** Cine e la mutare, după FEN. Alb, dacă nu scrie altfel. */
+  const laMutare = exercise.fen.split(' ')[1] === 'b' ? 'b' : 'w'
+
+  function onDrop({ piece, sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
     if (status === 'correct') return false
     // targetSquare e null când piesa e lăsată în afara tablei — nu e o încercare greșită
     if (!targetSquare) return false
@@ -41,7 +44,12 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
       return true
     }
 
-    setStatus('wrong')
+    // A mutat o piesă a celeilalte tabere. Se întâmplă cel mai des la rocada cu
+    // negrul, unde exerciţiul dinainte cerea rocada cu albul: omul ia regele pe
+    // care tocmai l-a mutat. „Nu e mutarea potrivită" nu-i spune nimic — poate
+    // fi chiar mutarea potrivită, făcută cu piesa greşită.
+    const eAltaCuloare = piece.pieceType[0] !== laMutare
+    setStatus(eAltaCuloare ? 'alta-culoare' : 'wrong')
     setHighlight({
       [sourceSquare]: { background: 'rgba(251,113,133, 0.4)' },
       [targetSquare]: { background: 'rgba(251,113,133, 0.4)' },
@@ -64,6 +72,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
             onPieceDrop: onDrop,
             squareStyles: highlight,
             boardStyle: { borderRadius: 0 },
+            boardOrientation: orientareaTablei(exercise.fen),
             ...CULORI_TABLA,
           }}
         />
@@ -74,6 +83,12 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
       )}
       {status === 'wrong' && (
         <p className="text-sm font-medium text-[#FB7185]">Nu e mutarea potrivită. Încearcă din nou!</p>
+      )}
+      {status === 'alta-culoare' && (
+        <p className="text-sm font-medium text-[#FB7185]">
+          Aici mută {laMutare === 'b' ? 'negrul' : 'albul'} — piesele lui sunt cele
+          {laMutare === 'b' ? ' închise' : ' deschise'} la culoare.
+        </p>
       )}
     </div>
   )

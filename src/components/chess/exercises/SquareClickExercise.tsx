@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { ClickSquareExercise } from '@/types'
 import { RamaTablei } from './rama-tablei'
-import { CULORI_TABLA } from './culori-tabla'
+import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 
 interface Props {
   exercise: ClickSquareExercise
@@ -45,6 +45,7 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
             onSquareClick: handleSquareClick,
             squareStyles: highlighted,
             boardStyle: { borderRadius: 0, cursor: 'pointer' },
+            boardOrientation: orientareaTablei(exercise.fen),
             ...CULORI_TABLA,
           }}
         />
