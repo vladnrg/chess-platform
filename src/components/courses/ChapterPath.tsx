@@ -2,85 +2,18 @@ import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Dumbbell, GraduationCap, Check, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  FORME, GROSIME, GOL, PADDING, abatere, iesireJos, intrareSus,
+  type NodeKind, type PathNode,
+} from './geometrie-traseu'
 
-/**
- * Ce fel de pas e un nod din traseu.
- *
- * `lectie`    — înveţi ceva, cu programul care te duce de mână
- * `exercitiu` — parcurgi singur, fără ajutor
- * `test`      — întrebări din tot capitolul, la final
- *
- * Nu există nod de tip „video": platforma nu are filme, iar un tip de nod care
- * nu duce nicăieri e mai rău decât unul lipsă.
- */
-export type NodeKind = 'lectie' | 'exercitiu' | 'test'
-
-export interface PathNode {
-  id: string
-  kind: NodeKind
-  /** Nu se scrie sub nod — apare doar la trecerea cu mouse-ul peste el. */
-  title: string
-  /** Unde duce. Lipsă = pasul există, dar încă n-are unde trimite. */
-  href?: string
-  done?: boolean
-}
+// Tipurile rămân exportate şi de aici: cine desenează un traseu le ia din
+// acelaşi loc din care ia şi componenta. Formula de înălţime se cere direct din
+// `geometrie-traseu` — un fişier care exportă şi componente, şi funcţii, strică
+// reîncărcarea la cald.
+export type { NodeKind, PathNode }
 
 const ICOANE = { lectie: BookOpen, exercitiu: Dumbbell, test: GraduationCap }
-
-/**
- * Silueta fiecărui tip de pas.
- *
- * De când nu mai scrie nimic sub noduri, forma e singurul lucru care spune ce
- * fel de pas urmează — culoarea e deja ocupată cu starea (unde eşti, ce ai
- * terminat, ce e închis). Două limbaje care nu se calcă pe picioare.
- *
- * `latura` e latura pătratului, nu lăţimea pe ecran: rotit la 45°, diamantul se
- * întinde cât diagonala lui, adică de 1,41 ori mai mult.
- *
- * Diamantul are latura cea mai generoasă din trei, deşi pare cel mic. Motivul e
- * lacătul: el stă pe muchia dinspre dreapta-jos, iar muchia unui diamant trece
- * mai aproape de mijloc decât colţul unui pătrat. Cu latura strânsă, lacătul
- * ajungea peste gantere. Icoana a rămas la mărimea ei tocmai ca să se lăţească
- * spaţiul dintre ele.
- */
-const FORME: Record<NodeKind, { latura: number; raza: number; rotit: boolean; icoana: string }> = {
-  lectie:    { latura: 68, raza: 22, rotit: false, icoana: 'h-8 w-8' },
-  exercitiu: { latura: 70, raza: 20, rotit: true,  icoana: 'h-7 w-7' },
-  test:      { latura: 78, raza: 26, rotit: false, icoana: 'h-9 w-9' },
-}
-
-/** Cât coboară faţa peste umbră la apăsare. */
-const GROSIME = 7
-
-/**
- * Cât se abate fiecare nod de la mijloc, în paşi.
- *
- * Tiparul se repetă din patru în patru şi dă şerpuirea. Nu e ornament: pe un şir
- * perfect drept, douăzeci de casete identice arată ca o listă, iar ochiul nu mai
- * simte că înaintează. Abaterea le face să se citească drept drum.
- */
-const ZIGZAG = [0, 1, 0, -1]
-const PAS_LATERAL = 62
-
-/** Înălţimea spaţiului dintre două noduri — tot atâta cât ţine şi legătura. */
-const GOL = 46
-
-/** Abaterea laterală a nodului de pe poziţia `i`. */
-const abatere = (i: number) => ZIGZAG[i % ZIGZAG.length] * PAS_LATERAL
-
-/**
- * Cât din golul de deasupra/dedesubt e acoperit deja de nodul vecin.
- *
- * Diamantul îşi depăşeşte caseta cu colţurile — jumătate din diferenţa dintre
- * diagonală şi latură. Fără corecţia asta, primele buline ale legăturii ar fi
- * desenate peste el. Se calculează din latură, nu se scrie de mână: altfel
- * orice schimbare de mărime ar strica firul fără să spună nimeni nimic.
- */
-const colt = (kind: NodeKind) =>
-  FORME[kind].rotit ? Math.round((FORME[kind].latura * (Math.SQRT2 - 1)) / 2) : 0
-
-const iesireJos = (kind: NodeKind) => colt(kind) + GROSIME
-const intrareSus = (kind: NodeKind) => colt(kind)
 
 /**
  * Firul punctat dintre două noduri.
@@ -114,8 +47,11 @@ function Legatura({ de, la, dinKind, spreKind }: {
       <path
         d={`M ${x1} ${y1} C ${x1} ${y1 + mijloc}, ${x2} ${y2 - mijloc}, ${x2} ${y2}`}
         fill="none"
-        stroke="#4A4238"
-        strokeWidth={3}
+        // Deschis, nu discret. Firul se desenează şi micşorat, pe Bârlog, unde
+        // ajunge la mai puţin de jumătate din grosime — la nuanţa dinainte
+        // dispărea în fundal, iar traseul se citea ca nişte pătrate risipite.
+        stroke="#6B5E45"
+        strokeWidth={3.5}
         // Buline, nu liniuţe: segment de lungime zero cu capete rotunde.
         strokeDasharray="0.1 9"
         strokeLinecap="round"
@@ -143,7 +79,7 @@ export function ChapterPath({ nodes }: { nodes: PathNode[] }) {
   const idxCurent = nodes.findIndex(n => !n.done)
 
   return (
-    <div className="flex flex-col items-center py-4">
+    <div className="flex flex-col items-center" style={{ paddingBlock: PADDING }}>
       {nodes.map((node, i) => {
         const esteCurent = i === idxCurent
         const blocat = idxCurent !== -1 && i > idxCurent

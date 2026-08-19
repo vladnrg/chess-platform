@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
@@ -6,9 +6,10 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
 import { ChapterPath, type PathNode } from '@/components/courses/ChapterPath'
+import { inaltimeaTraseului } from '@/components/courses/geometrie-traseu'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
-import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, type Capitol } from '@/lib/capitole-curs'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
 
 /**
@@ -104,7 +105,15 @@ function NiciunCurs() {
   )
 }
 
-/** Numele cursului, poza lui şi săgeţile către celelalte cursuri începute. */
+/**
+ * Numele cursului şi poza lui, la mijloc; săgeţile către celelalte cursuri
+ * începute stau lipite de marginea din dreapta.
+ *
+ * Centrat, nu aliniat la stânga: caseta e lată, iar un titlu împins în colţ lăsa
+ * jumătate de rând gol şi arăta a antet uitat acolo. Săgeţile ies din şir, prin
+ * poziţionare absolută — altfel ar fi împins titlul spre stânga şi n-ar mai fi
+ * fost centrat pe casetă, ci pe ce rămâne din ea.
+ */
 function AntetCurs({ curs, cate, pozitie, onSchimba }: {
   curs: Course
   cate: number
@@ -112,30 +121,32 @@ function AntetCurs({ curs, cate, pozitie, onSchimba }: {
   onSchimba: (pas: number) => void
 }) {
   return (
-    <div className="flex items-center gap-3 border-b border-[#2A2A2A] p-4">
-      <PozaCursului
-        slug={curs.slug}
-        titlu={curs.title}
-        className="h-14 w-14 flex-shrink-0 rounded-xl"
-      />
-
-      <div className="min-w-0 flex-1">
-        <Link
-          to={`/courses/${curs.slug}`}
-          className="block truncate font-display text-base font-bold text-[#F0F0F0] hover:text-[#E2B340]"
-        >
-          {curs.title}
-        </Link>
-        {/* Numărul apare doar când chiar sunt mai multe — la un singur curs ar
-            fi „1 din 1", adică o informaţie care nu spune nimic. */}
-        {cate > 1 && (
-          <p className="text-xs text-[#6B6B6B]">Cursul {pozitie + 1} din {cate} începute</p>
-        )}
+    <div className="relative flex items-center justify-center border-b border-[#2A2A2A] p-4">
+      {/* Lăsăm loc de săgeţi în ambele părţi, ca titlul lung să nu ajungă sub ele. */}
+      <div className={`flex min-w-0 items-center gap-3 ${cate > 1 ? 'max-w-[calc(100%-7rem)]' : ''}`}>
+        <PozaCursului
+          slug={curs.slug}
+          titlu={curs.title}
+          className="h-14 w-14 flex-shrink-0 rounded-xl"
+        />
+        <div className="min-w-0">
+          <Link
+            to={`/courses/${curs.slug}`}
+            className="block truncate font-display text-base font-bold text-[#F0F0F0] hover:text-[#E2B340]"
+          >
+            {curs.title}
+          </Link>
+          {/* Numărul apare doar când chiar sunt mai multe — la un singur curs ar
+              fi „1 din 1", adică o informaţie care nu spune nimic. */}
+          {cate > 1 && (
+            <p className="text-xs text-[#6B6B6B]">Cursul {pozitie + 1} din {cate} începute</p>
+          )}
+        </div>
       </div>
 
       {/* Săgeţile lipsesc când n-au unde duce, ca la cuferele cu tactici. */}
       {cate > 1 && (
-        <div className="flex flex-shrink-0 gap-1.5">
+        <div className="absolute right-4 flex gap-1.5">
           {[-1, 1].map(pas => (
             <button
               key={pas}
@@ -200,14 +211,22 @@ function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[
     )
   }
 
-  const cap = capitole[Math.min(Math.max(iCurent, 0), capitole.length - 1)]
+  const i = Math.min(Math.max(iCurent, 0), capitole.length - 1)
+  const cap = capitole[i]
+  const { deSus, deJos } = vecinii(capitole, i)
 
   return (
-    <div className="p-4">
+    <div className="space-y-2 p-4">
+      {/* Capitolele din urmă. Apar doar când nu mai e nimic înainte — drumul se
+          citeşte în jos, deci ce a trecut stă deasupra. */}
+      {deSus.map(v => (
+        <CasetaCapitol key={v.capitol.id} capitol={v.capitol} numar={v.numar} onMergi={() => setCapitol(v.numar - 1)} />
+      ))}
+
       <div className="flex items-center gap-2">
         {capitole.length > 1 && (
           <button
-            onClick={() => setCapitol((iCurent - 1 + capitole.length) % capitole.length)}
+            onClick={() => setCapitol((i - 1 + capitole.length) % capitole.length)}
             aria-label="Capitolul anterior"
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
           >
@@ -215,9 +234,9 @@ function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[
           </button>
         )}
 
-        <div className="min-w-0 flex-1 rounded-xl bg-[#1A1A1A] px-4 py-2.5 text-center">
-          <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#6B6B6B]">
-            Capitolul {Math.min(Math.max(iCurent, 0), capitole.length - 1) + 1}
+        <div className="min-w-0 flex-1 rounded-xl border border-[#E2B340]/25 bg-[#1A1A1A] px-4 py-2.5 text-center">
+          <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#E2B340]">
+            Capitolul {i + 1}
             {capitole.length > 1 && ` din ${capitole.length}`}
           </p>
           <p className="flex items-center justify-center gap-1.5 truncate font-display font-semibold text-[#F0F0F0]">
@@ -229,7 +248,7 @@ function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[
 
         {capitole.length > 1 && (
           <button
-            onClick={() => setCapitol((iCurent + 1) % capitole.length)}
+            onClick={() => setCapitol((i + 1) % capitole.length)}
             aria-label="Capitolul următor"
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
           >
@@ -239,43 +258,91 @@ function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[
       </div>
 
       <TraseuIncadrat noduri={cap.noduri} />
+
+      {/* Ce urmează. Casetele astea nu-s decor: fără ele, capitolul curent pare
+          tot ce există, iar drumul se termină la marginea traseului. */}
+      {deJos.map(v => (
+        <CasetaCapitol key={v.capitol.id} capitol={v.capitol} numar={v.numar} onMergi={() => setCapitol(v.numar - 1)} />
+      ))}
     </div>
   )
 }
 
 /**
- * Traseul, ţinut la înălţimea unui ecran.
+ * Ce capitole se mai arată, în afară de cel curent.
  *
- * Pe pagina cursului traseul se întinde cât are nevoie — acolo asta şi vrei. Aici
- * nu: „Mişcarea pieselor" are zece lecţii, adică vreo mie de pixeli de traseu,
- * care ar împinge graficul de XP undeva sus şi ar face pagina de start să curgă
- * de trei ori. Deci fereastră fixă, care derulează pe dinăuntru.
- *
- * La deschidere sare la pasul curent. Fără asta, cine e la lecţia a şaptea ar
- * vedea şase bifate şi ar trebui să caute singur unde a rămas — exact întrebarea
- * la care pagina asta trebuie să răspundă fără să fie întrebată.
+ * Două, atât — cât să se vadă că drumul continuă, fără să se transforme în
+ * cuprins. Se preferă cele care urmează: pe ele le are omul de făcut. Când e la
+ * ultimul capitol şi nu mai urmează nimic, se completează cu cele din urmă, ca
+ * să nu rămână singur în josul casetei.
  */
-function TraseuIncadrat({ noduri }: { noduri: PathNode[] }) {
-  const fereastra = useRef<HTMLDivElement>(null)
+function vecinii(capitole: Capitol[], i: number) {
+  const dupa = capitole.slice(i + 1, i + 3)
+  const inainte = capitole.slice(Math.max(0, i - (2 - dupa.length)), i)
+  const cuNumar = (c: Capitol) => ({ capitol: c, numar: capitole.indexOf(c) + 1 })
+  return { deSus: inainte.map(cuNumar), deJos: dupa.map(cuNumar) }
+}
 
-  useEffect(() => {
-    const cutie = fereastra.current
-    const curent = cutie?.querySelector<HTMLElement>('[data-nod-curent]')
-    if (!cutie || !curent) return
-    // `scrollTop`, nu `scrollIntoView`: al doilea derulează şi pagina, nu doar
-    // caseta, şi ar muta Bârlogul sub ochii omului la fiecare intrare.
-    cutie.scrollTop = curent.offsetTop - cutie.clientHeight / 2 + curent.offsetHeight / 2
-  }, [noduri])
+/** Un capitol vecin, strâns pe un rând. Se apasă şi te duce la el. */
+function CasetaCapitol({ capitol, numar, onMergi }: {
+  capitol: Capitol
+  numar: number
+  onMergi: () => void
+}) {
+  return (
+    <button
+      onClick={onMergi}
+      className="flex w-full items-center gap-2.5 rounded-xl border border-[#242424] bg-[#171717] px-3 py-2 text-left transition-colors hover:border-[#3A3A3A] hover:bg-[#1C1C1C]"
+    >
+      <span className="flex-shrink-0 rounded-md bg-[#242424] px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wider text-[#6B6B6B]">
+        Cap. {numar}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm text-[#A0A0A0]">{capitol.titlu}</span>
+      {capitol.terminat && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#4ade80]" />}
+    </button>
+  )
+}
+
+/**
+ * Traseul, micşorat cât să încapă tot.
+ *
+ * Pe pagina cursului se întinde cât are nevoie — acolo asta şi vrei. Aici nu:
+ * „Mişcarea pieselor" are zece lecţii, adică peste o mie de pixeli, iar o
+ * fereastră care derulează arată trei noduri şi ascunde tocmai lucrul pentru
+ * care e caseta — cât drum mai e.
+ *
+ * Deci se micşorează, nu se taie. Ce se pierde din mărimea nodurilor se câştigă
+ * la înţeles: se vede dintr-o privire că sunt zece şi unde eşti între ele.
+ */
+
+/** Cât loc are traseul pe verticală, în pixeli. */
+const INALTIME_TRASEU = 520
+
+function TraseuIncadrat({ noduri }: { noduri: PathNode[] }) {
+  const natural = inaltimeaTraseului(noduri)
+  // Fără prag de jos: orice capitol trebuie să încapă întreg, oricât ar fi de
+  // lung. Un capitol scurt nu se umflă însă peste mărimea lui firească.
+  const scara = Math.min(1, INALTIME_TRASEU / natural)
 
   return (
     <div
-      ref={fereastra}
-      // `relative` nu e ornament: `offsetTop` de mai sus se măsoară faţă de cel
-      // mai apropiat strămoş poziţionat. Fără el, nodurile îşi raportau poziţia
-      // faţă de toată pagina, iar derularea sărea cu câteva sute de pixeli peste.
-      className="relative mt-1 max-h-[22rem] overflow-y-auto overscroll-contain"
+      className="relative overflow-hidden"
+      style={{ height: Math.ceil(natural * scara) }}
     >
-      <ChapterPath nodes={noduri} />
+      {/* Stratul dinăuntru stă scos din flux (`absolute`). Altfel ar cere în
+          continuare cei o mie de pixeli ai lui — `transform` schimbă doar cum
+          arată, nu cât loc ocupă — iar caseta ar căpăta o bară de derulare
+          pentru un conţinut care încape deja pe ecran. */}
+      <div
+        className="absolute inset-x-0 top-0"
+        style={{
+          height: natural,
+          transform: `scale(${scara})`,
+          transformOrigin: 'top center',
+        }}
+      >
+        <ChapterPath nodes={noduri} />
+      </div>
     </div>
   )
 }
