@@ -49,35 +49,28 @@ const itemClass = (active: boolean) => cn(
 )
 
 /**
- * Un rând dintr-o listă de pagini, în dungi.
+ * Un rând dintr-o listă de pagini.
  *
  * Fără icoană: cele şase simboluri dintr-un meniu nu spuneau nimic unul faţă de
  * altul (o eprubetă, o ţintă, o pensulă) şi trăgeau ochiul înaintea cuvintelor,
  * care sunt singurele care chiar spun unde ajungi.
  *
- * În locul lor, rândurile alternează: galben cu scris negru, apoi negru cu scris
- * galben. Ochiul are de ce se agăţa fără să fie nevoie de desene, iar rândurile
- * se despart între ele fără linii.
+ * Toate rândurile sunt negre cu scris galben. Am încercat şi alternanţa —
+ * un rând galben cu scris negru, următorul invers — dar benzile galbene ieşeau
+ * prea tare în faţă: meniul striga în loc să stea deoparte până e nevoie de el.
+ * Rândurile se despart acum printr-o linie subţire, cât să se vadă că sunt mai
+ * multe, nu prin culoare.
  *
- * Pagina pe care eşti se îngroaşă şi se subliniază — culoarea e deja ocupată de
- * alternanţă, deci starea are nevoie de alt semn.
+ * Pagina pe care eşti se îngroaşă şi se subliniază.
  */
-function RandDungat({ item, rand, onNavigate }: {
-  item: NavLeaf
-  /** Poziţia în listă; parul şi imparul dau cele două culori. */
-  rand: number
-  onNavigate: () => void
-}) {
-  const galben = rand % 2 === 0
+function RandDeMeniu({ item, onNavigate }: { item: NavLeaf; onNavigate: () => void }) {
   return (
     <NavLink
       to={item.to}
       onClick={onNavigate}
       className={({ isActive }) => cn(
-        'block px-4 py-2.5 text-sm transition-colors',
-        galben
-          ? 'bg-[#E2B340] text-[#0A0A0A] hover:bg-[#F0C450]'
-          : 'bg-[#121212] text-[#E2B340] hover:bg-[#1C1C1C]',
+        'block border-b border-[#1F1F1F] bg-[#121212] px-4 py-2.5 text-sm text-[#E2B340]',
+        'transition-colors last:border-b-0 hover:bg-[#1C1C1C]',
         isActive && 'font-bold underline decoration-2 underline-offset-4',
       )}
     >
@@ -209,8 +202,8 @@ export function TopNav() {
               </button>
               {open && (
                 <div className="absolute left-0 top-full mt-1.5 w-60 overflow-hidden rounded-xl border border-[#2A2A2A] shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
-                  {entry.items.map((item, i) => (
-                    <RandDungat key={item.to} item={item} rand={i} onNavigate={closeMenu} />
+                  {entry.items.map(item => (
+                    <RandDeMeniu key={item.to} item={item} onNavigate={closeMenu} />
                   ))}
                 </div>
               )}
@@ -243,8 +236,8 @@ export function TopNav() {
           </button>
           {mobileOpen && (
             <div className="absolute inset-x-2 top-full mt-1.5 max-h-[70dvh] overflow-hidden overflow-y-auto rounded-xl border border-[#2A2A2A] bg-[#141414] shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
-              {ALL_PAGES.map((item, i) => (
-                <RandDungat key={item.to} item={item} rand={i} onNavigate={closeMenu} />
+              {ALL_PAGES.map(item => (
+                <RandDeMeniu key={item.to} item={item} onNavigate={closeMenu} />
               ))}
               <div className="h-px bg-[#2A2A2A]" />
               <Link
