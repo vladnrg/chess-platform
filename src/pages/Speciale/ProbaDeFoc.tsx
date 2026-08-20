@@ -8,11 +8,14 @@ import { formatPawns, targetEloFor, engineSettings, ELO_FLOOR } from '@/lib/aren
 /**
  * Intrarea în Proba de foc.
  *
- * Pagina explică regula o singură dată şi în cuvinte simple, fiindcă e o
- * mecanică nouă: nu „câştigă partida", ci „îmbunătăţeşte poziţia". Cine nu
- * înţelege asta din prima ecranare va crede că a pierdut când de fapt a punctat.
+ * Explică regula o singură dată şi în cuvinte simple, fiindcă e o mecanică
+ * nouă: nu „câştigă partida", ci „îmbunătăţeşte poziţia". Cine nu înţelege asta
+ * din prima ecranare va crede că a pierdut când de fapt a punctat.
+ *
+ * A fost pagină de sine stătătoare (`/proba`). Acum e o secţiune din „Speciale",
+ * deci nu-şi mai pune singură lăţimea şi marginile — le dă pagina care o ţine.
  */
-export function ArenaPage() {
+export function ProbaDeFoc() {
   const { profile } = useAuth()
   const { data: stats, isLoading } = useArenaStats()
 
@@ -25,7 +28,7 @@ export function ArenaPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       {/* Antet */}
       <div className="rounded-2xl border border-[#2A2A2A] bg-gradient-to-br from-[#1A1410] to-[#141414] p-6">
         <div className="flex items-start gap-4">
@@ -33,7 +36,7 @@ export function ArenaPage() {
             <Flame className="h-6 w-6 text-[#E2B340]" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-[#F0F0F0]">Proba de foc</h1>
+            <h2 className="text-xl font-bold text-[#F0F0F0]">Proba de foc</h2>
             <p className="mt-1 text-sm leading-relaxed text-[#A0A0A0]">
               Trei poziţii din deschiderile pe care le-ai învăţat, contra unui adversar
               mai tare decât tine. Nu trebuie să câştigi partida — trebuie să

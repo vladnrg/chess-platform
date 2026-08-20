@@ -38,10 +38,9 @@ const TacticsCategoryPage = lazy(() => import('@/pages/TacticsCategoryPage').the
 const RepertoirePage = lazy(() => import('@/pages/RepertoirePage').then(m => ({ default: m.RepertoirePage })))
 const LeaguesPage = lazy(() => import('@/pages/LeaguesPage').then(m => ({ default: m.LeaguesPage })))
 const EventsPage = lazy(() => import('@/pages/EventsPage').then(m => ({ default: m.EventsPage })))
-const MissionsPage = lazy(() => import('@/pages/MissionsPage').then(m => ({ default: m.MissionsPage })))
 const AnalysisPage = lazy(() => import('@/pages/AnalysisPage').then(m => ({ default: m.AnalysisPage })))
 const EventDetailPage = lazy(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
-const ArenaPage = lazy(() => import('@/pages/ArenaPage').then(m => ({ default: m.ArenaPage })))
+const SpecialePage = lazy(() => import('@/pages/Speciale/SpecialePage').then(m => ({ default: m.SpecialePage })))
 const ArenaRunPage = lazy(() => import('@/pages/ArenaRunPage').then(m => ({ default: m.ArenaRunPage })))
 const BreakPage = lazy(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
 const ParentalConfirmPage = lazy(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
@@ -116,11 +115,15 @@ function AppRoutes() {
         <Route path="/pentru-incepatori" element={<BeginnersPage />} />
         <Route path="/repertoire" element={<RepertoirePage />} />
         <Route path="/leagues" element={<LeaguesPage />} />
-        <Route path="/misiuni" element={<MissionsPage />} />
+        {/* Misiunile zilei şi Proba de foc s-au mutat împreună în „Speciale".
+            Adresele vechi rămân şi duc acolo: cine le are salvate sau le-a primit
+            pe un link n-are de unde şti că s-au mutat. */}
+        <Route path="/misiuni" element={<Navigate to="/speciale" replace />} />
         <Route path="/analiza" element={<AnalysisPage />} />
         <Route path="/evenimente" element={<EventsPage />} />
         <Route path="/evenimente/:slug" element={<EventDetailPage />} />
-        <Route path="/proba" element={<ArenaPage />} />
+        <Route path="/proba" element={<Navigate to="/speciale" replace />} />
+        <Route path="/speciale" element={<SpecialePage />} />
         <Route path="/proba/joc" element={<ArenaRunPage />} />
       </Route>
 

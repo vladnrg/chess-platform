@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, BookOpen, Puzzle, BarChart2,
-  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Target, Cpu, Flame,
+  User, Sword, Calendar, Users, Library, Trophy, GraduationCap, Sparkles, Cpu, Flame,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -54,12 +54,6 @@ export const NAV: NavEntry[] = [
         icon: Puzzle,
       },
       {
-        to: '/misiuni',
-        label: 'Misiunile zilei',
-        description: 'Trei obiective mici pe zi, cu XP la fiecare și bonus dacă le termini pe toate.',
-        icon: Target,
-      },
-      {
         to: '/tactics',
         label: 'Cuferele cu tactici',
         description: 'Trasee pe categorii — furculiță, țintuire, sacrificiu — de la începător la maestru.',
@@ -72,9 +66,12 @@ export const NAV: NavEntry[] = [
         icon: Cpu,
       },
       {
-        to: '/proba',
-        label: 'Proba de foc',
-        description: 'Trei poziții din deschiderile tale, contra unui adversar mai tare. Câștigi cât îmbunătățești poziția.',
+        // Misiunile zilei şi Proba de foc, într-un singur loc: amândouă se
+        // schimbă de la o zi la alta şi niciuna n-avea destul cât să umple o
+        // pagină singură.
+        to: '/speciale',
+        label: 'Speciale',
+        description: 'Misiunile zilei și Proba de foc — ce se schimbă de la o zi la alta.',
         icon: Flame,
       },
       {

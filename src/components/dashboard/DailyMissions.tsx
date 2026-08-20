@@ -51,13 +51,15 @@ export function DailyMissions() {
 
   return (
     <section>
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-semibold text-[#F0F0F0]">Misiunile zilei</h2>
-          <p className="text-sm text-[#6B6B6B] mt-0.5">
-            Trei sarcini scurte, reîmprospătate zilnic. Primești XP pentru fiecare, chiar dacă nu le faci pe toate.
-          </p>
-        </div>
+      {/* Numele şi explicaţia le dă pagina care ţine componenta — aici erau a
+          doua oară, unul sub altul. */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        {/* Cifrele de mai jos sunt inventate, iar XP-ul nu se acordă. Cât timp e
+            aşa, scrie pe ecran: altfel cineva chiar crede că a strâns 15 XP azi
+            şi se întreabă de ce nu-i apar nicăieri. */}
+        <span className="rounded-full border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-2.5 py-1 text-xs text-[#E2B340]">
+          În lucru — misiunile şi cifrele de mai jos sunt de probă
+        </span>
         <p className="text-sm text-[#6B6B6B]">
           <span className="font-semibold text-[#E2B340]">{earned}</span> din {maxPossible} XP azi
         </p>
