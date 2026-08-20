@@ -15,6 +15,15 @@ import { Spinner } from '@/components/ui/Spinner'
 // Part boundaries (ply indices): Part1 = 0-9, Part2 = 10-15, Part3 = 16+
 const PART_ENDS = [10, 16]
 
+/**
+ * Cât durează alunecarea unei piese dintr-un pătrat în altul.
+ *
+ * Scrisă aici, nu lăsată pe seama valorii implicite din bibliotecă, fiindcă tot
+ * de ea atârnă şi momentul în care apare explicaţia: textul despre mutarea
+ * adversarului nu are ce căuta pe ecran cât timp piesa e încă în aer.
+ */
+const ANIMATIE_MS = 350
+
 function getPartEnd(totalPlies: number, part: number, singlePart = false): number {
   if (singlePart) return totalPlies
   if (part === 1) return Math.min(PART_ENDS[0], totalPlies)
@@ -151,6 +160,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
    * derularea ar fi însemnat că pierzi ce ai jucat.
    */
   const [vazut, setVazut] = useState<number | null>(null)
+  /** Adevărat cât timp piesa adversarului încă alunecă pe tablă. */
+  const [seMuta, setSeMuta] = useState(false)
 
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
   const persistProgress = useCallback(async (markDone: boolean) => {
@@ -241,6 +252,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           nextStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
         }
         setState(s => s ? { ...s, game: gameCopy, plyIdx: nextPly, status: nextStatus } : null)
+        setSeMuta(true) // explicaţia aşteaptă să se aşeze piesa
       } catch {
         // invalid move in seed data — skip silently
       }
@@ -251,6 +263,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // schimbă la fiecare mutare și ar reporni cronometrul de 600 ms al calculatorului.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, plyIdx, line, vazut])
+
+  // Piesa s-a aşezat: de-abia acum poate apărea explicaţia.
+  useEffect(() => {
+    if (!seMuta) return
+    const t = setTimeout(() => setSeMuta(false), ANIMATIE_MS)
+    return () => clearTimeout(t)
+  }, [seMuta])
 
   // Auto-clear wrong feedback after 1.2s in practice mode
   useEffect(() => {
@@ -358,9 +377,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // după 600 ms, când mutarea chiar se făcea pe tablă, textul dispărea şi îi lua
   // locul altul. Se citea despre ceva ce încă nu se întâmplase.
   const plyVazut = vazut ?? state.plyIdx
-  const explicatiaUltimei = plyVazut > 0 ? line.move_explanations?.[String(plyVazut - 1)] ?? '' : ''
-  const ultimaEAAdversarului = plyVazut > 0
-    && !isUserPly(plyVazut - 1, line.user_color, whiteMovesFirst(line))
+  const explicatiaUltimei = state.plyIdx > 0
+    ? line.move_explanations?.[String(state.plyIdx - 1)] ?? ''
+    : ''
+  const ultimaEAAdversarului = state.plyIdx > 0
+    && !isUserPly(state.plyIdx - 1, line.user_color, whiteMovesFirst(line))
   /** Îndrumarea pentru mutarea ta, în modul ghidat. */
   const explanation = line.move_explanations?.[String(state.plyIdx)] ?? ''
 
@@ -469,6 +490,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
                 boardStyle: { borderRadius: 0 },
+                animationDurationInMs: ANIMATIE_MS,
                 darkSquareStyle,
                 lightSquareStyle,
               }}
@@ -530,15 +552,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
           {/* Status + explanation card */}
           <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+            {/* Cât timp te uiţi în urmă, comentariul dispare.
+                El e despre poziţia din partidă, nu despre cea pe care o
+                răsfoieşti — lăsat pe ecran, ar fi părut că explică ce vezi.
+                Se întoarce singur când te întorci cu săgeata dreapta. */}
             {priveste ? (
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
                   {plyVazut === 0 ? 'Poziţia de plecare' : `Mutarea ${plyVazut}`}
                 </p>
-                <p className="text-sm text-[#A0A0A0]">
-                  {plyVazut === 0
-                    ? 'Aici a început varianta.'
-                    : explicatiaUltimei || 'Fără explicaţie pentru mutarea asta.'}
+                <p className="text-sm text-[#6B6B6B]">
+                  Întoarce-te la poziţia curentă ca să vezi comentariul.
                 </p>
               </div>
             ) : <>
@@ -563,9 +587,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 )}
               </div>
             )}
-            {/* Ce tocmai a jucat adversarul. Stă cât timp e rândul tău, deci ai
-                timp să citeşti — nu 600 ms, cât dura înainte. */}
-            {state.status === 'user-turn' && ultimaEAAdversarului && explicatiaUltimei && (
+            {/* Ce tocmai a jucat adversarul. Apare abia după ce piesa s-a
+                aşezat — `seMuta` ţine textul deoparte cât durează alunecarea —
+                şi stă cât timp e rândul tău, deci ai timp să citeşti. */}
+            {state.status === 'user-turn' && !seMuta && ultimaEAAdversarului && explicatiaUltimei && (
               <div className="mt-3 border-t border-[#2A2A2A] pt-3">
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
                   Adversarul a jucat
