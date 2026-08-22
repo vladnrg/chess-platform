@@ -40,3 +40,21 @@ confirme aceeaşi greşeală de două ori.
 A apărut după ce „mută tura de la a1 la h1" răspundea „Nu e mutarea potrivită"
 la a1→h1: `chess.js` refuză poziţiile fără cei doi regi, iar tablele din lecţii
 au pe ele doar piesa despre care e lecţia. Erau 14 exerciţii blocate din 21.
+
+## Ce acoperă `ultima-mutare.mjs`
+
+```
+node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/ultima-mutare.mjs
+```
+
+Ia fiecare exerciţiu cu tablă din baza reală şi cere aplicaţiei ultima mutare a
+adversarului — cea desenată acum pe tablă cu pătrate colorate şi o săgeată.
+Mutarea nu e scrisă nicăieri: se deduce din câmpul de en passant al FEN-ului,
+deci se poate deduce şi greşit fără să pice nimic la compilare. Verificarea
+citeşte tabla singură din şirul FEN şi cere ca pe pătratul de sosire să stea
+chiar un pion al culorii care tocmai a mutat, ca plecarea şi pătratul sărit să
+fie libere, şi ca la mutare să fie acum celălalt.
+
+Afişează şi lista exerciţiilor care arată ceva, ca să se vadă dintr-o privire
+dacă apare unde trebuie (cele patru de la „En passant") şi nu apare unde n-are
+ce căuta (tablele de învăţat, fără istorie).

@@ -136,3 +136,16 @@ function mutaInSir(fen: string, de: string, la: string, promovare: string): stri
   if (parti[3]) parti[3] = '-' // orice mutare obişnuită închide fereastra de en passant
   return parti.join(' ')
 }
+
+/**
+ * Ce piesă stă pe un pătrat, în litera din FEN (`P` pion alb, `n` cal negru…).
+ *
+ * `null` dacă pătratul e gol sau dacă nu există. Folosită de „ultima mutare",
+ * ca să afle cine a mutat şi ce anume — fără să mai desfacă o dată FEN-ul.
+ */
+export function piesaDePe(fen: string, patrat: string): string | null {
+  const patrate = desfaTabla(fen.split(' ')[0])
+  const i = indexPatrat(patrat)
+  if (!patrate || i === null) return null
+  return patrate[i] || null
+}

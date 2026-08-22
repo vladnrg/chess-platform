@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { ClickSquareExercise } from '@/types'
+import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
 import { RamaTablei } from './rama-tablei'
+import { EtichetaUltimeiMutari } from './eticheta-ultimei-mutari'
 import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 
 interface Props {
@@ -14,6 +16,10 @@ type Status = 'idle' | 'correct' | 'wrong'
 export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [highlighted, setHighlighted] = useState<Record<string, React.CSSProperties>>({})
+
+  /** Ce a mutat adversarul înainte, dacă poziţia ştie — vezi `ultima-mutare.ts`. */
+  const ultima = citesteUltimaMutare(exercise.fen, exercise.last_move)
+  const aratamUltima = status !== 'correct'
 
   function handleSquareClick({ square }: { square: string }) {
     if (status === 'correct') return
@@ -37,13 +43,17 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
+      <EtichetaUltimeiMutari mutare={ultima} />
+
       <RamaTablei>
         <Chessboard
           options={{
             position: exercise.fen,
             allowDragging: false,
             onSquareClick: handleSquareClick,
-            squareStyles: highlighted,
+            squareStyles: aratamUltima ? { ...stilulUltimeiMutari(ultima), ...highlighted } : highlighted,
+            arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
+            arrowOptions: OPTIUNI_SAGEATA,
             boardStyle: { borderRadius: 0, cursor: 'pointer' },
             boardOrientation: orientareaTablei(exercise.fen),
             ...CULORI_TABLA,

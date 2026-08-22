@@ -311,14 +311,27 @@ export type LessonType = 'pgn' | 'rules' | 'notation'
 
 export type ExerciseType = 'click_square' | 'move_piece' | 'identify_square'
 
-export interface ClickSquareExercise {
+/**
+ * Ce a mutat adversarul cu o clipă înainte, ca `de`+`la` (`"d7d5"`).
+ *
+ * Se vede pe tablă: pătratele de plecare şi de sosire colorate, plus o săgeată
+ * între ele. Lipseşte la aproape toate exerciţiile, fiindcă poziţia lor nu vine
+ * dintr-o partidă şi nu s-a întâmplat nimic înainte. La en passant nu trebuie
+ * scrisă deloc: se deduce singură din câmpul de en passant al FEN-ului, care
+ * există exact fiindcă un pion tocmai a fost împins cu două pătrate.
+ */
+interface CuUltimaMutare {
+  last_move?: string
+}
+
+export interface ClickSquareExercise extends CuUltimaMutare {
   type: 'click_square'
   target: string
   fen: string
   instruction: string
 }
 
-export interface MovePieceExerciseData {
+export interface MovePieceExerciseData extends CuUltimaMutare {
   type: 'move_piece'
   fen: string
   /** `e2e4`, sau `e7e8n` când promovarea cere o anume piesă. */
@@ -338,7 +351,7 @@ export interface MovePieceExerciseData {
   any_promotion?: boolean
 }
 
-export interface IdentifySquareExercise {
+export interface IdentifySquareExercise extends CuUltimaMutare {
   type: 'identify_square'
   square: string
   options: string[]

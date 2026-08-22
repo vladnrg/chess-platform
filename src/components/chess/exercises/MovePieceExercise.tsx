@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Chessboard, defaultPieces, type PieceDropHandlerArgs } from 'react-chessboard'
 import type { MovePieceExerciseData } from '@/types'
 import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
+import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
 import { RamaTablei } from './rama-tablei'
+import { EtichetaUltimeiMutari } from './eticheta-ultimei-mutari'
 import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 
 interface Props {
@@ -38,6 +40,19 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
   /** Cine e la mutare, după FEN. Alb, dacă nu scrie altfel. */
   const laMutare = exercise.fen.split(' ')[1] === 'b' ? 'b' : 'w'
+
+  /**
+   * Ce a mutat adversarul înainte să vină rândul tău.
+   *
+   * La en passant e chiar cheia exerciţiului: „capturează pionul care tocmai a
+   * trecut pe lângă al tău" n-are înţeles dacă nu vezi că el TOCMAI a trecut.
+   * Poziţia arată la fel şi când captura nu mai e permisă.
+   *
+   * Dispare de pe tablă după mutarea corectă: acolo verdele arată ce ai făcut
+   * tu, iar la en passant pionul capturat oricum nu mai e pe pătratul lui.
+   */
+  const ultima = citesteUltimaMutare(exercise.fen, exercise.last_move)
+  const aratamUltima = status !== 'correct'
 
   /**
    * Ce se întâmplă după ce s-a ales piesa.
@@ -115,6 +130,8 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
 
   return (
     <div className="space-y-3">
+      <EtichetaUltimeiMutari mutare={ultima} />
+
       <div className="relative">
         <RamaTablei>
           <Chessboard
@@ -122,7 +139,9 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
               position: fen,
               allowDragging: status !== 'correct' && !deAles,
               onPieceDrop: onDrop,
-              squareStyles: highlight,
+              squareStyles: aratamUltima ? { ...stilulUltimeiMutari(ultima), ...highlight } : highlight,
+              arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
+              arrowOptions: OPTIUNI_SAGEATA,
               boardStyle: { borderRadius: 0 },
               boardOrientation: orientareaTablei(exercise.fen),
               ...CULORI_TABLA,

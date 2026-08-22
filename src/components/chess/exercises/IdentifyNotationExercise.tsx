@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Chessboard } from 'react-chessboard'
 import type { IdentifySquareExercise } from '@/types'
+import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
 import { RamaTablei } from './rama-tablei'
+import { EtichetaUltimeiMutari } from './eticheta-ultimei-mutari'
 import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 
 interface Props {
@@ -62,15 +64,34 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
       }
     : undefined
 
+  /**
+   * Ce a mutat adversarul, arătat cât timp întrebarea e încă deschisă.
+   *
+   * „Pionul negru de pe c4 îl ia en passant — pe ce pătrat ajunge?" se sprijină
+   * pe o mutare care nu se mai vede: împingerea b2-b4. Fără ea, întrebarea cere
+   * ghicit.
+   *
+   * De pe TABLĂ dispare după răspuns: acolo galbenul înseamnă atunci altceva —
+   * „aici era răspunsul" — şi două galbenuri cu înţelesuri diferite în acelaşi
+   * timp nu lămuresc pe nimeni. Rândul scris de deasupra rămâne, ca tabla să nu
+   * sară în sus exact în clipa în care omul se uită la ea.
+   */
+  const ultima = exercise.fen ? citesteUltimaMutare(exercise.fen, exercise.last_move) : null
+  const aratamUltima = !selected
+
   return (
     <div className="space-y-4">
+      <EtichetaUltimeiMutari mutare={ultima} />
+
       {exercise.fen && (
         <RamaTablei inerta>
           <Chessboard
             options={{
               position: exercise.fen,
               allowDragging: false,
-              squareStyles: highlight,
+              squareStyles: aratamUltima ? stilulUltimeiMutari(ultima) : highlight,
+              arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
+              arrowOptions: OPTIUNI_SAGEATA,
               boardStyle: { borderRadius: 0 },
               boardOrientation: orientareaTablei(exercise.fen),
             ...CULORI_TABLA,
