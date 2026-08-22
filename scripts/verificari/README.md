@@ -58,3 +58,22 @@ fie libere, şi ca la mutare să fie acum celălalt.
 Afişează şi lista exerciţiilor care arată ceva, ca să se vadă dintr-o privire
 dacă apare unde trebuie (cele patru de la „En passant") şi nu apare unde n-are
 ce căuta (tablele de învăţat, fără istorie).
+
+## Ce acoperă `terminologie.mjs`
+
+```
+node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/terminologie.mjs
+```
+
+Cuvintele care n-au voie în conţinutul cursurilor. Deocamdată unul singur:
+piesa se numeşte **tura**, la feminin, nu „turnul".
+
+Migrarea 022 curăţase deja tot ce era în bază la acea dată. Apoi au intrat
+patru cursuri de deschideri, planurile de mijloc de partidă, capcanele şi
+lecţia de promovare — şi cuvântul s-a întors de 178 de ori, în patru tabele.
+Migrarea 101 le-a schimbat pe toate, cu tot cu acord („un turn adus acolo" →
+„o tură adusă acolo"); verificarea asta e ca să nu mai fie nevoie de a treia
+oară.
+
+Se uită în **baza reală**, nu în fişiere: conţinutul se scrie cu migrări, dar
+se citeşte de acolo, iar o migrare nouă poate aduce oricând cuvântul înapoi.
