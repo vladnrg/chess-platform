@@ -31,6 +31,14 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
   // Cel mai departe ajuns. „Înapoi" merge oriunde ai fost deja; „înainte" doar
   // până aici, ca să nu se sară peste un exerciţiu nerezolvat.
   const [maxAtins, setMaxAtins] = useState(0)
+  /**
+   * Cerinţa pasului curent, când exerciţiul ţine mai mult de o mutare.
+   *
+   * Ea ia locul cerinţei exerciţiului în rândul de sus: „împinge pionul pe e6"
+   * nu mai spune nimic după ce pionul a ajuns pe e6. Exerciţiul o trimite de
+   * fiecare dată când trece la pasul următor, şi o şterge când pleacă de tot.
+   */
+  const [cerintaPasului, setCerintaPasului] = useState<string | null>(null)
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -121,7 +129,7 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
         {!allDone && currentExercise && (
           <p className="flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]">
             <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
-            {currentExercise.instruction}
+            {cerintaPasului ?? currentExercise.instruction}
           </p>
         )}
 
@@ -196,6 +204,7 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
               key={exerciseIndex}
               exercise={currentExercise}
               onCorrect={handleExerciseCorrect}
+              onCerinta={setCerintaPasului}
             />
           )}
           {currentExercise.type === 'identify_square' && (

@@ -77,3 +77,26 @@ oară.
 
 Se uită în **baza reală**, nu în fişiere: conţinutul se scrie cu migrări, dar
 se citeşte de acolo, iar o migrare nouă poate aduce oricând cuvântul înapoi.
+
+## Ce acoperă `mutari-cu-motorul.mjs`
+
+```
+node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/mutari-cu-motorul.mjs
+```
+
+`exercitii-lectii.mjs` întreabă dacă mutarea cerută e **primită** de aplicaţie.
+Asta întreabă dacă e şi **bună**: fiecare mutare din fiecare exerciţiu trece
+prin Stockfish (`motor.mjs`, motorul din `node_modules`, acelaşi cu cel din
+browser) şi se compară cu cea mai bună mutare din poziţie — la deznodământ, nu
+la cifră. „+5" în loc de „+8" e tot partidă câştigată; ce se semnalează e
+mutarea care schimbă rezultatul.
+
+A apărut fiindcă la „Promovarea pionului" cerinţa era „promovează-l pe cel
+liber", iar mutarea cerută dădea dama pe loc: turnul negru ţinea tot rândul opt.
+Poziţia era −4,23 pentru alb înainte de mutare şi nimic din cod n-avea cum să
+observe — exerciţiul „funcţiona". La prima rulare a mai găsit două capturi en
+passant care pierdeau partida, în altă lecţie.
+
+Durează câteva minute şi raportează separat poziţiile pe care motorul nu le
+poate judeca: tablele de învăţat din lecţiile de mişcare a pieselor n-au regi pe
+ele, deci nu se poate spune despre ele ce e bine şi ce nu.

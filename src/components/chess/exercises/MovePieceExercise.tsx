@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Chessboard, defaultPieces, type PieceDropHandlerArgs } from 'react-chessboard'
 import type { MovePieceExerciseData } from '@/types'
 import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
@@ -10,9 +10,19 @@ import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 interface Props {
   exercise: MovePieceExerciseData
   onCorrect: () => void
+  /**
+   * Cerinţa pasului la care s-a ajuns, ca s-o poată arăta pagina sus, mare.
+   *
+   * La un exerciţiu dintr-o singură mutare nu se cheamă niciodată: acolo
+   * cerinţa exerciţiului e şi cerinţa pasului.
+   */
+  onCerinta?: (text: string | null) => void
 }
 
 type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare' | 'alta-piesa'
+
+/** Cât stă verdele pe tablă înainte să răspundă adversarul. */
+const PAUZA_INAINTE_DE_RASPUNS = 950
 
 /**
  * În ce se poate transforma un pion ajuns la capăt.
@@ -31,39 +41,61 @@ const PIESE_DE_PROMOVARE = [
   { litera: 'n', nume: 'cal', simbol: 'N' },
 ] as const
 
-export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
+export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: Props) {
+  /**
+   * Paşii, când exerciţiul ţine mai mult de o mutare.
+   *
+   * Un pion care porneşte de la mijlocul tablei nu poate fi predat într-o
+   * singură mutare, iar dacă îl aşezi pe rândul şapte ca să încapă într-una,
+   * poziţia iese aranjată — şi de obicei şi greşită. Aşa că omul împinge pionul
+   * de câte ori e nevoie, iar între împingeri răspunde adversarul.
+   */
+  const pasi = exercise.line
+  const [pas, setPas] = useState(0)
+
   const [status, setStatus] = useState<Status>('idle')
+  /** Poziţia de la care porneşte pasul curent — aici se revine după o greşeală. */
+  const [fenPas, setFenPas] = useState(exercise.fen)
+  /** Ce se vede pe tablă acum. */
   const [fen, setFen] = useState(exercise.fen)
   const [highlight, setHighlight] = useState<Record<string, React.CSSProperties>>({})
   /** Mutarea care aşteaptă să se aleagă piesa. */
   const [deAles, setDeAles] = useState<{ de: string; la: string } | null>(null)
 
-  /** Cine e la mutare, după FEN. Alb, dacă nu scrie altfel. */
-  const laMutare = exercise.fen.split(' ')[1] === 'b' ? 'b' : 'w'
-
   /**
-   * Ce a mutat adversarul înainte să vină rândul tău.
+   * Ce a mutat adversarul înainte să vină rândul meu.
    *
-   * La en passant e chiar cheia exerciţiului: „capturează pionul care tocmai a
-   * trecut pe lângă al tău" n-are înţeles dacă nu vezi că el TOCMAI a trecut.
-   * Poziţia arată la fel şi când captura nu mai e permisă.
-   *
-   * Dispare de pe tablă după mutarea corectă: acolo verdele arată ce ai făcut
-   * tu, iar la en passant pionul capturat oricum nu mai e pe pătratul lui.
+   * La început vine din poziţie (câmpul de en passant al FEN-ului, sau
+   * `last_move`); după fiecare pas, e chiar răspunsul pe care tocmai l-a dat.
+   * La en passant e cheia exerciţiului, iar la cursa pionilor arată de ce
+   * regele advers nu mai ajunge.
    */
-  const ultima = citesteUltimaMutare(exercise.fen, exercise.last_move)
+  const [ultima, setUltima] = useState(() => citesteUltimaMutare(exercise.fen, exercise.last_move))
   const aratamUltima = status !== 'correct'
+
+  /** Mutarea aşteptată acum. */
+  const asteptata = pasi ? pasi[pas].move : exercise.correct_move ?? ''
+
+  /** Cine e la mutare, după poziţia pasului curent. Alb, dacă nu scrie altfel. */
+  const laMutare = fenPas.split(' ')[1] === 'b' ? 'b' : 'w'
+
+  // Cerinţa pasului urcă la pagină, ca să stea sus şi mare. Textul introductiv
+  // al exerciţiului nu mai e valabil de la al doilea pas încolo.
+  useEffect(() => {
+    if (pasi) onCerinta?.(pasi[pas].instruction)
+  }, [pasi, pas, onCerinta])
+  useEffect(() => () => onCerinta?.(null), [onCerinta])
 
   /**
    * Ce se întâmplă după ce s-a ales piesa.
    *
    * La exerciţiile unde se învaţă că *poţi* alege, orice piesă e bună. La cel
-   * unde alegerea chiar contează — calul care dă şah şi atacă regina — o damă
-   * în plus nu rezolvă nimic, deci răspunsul se cere exact.
+   * unde alegerea chiar contează — tura care nu face pat — o damă în plus nu
+   * rezolvă nimic, deci răspunsul se cere exact.
    */
   function alege(piesa: string) {
     if (!deAles) return
-    const ceruta = exercise.correct_move.slice(4) || 'q'
+    const ceruta = asteptata.slice(4) || 'q'
     if (!exercise.any_promotion && piesa !== ceruta) {
       setDeAles(null)
       setStatus('alta-piesa')
@@ -74,18 +106,40 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
     setDeAles(null)
   }
 
-  /** Mutarea e bună: arătăm poziţia de după şi trecem mai departe. */
+  /** Mutarea e bună: arătăm poziţia de după, apoi răspunde adversarul. */
   function primeste(de: string, la: string, promovare: string) {
     // Lecţia şi-a declarat mutarea aşteptată, iar ea e cea făcută: răspunsul e
     // bun, indiferent ce iese mai jos. Dacă poziţia de după nu poate fi
     // calculată, rămâne tabla dinainte — nu se transformă într-un „ai greşit".
-    setFen(aplicaMutarea(exercise.fen, de, la, promovare) ?? exercise.fen)
+    const dupaMine = aplicaMutarea(fenPas, de, la, promovare) ?? fenPas
+    setFen(dupaMine)
     setStatus('correct')
     setHighlight({
       [de]: { background: 'rgba(74, 222, 128, 0.35)' },
       [la]: { background: 'rgba(74, 222, 128, 0.5)' },
     })
-    setTimeout(() => onCorrect(), 700)
+
+    const raspuns = pasi?.[pas].reply
+    if (!raspuns) {
+      setTimeout(() => onCorrect(), 700)
+      return
+    }
+
+    // Răspunsul lui vine după o clipă, nu odată cu mutarea mea: altfel se văd
+    // două mutări deodată şi nu se înţelege care a fost a cui.
+    setTimeout(() => {
+      const dupaEl = aplicaMutarea(dupaMine, raspuns.slice(0, 2), raspuns.slice(2, 4), raspuns.slice(4) || 'q')
+      if (!dupaEl) {
+        onCorrect()
+        return
+      }
+      setFen(dupaEl)
+      setFenPas(dupaEl)
+      setUltima(citesteUltimaMutare(dupaEl, raspuns))
+      setHighlight({})
+      setStatus('idle')
+      setPas(p => p + 1)
+    }, PAUZA_INAINTE_DE_RASPUNS)
   }
 
   function onDrop({ piece, sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean {
@@ -93,10 +147,10 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
     // targetSquare e null când piesa e lăsată în afara tablei — nu e o încercare greșită
     if (!targetSquare) return false
 
-    const expectedFrom = exercise.correct_move.slice(0, 2)
-    const expectedTo = exercise.correct_move.slice(2, 4)
+    const expectedFrom = asteptata.slice(0, 2)
+    const expectedTo = asteptata.slice(2, 4)
     // „e7e8q" — ultima literă spune în ce se transforma pionul, când alegea programul
-    const promovare = exercise.correct_move.slice(4) || 'q'
+    const promovare = asteptata.slice(4) || 'q'
 
     if (sourceSquare === expectedFrom && targetSquare === expectedTo) {
       // Pion ajuns pe ultimul rând: alegerea e a lui, nu a noastră.
@@ -123,13 +177,19 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
     setTimeout(() => {
       setStatus('idle')
       setHighlight({})
-      setFen(exercise.fen)
+      setFen(fenPas)
     }, 1000)
     return false
   }
 
   return (
     <div className="space-y-3">
+      {pasi && pasi.length > 1 && (
+        <p className="text-xs font-medium text-[#6B6B6B]">
+          Pasul {pas + 1} din {pasi.length}
+        </p>
+      )}
+
       <EtichetaUltimeiMutari mutare={ultima} />
 
       <div className="relative">
@@ -186,7 +246,8 @@ export function MovePieceExerciseComponent({ exercise, onCorrect }: Props) {
       )}
       {status === 'alta-piesa' && (
         <p className="text-sm font-medium text-[#FB7185]">
-          Mutarea e bună, dar nu piesa. Uită-te ce ar ataca fiecare de acolo.
+          Mutarea e bună, dar nu piesa. Aici doar una dintre cele patru face treaba
+          — citește încă o dată ce ți se cere.
         </p>
       )}
       {status === 'alta-culoare' && (

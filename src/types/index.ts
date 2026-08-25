@@ -331,12 +331,37 @@ export interface ClickSquareExercise extends CuUltimaMutare {
   instruction: string
 }
 
+/**
+ * Un pas dintr-un exerciţiu care ţine mai mult de o mutare.
+ *
+ * Există fiindcă unele lucruri nu se pot arăta într-o singură mutare. „Pionul
+ * ajunge damă" e o mutare doar dacă pionul stă deja pe rândul şapte — iar
+ * atunci poziţia e aranjată, nu adevărată. Un pion care porneşte de la mijlocul
+ * tablei cere trei împingeri, cu regele advers alergând după el între ele.
+ */
+export interface PasDeMutare {
+  /** Ce cer de la om, ca `de`+`la`: `g6g7`, sau `g7g8r` când alege şi piesa. */
+  move: string
+  /** Ce are de făcut ACUM. Se arată sus, în locul cerinţei generale. */
+  instruction: string
+  /** Ce răspunde adversarul imediat după. Lipseşte doar la ultimul pas. */
+  reply?: string
+}
+
 export interface MovePieceExerciseData extends CuUltimaMutare {
   type: 'move_piece'
   fen: string
   /** `e2e4`, sau `e7e8n` când promovarea cere o anume piesă. */
-  correct_move: string
+  correct_move?: string
   instruction: string
+  /**
+   * Exerciţiul se joacă în mai multe mutări: ale mele şi răspunsurile lui.
+   *
+   * Când e aici, `correct_move` nu se mai foloseşte — fiecare pas îşi are
+   * mutarea lui. Între paşi, adversarul mută singur, iar mutarea lui rămâne
+   * arătată pe tablă, ca la en passant.
+   */
+  line?: PasDeMutare[]
   /**
    * La promovare, orice piesă aleasă e bună.
    *

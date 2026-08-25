@@ -30,21 +30,43 @@ const cazute = []
 
 for (const lectie of lectii) {
   for (const ex of lectie.exercises ?? []) {
-    if (ex.type !== 'move_piece' || !ex.fen || !ex.correct_move) continue
-    incercate++
+    if (ex.type !== 'move_piece' || !ex.fen) continue
 
-    const de = ex.correct_move.slice(0, 2)
-    const la = ex.correct_move.slice(2, 4)
-    const promovare = ex.correct_move.slice(4) || 'q'
-    const dupa = aplicaMutarea(ex.fen, de, la, promovare)
+    // Un exerciţiu poate fi dintr-o mutare (`correct_move`) sau din mai multe,
+    // cu răspunsurile adversarului între ele (`line`). Se încearcă toate, pe
+    // rând, exact cum le joacă şi omul — altfel a doua mutare n-ar fi verificată
+    // niciodată.
+    const pasi = ex.line ?? (ex.correct_move ? [{ move: ex.correct_move }] : [])
+    if (pasi.length === 0) continue
 
-    if (!dupa) {
-      cazute.push({ lectie: lectie.title, ex, motiv: 'mutarea corectă e respinsă' })
-      continue
-    }
-    // Piesa chiar a ajuns unde trebuia? Altfel „a mers" nu înseamnă nimic.
-    if (!arePiesa(dupa, la) || arePiesa(dupa, de)) {
-      cazute.push({ lectie: lectie.title, ex, motiv: `poziţia rezultată e greşită: ${dupa}` })
+    let fen = ex.fen
+    for (const pas of pasi) {
+      incercate++
+
+      const de = pas.move.slice(0, 2)
+      const la = pas.move.slice(2, 4)
+      const promovare = pas.move.slice(4) || 'q'
+      const dupa = aplicaMutarea(fen, de, la, promovare)
+
+      if (!dupa) {
+        cazute.push({ lectie: lectie.title, ex, mutare: pas.move, motiv: 'mutarea corectă e respinsă' })
+        break
+      }
+      // Piesa chiar a ajuns unde trebuia? Altfel „a mers" nu înseamnă nimic.
+      if (!arePiesa(dupa, la) || arePiesa(dupa, de)) {
+        cazute.push({ lectie: lectie.title, ex, mutare: pas.move, motiv: `poziţia rezultată e greşită: ${dupa}` })
+        break
+      }
+
+      if (!pas.reply) break
+      // Răspunsul adversarului trebuie şi el să fie o mutare care se poate face,
+      // altfel exerciţiul se opreşte la jumătate în faţa omului.
+      const dupaEl = aplicaMutarea(dupa, pas.reply.slice(0, 2), pas.reply.slice(2, 4), pas.reply.slice(4) || 'q')
+      if (!dupaEl) {
+        cazute.push({ lectie: lectie.title, ex, mutare: pas.reply, motiv: 'răspunsul adversarului e respins' })
+        break
+      }
+      fen = dupaEl
     }
   }
 }
@@ -78,7 +100,7 @@ if (cazute.length === 0) {
   console.log(`\nBLOCATE: ${cazute.length}\n`)
   for (const c of cazute) {
     console.log(`  ${c.lectie} — ${c.ex.instruction}`)
-    console.log(`     ${c.ex.correct_move} pe ${c.ex.fen}`)
+    console.log(`     ${c.mutare} pe ${c.ex.fen}`)
     console.log(`     ${c.motiv}\n`)
   }
   process.exitCode = 1
