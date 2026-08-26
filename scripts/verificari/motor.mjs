@@ -51,6 +51,12 @@ function porneste() {
  * Întoarce câte o intrare pentru fiecare variantă cerută, cea mai bună prima:
  * `{ fel: 'cp' | 'mate', scor, linie }`. Lista e goală dacă motorul refuză
  * poziţia — se întâmplă la tablele de învăţat, care n-au regi pe ele.
+ *
+ * Două scoruri se pot compara doar dacă vin din ACEEAŞI chemare. La aceeaşi
+ * adâncime, motorul vede matul când se uită la o singură mutare şi nu-l vede
+ * când le cântăreşte pe toate deodată — deci „mat în −15" dintr-o căutare pus
+ * lângă „−58.84" din alta nu spune nimic. Când ai nevoie de scorul unei mutări
+ * anume, cere `variante` cât să încapă şi ea în listă.
  */
 export async function analizeaza(fen, { adancime = 26, variante = 1 } = {}) {
   const m = porneste()

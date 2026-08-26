@@ -23,6 +23,21 @@ const INTERZISE = [
     gresit: 'turn / turnul / turnuri',
     corect: 'tură / tura / ture (piesa e la feminin)',
   },
+  {
+    // Mutarea care se petrece ACUM se scrie la prezent. „Negrul tocmai a mutat
+    // regele de pe a8 pe b7" pune între elev şi tablă o mutare terminată şi
+    // dusă, când de fapt el se uită la ea cum se face. Utilizatorul, pe
+    // 2026-08-27: „nu mai folosi perfectul compus pentru mutări. Scrie «mută»,
+    // nu «a mutat»".
+    //
+    // Regula prinde doar „tocmai a …", nu orice perfect compus: „albul a împins
+    // trei pioni" povesteşte cum s-a ajuns la poziţie, iar acolo trecutul e
+    // chiar forma potrivită. Din cele 41 de perechi găsite când regula era
+    // largă, 38 erau istorie scrisă corect.
+    ce: /\btocmai\s+(şi-|si-)?(a|au)\s+(mutat|împins|impins|jucat|capturat|luat|promovat|avansat|retras|sărit|sarit)\b/gi,
+    gresit: 'tocmai a mutat / tocmai a împins / tocmai a jucat…',
+    corect: 'prezentul: tocmai mută / tocmai împinge / tocmai joacă',
+  },
 ]
 
 /** Unde se uită: tabelul şi coloanele lui cu text de curs. */

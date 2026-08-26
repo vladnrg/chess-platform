@@ -137,9 +137,16 @@ export const OPTIUNI_SAGEATA = {
   opacity: 0.8,
 }
 
-/** Aceeaşi mutare, spusă în cuvinte — pentru cine nu prinde culorile de pe tablă. */
+/**
+ * Aceeaşi mutare, spusă în cuvinte — pentru cine nu prinde culorile de pe tablă.
+ *
+ * La prezent, nu la trecut. „Negrul tocmai a mutat regele de pe a8 pe b7" pune
+ * între elev şi tablă o mutare terminată şi dusă, când el se uită chiar atunci
+ * cum se face; „tocmai mută" e ce vede acolo. Regula e ţinută de
+ * `scripts/verificari/terminologie.mjs`, ca să nu se întoarcă prin conţinut.
+ */
 export function descrieUltimaMutare(mutare: UltimaMutare): string {
   const cine = mutare.culoare === 'w' ? 'Albul' : 'Negrul'
-  const verb = mutare.impinsDoua ? 'a împins' : 'a mutat'
+  const verb = mutare.impinsDoua ? 'împinge' : 'mută'
   return `${cine} tocmai ${verb} ${mutare.piesa} de pe ${mutare.de} pe ${mutare.la}`
 }

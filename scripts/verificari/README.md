@@ -65,8 +65,14 @@ ce căuta (tablele de învăţat, fără istorie).
 node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/terminologie.mjs
 ```
 
-Cuvintele care n-au voie în conţinutul cursurilor. Deocamdată unul singur:
-piesa se numeşte **tura**, la feminin, nu „turnul".
+Cuvintele şi formele care n-au voie în conţinutul cursurilor. Deocamdată două:
+piesa se numeşte **tura**, la feminin, nu „turnul"; iar mutarea care se petrece
+acum se scrie la **prezent** — „negrul tocmai mută", nu „tocmai a mutat".
+
+Regula a doua prinde doar construcţia „tocmai a …", nu orice perfect compus:
+„albul a împins trei pioni" povesteşte cum s-a ajuns la poziţie, şi acolo
+trecutul e forma potrivită. Din 41 de perechi găsite când regula era largă, 38
+erau istorie scrisă corect.
 
 Migrarea 022 curăţase deja tot ce era în bază la acea dată. Apoi au intrat
 patru cursuri de deschideri, planurile de mijloc de partidă, capcanele şi
@@ -100,3 +106,28 @@ passant care pierdeau partida, în altă lecţie.
 Durează câteva minute şi raportează separat poziţiile pe care motorul nu le
 poate judeca: tablele de învăţat din lecţiile de mişcare a pieselor n-au regi pe
 ele, deci nu se poate spune despre ele ce e bine şi ce nu.
+
+## Ce acoperă `raspunsurile-botului.mjs`
+
+```
+node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/raspunsurile-botului.mjs
+```
+
+`mutari-cu-motorul.mjs` întreabă dacă mutarea cerută de la elev e bună.
+Răspunsurile pe care le dă adversarul între paşi nu le întreba nimeni — le juca
+pur şi simplu. Aşa a ajuns exerciţiul „cursa pionilor" să spună „dacă pierzi o
+singură mutare, pionul lui ajunge înaintea ta" în timp ce negrul îşi plimba
+regele şi nu împingea pionul niciodată. Nu exista nicio cursă: albul câştiga
+fiindcă adversarul făcea gafă după gafă.
+
+Fiecare răspuns se cântăreşte faţă de cea mai bună mutare **din aceeaşi
+căutare** — toate mutările legale, într-o singură listă MultiPV. Două căutări
+separate nu se pot compara: la aceeaşi adâncime motorul vede matul când se uită
+la o singură mutare şi nu-l vede când le cântăreşte pe toate, aşa că „mat în
+−15" ajunge lângă „−58.84" şi orice răspuns pare gafă.
+
+Rulează cu `--tot` ca să vezi fiecare răspuns lângă alternativele lui. Motorul
+prinde predările, nu şi mutările la fel de bune dar fără noimă: la primul pas al
+cursei, toate cele patru mutări legale sunt mat în −13, deci pentru el a-şi
+plimba regele şi a-şi împinge pionul sunt acelaşi lucru. Aia rămâne judecata
+celui care scrie lecţia.

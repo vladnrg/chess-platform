@@ -593,15 +593,19 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             {state.status === 'user-turn' && !seMuta && ultimaEAAdversarului && explicatiaUltimei && (
               <div className="mt-3 border-t border-[#2A2A2A] pt-3">
                 <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
-                  Adversarul a jucat
+                  Adversarul joacă
                 </p>
                 <p className="text-xs leading-relaxed text-[#A0A0A0]">{explicatiaUltimei}</p>
               </div>
             )}
             {state.status === 'computer-thinking' && (
               <div>
+                {/* „Se gândeşte", nu „mută": aici încă nu s-a mutat nimic, iar
+                    titlul de deasupra explicaţiei e acum „Adversarul joacă" —
+                    două rânduri aproape la fel ar fi arătat ca acelaşi rând
+                    rămas pe ecran. */}
                 <p className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-2">
-                  Adversarul mută
+                  Adversarul se gândește
                 </p>
                 <p className="text-sm text-[#A0A0A0]">Calculez răspunsul teoretic...</p>
               </div>
