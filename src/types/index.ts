@@ -346,6 +346,20 @@ export interface PasDeMutare {
   instruction: string
   /** Ce răspunde adversarul imediat după. Lipseşte doar la ultimul pas. */
   reply?: string
+  /**
+   * Ce e de înţeles din răspunsul adversarului, scris sub tablă după ce mută el.
+   *
+   * Nu e teorie de început de lecţie, e observaţia care are sens doar acolo:
+   * „regele aleargă degeaba" se poate spune abia după ce regele chiar a alergat.
+   * Aşa, lecţia nu-şi mai spune poanta înainte ca omul să vadă poziţia.
+   */
+  comentariu?: string
+  /**
+   * Dreptunghiul de arătat pe tablă odată cu comentariul: două colţuri opuse,
+   * `"c6:g8"`. Pentru ce se explică arătând o zonă, nu un pătrat — vezi
+   * `stilulZonei` din `lib/zona-de-pe-tabla`.
+   */
+  zona?: string
 }
 
 export interface MovePieceExerciseData extends CuUltimaMutare {

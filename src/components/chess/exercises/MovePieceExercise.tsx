@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Chessboard, defaultPieces, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Lightbulb } from 'lucide-react'
 import type { MovePieceExerciseData } from '@/types'
 import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
 import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
+import { stilulZonei } from '@/lib/zona-de-pe-tabla'
 import { RamaTablei } from './rama-tablei'
 import { EtichetaUltimeiMutari } from './eticheta-ultimei-mutari'
 import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
@@ -73,6 +75,16 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
   const [ultima, setUltima] = useState(() => citesteUltimaMutare(exercise.fen, exercise.last_move))
   const aratamUltima = status !== 'correct'
 
+  /**
+   * Ce e de înţeles din răspunsul pe care tocmai l-a dat adversarul.
+   *
+   * Vine de la pasul care s-a jucat, nu de la cel la care s-a ajuns: se aprinde
+   * odată cu mutarea lui şi se stinge când mut eu, fiindcă de-atunci vorbeşte
+   * despre o poziţie care nu mai e pe tablă. `zona` e dreptunghiul care însoţeşte
+   * textul, când textul e despre o bucată de tablă.
+   */
+  const [comentariu, setComentariu] = useState<{ text: string; zona?: string } | null>(null)
+
   /** Mutarea aşteptată acum. */
   const asteptata = pasi ? pasi[pas].move : exercise.correct_move ?? ''
 
@@ -114,12 +126,14 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
     const dupaMine = aplicaMutarea(fenPas, de, la, promovare) ?? fenPas
     setFen(dupaMine)
     setStatus('correct')
+    setComentariu(null)
     setHighlight({
       [de]: { background: 'rgba(74, 222, 128, 0.35)' },
       [la]: { background: 'rgba(74, 222, 128, 0.5)' },
     })
 
-    const raspuns = pasi?.[pas].reply
+    const pasJucat = pasi?.[pas]
+    const raspuns = pasJucat?.reply
     if (!raspuns) {
       setTimeout(() => onCorrect(), 700)
       return
@@ -136,6 +150,11 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
       setFen(dupaEl)
       setFenPas(dupaEl)
       setUltima(citesteUltimaMutare(dupaEl, raspuns))
+      setComentariu(
+        pasJucat?.comentariu
+          ? { text: pasJucat.comentariu, zona: pasJucat.zona }
+          : null,
+      )
       setHighlight({})
       setStatus('idle')
       setPas(p => p + 1)
@@ -199,7 +218,13 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
               position: fen,
               allowDragging: status !== 'correct' && !deAles,
               onPieceDrop: onDrop,
-              squareStyles: aratamUltima ? { ...stilulUltimeiMutari(ultima), ...highlight } : highlight,
+              // Zona stă dedesubt: e fundal pentru o explicaţie, iar mutarea
+              // tocmai făcută trebuie să rămână cea mai aprinsă de pe tablă.
+              squareStyles: {
+                ...stilulZonei(comentariu?.zona, orientareaTablei(exercise.fen)),
+                ...(aratamUltima ? stilulUltimeiMutari(ultima) : {}),
+                ...highlight,
+              },
               arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
               arrowOptions: OPTIUNI_SAGEATA,
               boardStyle: { borderRadius: 0 },
@@ -237,6 +262,16 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
           </div>
         )}
       </div>
+
+      {/* Explicaţia mutării lui, sub tablă şi nu deasupra: apare exact în clipa
+          în care omul se uită la piese, iar un rând nou deasupra ar împinge
+          tabla în jos tocmai atunci. */}
+      {comentariu && (
+        <p className="flex items-start gap-2 rounded-lg border border-[#2A2A2A] bg-[#161616] px-3 py-2.5 text-sm leading-relaxed text-[#D8D8D8]">
+          <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#E2B340]" />
+          <span>{comentariu.text}</span>
+        </p>
+      )}
 
       {status === 'correct' && (
         <p className="text-sm font-medium text-[#4ade80]">Mutare corectă!</p>
