@@ -65,6 +65,38 @@ function primaPropozitie(text: string): string {
   return curat.match(/^.+?[.!?](?:\s|$)/)?.[0].trim() ?? curat
 }
 
+function paginiDescrierePozitie(text: string | null): string[] {
+  const curat = text?.trim()
+  if (!curat) return []
+
+  const dupaMutareaATreia = curat.match(/^(.*?mutarea a treia\.)(?:\s+)(.+)$/i)
+  if (dupaMutareaATreia) return [dupaMutareaATreia[1], dupaMutareaATreia[2]]
+
+  const propozitii = curat
+    .match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g)
+    ?.map(propozitie => propozitie.trim())
+    .filter(Boolean) ?? [curat]
+
+  if (propozitii.length <= 2) return [curat]
+
+  const jumatate = curat.length / 2
+  let limita = 1
+  let celMaiAproape = Number.POSITIVE_INFINITY
+  for (let i = 1; i < propozitii.length; i++) {
+    const lungime = propozitii.slice(0, i).join(' ').length
+    const distanta = Math.abs(jumatate - lungime)
+    if (distanta < celMaiAproape) {
+      celMaiAproape = distanta
+      limita = i
+    }
+  }
+
+  return [
+    propozitii.slice(0, limita).join(' '),
+    propozitii.slice(limita).join(' '),
+  ].filter(Boolean)
+}
+
 function mutariPentruPlan(line: TrainerLine): MutarePlan[] {
   const game = new Chess(line.start_fen)
   const whiteFirst = whiteMovesFirst(line)
@@ -249,6 +281,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const [vazut, setVazut] = useState<number | null>(null)
   /** Adevărat cât timp piesa adversarului încă alunecă pe tablă. */
   const [seMuta, setSeMuta] = useState(false)
+  const [arataRamificari, setArataRamificari] = useState(true)
+  const [ramuraAleasa, setRamuraAleasa] = useState<number | null>(null)
+  const [semnalRamificari, setSemnalRamificari] = useState(0)
+
+  useEffect(() => {
+    setArataRamificari(true)
+    setRamuraAleasa(null)
+  }, [lineId, stage, mode])
 
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
   const persistProgress = useCallback(async (markDone: boolean) => {
@@ -424,6 +464,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     if (!line) return
     setState(buildInitialState(line))
     setVazut(null)
+  }
+
+  function alegeRamuraPlan(index: number) {
+    setRamuraAleasa(index)
+    setArataRamificari(false)
+  }
+
+  function revinoLaRamificari() {
+    setArataRamificari(true)
+    setRamuraAleasa(null)
+    setSemnalRamificari(semnal => semnal + 1)
   }
 
   /**
@@ -695,6 +746,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                     ? 'Ai parcurs toate mutările din această variantă.'
                     : 'Excelent! Ai finalizat această parte a opening-ului.'}
                 </p>
+                {state.status === 'line-done' && isMiddlegame && (
+                  <button
+                    type="button"
+                    onClick={revinoLaRamificari}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[rgba(45,212,191,0.3)] bg-[rgba(45,212,191,0.08)] px-3 py-2.5 text-sm font-semibold text-[#2DD4BF] transition-colors hover:bg-[rgba(45,212,191,0.14)]"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Înapoi la ramificări
+                  </button>
+                )}
               </div>
             )}
             </>}
@@ -709,6 +770,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               line={line}
               plan={line.plan}
               plyIdx={state.plyIdx}
+              arataRamificari={arataRamificari}
+              ramuraAleasa={ramuraAleasa}
+              semnalRamificari={semnalRamificari}
+              onAlegeRamura={alegeRamuraPlan}
+              onRevinoLaRamificari={revinoLaRamificari}
               deschisInitial={isGuided}
             />
           )}
@@ -845,27 +911,46 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
  * fără el, rămân o listă de mutări memorate — adică exact ce nu vrem.
  */
 function PlanulVariantei({
-  line, plan, plyIdx, deschisInitial,
+  line,
+  plan,
+  plyIdx,
+  arataRamificari,
+  ramuraAleasa,
+  semnalRamificari,
+  onAlegeRamura,
+  onRevinoLaRamificari,
+  deschisInitial,
 }: {
   line: TrainerLine
   plan: MiddlegamePlan
   plyIdx: number
+  arataRamificari: boolean
+  ramuraAleasa: number | null
+  semnalRamificari: number
+  onAlegeRamura: (index: number) => void
+  onRevinoLaRamificari: () => void
   deschisInitial: boolean
 }) {
   const [deschis, setDeschis] = useState(deschisInitial)
   const [aratAvoid, setAratAvoid] = useState(false)
+  const [paginaDescriere, setPaginaDescriere] = useState(0)
   const planuri = useMemo(() => planuriDeExecutie(plan, line), [line, plan])
+  const descrieri = useMemo(() => paginiDescrierePozitie(plan.structure), [plan.structure])
   const indexSugerit = planuri.findIndex(planCurent => planCurent.ply != null && planCurent.ply >= plyIdx)
-  const [indexManual, setIndexManual] = useState<number | null>(null)
   const indexActiv = Math.max(
     0,
-    Math.min(indexManual ?? (indexSugerit >= 0 ? indexSugerit : planuri.length - 1), planuri.length - 1),
+    Math.min(ramuraAleasa ?? (indexSugerit >= 0 ? indexSugerit : planuri.length - 1), planuri.length - 1),
   )
   const planActiv = planuri[indexActiv]
+  const descriereActiva = descrieri[paginaDescriere]
 
   useEffect(() => {
-    setIndexManual(null)
-  }, [plyIdx])
+    setPaginaDescriere(0)
+  }, [plan.structure])
+
+  useEffect(() => {
+    if (semnalRamificari > 0) setDeschis(true)
+  }, [semnalRamificari])
 
   if (!planActiv) return null
 
@@ -877,8 +962,10 @@ function PlanulVariantei({
         className="flex w-full items-center justify-between gap-2 p-4 text-left"
       >
         <div>
-          <span className="text-xs uppercase tracking-wider text-[#2DD4BF]">Plan de execuție</span>
-          <p className="mt-1 text-sm font-semibold text-[#F0F0F0]">{planActiv.title}</p>
+          <span className="text-xs uppercase tracking-wider text-[#2DD4BF]">Plan de joc</span>
+          <p className="mt-1 text-sm font-semibold text-[#F0F0F0]">
+            {arataRamificari ? 'Ramificări din poziția asta' : planActiv.title}
+          </p>
         </div>
         <ChevronDown
           className={`h-4 w-4 flex-shrink-0 text-[#6B6B6B] transition-transform ${deschis ? 'rotate-180' : ''}`}
@@ -887,69 +974,146 @@ function PlanulVariantei({
 
       {deschis && (
         <div className="space-y-4 border-t border-[#2A2A2A] p-4">
-          {plan.structure && (
-            <div className="border-l-2 border-[#2DD4BF] pl-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#2DD4BF]">
-                Poziția pe scurt
+          {descriereActiva && (
+            <div className="rounded-lg border border-[#2A2A2A] bg-[#101010] p-4">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#2DD4BF]">
+                  Descrierea poziției
+                </p>
+                {descrieri.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaginaDescriere(Math.max(0, paginaDescriere - 1))}
+                      disabled={paginaDescriere === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaginaDescriere(Math.min(descrieri.length - 1, paginaDescriere + 1))}
+                      disabled={paginaDescriere === descrieri.length - 1}
+                      className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm leading-relaxed text-[#A0A0A0]">
+                {descriereActiva}
               </p>
-              <p className="mt-1 text-sm leading-relaxed text-[#A0A0A0]">
-                {plan.structure}
-              </p>
+              {descrieri.length > 1 && (
+                <p className="mt-2 text-right text-[11px] text-[#6B6B6B]">
+                  {paginaDescriere + 1} / {descrieri.length}
+                </p>
+              )}
             </div>
           )}
 
-          <div className="rounded-lg border border-[#2A2A2A] bg-[#101010] p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
+          {arataRamificari ? (
+            <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
-                Scenariul {indexActiv + 1} din {planuri.length}
+                Cele mai comune răspunsuri
               </p>
-              {planuri.length > 1 && (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setIndexManual(Math.max(0, indexActiv - 1))}
-                    disabled={indexActiv === 0}
-                    className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIndexManual(Math.min(planuri.length - 1, indexActiv + 1))}
-                    disabled={indexActiv === planuri.length - 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
-                  >
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
+              {planuri.map((ramura, i) => (
+                <button
+                  key={`${ramura.title}-${i}`}
+                  type="button"
+                  onClick={() => onAlegeRamura(i)}
+                  className="w-full rounded-lg border border-[#2A2A2A] bg-[#101010] p-4 text-left transition-colors hover:border-[rgba(45,212,191,0.5)] hover:bg-[#151515]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#2DD4BF]">
+                        Variația {i + 1}
+                      </p>
+                      <p className="mt-1 text-base font-semibold leading-snug text-[#F0F0F0]">
+                        {ramura.title}
+                      </p>
+                    </div>
+                    <ChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6B6B6B]" />
+                  </div>
+                  {ramura.trigger && (
+                    <p className="mt-3 text-sm leading-relaxed text-[#A0A0A0]">
+                      {ramura.trigger}
+                    </p>
+                  )}
+                  {ramura.move && (
+                    <p className="mt-2 text-sm leading-relaxed text-[#D0D0D0]">
+                      <span className="font-semibold text-[#E2B340]">Plan: </span>
+                      {ramura.move}
+                    </p>
+                  )}
+                </button>
+              ))}
             </div>
+          ) : (
+            <div className="rounded-lg border border-[#2A2A2A] bg-[#101010] p-4">
+              <div className="mb-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
+                  Variația {indexActiv + 1} din {planuri.length}
+                </p>
+                <p className="mt-1 text-base font-semibold leading-snug text-[#F0F0F0]">{planActiv.title}</p>
+              </div>
 
-            <p className="text-base font-semibold leading-snug text-[#F0F0F0]">{planActiv.title}</p>
+              <button
+                type="button"
+                onClick={onRevinoLaRamificari}
+                className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#2DD4BF] transition-colors hover:text-[#5EEAD4]"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Înapoi la ramificări
+              </button>
 
-            <div className="mt-3 space-y-2.5">
-              {planActiv.trigger && (
-                <p className="text-sm leading-relaxed text-[#A0A0A0]">
-                  <span className="font-semibold text-[#2DD4BF]">Dacă: </span>
-                  {planActiv.trigger}
-                </p>
-              )}
-              {planActiv.move && (
-                <p className="text-sm leading-relaxed text-[#D0D0D0]">
-                  <span className="font-semibold text-[#E2B340]">Joacă: </span>
-                  {planActiv.move}
-                </p>
-              )}
-              {planActiv.response && (
-                <p className="text-sm leading-relaxed text-[#A0A0A0]">
-                  <span className="font-semibold text-[#60A5FA]">Apoi: </span>
-                  {planActiv.response}
-                </p>
-              )}
+              <div className="space-y-2.5">
+                {planActiv.trigger && (
+                  <p className="text-sm leading-relaxed text-[#A0A0A0]">
+                    <span className="font-semibold text-[#2DD4BF]">Dacă: </span>
+                    {planActiv.trigger}
+                  </p>
+                )}
+                {planActiv.move && (
+                  <p className="text-sm leading-relaxed text-[#D0D0D0]">
+                    <span className="font-semibold text-[#E2B340]">Joacă: </span>
+                    {planActiv.move}
+                  </p>
+                )}
+                {planActiv.response && (
+                  <p className="text-sm leading-relaxed text-[#A0A0A0]">
+                    <span className="font-semibold text-[#60A5FA]">Apoi: </span>
+                    {planActiv.response}
+                  </p>
+                )}
+              </div>
+
+              <p className="mt-4 text-sm leading-relaxed text-[#A0A0A0]">{planActiv.detail}</p>
             </div>
+          )}
 
-            <p className="mt-4 text-sm leading-relaxed text-[#A0A0A0]">{planActiv.detail}</p>
-          </div>
+          {!arataRamificari && planuri.length > 1 && (
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => onAlegeRamura(Math.max(0, indexActiv - 1))}
+                disabled={indexActiv === 0}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Variația anterioară
+              </button>
+              <button
+                type="button"
+                onClick={() => onAlegeRamura(Math.min(planuri.length - 1, indexActiv + 1))}
+                disabled={indexActiv === planuri.length - 1}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                Variația următoare
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
 
           {plan.avoid && (
             <>
