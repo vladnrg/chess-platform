@@ -4,10 +4,24 @@ import type { OpeningLine } from '@/types'
 
 export type TrainerStage = 'opening' | 'middlegame' | 'trap'
 
+export interface PlanBranch {
+  title: string
+  trigger?: string
+  move?: string
+  response?: string
+  detail: string
+}
+
+export interface PlanIdea {
+  title: string
+  detail: string
+  branches?: PlanBranch[]
+}
+
 /** Planul din spatele mutărilor: structura, ideile şi greşeala tipică. */
 export interface MiddlegamePlan {
   structure: string | null
-  ideas: { title: string; detail: string }[]
+  ideas: PlanIdea[]
   avoid: string | null
 }
 

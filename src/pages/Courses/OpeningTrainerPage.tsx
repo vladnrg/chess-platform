@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
@@ -6,7 +6,7 @@ import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
-import { incarcaLinie, type TrainerLine, type MiddlegamePlan } from '@/lib/trainer-line'
+import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
@@ -47,6 +47,93 @@ function whiteMovesFirst(line: TrainerLine): boolean {
 function isUserPly(plyIdx: number, userColor: 'white' | 'black', whiteFirst = true): boolean {
   const whitePly = whiteFirst ? plyIdx % 2 === 0 : plyIdx % 2 === 1
   return (userColor === 'white') === whitePly
+}
+
+type PlanBranchView = PlanBranch & { ply?: number }
+
+interface MutarePlan {
+  ply: number
+  uci: string
+  san: string
+  explicatie: string
+  aUserului: boolean
+}
+
+function primaPropozitie(text: string): string {
+  const curat = text.trim()
+  if (!curat) return ''
+  return curat.match(/^.+?[.!?](?:\s|$)/)?.[0].trim() ?? curat
+}
+
+function mutariPentruPlan(line: TrainerLine): MutarePlan[] {
+  const game = new Chess(line.start_fen)
+  const whiteFirst = whiteMovesFirst(line)
+  const mutari = line.moves_uci.split(' ').filter(Boolean)
+  const rezultat: MutarePlan[] = []
+
+  for (let i = 0; i < mutari.length; i++) {
+    const uci = mutari[i]
+    try {
+      const mutare = game.move({
+        from: uci.slice(0, 2),
+        to: uci.slice(2, 4),
+        promotion: uci[4] ?? 'q',
+      })
+      rezultat.push({
+        ply: i,
+        uci,
+        san: mutare.san,
+        explicatie: line.move_explanations?.[String(i)]?.trim() ?? '',
+        aUserului: isUserPly(i, line.user_color, whiteFirst),
+      })
+    } catch {
+      break
+    }
+  }
+
+  return rezultat
+}
+
+function planuriDeExecutie(plan: MiddlegamePlan, line: TrainerLine): PlanBranchView[] {
+  const planuriScrise = plan.ideas.flatMap(idea =>
+    (idea.branches ?? []).map(branch => ({
+      ...branch,
+      title: branch.title || idea.title,
+      detail: branch.detail || idea.detail,
+    })),
+  )
+  if (planuriScrise.length > 0) return planuriScrise
+
+  const mutari = mutariPentruPlan(line)
+  const mutarileUserului = mutari.filter(mutare => mutare.aUserului)
+
+  return mutarileUserului.slice(0, 4).map((mutare, i) => {
+    const idee = plan.ideas[i]
+    const adversarInainte = [...mutari]
+      .slice(0, mutare.ply)
+      .reverse()
+      .find(candidat => !candidat.aUserului)
+    const adversarDupa = mutari.find(candidat => candidat.ply > mutare.ply && !candidat.aUserului)
+    const replicaTa = adversarDupa
+      ? mutari.find(candidat => candidat.ply > adversarDupa.ply && candidat.aUserului)
+      : null
+    const explicatieMutare = mutare.explicatie || idee?.detail || ''
+
+    return {
+      ply: mutare.ply,
+      title: idee?.title || primaPropozitie(explicatieMutare) || `Plan cu ${mutare.san}`,
+      trigger: adversarInainte
+        ? `Dacă adversarul a jucat ${adversarInainte.san}`
+        : adversarDupa
+        ? `Dacă adversarul răspunde cu ${adversarDupa.san}`
+        : 'Când poziția îți dă timp să îmbunătățești piesele',
+      move: `Joacă ${mutare.san}`,
+      response: adversarDupa && replicaTa
+        ? `Dacă vine ${adversarDupa.san}, continuă cu ${replicaTa.san}.`
+        : undefined,
+      detail: explicatieMutare || 'Pune piesa pe cel mai activ pătrat și păstrează presiunea pe centrul poziției.',
+    }
+  })
 }
 
 type TrainerStatus =
@@ -577,16 +664,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 }`}>
                   {arataMutareaAdversarului ? 'Adversarul joacă' : 'Mutarea ta'}
                 </p>
-                <p className="text-base leading-relaxed text-[#A0A0A0]">
-                  {arataMutareaAdversarului
-                    ? 'Urmărește răspunsul teoretic al adversarului.'
-                    : isGuided
-                    ? 'Mută piesa de pe pătratul auriu pe destinație.'
-                    : 'Gândește-te la teoria opening-ului și mută.'}
-                </p>
-                {(arataMutareaAdversarului || isGuided) && explicatiaPanoului && (
-                  <p className="mt-4 border-t border-[#2A2A2A] pt-4 text-sm leading-relaxed text-[#D0D0D0]">
+                {explicatiaPanoului ? (
+                  <p className="text-base leading-relaxed text-[#D0D0D0]">
                     {explicatiaPanoului}
+                  </p>
+                ) : !isGuided && (
+                  <p className="text-base leading-relaxed text-[#A0A0A0]">
+                    Gândește-te la teoria opening-ului și mută.
                   </p>
                 )}
               </div>
@@ -621,7 +705,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               iar „c5 e singura ta spargere" citit înainte de mutare nu mai e
               gândire, e răspuns. Rămâne la un click distanţă dacă te blochezi. */}
           {isMiddlegame && line.plan && (
-            <PlanulVariantei plan={line.plan} deschisInitial={isGuided} />
+            <PlanulVariantei
+              line={line}
+              plan={line.plan}
+              plyIdx={state.plyIdx}
+              deschisInitial={isGuided}
+            />
           )}
 
           {/* Parts tracker */}
@@ -756,12 +845,29 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
  * fără el, rămân o listă de mutări memorate — adică exact ce nu vrem.
  */
 function PlanulVariantei({
-  plan, deschisInitial,
+  line, plan, plyIdx, deschisInitial,
 }: {
+  line: TrainerLine
   plan: MiddlegamePlan
+  plyIdx: number
   deschisInitial: boolean
 }) {
   const [deschis, setDeschis] = useState(deschisInitial)
+  const [aratAvoid, setAratAvoid] = useState(false)
+  const planuri = useMemo(() => planuriDeExecutie(plan, line), [line, plan])
+  const indexSugerit = planuri.findIndex(planCurent => planCurent.ply != null && planCurent.ply >= plyIdx)
+  const [indexManual, setIndexManual] = useState<number | null>(null)
+  const indexActiv = Math.max(
+    0,
+    Math.min(indexManual ?? (indexSugerit >= 0 ? indexSugerit : planuri.length - 1), planuri.length - 1),
+  )
+  const planActiv = planuri[indexActiv]
+
+  useEffect(() => {
+    setIndexManual(null)
+  }, [plyIdx])
+
+  if (!planActiv) return null
 
   return (
     <div className="rounded-xl border border-[#2A2A2A] bg-[#141414]">
@@ -770,39 +876,97 @@ function PlanulVariantei({
         aria-expanded={deschis}
         className="flex w-full items-center justify-between gap-2 p-4 text-left"
       >
-        <span className="text-xs uppercase tracking-wider text-[#2DD4BF]">Planul variantei</span>
+        <div>
+          <span className="text-xs uppercase tracking-wider text-[#2DD4BF]">Plan de execuție</span>
+          <p className="mt-1 text-sm font-semibold text-[#F0F0F0]">{planActiv.title}</p>
+        </div>
         <ChevronDown
           className={`h-4 w-4 flex-shrink-0 text-[#6B6B6B] transition-transform ${deschis ? 'rotate-180' : ''}`}
         />
       </button>
 
       {deschis && (
-        <div className="space-y-3 border-t border-[#2A2A2A] p-4">
+        <div className="space-y-4 border-t border-[#2A2A2A] p-4">
           {plan.structure && (
-            <p className="border-l-2 border-[#2DD4BF] pl-3 text-sm leading-relaxed text-[#A0A0A0]">
-              {plan.structure}
-            </p>
+            <div className="border-l-2 border-[#2DD4BF] pl-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#2DD4BF]">
+                Poziția pe scurt
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-[#A0A0A0]">
+                {plan.structure}
+              </p>
+            </div>
           )}
 
-          <ol className="space-y-3">
-            {plan.ideas.map((idea, i) => (
-              <li key={i} className="flex gap-2.5">
-                <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(45,212,191,0.15)] text-[11px] font-bold text-[#2DD4BF]">
-                  {i + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#F0F0F0]">{idea.title}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-[#6B6B6B]">{idea.detail}</p>
+          <div className="rounded-lg border border-[#2A2A2A] bg-[#101010] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
+                Scenariul {indexActiv + 1} din {planuri.length}
+              </p>
+              {planuri.length > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setIndexManual(Math.max(0, indexActiv - 1))}
+                    disabled={indexActiv === 0}
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIndexManual(Math.min(planuri.length - 1, indexActiv + 1))}
+                    disabled={indexActiv === planuri.length - 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              </li>
-            ))}
-          </ol>
+              )}
+            </div>
+
+            <p className="text-base font-semibold leading-snug text-[#F0F0F0]">{planActiv.title}</p>
+
+            <div className="mt-3 space-y-2.5">
+              {planActiv.trigger && (
+                <p className="text-sm leading-relaxed text-[#A0A0A0]">
+                  <span className="font-semibold text-[#2DD4BF]">Dacă: </span>
+                  {planActiv.trigger}
+                </p>
+              )}
+              {planActiv.move && (
+                <p className="text-sm leading-relaxed text-[#D0D0D0]">
+                  <span className="font-semibold text-[#E2B340]">Joacă: </span>
+                  {planActiv.move}
+                </p>
+              )}
+              {planActiv.response && (
+                <p className="text-sm leading-relaxed text-[#A0A0A0]">
+                  <span className="font-semibold text-[#60A5FA]">Apoi: </span>
+                  {planActiv.response}
+                </p>
+              )}
+            </div>
+
+            <p className="mt-4 text-sm leading-relaxed text-[#A0A0A0]">{planActiv.detail}</p>
+          </div>
 
           {plan.avoid && (
-            <div className="flex gap-2.5 rounded-lg border border-[rgba(251,113,133,0.25)] bg-[rgba(251,113,133,0.06)] p-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#FB7185]" />
-              <p className="text-sm leading-relaxed text-[#A0A0A0]">{plan.avoid}</p>
-            </div>
+            <>
+              <button
+                type="button"
+                onClick={() => setAratAvoid(arata => !arata)}
+                className="flex w-full items-center justify-between gap-2 rounded-lg border border-[rgba(251,113,133,0.2)] bg-[rgba(251,113,133,0.04)] px-3 py-2 text-left text-sm font-semibold text-[#FB7185] transition-colors hover:bg-[rgba(251,113,133,0.08)]"
+              >
+                <span>Ce să evit?</span>
+                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              </button>
+              {aratAvoid && (
+                <p className="rounded-lg border border-[rgba(251,113,133,0.2)] bg-[rgba(251,113,133,0.05)] p-3 text-sm leading-relaxed text-[#A0A0A0]">
+                  {plan.avoid}
+                </p>
+              )}
+            </>
           )}
         </div>
       )}
