@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Chessboard, defaultPieces, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Lightbulb } from 'lucide-react'
 import type { MovePieceExerciseData } from '@/types'
@@ -76,6 +76,23 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
   const aratamUltima = status !== 'correct'
 
   /**
+   * Dacă rândul care spune ce a mutat adversarul are rost la exerciţiul ăsta.
+   *
+   * „Negrul mută regele de pe h3 pe g4" nu mai spune nimic acolo unde
+   * dedesubt scrie de ce mutarea aia nu-l salvează — două rânduri despre
+   * aceeaşi mutare, unul în coordonate. Aşa că unde pasul are comentariu
+   * scris de om, rândul tace; iar dacă niciun pas n-are nevoie de el, nu se
+   * mai desenează deloc. Unde e nevoie măcar o dată, locul lui rămâne ţinut
+   * pe toţi paşii: altfel tabla ar urca şi ar coborî între mutări.
+   */
+  const areRandDeMutare = useMemo(
+    () =>
+      !!citesteUltimaMutare(exercise.fen, exercise.last_move) ||
+      (pasi?.some(p => p.reply && !p.comentariu) ?? false),
+    [exercise.fen, exercise.last_move, pasi],
+  )
+
+  /**
    * Ce e de înţeles din răspunsul pe care tocmai l-a dat adversarul.
    *
    * Vine de la pasul care s-a jucat, nu de la cel la care s-a ajuns: se aprinde
@@ -84,6 +101,16 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
    * textul, când textul e despre o bucată de tablă.
    */
   const [comentariu, setComentariu] = useState<{ text: string; zona?: string } | null>(null)
+
+  /**
+   * Exerciţiul e rezolvat, dar ultimul pas a lăsat ceva de citit.
+   *
+   * Fără asta, comentariul de la ultima mutare apărea şi pierea în şapte
+   * zecimi de secundă, cât ţinea pauza de dinainte de exerciţiul următor —
+   * adică tocmai încheierea, care spune ce urmează după promovare, nu se
+   * putea citi. Când ultimul pas n-are nimic de spus, nu se opreşte nimic.
+   */
+  const [gata, setGata] = useState(false)
 
   /** Mutarea aşteptată acum. */
   const asteptata = pasi ? pasi[pas].move : exercise.correct_move ?? ''
@@ -135,6 +162,11 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
     const pasJucat = pasi?.[pas]
     const raspuns = pasJucat?.reply
     if (!raspuns) {
+      if (pasJucat?.comentariu) {
+        setComentariu({ text: pasJucat.comentariu, zona: pasJucat.zona })
+        setGata(true)
+        return
+      }
       setTimeout(() => onCorrect(), 700)
       return
     }
@@ -209,7 +241,9 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
         </p>
       )}
 
-      <EtichetaUltimeiMutari mutare={ultima} />
+      {areRandDeMutare && (
+        <EtichetaUltimeiMutari mutare={comentariu ? null : ultima} tineLocul />
+      )}
 
       <div className="relative">
         <RamaTablei>
@@ -274,6 +308,15 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
 
       {status === 'correct' && (
         <p className="text-sm font-medium text-[#4ade80]">Mutare corectă!</p>
+      )}
+      {gata && (
+        <button
+          type="button"
+          onClick={() => onCorrect()}
+          className="w-full rounded-lg border border-[#E2B340] bg-[rgba(226,179,64,0.12)] px-4 py-2.5 text-sm font-semibold text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.2)]"
+        >
+          Mai departe
+        </button>
       )}
       {status === 'wrong' && (
         <p className="text-sm font-medium text-[#FB7185]">Nu e mutarea potrivită. Încearcă din nou!</p>

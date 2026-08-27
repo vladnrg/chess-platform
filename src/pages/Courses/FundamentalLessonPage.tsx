@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronLeft, ChevronRight, Target } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -25,7 +25,7 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
-  const exercises: Exercise[] = lesson.exercises ?? []
+  const exercises: Exercise[] = useMemo(() => lesson.exercises ?? [], [lesson.exercises])
   const [exerciseIndex, setExerciseIndex] = useState(0)
   const [allDone, setAllDone] = useState(exercises.length === 0)
   // Cel mai departe ajuns. „Înapoi" merge oriunde ai fost deja; „înainte" doar
@@ -39,6 +39,23 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
    * fiecare dată când trece la pasul următor, şi o şterge când pleacă de tot.
    */
   const [cerintaPasului, setCerintaPasului] = useState<string | null>(null)
+
+  /**
+   * Toate cerinţele care pot apărea în lecţie: ale exerciţiilor şi ale paşilor.
+   *
+   * Nu ca să fie citite, ci ca să ţină locul. Rândul de sus îşi ia înălţimea
+   * de la cea mai lungă dintre ele şi n-o mai schimbă niciodată — altfel
+   * „Împinge pionul pe e7" ocupă un rând, cerinţa următoare ocupă trei, iar
+   * tabla coboară cu vreo cincizeci de pixeli exact când omul se uită la ea.
+   */
+  const cerinteleLectiei = useMemo(
+    () =>
+      exercises.flatMap(ex => [
+        ex.instruction,
+        ...('line' in ex ? (ex.line ?? []).map(pas => pas.instruction) : []),
+      ]),
+    [exercises],
+  )
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -127,10 +144,26 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
             Stătea sub numărul exerciţiului, scrisă mic şi gri — adică exact
             lucrul de care are omul nevoie era cel mai greu de găsit din pagină. */}
         {!allDone && currentExercise && (
-          <p className="flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]">
-            <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
-            {cerintaPasului ?? currentExercise.instruction}
-          </p>
+          <div className="grid">
+            {/* Toate cerinţele lecţiei, una peste alta în aceeaşi celulă şi
+                nevăzute: celula rămâne cât cea mai înaltă dintre ele, deci
+                rândul nu se mai umflă şi nu se mai strânge de la un pas la
+                altul. Restul paginii — tabla mai ales — stă pe loc. */}
+            {cerinteleLectiei.map((text, i) => (
+              <p
+                key={i}
+                aria-hidden
+                className="invisible col-start-1 row-start-1 flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]"
+              >
+                <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
+                {text}
+              </p>
+            ))}
+            <p className="col-start-1 row-start-1 flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]">
+              <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
+              {cerintaPasului ?? currentExercise.instruction}
+            </p>
+          </div>
         )}
 
         {/* Progress exerciții */}

@@ -1,6 +1,9 @@
 import { History } from 'lucide-react'
 import { descrieUltimaMutare, type UltimaMutare } from '@/lib/ultima-mutare'
 
+/** Spaţiu „tare": ţine rândul de text deschis când eticheta e doar loc păstrat. */
+const SPATIU_CARE_TINE_RANDUL = '\u00A0'
+
 /**
  * Ce a mutat adversarul, scris deasupra tablei.
  *
@@ -13,13 +16,29 @@ import { descrieUltimaMutare, type UltimaMutare } from '@/lib/ultima-mutare'
  * Rămâne pe ecran şi după ce exerciţiul e rezolvat, ca tabla să nu sară în sus
  * exact în clipa în care omul se uită la ea.
  */
-export function EtichetaUltimeiMutari({ mutare }: { mutare: UltimaMutare | null }) {
-  if (!mutare) return null
+export function EtichetaUltimeiMutari({
+  mutare,
+  tineLocul = false,
+}: {
+  mutare: UltimaMutare | null
+  /**
+   * Rândul îşi păstrează locul şi când n-are ce scrie.
+   *
+   * Fără asta, la exerciţiile în mai mulţi paşi rândul apărea şi dispărea
+   * între mutări, iar tabla de dedesubt cobora şi urca de fiecare dată cu
+   * înălţimea lui. Un loc gol e mai bun decât tabla care sare sub degete.
+   */
+  tineLocul?: boolean
+}) {
+  if (!mutare && !tineLocul) return null
 
   return (
-    <p className="flex items-center gap-2 rounded-lg border border-[rgba(226,179,64,0.2)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-sm font-medium text-[#E2B340]">
+    <p
+      aria-hidden={!mutare}
+      className={`flex items-center gap-2 rounded-lg border border-[rgba(226,179,64,0.2)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-sm font-medium text-[#E2B340] ${mutare ? '' : 'invisible'}`}
+    >
       <History className="h-4 w-4 flex-shrink-0" />
-      <span>{descrieUltimaMutare(mutare)}</span>
+      <span>{mutare ? descrieUltimaMutare(mutare) : SPATIU_CARE_TINE_RANDUL}</span>
     </p>
   )
 }
