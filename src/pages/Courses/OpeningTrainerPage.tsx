@@ -285,10 +285,18 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const [ramuraAleasa, setRamuraAleasa] = useState<number | null>(null)
   const [semnalRamificari, setSemnalRamificari] = useState(0)
 
-  useEffect(() => {
+  /**
+   * Când treci la altă variantă, panoul se întoarce la lista de ramificaţii.
+   * Se ajustează la desenare, nu într-un efect: altfel prima imagine ar arăta
+   * ramura rămasă de la varianta dinainte, şi abia a doua ar corecta-o.
+   */
+  const cheieVarianta = `${lineId}|${stage}|${mode}`
+  const [variantaVazuta, setVariantaVazuta] = useState(cheieVarianta)
+  if (variantaVazuta !== cheieVarianta) {
+    setVariantaVazuta(cheieVarianta)
     setArataRamificari(true)
     setRamuraAleasa(null)
-  }, [lineId, stage, mode])
+  }
 
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
   const persistProgress = useCallback(async (markDone: boolean) => {
@@ -936,6 +944,18 @@ function PlanulVariantei({
   const [paginaDescriere, setPaginaDescriere] = useState(0)
   const planuri = useMemo(() => planuriDeExecutie(plan, line), [line, plan])
   const descrieri = useMemo(() => paginiDescrierePozitie(plan.structure), [plan.structure])
+
+  /**
+   * Text nou de descriere înseamnă că se citeşte iar de la prima pagină.
+   * Se ajustează la desenare, nu într-un efect, ca să nu se vadă o clipă
+   * numărul paginii vechi peste textul nou.
+   */
+  const [structuraVazuta, setStructuraVazuta] = useState(plan.structure)
+  if (structuraVazuta !== plan.structure) {
+    setStructuraVazuta(plan.structure)
+    setPaginaDescriere(0)
+  }
+
   const indexSugerit = planuri.findIndex(planCurent => planCurent.ply != null && planCurent.ply >= plyIdx)
   const indexActiv = Math.max(
     0,
@@ -944,13 +964,16 @@ function PlanulVariantei({
   const planActiv = planuri[indexActiv]
   const descriereActiva = descrieri[paginaDescriere]
 
-  useEffect(() => {
-    setPaginaDescriere(0)
-  }, [plan.structure])
-
-  useEffect(() => {
-    if (semnalRamificari > 0) setDeschis(true)
-  }, [semnalRamificari])
+  /**
+   * Semnalul creşte când ceri lista de ramificaţii de undeva din afara
+   * panoului. Panoul se deschide singur atunci, ca lista să se vadă fără
+   * încă un clic. Se ajustează la desenare, nu într-un efect.
+   */
+  const [semnalVazut, setSemnalVazut] = useState(semnalRamificari)
+  if (semnalVazut !== semnalRamificari) {
+    setSemnalVazut(semnalRamificari)
+    setDeschis(true)
+  }
 
   if (!planActiv) return null
 
