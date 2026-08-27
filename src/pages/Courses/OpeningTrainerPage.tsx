@@ -384,6 +384,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     && !isUserPly(state.plyIdx - 1, line.user_color, whiteMovesFirst(line))
   /** Îndrumarea pentru mutarea ta, în modul ghidat. */
   const explanation = line.move_explanations?.[String(state.plyIdx)] ?? ''
+  const arataMutareaAdversarului = state.status === 'computer-thinking'
+    || (state.status === 'user-turn' && seMuta && ultimaEAAdversarului)
+  const explicatiaPanoului = arataMutareaAdversarului
+    ? state.status === 'computer-thinking' ? explanation : explicatiaUltimei
+    : explanation
 
   const priveste = vazut !== null
   const vedere = priveste ? pozitiaLa(line, vazut) : null
@@ -471,7 +476,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         />
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-4">
         {/* Tabla — pătrată şi centrată, dar dimensionată din altceva după ecran.
             Pe lat, din înălţime (`lg:h-full`): pagina e blocată la înălţimea
             ecranului şi tabla ia tot ce rămâne pe verticală.
@@ -480,7 +485,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             127px, cu pătrate de 16px pe care nu poţi juca (măsurat). Tot de-aia
             înălţimea fixă a paginii e şi ea doar de la `lg` în sus: pe telefon
             pagina se derulează, în loc să înghesuie totul într-un ecran. */}
-        <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
+        <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center lg:justify-end">
           <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
             <Chessboard
               options={{
@@ -502,12 +507,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             înălţimea ei să nu influenţeze niciodată dimensiunea tablei.
             De aici vine şi libertatea de a pune planul întreg în ea. */}
         <div
-          className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[var(--app-rail)]"
+          className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[21rem]"
         >
           {/* Derularea prin mutările deja jucate.
               Apare abia după prima mutare — până atunci n-are ce arăta. */}
           {state.plyIdx > 0 && (
-            <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-3">
+            <div className="rounded-lg border border-[#2A2A2A] bg-[#141414] p-3.5">
               <div className="flex items-center justify-center gap-1">
                 {([
                   ['La început', ChevronsLeft, () => setVazut(0), plyVazut === 0],
@@ -521,25 +526,25 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                     onClick={apasa}
                     disabled={stins}
                     aria-label={eticheta}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
                   >
                     <Icoana className="h-4 w-4" />
                   </button>
                 ))}
-                <span className="ml-2 min-w-[3.5rem] text-center text-xs text-[#6B6B6B]">
+                <span className="ml-2 min-w-[3.5rem] text-center text-sm text-[#6B6B6B]">
                   {plyVazut} / {state.plyIdx}
                 </span>
               </div>
 
               {priveste && (
                 <div className="mt-3 space-y-2 border-t border-[#2A2A2A] pt-3">
-                  <p className="text-xs text-[#60A5FA]">
+                  <p className="text-sm text-[#60A5FA]">
                     Priveşti o poziţie de mai devreme. Partida te aşteaptă.
                   </p>
                   <button
                     type="button"
                     onClick={reiaDeAici}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-sm text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-base text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     Reia de aici
@@ -550,81 +555,58 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           )}
 
           {/* Status + explanation card */}
-          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
+          <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-5">
             {/* Cât timp te uiţi în urmă, comentariul dispare.
                 El e despre poziţia din partidă, nu despre cea pe care o
                 răsfoieşti — lăsat pe ecran, ar fi părut că explică ce vezi.
                 Se întoarce singur când te întorci cu săgeata dreapta. */}
             {priveste ? (
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
+                <p className="mb-2 text-sm font-bold uppercase tracking-wider text-[#60A5FA]">
                   {plyVazut === 0 ? 'Poziţia de plecare' : `Mutarea ${plyVazut}`}
                 </p>
-                <p className="text-sm text-[#6B6B6B]">
+                <p className="text-base leading-relaxed text-[#6B6B6B]">
                   Întoarce-te la poziţia curentă ca să vezi comentariul.
                 </p>
               </div>
             ) : <>
-            {state.status === 'user-turn' && (
+            {(state.status === 'user-turn' || state.status === 'computer-thinking') && (
               <div>
-                <p className="text-xs font-semibold text-[#E2B340] uppercase tracking-wider mb-2">
-                  Mutarea ta
+                <p className={`text-sm font-bold uppercase tracking-wider mb-3 ${
+                  arataMutareaAdversarului ? 'text-[#60A5FA]' : 'text-[#E2B340]'
+                }`}>
+                  {arataMutareaAdversarului ? 'Adversarul joacă' : 'Mutarea ta'}
                 </p>
-                {isGuided ? (
-                  <p className="text-sm text-[#A0A0A0]">
-                    Mută piesa de pe pătratul auriu pe destinație.
-                  </p>
-                ) : (
-                  <p className="text-sm text-[#A0A0A0]">
-                    Gândește-te la teoria opening-ului și mută.
+                <p className="text-base leading-relaxed text-[#A0A0A0]">
+                  {arataMutareaAdversarului
+                    ? 'Urmărește răspunsul teoretic al adversarului.'
+                    : isGuided
+                    ? 'Mută piesa de pe pătratul auriu pe destinație.'
+                    : 'Gândește-te la teoria opening-ului și mută.'}
+                </p>
+                {(arataMutareaAdversarului || isGuided) && explicatiaPanoului && (
+                  <p className="mt-4 border-t border-[#2A2A2A] pt-4 text-sm leading-relaxed text-[#D0D0D0]">
+                    {explicatiaPanoului}
                   </p>
                 )}
-                {isGuided && explanation && (
-                  <div className="mt-3 pt-3 border-t border-[#2A2A2A]">
-                    <p className="text-xs text-[#A0A0A0] leading-relaxed">{explanation}</p>
-                  </div>
-                )}
-              </div>
-            )}
-            {/* Ce tocmai a jucat adversarul. Apare abia după ce piesa s-a
-                aşezat — `seMuta` ţine textul deoparte cât durează alunecarea —
-                şi stă cât timp e rândul tău, deci ai timp să citeşti. */}
-            {state.status === 'user-turn' && !seMuta && ultimaEAAdversarului && explicatiaUltimei && (
-              <div className="mt-3 border-t border-[#2A2A2A] pt-3">
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#60A5FA]">
-                  Adversarul joacă
-                </p>
-                <p className="text-xs leading-relaxed text-[#A0A0A0]">{explicatiaUltimei}</p>
-              </div>
-            )}
-            {state.status === 'computer-thinking' && (
-              <div>
-                {/* „Se gândeşte", nu „mută": aici încă nu s-a mutat nimic, iar
-                    titlul de deasupra explicaţiei e acum „Adversarul joacă" —
-                    două rânduri aproape la fel ar fi arătat ca acelaşi rând
-                    rămas pe ecran. */}
-                <p className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-2">
-                  Adversarul se gândește
-                </p>
-                <p className="text-sm text-[#A0A0A0]">Calculez răspunsul teoretic...</p>
               </div>
             )}
             {state.status === 'wrong' && (
               <div>
-                <p className="text-xs font-semibold text-[#FB7185] uppercase tracking-wider mb-2">
+                <p className="text-sm font-bold text-[#FB7185] uppercase tracking-wider mb-3">
                   Mutare greșită
                 </p>
-                <p className="text-sm text-[#A0A0A0]">
+                <p className="text-base leading-relaxed text-[#A0A0A0]">
                   Aceasta nu este mutarea din teorie. Gândește-te din nou.
                 </p>
               </div>
             )}
             {(state.status === 'part-done' || state.status === 'line-done') && (
               <div>
-                <p className="text-xs font-semibold text-[#4ade80] uppercase tracking-wider mb-2">
+                <p className="text-sm font-bold text-[#4ade80] uppercase tracking-wider mb-3">
                   {state.status === 'line-done' ? 'Variantă completă' : 'Fază completă'}
                 </p>
-                <p className="text-sm text-[#A0A0A0]">
+                <p className="text-base leading-relaxed text-[#A0A0A0]">
                   {state.status === 'line-done'
                     ? 'Ai parcurs toate mutările din această variantă.'
                     : 'Excelent! Ai finalizat această parte a opening-ului.'}
@@ -643,9 +625,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           )}
 
           {/* Parts tracker */}
-          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
-            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-3">Progres Variație</p>
-            <div className="space-y-2.5">
+          <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-5">
+            <p className="text-sm font-semibold text-[#6B6B6B] uppercase tracking-wider mb-4">Progres Variație</p>
+            <div className="space-y-3">
               {Array.from({ length: totalParts }).map((_, i) => {
                 const partNum = i + 1
                 const isDone = state.part > partNum || state.status === 'line-done'
@@ -653,18 +635,18 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 return (
                   <div
                     key={i}
-                    className={`flex items-center gap-2.5 text-sm ${
+                    className={`flex items-center gap-3 text-base ${
                       isDone ? 'text-[#4ade80]' : isCurrent ? 'text-[#F0F0F0]' : 'text-[#3A3A3A]'
                     }`}
                   >
-                    <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                    <div className={`h-7 w-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                       isDone
                         ? 'bg-[#4ade80] text-black'
                         : isCurrent
                         ? 'bg-[#E2B340] text-black'
                         : 'bg-[#1C1C1C] text-[#3A3A3A]'
                     }`}>
-                      {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : partNum}
+                      {isDone ? <CheckCircle2 className="h-4 w-4" /> : partNum}
                     </div>
                     <span>{line.singlePart ? 'Capcana, de la cap la coadă' : PART_LABELS[i]}</span>
                   </div>
@@ -676,7 +658,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             {state.status === 'part-done' && (
               <button
                 onClick={advancePart}
-                className="mt-4 w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
+                className="mt-4 w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-base text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
               >
                 <span>Ești gata de următoarea fază a opening-ului?</span>
                 <ChevronRight className="h-4 w-4 flex-shrink-0" />
@@ -729,9 +711,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           {/* Mode switcher. Rămâne în etapa în care eşti: de la planul de joc de
               mijloc, „pe cont propriu" înseamnă tot jocul de mijloc, nu te aruncă
               înapoi în deschidere. */}
-          <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-4">
-            <p className="text-xs text-[#6B6B6B] uppercase tracking-wider mb-2">Antrenează-te</p>
-            <div className="space-y-1">
+          <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-5">
+            <p className="text-sm font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">Antrenează-te</p>
+            <div className="space-y-1.5">
               <Link
                 to={
                   isTrap
@@ -740,7 +722,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                     ? `/courses/${slug}/middlegame/${lineId}`
                     : `/courses/${slug}/guided/${lineId}`
                 }
-                className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
+                className={`block text-base px-3 py-2.5 rounded-lg transition-colors ${
                   isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
                     : 'text-[#6B6B6B] hover:text-[#A0A0A0] hover:bg-[#1C1C1C]'
@@ -750,7 +732,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               </Link>
               <Link
                 to={practicePath}
-                className={`block text-sm px-3 py-2 rounded-lg transition-colors ${
+                className={`block text-base px-3 py-2.5 rounded-lg transition-colors ${
                   !isGuided
                     ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
                     : 'text-[#6B6B6B] hover:text-[#A0A0A0] hover:bg-[#1C1C1C]'
