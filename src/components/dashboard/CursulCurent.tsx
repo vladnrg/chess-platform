@@ -104,6 +104,9 @@ export function CursulCurent() {
 
   const i = Math.min(ales, inLucru.length - 1)
   const { curs, progres } = inLucru[i]
+  const mergiLaCurs = (pas: number) => {
+    setAles(Math.min(Math.max(i + pas, 0), inLucru.length - 1))
+  }
 
   return (
     <div className="rounded-2xl border border-[#2A2A2A] bg-[#141414]">
@@ -111,7 +114,6 @@ export function CursulCurent() {
         curs={curs}
         cate={inLucru.length}
         pozitie={i}
-        onSchimba={pas => setAles((i + pas + inLucru.length) % inLucru.length)}
       />
       <CapitolulCursului
         // Cheia forţează remontarea la schimbarea cursului: altfel capitolul
@@ -119,6 +121,9 @@ export function CursulCurent() {
         key={curs.id}
         curs={curs}
         parcurse={progres.completed_lesson_ids ?? []}
+        poateMergeLaCursAnterior={i > 0}
+        poateMergeLaCursUrmator={i < inLucru.length - 1}
+        onSchimbaCurs={mergiLaCurs}
       />
     </div>
   )
@@ -156,25 +161,15 @@ function CasetaGoala({ titlu, children }: { titlu: string; children: React.React
   )
 }
 
-/**
- * Numele cursului şi poza lui, la mijloc; săgeţile către celelalte cursuri
- * începute stau lipite de marginea din dreapta.
- *
- * Centrat, nu aliniat la stânga: caseta e lată, iar un titlu împins în colţ lăsa
- * jumătate de rând gol şi arăta a antet uitat acolo. Săgeţile ies din şir, prin
- * poziţionare absolută — altfel ar fi împins titlul spre stânga şi n-ar mai fi
- * fost centrat pe casetă, ci pe ce rămâne din ea.
- */
-function AntetCurs({ curs, cate, pozitie, onSchimba }: {
+/** Numele cursului şi poza lui, la mijloc. */
+function AntetCurs({ curs, cate, pozitie }: {
   curs: Course
   cate: number
   pozitie: number
-  onSchimba: (pas: number) => void
 }) {
   return (
     <div className="relative flex items-center justify-center border-b border-[#2A2A2A] p-4">
-      {/* Lăsăm loc de săgeţi în ambele părţi, ca titlul lung să nu ajungă sub ele. */}
-      <div className={`flex min-w-0 items-center gap-3 ${cate > 1 ? 'max-w-[calc(100%-7rem)]' : ''}`}>
+      <div className="flex min-w-0 items-center gap-3">
         <PozaCursului
           slug={curs.slug}
           titlu={curs.title}
@@ -195,21 +190,6 @@ function AntetCurs({ curs, cate, pozitie, onSchimba }: {
         </div>
       </div>
 
-      {/* Săgeţile lipsesc când n-au unde duce, ca la cuferele cu tactici. */}
-      {cate > 1 && (
-        <div className="absolute right-4 flex gap-1.5">
-          {[-1, 1].map(pas => (
-            <button
-              key={pas}
-              onClick={() => onSchimba(pas)}
-              aria-label={pas < 0 ? 'Cursul anterior' : 'Cursul următor'}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
-            >
-              {pas < 0 ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
@@ -220,7 +200,19 @@ function AntetCurs({ curs, cate, pozitie, onSchimba }: {
  * Unul singur, nu tot cuprinsul: pagina de start spune unde eşti, nu tot ce
  * conţine cursul. Cine vrea lista întreagă apasă pe numele cursului.
  */
-function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[] }) {
+function CapitolulCursului({
+  curs,
+  parcurse,
+  poateMergeLaCursAnterior,
+  poateMergeLaCursUrmator,
+  onSchimbaCurs,
+}: {
+  curs: Course
+  parcurse: string[]
+  poateMergeLaCursAnterior: boolean
+  poateMergeLaCursUrmator: boolean
+  onSchimbaCurs: (pas: number) => void
+}) {
   const { data: linii } = useQuery({
     queryKey: ['opening-lines', curs.id],
     queryFn: async () => {
@@ -275,10 +267,10 @@ function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[
       ))}
 
       <div className="flex items-center gap-2">
-        {capitole.length > 1 && (
+        {poateMergeLaCursAnterior && (
           <button
-            onClick={() => setCapitol((i - 1 + capitole.length) % capitole.length)}
-            aria-label="Capitolul anterior"
+            onClick={() => onSchimbaCurs(-1)}
+            aria-label="Cursul anterior in lucru"
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -297,10 +289,10 @@ function CapitolulCursului({ curs, parcurse }: { curs: Course; parcurse: string[
           <p className="truncate text-xs text-[#6B6B6B]">{cap.subtitlu}</p>
         </div>
 
-        {capitole.length > 1 && (
+        {poateMergeLaCursUrmator && (
           <button
-            onClick={() => setCapitol((i + 1) % capitole.length)}
-            aria-label="Capitolul următor"
+            onClick={() => onSchimbaCurs(1)}
+            aria-label="Cursul urmator in lucru"
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0]"
           >
             <ChevronRight className="h-4 w-4" />
