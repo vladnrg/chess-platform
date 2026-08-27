@@ -66,13 +66,20 @@ node --experimental-strip-types --import ./scripts/verificari/register.mjs scrip
 ```
 
 Cuvintele şi formele care n-au voie în conţinutul cursurilor. Deocamdată două:
-piesa se numeşte **tura**, la feminin, nu „turnul"; iar mutarea care se petrece
-acum se scrie la **prezent** — „negrul tocmai mută", nu „tocmai a mutat".
+piesa se numeşte **tura**, la feminin, nu „turnul"; iar mutarea care se iveşte
+acum pe tablă se scrie la **prezent şi fără „tocmai"** — „negrul mută regele de
+pe a8 pe b7", nu „negrul tocmai a mutat".
 
-Regula a doua prinde doar construcţia „tocmai a …", nu orice perfect compus:
-„albul a împins trei pioni" povesteşte cum s-a ajuns la poziţie, şi acolo
-trecutul e forma potrivită. Din 41 de perechi găsite când regula era largă, 38
-erau istorie scrisă corect.
+Regula a doua se agaţă de „tocmai" urmat de un verb de mutare, nu de perfectul
+compus în sine: „albul a împins trei pioni" povesteşte cum s-a ajuns la poziţie,
+şi acolo trecutul e forma potrivită. Din 41 de perechi găsite când regula
+prindea orice perfect compus, 38 erau istorie scrisă corect. Nici „tocmai"
+singur nu e interzis — „tocmai de aceea" n-are nicio treabă cu mutările.
+
+Capătul de cuvânt e scris cu o privire înainte, nu cu `\b`: în JavaScript `\b`
+se uită doar la litere ASCII, deci „mută\b" nu se potriveşte niciodată şi „albul
+tocmai mută nebunul pe d3" a trecut nevăzut la prima trecere. Verbele româneşti
+se termină prea des în ă, ş, ţ ca să meargă altfel.
 
 Migrarea 022 curăţase deja tot ce era în bază la acea dată. Apoi au intrat
 patru cursuri de deschideri, planurile de mijloc de partidă, capcanele şi
