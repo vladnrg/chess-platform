@@ -163,7 +163,6 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
                   onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
                   disabled={exerciseIndex === 0}
                   aria-label="Exercițiul anterior"
-                  title="Exercițiul anterior"
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -173,7 +172,6 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
                   onClick={() => setExerciseIndex(i => Math.min(maxAtins, i + 1))}
                   disabled={exerciseIndex >= maxAtins}
                   aria-label="Exercițiul următor"
-                  title="Exercițiul următor"
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
                 >
                   <ChevronRight className="h-4 w-4" />

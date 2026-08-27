@@ -79,9 +79,6 @@ function Picker({ kind, title, hint, emptyLabel }: PickerProps) {
               key={cosmetic.id}
               onClick={() => !locked && equip.mutate({ id: cosmetic.id, kind })}
               disabled={equip.isPending || locked}
-              title={locked
-                ? `${cosmetic.name} — ${cosmetic.description ?? 'se câștigă la un eveniment'}`
-                : cosmetic.description ?? undefined}
               className={cn(
                 'flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
                 locked

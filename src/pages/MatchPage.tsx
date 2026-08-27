@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/lib/utils'
 import { MatchAnalysis } from '@/components/chess/MatchAnalysis'
-import { qualityOf, QUALITY_COLOR, QUALITY_LABEL } from '@/lib/move-quality'
+import { qualityOf, QUALITY_COLOR } from '@/lib/move-quality'
 import type { PositionEval } from '@/hooks/useStockfish'
 
 const REASONS: Record<string, string> = {
@@ -359,7 +359,6 @@ function Move({ uci, evaluation }: { uci: string; evaluation: PositionEval | und
     <span
       className="w-16 font-medium"
       style={{ color: QUALITY_COLOR[quality] }}
-      title={QUALITY_LABEL[quality]}
     >
       {uci}
     </span>

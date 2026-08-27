@@ -57,7 +57,6 @@ export function StreakBadge() {
       <button
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
-        title={activ ? `${streak} zile la rând` : 'Niciun șir pornit'}
         className={[
           'flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 transition-colors',
           activ

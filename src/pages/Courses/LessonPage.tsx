@@ -174,7 +174,7 @@ export function LessonPage() {
 
           {/* Controale PGN */}
           <div className="flex items-center justify-between rounded-lg bg-[#141414] border border-[#2A2A2A] p-3">
-            <Button variant="ghost" size="icon" onClick={reset} title="Reset">
+            <Button variant="ghost" size="icon" onClick={reset} aria-label="Reset">
               <RotateCcw className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-2">

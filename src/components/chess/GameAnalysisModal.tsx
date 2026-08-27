@@ -324,7 +324,6 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                           <span
                             className="w-2 h-2 rounded-full flex-shrink-0"
                             style={{ backgroundColor: QUALITY_COLOR[quality] }}
-                            title={QUALITY_LABEL[quality]}
                           />
                         )}
                         <span>{san}</span>
@@ -343,8 +342,8 @@ export function GameAnalysisModal({ game, lichessUsername, playerColor, onClose,
                         <button
                           onClick={() => void askExplanation(i)}
                           disabled={isLoadingThis || loadingExplanation !== null}
+                          aria-label="Explică Căluțul savant"
                           className="flex-shrink-0 rounded-md p-1 text-[#E2B340] hover:bg-[rgba(226,179,64,0.1)] disabled:opacity-40 transition-colors"
-                          title="Explică Căluțul savant"
                         >
                           {isLoadingThis
                             ? <Loader2 className="h-3 w-3 animate-spin" />

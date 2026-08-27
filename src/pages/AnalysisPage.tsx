@@ -258,7 +258,7 @@ export function AnalysisPage() {
 
               <button
                 onClick={() => setEngineOn(v => !v)}
-                title={engineOn ? 'Oprește motorul' : 'Pornește motorul'}
+                aria-label={engineOn ? 'Oprește motorul' : 'Pornește motorul'}
                 className={[
                   'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs transition-colors',
                   engineOn
@@ -295,7 +295,6 @@ export function AnalysisPage() {
                           const uci = line.pv[0]
                           if (uci) play(uci.slice(0, 2), uci.slice(2, 4))
                         }}
-                        title="Joacă prima mutare din variantă"
                         className="flex w-full items-baseline gap-2 rounded-lg border border-[#2A2A2A] bg-[#141414] px-2.5 py-2 text-left transition-colors hover:border-[#3A3A3A]"
                       >
                         <span
@@ -377,7 +376,6 @@ function NavBtn({
     <button
       type="button"
       aria-label={label}
-      title={label}
       onClick={onClick}
       disabled={disabled}
       className="rounded-lg border border-[#2A2A2A] bg-[#141414] p-2 text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:opacity-30 disabled:hover:border-[#2A2A2A]"

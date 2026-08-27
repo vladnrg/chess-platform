@@ -68,7 +68,6 @@ export function TitlePicker() {
               key={label}
               onClick={() => !locked && choose(label)}
               disabled={saving || locked}
-              title={locked ? `Se deblochează la nivelul ${required}` : undefined}
               className={cn(
                 'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
                 locked

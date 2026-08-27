@@ -90,7 +90,6 @@ export function PlayerCard({ profile }: PlayerCardProps) {
           ) : (
             <span
               className="flex-shrink-0 text-xs text-[#6B6B6B]"
-              title="Poți juca doar cu jucători din liga ta, una mai jos sau una mai sus"
             >
               ligă prea depărtată
             </span>

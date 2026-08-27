@@ -297,7 +297,7 @@ export function TacticsChestPage() {
 /**
  * Un cufăr închis, ca buton, cu intervalul lui de ELO deasupra.
  *
- * Numele treptei rămâne doar în `title` şi `aria-label`: intervalul spune deja
+ * Numele treptei rămâne doar în `aria-label`: intervalul spune deja
  * pentru cine e cufărul, iar patru nume scrise sub patru cifre ar fi umplut
  * rândul cu text — exact ce s-a scos din pagină.
  */
@@ -307,11 +307,10 @@ function ChestButton({ tier, open, onClick }: { tier: TacticTier; open: boolean;
   const [areImagine, setAreImagine] = useState(true)
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={`${tier.label} · ELO ${tier.floor}–${tier.ceil}`}
-      aria-label={`${tier.label}, ELO ${tier.floor}–${tier.ceil}`}
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={`${tier.label}, ELO ${tier.floor}–${tier.ceil}`}
       aria-expanded={open}
       className="group flex w-full max-w-[9.5rem] flex-col items-center gap-2 rounded-2xl p-1 transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 sm:w-48 sm:max-w-none"
       style={{ outlineColor: color }}

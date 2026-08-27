@@ -202,14 +202,12 @@ function NodTraseu({
   // Fără text sub noduri. Cele patru-cinci rânduri de etichete umpleau traseul
   // de cuvinte şi îl făceau să arate iar a listă — exact ce încearcă să nu fie.
   // Ce fel de pas e fiecare se vede acum din formă şi din icoană, iar numele
-  // întreg apare la trecerea cu mouse-ul, prin `title`.
-  //
   // Nodurile închise nu mai poartă lacăt: îşi păstrează icoana, stinsă. Aşa vezi
   // ce urmează, nu doar că e închis — un lacăt spune „nu poţi", o gantere stinsă
   // spune „urmează un exerciţiu". A doua e o promisiune, prima e un zid.
   if (blocat) {
     return (
-      <div title={node.title} className="flex cursor-not-allowed flex-col items-center">
+      <div className="flex cursor-not-allowed flex-col items-center">
         <span className="relative block" style={cutie}>{continut}</span>
       </div>
     )
@@ -218,7 +216,6 @@ function NodTraseu({
   return (
     <Link
       to={node.href!}
-      title={node.title}
       className="group flex flex-col items-center"
     >
       {/* La apăsare, faţa coboară peste umbră — mişcarea pe care o aşteaptă

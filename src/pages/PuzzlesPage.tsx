@@ -825,7 +825,7 @@ export function PuzzlesPage() {
             {hasRating && (
             <>
               {winStreak > 0 && (
-                <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]" title="Corecte la rând">
+                <span className="flex items-center gap-1 text-sm font-semibold text-[#f97316]">
                   <Flame className="h-4 w-4" /> {winStreak}
                 </span>
               )}
@@ -973,7 +973,7 @@ export function PuzzlesPage() {
                 <p className="text-sm font-bold text-[#E2B340]">Ce urmează după mutarea ta</p>
                 <button
                   onClick={() => { setRefutation(null); setRefuPly(0) }}
-                  title="Închide"
+                  aria-label="Închide"
                   className="rounded p-1 text-[#6B6B6B] transition-colors hover:bg-[#2A2A2A] hover:text-[#F0F0F0]"
                 >
                   <X className="h-4 w-4" />
@@ -1114,7 +1114,6 @@ export function PuzzlesPage() {
                 <button
                   onClick={stepBack}
                   disabled={puzzleState.waitingOpponent || (puzzleState.currentMoveIdx <= 1 && puzzleState.status !== 'wrong')}
-                  title="Înapoi la mutarea ta anterioară"
                   className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="h-4 w-4" /> Înapoi
@@ -1123,7 +1122,6 @@ export function PuzzlesPage() {
                   <button
                     onClick={stepForward}
                     disabled={puzzleState.waitingOpponent}
-                    title="Înainte, spre poziția curentă"
                     className="flex items-center gap-1 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] hover:border-[#3A3A3A] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Înainte <ChevronRight className="h-4 w-4" />

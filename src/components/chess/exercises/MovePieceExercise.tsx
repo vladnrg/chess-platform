@@ -251,7 +251,6 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
                     type="button"
                     onClick={() => alege(p.litera)}
                     aria-label={p.nume}
-                    title={p.nume}
                     className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#2A2A2A] bg-[#161616] p-1.5 transition-colors hover:border-[#E2B340] hover:bg-[#1C1C1C]"
                   >
                     <Deseneaza />

@@ -275,7 +275,6 @@ export function CourseDetail() {
                   {/* Caseta cursului — titlu lizibil în interior */}
                   <Link
                     to={locked ? '/pricing' : step.href}
-                    title={step.title}
                     className={`flex flex-shrink-0 items-center gap-4 rounded-2xl border bg-[#141414] p-4 transition-all hover:-translate-y-0.5 ${
                       current
                         ? 'border-[rgba(226,179,64,0.55)] shadow-[0_0_18px_rgba(226,179,64,0.15)]'

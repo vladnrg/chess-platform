@@ -482,7 +482,6 @@ function ActivityHeatmap({ counts }: { counts: Record<string, number> }) {
                 return (
                   <div
                     key={colIdx}
-                    title={day ? `${day}: ${count} puzzle${count !== 1 ? '-uri' : ''}` : ''}
                     className="w-3 h-3 rounded-sm"
                     style={{ backgroundColor: day ? getHeatColor(count) : 'transparent' }}
                   />

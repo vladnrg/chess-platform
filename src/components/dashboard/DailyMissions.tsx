@@ -114,7 +114,6 @@ function MissionCard({ mission }: { mission: Mission }) {
           <button
             type="button"
             disabled={isDone || isCooling}
-            title={isCooling ? `Disponibil peste ${mission.cooldownLeft}h` : 'Schimbă misiunea'}
             aria-label={isCooling ? `Disponibil peste ${mission.cooldownLeft} ore` : 'Schimbă misiunea'}
             className="flex h-7 w-7 items-center justify-center rounded-lg text-[#6B6B6B] transition-colors enabled:hover:bg-[#1C1C1C] enabled:hover:text-[#F0F0F0] disabled:opacity-30"
           >

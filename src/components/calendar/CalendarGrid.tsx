@@ -104,7 +104,6 @@ export function CalendarGrid({ tournaments, month, onMonthChange }: CalendarGrid
                         ? 'bg-[rgba(226,179,64,0.2)] text-[#E2B340]'
                         : 'bg-[rgba(100,200,100,0.15)] text-[#6cd06c]',
                     ].join(' ')}
-                    title={e.title}
                   >
                     {e.title}
                   </div>

@@ -455,7 +455,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           </span>
           <button
             onClick={resetLine}
-            title="Reia de la început"
+            aria-label="Reia de la început"
             className="p-1.5 text-[#3A3A3A] hover:text-[#A0A0A0] transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
@@ -521,7 +521,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                     onClick={apasa}
                     disabled={stins}
                     aria-label={eticheta}
-                    title={eticheta}
                     className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
                   >
                     <Icoana className="h-4 w-4" />

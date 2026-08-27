@@ -25,7 +25,6 @@ export function CardJucator({ profile }: { profile: Profile }) {
         <Link
           to="/profile"
           className="group relative flex-shrink-0"
-          title="Schimbă poza"
         >
           <AvatarJucator
             src={profile.avatar_url}

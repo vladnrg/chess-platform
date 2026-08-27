@@ -340,7 +340,6 @@ export function RepertoirePage() {
                       <td className="px-3 py-3 text-center">
                         <button
                           onClick={() => setReviewOpening({ eco: s.eco, name: translateOpeningName(s.opening_name), color: s.color })}
-                          title="Revizuiește partide"
                           className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[#6B6B6B] hover:text-[#E2B340] hover:bg-[rgba(226,179,64,0.1)] transition-colors"
                         >
                           <Film className="h-3.5 w-3.5" />
