@@ -315,7 +315,15 @@ export type Database = {
       lessons: TableDef<Lesson, 'id'>
       puzzles: TableDef<Puzzle, never>
       user_puzzle_attempts: TableDef<UserPuzzleAttempt, 'id' | 'attempted_at'>
-      user_course_progress: TableDef<UserCourseProgress, 'started_at' | 'completed_at'>
+      // `completed_lesson_ids` şi `xp_earned` au implicit în bază ('{}' şi 0),
+      // deci sunt opţionale la insert. Fără asta, o însemnare care spune doar
+      // „am trecut pe la cursul ăsta" ar fi trebuit să le trimită pe amândouă —
+      // iar la un rând care există deja, `upsert` le-ar fi scris peste, adică
+      // ar fi şters progresul omului ca să noteze că a deschis pagina.
+      user_course_progress: TableDef<
+        UserCourseProgress,
+        'started_at' | 'completed_at' | 'completed_lesson_ids' | 'xp_earned'
+      >
       subscriptions: TableDef<Subscription, Generated>
       assessment_results: TableDef<AssessmentResult, 'id' | 'taken_at'>
       user_weekly_xp: TableDef<

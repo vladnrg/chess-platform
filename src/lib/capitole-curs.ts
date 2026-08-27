@@ -155,6 +155,36 @@ export function capitolDeLectii(
 }
 
 /**
+ * Cursul e dus până la capăt?
+ *
+ * Stă aici, lângă construcţia capitolelor, fiindcă e acelaşi lucru spus mai pe
+ * scurt: un curs e gata când toate capitolele lui sunt gata. Bârlogul nu-şi
+ * poate permite să construiască tot cuprinsul fiecărui curs început doar ca să
+ * afle asta — ar însemna, pentru fiecare, lecţiile, variantele, planurile şi
+ * capcanele — deci întreabă direct, cu id-urile pe care le are.
+ *
+ * Regula e copiată din cele două funcţii de deasupra, ca să nu ajungă cele două
+ * pagini să spună lucruri diferite despre acelaşi curs:
+ *   - la deschideri, un capitol de variantă e terminat când teoria ei e
+ *     parcursă, iar capitolul de capcane când toate capcanele sunt;
+ *   - la cursurile fundamentale, când toate lecţiile sunt parcurse.
+ *
+ * Un curs fără niciun conţinut nu e „terminat", e gol — altfel ar dispărea din
+ * Bârlog tocmai cursurile la care încă nu s-a scris nimic.
+ */
+export function cursTerminat(
+  parcurse: string[],
+  continut: { lectii: string[]; linii: string[]; capcane: string[] },
+): boolean {
+  const gata = new Set(parcurse)
+
+  if (continut.linii.length > 0) {
+    return [...continut.linii, ...continut.capcane].every(id => gata.has(id))
+  }
+  return continut.lectii.length > 0 && continut.lectii.every(id => gata.has(id))
+}
+
+/**
  * Capitolul la care a rămas omul: primul neterminat, sau ultimul dacă a
  * terminat tot. Nu întoarce niciodată `undefined` pe o listă nevidă — pagina
  * care îl arată n-ar avea ce pune în loc.

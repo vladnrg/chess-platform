@@ -9,18 +9,23 @@ import { ChapterPath, type PathNode } from '@/components/courses/ChapterPath'
 import { inaltimeaTraseului } from '@/components/courses/geometrie-traseu'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
-import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, type Capitol } from '@/lib/capitole-curs'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
 
 /**
  * Unde ai rămas — jumătatea dreaptă a Bârlogului.
  *
- * Arată cursul la care ai fost ultima dată, deschis exact la capitolul unde
- * te-ai oprit, cu acelaşi traseu ca pe pagina cursului. Săgeţile trec prin
- * celelalte cursuri începute.
+ * Arată cursul pe care l-ai deschis ultima dată, la capitolul unde te-ai oprit,
+ * cu acelaşi traseu ca pe pagina cursului. Săgeţile trec prin celelalte cursuri
+ * la care lucrezi.
  *
  * Nu e un catalog: cursurile neîncepute nu apar aici. Cine vrea unul nou se duce
  * la Cursuri — pagina asta răspunde la „ce făceam?", nu la „ce aş putea face?".
+ *
+ * Şi nici cele terminate. Un curs dus până la capăt nu mai e „unde ai rămas", e
+ * ceva ce ai făcut — iar cât timp stătea aici, ţinea locul din faţă exact
+ * cursului la care lucrezi acum. Se vede mai departe la Cursuri, cu tot cu
+ * bifele lui.
  */
 export function CursulCurent() {
   const { user } = useAuth()
@@ -36,15 +41,42 @@ export function CursulCurent() {
         .eq('user_id', user!.id)
       if (!progres?.length) return []
 
-      const { data: cursuri } = await supabase
-        .from('courses')
-        .select('*')
-        .in('id', progres.map(p => p.course_id))
-      const dupaId = new Map((cursuri ?? []).map(c => [c.id, c as Course]))
+      const ids = progres.map(p => p.course_id)
+      // Conţinutul tuturor cursurilor începute, dintr-o dată. E singurul fel în
+      // care se poate şti care curs e gata fără să construim cuprinsul fiecăruia
+      // — vezi `cursTerminat`. Capcanele fără variantă nu se pun la socoteală,
+      // fiindcă nici capitolul de capcane nu le arată.
+      const [cursuri, lectii, linii, capcane] = await Promise.all([
+        supabase.from('courses').select('*').in('id', ids),
+        supabase.from('lessons').select('id, course_id').in('course_id', ids),
+        supabase.from('opening_lines').select('id, course_id').in('course_id', ids),
+        supabase.from('opening_traps').select('id, course_id')
+          .in('course_id', ids).not('opening_line_id', 'is', null),
+      ])
+
+      const dupaId = new Map((cursuri.data ?? []).map(c => [c.id, c as Course]))
+      const peCurs = (randuri: { id: string; course_id: string }[] | null) => {
+        const grupe = new Map<string, string[]>()
+        for (const r of randuri ?? []) {
+          grupe.set(r.course_id, [...(grupe.get(r.course_id) ?? []), r.id])
+        }
+        return grupe
+      }
+      const lectiiPeCurs = peCurs(lectii.data)
+      const liniiPeCurs = peCurs(linii.data)
+      const capcanePeCurs = peCurs(capcane.data)
 
       return (progres as UserCourseProgress[])
         .map(p => ({ progres: p, curs: dupaId.get(p.course_id) }))
         .filter((x): x is { progres: UserCourseProgress; curs: Course } => !!x.curs)
+        .map(x => ({
+          ...x,
+          terminat: cursTerminat(x.progres.completed_lesson_ids ?? [], {
+            lectii: lectiiPeCurs.get(x.curs.id) ?? [],
+            linii: liniiPeCurs.get(x.curs.id) ?? [],
+            capcane: capcanePeCurs.get(x.curs.id) ?? [],
+          }),
+        }))
         // Ordonăm noi, nu baza: `last_activity_at` a apărut în migrarea 090, iar
         // o bază care încă n-a primit-o ar răspunde cu eroare la `order`, deci
         // caseta ar fi goală în loc să arate ceva puţin mai vechi.
@@ -64,16 +96,22 @@ export function CursulCurent() {
 
   if (!incepute?.length) return <NiciunCurs />
 
-  const i = Math.min(ales, incepute.length - 1)
-  const { curs, progres } = incepute[i]
+  const inLucru = incepute.filter(c => !c.terminat)
+  // Ai umblat prin cursuri, dar le-ai dus pe toate la capăt. Altă poveste decât
+  // „n-ai început niciunul", deci alt mesaj: unul care felicită şi trimite mai
+  // departe, nu unul care te întreabă de ce n-ai început.
+  if (inLucru.length === 0) return <TotTerminat />
+
+  const i = Math.min(ales, inLucru.length - 1)
+  const { curs, progres } = inLucru[i]
 
   return (
     <div className="rounded-2xl border border-[#2A2A2A] bg-[#141414]">
       <AntetCurs
         curs={curs}
-        cate={incepute.length}
+        cate={inLucru.length}
         pozitie={i}
-        onSchimba={pas => setAles((i + pas + incepute.length) % incepute.length)}
+        onSchimba={pas => setAles((i + pas + inLucru.length) % inLucru.length)}
       />
       <CapitolulCursului
         // Cheia forţează remontarea la schimbarea cursului: altfel capitolul
@@ -88,13 +126,26 @@ export function CursulCurent() {
 
 function NiciunCurs() {
   return (
+    <CasetaGoala titlu="Încă n-ai început niciun curs">
+      Aici o să vezi unde ai rămas, de fiecare dată când te întorci.
+    </CasetaGoala>
+  )
+}
+
+function TotTerminat() {
+  return (
+    <CasetaGoala titlu="Ai dus la capăt tot ce ai început">
+      Cursurile terminate te aşteaptă la Cursuri, cu tot cu bifele lor. Aici o să
+      apară următorul, din clipa în care îl deschizi.
+    </CasetaGoala>
+  )
+}
+
+function CasetaGoala({ titlu, children }: { titlu: string; children: React.ReactNode }) {
+  return (
     <div className="flex min-h-[20rem] flex-col items-center justify-center gap-3 rounded-2xl border border-[#2A2A2A] bg-[#141414] p-8 text-center">
-      <p className="font-display text-lg font-semibold text-[#F0F0F0]">
-        Încă n-ai început niciun curs
-      </p>
-      <p className="max-w-xs text-sm text-[#6B6B6B]">
-        Aici o să vezi unde ai rămas, de fiecare dată când te întorci.
-      </p>
+      <p className="font-display text-lg font-semibold text-[#F0F0F0]">{titlu}</p>
+      <p className="max-w-xs text-sm text-[#6B6B6B]">{children}</p>
       <Link
         to="/courses"
         className="mt-1 rounded-xl bg-[#E2B340] px-5 py-2.5 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-[#F0C450]"
@@ -139,7 +190,7 @@ function AntetCurs({ curs, cate, pozitie, onSchimba }: {
           {/* Numărul apare doar când chiar sunt mai multe — la un singur curs ar
               fi „1 din 1", adică o informaţie care nu spune nimic. */}
           {cate > 1 && (
-            <p className="text-xs text-[#6B6B6B]">Cursul {pozitie + 1} din {cate} începute</p>
+            <p className="text-xs text-[#6B6B6B]">Cursul {pozitie + 1} din {cate} în lucru</p>
           )}
         </div>
       </div>
