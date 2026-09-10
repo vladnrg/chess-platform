@@ -6,7 +6,15 @@ import { cn } from '@/lib/utils'
 // Straturi: fotografia → grade auriu cald → întunecare direcțională (lizibilitate)
 // → vignetă → grain fin. Toate straturile sunt pointer-events-none.
 
-type Overlay = 'hero' | 'section' | 'frame'
+/**
+ * `none` = imaginea se arată aşa cum e, fără niciun strat peste ea.
+ *
+ * Straturile de mai jos sunt pentru fotografii de stock, ca să intre în
+ * familia vizuală a mărcii. Emblemele desenate vin deja aurii, cu vinieta şi
+ * rama lor cu tot — peste ele, acelaşi tratament ar însemna auriu peste auriu
+ * şi colţurile ramei stinse tocmai acolo unde stă ornamentul.
+ */
+type Overlay = 'hero' | 'section' | 'frame' | 'none'
 
 interface CinematicImageProps {
   src: string
@@ -25,7 +33,7 @@ interface CinematicImageProps {
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
 
-const DARKEN: Record<Overlay, CSSProperties> = {
+const DARKEN: Partial<Record<Overlay, CSSProperties>> = {
   // Hero full-bleed: text la stânga rămâne lizibil + blend spre pagină în jos
   hero: {
     background:
@@ -53,16 +61,24 @@ export function CinematicImage({
   imgClassName,
   objectPosition = 'center',
 }: CinematicImageProps) {
+  const imaginea = (
+    <img
+      src={src}
+      alt={alt}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      className={cn('h-full w-full object-cover', imgClassName)}
+      style={{ objectPosition }}
+    />
+  )
+
+  if (overlay === 'none') {
+    return <div className={cn('relative overflow-hidden', className)}>{imaginea}</div>
+  }
+
   return (
     <div className={cn('relative overflow-hidden', className)}>
-      <img
-        src={src}
-        alt={alt}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
-        className={cn('h-full w-full object-cover', imgClassName)}
-        style={{ objectPosition }}
-      />
+      {imaginea}
 
       {/* Grade auriu cald — leagă fotografia de accentul de brand */}
       <div

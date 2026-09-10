@@ -278,9 +278,9 @@ export function SalesPage() {
           <motion.div {...reveal}>
             <CinematicImage
               src={problemImg}
-              alt="Rege alb în picioare lângă un rege negru căzut — momentul deciziei"
-              overlay="frame"
-              className="aspect-[4/5] w-full rounded-2xl border border-[#2A2A2A] shadow-[var(--shadow-card)]"
+              alt="Emblemă aurie: un rege negru căzut lângă un rege alb rămas în picioare — momentul deciziei"
+              overlay="none"
+              className="aspect-square w-full rounded-2xl border border-[#2A2A2A] shadow-[var(--shadow-card)]"
             />
           </motion.div>
         </div>
@@ -388,10 +388,9 @@ export function SalesPage() {
             </p>
             <CinematicImage
               src={parentsImg}
-              alt="Un părinte și un copil jucând șah lângă o fereastră, într-o zi de iarnă"
-              overlay="frame"
-              objectPosition="center 35%"
-              className="aspect-[16/10] w-full rounded-2xl border border-[#2A2A2A] shadow-[var(--shadow-card)]"
+              alt="Emblemă aurie: un tată și un copil jucând șah pe jos, lângă o fereastră cu zăpadă afară"
+              overlay="none"
+              className="aspect-square w-full rounded-2xl border border-[#2A2A2A] shadow-[var(--shadow-card)]"
             />
           </motion.div>
 
