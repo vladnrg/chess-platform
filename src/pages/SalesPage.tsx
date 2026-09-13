@@ -280,7 +280,7 @@ export function SalesPage() {
               src={problemImg}
               alt="Emblemă aurie: un rege negru căzut lângă un rege alb rămas în picioare — momentul deciziei"
               overlay="none"
-              className="aspect-square w-full rounded-2xl border border-[#2A2A2A] shadow-[var(--shadow-card)]"
+              className="aspect-square w-full"
             />
           </motion.div>
         </div>
@@ -390,7 +390,7 @@ export function SalesPage() {
               src={parentsImg}
               alt="Emblemă aurie: un tată și un copil jucând șah pe jos, lângă o fereastră cu zăpadă afară"
               overlay="none"
-              className="aspect-square w-full rounded-2xl border border-[#2A2A2A] shadow-[var(--shadow-card)]"
+              className="aspect-square w-full"
             />
           </motion.div>
 
