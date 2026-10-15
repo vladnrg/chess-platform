@@ -1,77 +1,105 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { CheckCircle2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
 import { RestrictedPricing } from '@/components/auth/RestrictedPricing'
+import { supabase } from '@/lib/supabase'
+import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, pret } from '@/lib/preturi'
 
+type CheckoutPlan = 'monthly' | 'annual'
+
+// Fiecare rând de aici trebuie să fie adevărat în aplicaţie. Lista veche promitea
+// la Pro „Export statistici" (nu există), „Statistici avansate" şi „Recomandări
+// personalizate" (le primesc toţi, gratis) şi „Prioritate la suport" (nu există
+// încă niciun canal de suport) — exact lucrurile pentru care un client cere
+// banii înapoi. Pro dă cantitate: mai multe cursuri, tactici, puzzle-uri, AI.
 const PLANS = [
   {
     id: 'free',
     name: 'Free',
-    price: '0',
+    price: pret(0),
     period: '',
-    features: ['3 cursuri complete', '10 puzzle-uri/zi', 'Evaluare nivel', 'Dashboard de bază', 'Sistem de ligi'],
+    features: [
+      '6 cursuri complete, dintre care 4 deschideri',
+      '10 puzzle-uri pe zi',
+      '4 categorii de tactici',
+      'Căluțul savant: 3 întrebări pe zi',
+      'Ligi, niveluri, evenimente și partide',
+    ],
     cta: 'Plan curent',
     highlight: false,
-    priceId: null,
+    checkout: null,
   },
   {
     id: 'monthly',
     name: 'Pro Lunar',
-    price: '9.99',
+    price: pret(PRET_LUNAR),
     period: '/lună',
     features: [
-      'Toate cursurile (20+)',
+      'Toate cele 20 de deschideri (16 în plus)',
       'Puzzle-uri nelimitate',
-      'Statistici avansate',
-      'Recomandări personalizate',
-      'Export statistici',
+      'Toate cele 16 categorii de tactici',
+      'Căluțul savant fără limită',
       'Refund după 60 de zile dacă nu progresezi',
     ],
     cta: 'Alege Pro Lunar',
     highlight: true,
-    priceId: import.meta.env.VITE_STRIPE_MONTHLY_PRICE_ID as string,
+    // Doar numele planului: preţul din Stripe îl alege serverul. Codurile de preţ
+    // ţinute aici lipseau din build, iar butonul ajungea să ducă în Bârlog.
+    checkout: 'monthly' as CheckoutPlan,
   },
   {
     id: 'annual',
     name: 'Pro Anual',
-    price: '79.99',
+    price: pret(PRET_ANUAL),
     period: '/an',
     features: [
       'Tot din Pro Lunar',
-      'Economisești ~2 luni ($39.89)',
-      'Prioritate la suport',
+      `Economisești ${pret(ECONOMIE_ANUALA)}: aproape ${LUNI_ECONOMISITE} luni gratuite`,
       'Refund după 60 de zile dacă nu progresezi',
     ],
     cta: 'Cel mai bun preț',
     highlight: false,
-    priceId: import.meta.env.VITE_STRIPE_ANNUAL_PRICE_ID as string,
+    checkout: 'annual' as CheckoutPlan,
   },
 ]
 
 export function PricingPage() {
   const { user, profile } = useAuth()
   const { isPro, subscription } = useSubscription()
+  const [pending, setPending] = useState<CheckoutPlan | null>(null)
 
   const birthYear = profile?.birth_year
   const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
   if (user && isMinor) return <RestrictedPricing />
 
-  async function handleCheckout(priceId: string | null) {
-    if (!priceId || !user) return
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({ priceId, userId: user.id }),
-    })
-    const { url } = await res.json() as { url: string }
-    // assign() în loc de `location.href = ...`: aceeași redirecționare, dar apel de
-    // metodă, nu atribuire pe un obiect global — ceea ce React Compiler interzice.
-    if (url) window.location.assign(url)
+  async function handleCheckout(plan: CheckoutPlan) {
+    setPending(plan)
+    // `functions.invoke` trimite sesiunea celui logat; serverul află din ea cine
+    // plăteşte, în loc să creadă pe cuvânt un id scris în cerere.
+    const { data, error } = await supabase.functions.invoke<{ url?: string }>(
+      'create-checkout-session',
+      { body: { plan } },
+    )
+    if (data?.url) {
+      // assign() în loc de `location.href = ...`: aceeași redirecționare, dar apel de
+      // metodă, nu atribuire pe un obiect global — ceea ce React Compiler interzice.
+      window.location.assign(data.url)
+      return
+    }
+    // Înainte, orice eşec lăsa butonul să nu facă nimic, fără niciun semn. Dacă
+    // serverul a spus de ce („Ai deja un abonament activ."), arătăm motivul lui.
+    let message = 'Plata nu a putut fi pornită. Încearcă din nou peste câteva minute.'
+    const context: unknown = (error as { context?: unknown } | null)?.context
+    if (context instanceof Response) {
+      const body = await context.json().catch(() => null) as { error?: string } | null
+      if (body?.error) message = body.error
+    }
+    toast.error(message)
+    setPending(null)
   }
 
   return (
@@ -106,7 +134,7 @@ export function PricingPage() {
               )}
               <p className="text-sm text-[#6B6B6B] mb-1">{plan.name}</p>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-[#F0F0F0]">${plan.price}</span>
+                <span className="text-4xl font-bold text-[#F0F0F0]">{plan.price}</span>
                 <span className="text-[#6B6B6B]">{plan.period}</span>
               </div>
               <ul className="flex-1 space-y-2.5 mb-6">
@@ -118,14 +146,16 @@ export function PricingPage() {
                 ))}
               </ul>
 
-              {plan.priceId ? (
+              {plan.checkout ? (
                 isPro && subscription?.plan === plan.id ? (
                   <Button variant="secondary" disabled className="w-full">Plan activ</Button>
                 ) : user ? (
                   <Button
                     variant={plan.highlight ? 'primary' : 'outline'}
                     className="w-full"
-                    onClick={() => handleCheckout(plan.priceId)}
+                    loading={pending === plan.checkout}
+                    disabled={pending !== null}
+                    onClick={() => handleCheckout(plan.checkout)}
                   >
                     {plan.cta}
                   </Button>
@@ -148,7 +178,7 @@ export function PricingPage() {
         <div className="mt-12 text-center text-sm text-[#6B6B6B]">
           <p className="mb-1">
             <span className="text-[#E2B340]">Politica de refund</span> — Dacă după 60 de zile de utilizare activă nu observi progres real
-            (măsurat prin statisticile din aplicație), oferi un refund complet.
+            (măsurat prin statisticile din aplicație), primești banii înapoi integral.
           </p>
           <p>Plăți procesate securizat prin Stripe. Poți anula oricând.</p>
         </div>

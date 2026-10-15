@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { LEAGUES } from '@/types'
+import { PRET_LUNAR, PRET_ANUAL, LUNI_ECONOMISITE, pret } from '@/lib/preturi'
 import { CinematicImage } from '@/components/marketing/CinematicImage'
 import heroImg from '@/assets/marketing/hero.jpg'
 import problemImg from '@/assets/marketing/problem.jpg'
@@ -88,7 +89,7 @@ const PARENTS = [
 const PRICING = [
   {
     name: 'Free',
-    price: '€0',
+    price: pret(0),
     period: '',
     tagline: 'Ca să vezi cum funcționează',
     features: [
@@ -104,7 +105,7 @@ const PRICING = [
   },
   {
     name: 'Pro Lunar',
-    price: '€9.99',
+    price: pret(PRET_LUNAR),
     period: '/lună',
     tagline: 'Tot CleanChess, fără limite',
     features: [
@@ -120,12 +121,12 @@ const PRICING = [
   },
   {
     name: 'Pro Anual',
-    price: '€98',
+    price: pret(PRET_ANUAL),
     period: '/an',
-    tagline: 'Cel mai bun preț, economisești cam 2 luni',
+    tagline: `Cel mai bun preț, economisești aproape ${LUNI_ECONOMISITE} luni`,
     features: [
       'Tot ce e în Pro Lunar',
-      'Aproape 2 luni gratuite față de plata lunară',
+      `Aproape ${LUNI_ECONOMISITE} luni gratuite față de plata lunară`,
       'Suport prioritar',
       'Garanția de 30 de zile',
     ],

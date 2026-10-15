@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { CheckCircle2, ChevronRight, BarChart2, BookOpen, Puzzle, Trophy, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { LEAGUES } from '@/types'
+import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, pret } from '@/lib/preturi'
 
 const FEATURES = [
   {
@@ -34,30 +35,32 @@ const FEATURES = [
 const PRICING = [
   {
     name: 'Free',
-    price: '0',
+    price: pret(0),
     period: '',
     description: 'Ideal ca să vezi cum funcționează',
-    features: ['3 cursuri complete', '10 puzzle-uri/zi', 'Evaluare nivel', 'Dashboard personal'],
+    features: ['6 cursuri complete, dintre care 4 deschideri', '10 puzzle-uri pe zi', 'Evaluare nivel', 'Dashboard personal'],
     cta: 'Intru acum — gratis',
     href: '/register',
     highlight: false,
   },
   {
     name: 'Pro Lunar',
-    price: '9.99',
+    price: pret(PRET_LUNAR),
     period: '/lună',
     description: 'Tot ce ai nevoie, fără nicio limită',
-    features: ['Toate cursurile (20+)', 'Puzzle-uri nelimitate', 'Statistici avansate', 'Recomandări personalizate', 'Refund după 60 zile'],
+    // Ca pe pagina de preţuri: doar ce primeşte în plus abonatul. Statisticile şi
+    // recomandările le au toţi, deci nu se vând ca Pro.
+    features: ['Toate cele 20 de deschideri', 'Puzzle-uri nelimitate', 'Toate categoriile de tactici', 'Căluțul savant fără limită', 'Refund după 60 zile'],
     cta: 'Vreau Pro',
     href: '/register?plan=monthly',
     highlight: true,
   },
   {
     name: 'Pro Anual',
-    price: '79.99',
+    price: pret(PRET_ANUAL),
     period: '/an',
-    description: 'Câștigi 2 luni față de planul lunar',
-    features: ['Tot din Pro Lunar', 'Economisești ~2 luni', 'Suport prioritar', 'Refund după 60 zile'],
+    description: `Câștigi aproape ${LUNI_ECONOMISITE} luni față de planul lunar`,
+    features: ['Tot din Pro Lunar', `Economisești ${pret(ECONOMIE_ANUALA)} pe an`, 'Refund după 60 zile'],
     cta: 'Cel mai bun preț',
     href: '/register?plan=annual',
     highlight: false,
@@ -218,7 +221,7 @@ export function Landing() {
                 )}
                 <div className="mb-1 text-sm font-medium text-[#A0A0A0]">{plan.name}</div>
                 <div className="mb-1 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-[#F0F0F0]">${plan.price}</span>
+                  <span className="text-4xl font-bold text-[#F0F0F0]">{plan.price}</span>
                   <span className="text-[#6B6B6B]">{plan.period}</span>
                 </div>
                 <p className="mb-6 text-sm text-[#6B6B6B]">{plan.description}</p>

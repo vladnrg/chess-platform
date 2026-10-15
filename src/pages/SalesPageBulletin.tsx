@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { LEAGUES } from '@/types'
+import { PRET_LUNAR, PRET_ANUAL, pret } from '@/lib/preturi'
 import heroImg from '@/assets/marketing/hero.jpg'
 import problemImg from '@/assets/marketing/problem.jpg'
 import parentsImg from '@/assets/marketing/parents.jpg'
@@ -91,9 +92,9 @@ const PARENTS = [
 ]
 
 const PLANS = [
-  { key: 'free', name: 'Free', price: '€0', period: '', href: '/register', cta: 'Intru gratis', highlight: false },
-  { key: 'monthly', name: 'Pro Lunar', price: '€9.99', period: '/lună', href: '/register?plan=monthly', cta: 'Vreau Pro', highlight: true },
-  { key: 'annual', name: 'Pro Anual', price: '€98', period: '/an', href: '/register?plan=annual', cta: 'Cel mai bun preț', highlight: false },
+  { key: 'free', name: 'Free', price: pret(0), period: '', href: '/register', cta: 'Intru gratis', highlight: false },
+  { key: 'monthly', name: 'Pro Lunar', price: pret(PRET_LUNAR), period: '/lună', href: '/register?plan=monthly', cta: 'Vreau Pro', highlight: true },
+  { key: 'annual', name: 'Pro Anual', price: pret(PRET_ANUAL), period: '/an', href: '/register?plan=annual', cta: 'Cel mai bun preț', highlight: false },
 ]
 
 // Matrice de capabilități (rânduri = feature, valori pe plan)

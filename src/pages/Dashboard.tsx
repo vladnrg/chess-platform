@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -24,6 +24,7 @@ export function Dashboard() {
   const { profile, user } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const queryClient = useQueryClient()
 
   // Redirect la onboarding dacă nu a completat evaluarea
   useEffect(() => {
@@ -36,9 +37,19 @@ export function Dashboard() {
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
       toast.success('Abonament activat! Bun venit în Pro!')
+      // Stripe ne trimite înapoi aici aproape în aceeaşi clipă în care anunţă
+      // serverul că plata a trecut, uneori chiar înainte. Abonamentul se recitește
+      // de câteva ori, ca Pro să apară fără ca omul să dea refresh.
+      // Fără curăţare la ieşire: rândul de mai jos şterge `?checkout=success`, ceea
+      // ce ar rula curăţarea şi ar anula reîncercările înainte să înceapă.
+      for (const ms of [2000, 5000, 10000, 20000]) {
+        setTimeout(() => {
+          void queryClient.invalidateQueries({ queryKey: ['subscription'] })
+        }, ms)
+      }
       setSearchParams({}, { replace: true })
     }
-  }, [searchParams, setSearchParams])
+  }, [searchParams, setSearchParams, queryClient])
 
   // Jurnalul de XP, pentru grafic. Fără limită de zile în interogare: fereastra
   // se alege în pagină, iar o a doua cerere la fiecare schimbare de săgeată ar
