@@ -88,7 +88,7 @@ export function ProbaDeFoc() {
               Adversarul tău
             </p>
             <p className="mt-1 text-sm text-[#A0A0A0]">
-              Călușul savant, reglat la <span className="font-semibold text-[#F0F0F0]">
+              Căluțul savant, reglat la <span className="font-semibold text-[#F0F0F0]">
                 {targetElo}
               </span> — cu 200 peste nivelul tău estimat.
             </p>

@@ -160,7 +160,7 @@ apoi pe cont propriu. Conţinut: Caro-Kann complet.
 evaluează în timp real și arată primele trei continuări.
 
 **Refutarea din puzzle-uri** — după o mutare greșită poți vedea cum cade,
-mutare cu mutare, cu note de la Călușul savant. Un singur apel AI pentru toată
+mutare cu mutare, cu note de la Căluțul savant. Un singur apel AI pentru toată
 linia, fiindcă planul gratuit are 3 întrebări pe zi.
 
 **Bârlogul** redus la trei lucruri: liga, nivelul, harta aplicației.
@@ -204,7 +204,7 @@ motorul reparat · `52e6b7e` matul recunoscut
 ### Decizii importante
 
 - **Motorul dă linia, AI-ul o explică.** Modelele calculează prost variante de
-  șah; Stockfish spune ce se întâmplă, Călușul savant de ce doare.
+  șah; Stockfish spune ce se întâmplă, Căluțul savant de ce doare.
 - **O singură valoare decide latura oricărei table** (`--board-max`), altfel
   fiecare pagină își alege regula ei și ies mărimi diferite.
 - **Un mat e un mat.** Verificarea unei mutări se face pe rezultat, nu pe

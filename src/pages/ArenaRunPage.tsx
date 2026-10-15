@@ -419,7 +419,7 @@ export function ArenaRunPage() {
           <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-4">
             {phase === 'pregatesc' && <p className="text-sm text-[#A0A0A0]">Pregătesc poziţia…</p>}
             {phase === 'tu' && <p className="text-sm font-medium text-[#E2B340]">E rândul tău.</p>}
-            {phase === 'motor' && <p className="text-sm text-[#A0A0A0]">Călușul se gândeşte…</p>}
+            {phase === 'motor' && <p className="text-sm text-[#A0A0A0]">Căluțul se gândeşte…</p>}
             {phase === 'trimit' && <p className="text-sm text-[#A0A0A0]">Salvez proba…</p>}
             {phase === 'runda-gata' && (
               roundDone ? (
