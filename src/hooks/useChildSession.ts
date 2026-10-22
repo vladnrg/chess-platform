@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, type ChildSession } from '@/lib/supabase'
 import { useAuth } from './useAuth'
+import { esteCopil } from '@/lib/varsta'
 
 const SESSION_MINUTES = 60
 const WARNING_AT_MINUTES = 50
@@ -14,8 +15,7 @@ export function useChildSession() {
   const [showWarning, setShowWarning] = useState(false)
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const birthYear = profile?.birth_year
-  const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
+  const isMinor = esteCopil(profile?.birth_year)
 
   /**
    * Întoarce sesiunea activă (creând una nouă dacă e cazul), sau `null` dacă nu e

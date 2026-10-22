@@ -27,29 +27,15 @@ export function ParentalStatsPage() {
     if (!token) return
     let cancelled = false
 
+    // Totul vine dintr-o singură funcţie de pe server, care verifică tokenul.
+    // Înainte pagina citea profilul copilului direct, fără cont — ceea ce baza nu
+    // permite, deci raportul nu se încărca niciodată.
     const load = async () => {
-      const { data: link } = await supabase
-        .from('parental_links')
-        .select('user_id, expires_at, type')
-        .eq('token', token)
-        .maybeSingle()
-
+      const { data } = await supabase.rpc('statistici_pentru_parinte', { p_token: token })
       if (cancelled) return
-      if (!link || link.type !== 'stats' || new Date(link.expires_at) < new Date()) {
-        setState('error')
-        return
-      }
-
-      const [profileRes, xpRes] = await Promise.all([
-        supabase.from('profiles').select('username, current_league, xp, streak_days').eq('id', link.user_id).maybeSingle(),
-        supabase.from('user_weekly_xp').select('week_start, xp_earned').eq('user_id', link.user_id).order('week_start', { ascending: false }).limit(8),
-      ])
-
-      if (cancelled) return
-      if (!profileRes.data) { setState('error'); return }
-
-      setStats(profileRes.data)
-      setWeeklyXp(xpRes.data ?? [])
+      if (!data) { setState('error'); return }
+      setStats(data.copil)
+      setWeeklyXp(data.saptamani)
       setState('loaded')
     }
 

@@ -399,6 +399,27 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      // Acordul părintelui (migrarea 115)
+      seteaza_varsta: {
+        Args: { p_an: number; p_email_parinte?: string | null }
+        /** `true` = sub 16 ani, contul s-a blocat până la acordul părintelui. */
+        Returns: boolean
+      }
+      citeste_cerere_parinte: {
+        Args: { p_token: string }
+        Returns: { stare: 'valid' | 'folosit' | 'expirat' | 'inexistent'; copil?: string }
+      }
+      raspunde_cerere_parinte: {
+        Args: { p_token: string; p_accept: boolean }
+        Returns: 'confirmat' | 'respins' | 'folosit' | 'expirat' | 'inexistent'
+      }
+      statistici_pentru_parinte: {
+        Args: { p_token: string }
+        Returns: {
+          copil: { username: string; current_league: string; xp: number; streak_days: number }
+          saptamani: { week_start: string; xp_earned: number }[]
+        } | null
+      }
       award_xp: {
         /** `p_source` etichetează rândul din jurnal ('puzzle', 'event:slug'...). */
         Args: { p_user_id: string; p_amount: number; p_source?: string | null }

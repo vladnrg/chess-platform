@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import { useAuthInit, useAuth } from '@/hooks/useAuth'
 import { PageLoader } from '@/components/ui/Spinner'
+import { PoartaCont } from '@/components/auth/PoartaCont'
 
 // Rutele se încarcă „lazy" (code-splitting): fiecare pagină devine un chunk separat,
 // așa că o pagină publică (ex. /vanzare) nu mai trage după ea chess.js, Stockfish,
@@ -54,7 +55,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, initialized } = useAuth()
   if (!initialized) return <PageLoader />
   if (!user) return <Navigate to="/login" replace />
-  return <>{children}</>
+  return <PoartaCont>{children}</PoartaCont>
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Lock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
 
@@ -28,7 +27,6 @@ export function RestrictedPricing() {
         }
       )
       if (!res.ok) throw new Error('Eroare')
-      await supabase.from('profiles').update({ parental_email: email }).eq('id', user.id)
       setSent(true)
       toast.success('Link trimis părintelui!')
     } catch {

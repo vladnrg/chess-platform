@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/Input'
 import { AgeGateStep } from '@/components/auth/AgeGateStep'
 import { GoogleButton } from '@/components/auth/GoogleButton'
 import { Logo } from '@/components/ui/Logo'
+import { areNevoieDeAcord } from '@/lib/varsta'
 
-type Step = 'credentials' | 'age' | 'done-minor'
+type Step = 'credentials' | 'age' | 'done-minor' | 'confirm-email'
 
 export function Register() {
   const navigate = useNavigate()
@@ -17,7 +18,7 @@ export function Register() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [createdUserId, setCreatedUserId] = useState<string | null>(null)
+  const [emailParinteTrimis, setEmailParinteTrimis] = useState(false)
 
   function validate() {
     const e: Record<string, string> = {}
@@ -27,55 +28,69 @@ export function Register() {
     return e
   }
 
-  async function handleCredentialsSubmit(e: React.FormEvent) {
+  // Datele de cont se verifică aici, dar contul se creează abia după ce ştim
+  // vârsta. Înainte se crea întâi contul şi apoi se salva anul naşterii din
+  // pagină — doar că până la confirmarea emailului nu există sesiune, aşa că
+  // salvarea era respinsă în tăcere şi niciun copil nu ajungea marcat ca minor.
+  function handleCredentialsSubmit(e: React.FormEvent) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
     setErrors({})
-    setLoading(true)
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { username } },
-    })
-
-    setLoading(false)
-    if (error) {
-      setErrors({ general: error.message })
-      return
-    }
-
-    setCreatedUserId(data?.user?.id ?? null)
     setStep('age')
   }
 
-  async function handleAgeComplete(birthYear: number | null, parentalEmail: string | null) {
-    if (!createdUserId) return
+  async function handleAgeComplete(birthYear: number, parentalEmail: string | null) {
+    setLoading(true)
+    // Anul şi emailul părintelui pleacă odată cu contul; baza de date le scrie în
+    // profil la creare şi blochează contul dacă e sub 16 ani (migrarea 115).
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username, birth_year: String(birthYear), parental_email: parentalEmail ?? '' } },
+    })
 
-    // Save birth_year to profile
-    if (birthYear) {
-      await supabase.from('profiles').update({ birth_year: birthYear }).eq('id', createdUserId)
+    if (error) {
+      setLoading(false)
+      setErrors({ general: error.message })
+      setStep('credentials')
+      return
     }
 
-    const isMinor = birthYear !== null && (new Date().getFullYear() - birthYear) < 14
-
-    if (isMinor && parentalEmail) {
-      // Freeze account and send parental consent email
-      setLoading(true)
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/request-parental-consent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ userId: createdUserId, parentalEmail, childUsername: username }),
-      })
+    if (areNevoieDeAcord(birthYear) && data.user) {
+      const { data: rezultat } = await supabase.functions.invoke<{ ok: boolean }>(
+        'request-parental-consent',
+        { body: { userId: data.user.id } },
+      )
+      setEmailParinteTrimis(rezultat?.ok === true)
       setLoading(false)
       setStep('done-minor')
-    } else {
-      navigate('/onboarding')
+      return
     }
+
+    setLoading(false)
+    // Cu confirmarea emailului pornită, Supabase nu dă încă sesiune: omul trebuie
+    // să ştie că are un email de deschis, altfel ajunge la login fără să ştie de ce.
+    if (data.session) navigate('/onboarding')
+    else setStep('confirm-email')
+  }
+
+  if (step === 'confirm-email') {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
+        <div className="max-w-sm w-full text-center space-y-5">
+          <div className="text-5xl">📧</div>
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">Confirmă-ți emailul</h1>
+          <p className="text-[#A0A0A0] text-sm">
+            Ți-am trimis un email la <span className="text-[#F0F0F0]">{email}</span>. Apasă pe linkul din el
+            și contul tău e gata.
+          </p>
+          <Link to="/login" className="block text-sm text-[#E2B340] hover:text-[#F0C85A]">
+            Am confirmat, vreau să mă autentific
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (step === 'done-minor') {
@@ -83,13 +98,19 @@ export function Register() {
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-4">
         <div className="max-w-sm w-full text-center space-y-5">
           <div className="text-5xl">📧</div>
-          <h1 className="text-2xl font-bold text-[#F0F0F0]">Verifică emailul părintelui</h1>
+          <h1 className="text-2xl font-bold text-[#F0F0F0]">
+            {emailParinteTrimis ? 'Am scris părintelui tău' : 'Contul e creat'}
+          </h1>
+          {/* Spunem exact ce s-a întâmplat. Înainte scria „am trimis" şi când
+              emailul nu plecase deloc. */}
           <p className="text-[#A0A0A0] text-sm">
-            Am trimis o cerere de aprobare la adresa indicată. Contul tău va fi activat
-            după ce părintele sau tutorele confirmă prin email.
+            {emailParinteTrimis
+              ? 'I-am trimis părintelui tău un email cu un buton de acord. Contul tău se deschide după ce îl apasă.'
+              : 'Nu am putut trimite acum emailul către părintele tău. După ce te autentifici, îl poți retrimite cu un singur buton.'}
           </p>
-          <p className="text-xs text-[#6B6B6B]">
-            Cererea expiră în 30 de zile. Dacă nu e confirmată, contul este șters automat.
+          <p className="text-[#A0A0A0] text-sm">
+            Între timp, confirmă-ți și tu adresa: ți-am trimis un email la{' '}
+            <span className="text-[#F0F0F0]">{email}</span>.
           </p>
           <Link to="/" className="block text-sm text-[#E2B340] hover:text-[#F0C85A]">
             Înapoi la pagina principală
@@ -110,8 +131,7 @@ export function Register() {
             <h1 className="text-xl font-bold text-[#F0F0F0]">Un ultim pas</h1>
             <p className="mt-1 text-sm text-[#A0A0A0]">Când ai fost născut?</p>
           </div>
-          <AgeGateStep onComplete={handleAgeComplete} />
-          {loading && <p className="text-xs text-[#6B6B6B] text-center mt-4">Se procesează...</p>}
+          <AgeGateStep onComplete={handleAgeComplete} loading={loading} />
         </div>
       </div>
     )
@@ -171,7 +191,7 @@ export function Register() {
           {errors.general && (
             <p className="text-sm text-[#FB7185] text-center">{errors.general}</p>
           )}
-          <Button type="submit" size="lg" className="w-full" loading={loading}>
+          <Button type="submit" size="lg" className="w-full">
             Înregistrare gratuită
           </Button>
         </form>

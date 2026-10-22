@@ -7,6 +7,9 @@ interface AuthState {
   session: Session | null
   user: User | null
   profile: Profile | null
+  /** S-a terminat prima citire a profilului? Fără asta, „încă nu ştim" şi „nu e
+   *  blocat" arată la fel, iar poarta contului ar lăsa să treacă o clipă. */
+  profileLoaded: boolean
   loading: boolean
   initialized: boolean
   setSession: (session: Session | null) => void
@@ -19,15 +22,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   user: null,
   profile: null,
+  profileLoaded: false,
   loading: true,
   initialized: false,
 
   setSession: (session) => {
+    const schimbat = get().user?.id !== session?.user?.id
     set({ session, user: session?.user ?? null })
     if (session?.user) {
+      if (schimbat) set({ profileLoaded: false })
       void get().fetchProfile(session.user.id)
     } else {
-      set({ profile: null })
+      set({ profile: null, profileLoaded: false })
     }
   },
 
@@ -39,7 +45,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .select('*')
       .eq('id', userId)
       .single()
-    if (data) set({ profile: data as Profile })
+    set(data ? { profile: data as Profile, profileLoaded: true } : { profileLoaded: true })
   },
 
   /**
@@ -61,7 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    * poate refuza. Curăţăm local pe loc, iar confirmarea o aşteptăm după.
    */
   signOut: async () => {
-    set({ session: null, user: null, profile: null })
+    set({ session: null, user: null, profile: null, profileLoaded: false })
 
     try {
       await Promise.race([

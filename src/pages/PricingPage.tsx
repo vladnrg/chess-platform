@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
 import { RestrictedPricing } from '@/components/auth/RestrictedPricing'
 import { supabase } from '@/lib/supabase'
+import { esteCopil } from '@/lib/varsta'
 import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, GARANTIE_ZILE, pret } from '@/lib/preturi'
 
 type CheckoutPlan = 'monthly' | 'annual'
@@ -74,9 +75,8 @@ export function PricingPage() {
   const [acord, setAcord] = useState(false)
   const [arataAcord, setArataAcord] = useState(false)
 
-  const birthYear = profile?.birth_year
-  const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
-  if (user && isMinor) return <RestrictedPricing />
+  // Sub 14 ani plata o face părintele (Codul civil); pragul de acord e altul, 16.
+  if (user && esteCopil(profile?.birth_year)) return <RestrictedPricing />
 
   async function handleCheckout(plan: CheckoutPlan) {
     // Fără bifă nu pornim plata, dar nici nu ţinem butonul stins: un buton stins
