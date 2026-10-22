@@ -40,12 +40,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setProfile: (profile) => set({ profile }),
 
   fetchProfile: async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    set(data ? { profile: data as Profile, profileLoaded: true } : { profileLoaded: true })
+    // Prin funcţie, nu direct din tabel: câmpurile de vârstă şi acord nu se mai
+    // pot citi din `profiles` de către utilizatori (migrarea 117), nici măcar pe
+    // rândul propriu. Funcţia întoarce doar profilul celui logat, întreg.
+    const { data } = await supabase.rpc('profilul_meu')
+    const profil = data?.find(p => p.id === userId) ?? null
+    set(profil ? { profile: profil, profileLoaded: true } : { profileLoaded: true })
   },
 
   /**

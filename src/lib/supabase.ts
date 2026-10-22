@@ -399,6 +399,12 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      /** Propriul profil, întreg (migrarea 116). Restul profilurilor se citesc
+       *  din tabel, dar fără câmpurile private (migrarea 117). */
+      profilul_meu: {
+        Args: Record<string, never>
+        Returns: Profile[]
+      }
       // Acordul părintelui (migrarea 115)
       seteaza_varsta: {
         Args: { p_an: number; p_email_parinte?: string | null }
