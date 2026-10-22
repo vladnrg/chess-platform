@@ -11,6 +11,20 @@ const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
 // eroare la fiecare eveniment, iar toate ar fi respinse ca „semnătură invalidă".
 const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
+// Anularea programată vine în două forme. Din pagina de gestionare (portalul)
+// Stripe pune o dată în `cancel_at` şi lasă `cancel_at_period_end` pe false;
+// din API se poate pune şi bifa. Pentru aplicaţie e acelaşi lucru: abonamentul
+// nu se mai reînnoieşte, iar Pro ţine până la data aceea. Citit doar după bifă,
+// cine anula din portal ar fi văzut în profil tot „se reînnoieşte automat".
+function anulare(sub: Stripe.Subscription) {
+  const programata = sub.cancel_at_period_end || sub.cancel_at != null
+  const sfarsit = sub.cancel_at != null ? Math.min(sub.cancel_at, sub.current_period_end) : sub.current_period_end
+  return {
+    cancel_at_period_end: programata,
+    current_period_end: new Date(sfarsit * 1000).toISOString(),
+  }
+}
+
 function planFromPrice(priceId: string): 'monthly' | 'annual' | null {
   if (priceId === Deno.env.get('STRIPE_MONTHLY_PRICE_ID')) return 'monthly'
   if (priceId === Deno.env.get('STRIPE_ANNUAL_PRICE_ID')) return 'annual'
@@ -53,9 +67,8 @@ serve(async (req) => {
       stripe_subscription_id: subscriptionId,
       plan,
       status: sub.status,
-      cancel_at_period_end: sub.cancel_at_period_end,
       current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+      ...anulare(sub),
     }, { onConflict: 'user_id' })
 
     // Un 500 îl face pe Stripe să trimită evenimentul din nou mai târziu, în loc
@@ -75,9 +88,8 @@ serve(async (req) => {
       .update({
         status: sub.status,
         ...(plan ? { plan } : {}),
-        cancel_at_period_end: sub.cancel_at_period_end,
         current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        ...anulare(sub),
       })
       .eq('stripe_subscription_id', sub.id)
 

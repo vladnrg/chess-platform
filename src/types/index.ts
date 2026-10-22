@@ -2,7 +2,10 @@ export type League = 'cherestea' | 'tinichea' | 'bronz' | 'argint' | 'aur' | 'sm
 export type PlayingStyle = 'offensive' | 'balanced' | 'pragmatic' | 'defensive'
 export type CourseLevel = 'fundamental' | 'beginner' | 'intermediate' | 'advanced'
 export type SubscriptionPlan = 'monthly' | 'annual'
-export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing'
+/** Exact stările din Stripe: webhook-ul scrie `sub.status` aşa cum vine. */
+export type SubscriptionStatus =
+  | 'active' | 'trialing' | 'past_due' | 'unpaid' | 'canceled'
+  | 'incomplete' | 'incomplete_expired' | 'paused'
 
 export interface Profile {
   id: string

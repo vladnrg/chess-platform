@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { TitlePicker } from '@/components/profile/TitlePicker'
 import { CosmeticPicker } from '@/components/profile/CosmeticPicker'
 import { SchimbaPoza } from '@/components/profile/SchimbaPoza'
+import { Abonament } from '@/components/profile/Abonament'
 import { AvatarJucator } from '@/components/ui/AvatarJucator'
 import { getLeagueConfig } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -107,6 +108,8 @@ export function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      <Abonament />
 
       {/* Stats rapide */}
       <Card>

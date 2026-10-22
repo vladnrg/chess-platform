@@ -56,6 +56,21 @@ serve(async (req) => {
     // dacă plata e vreodată contestată la bancă.
     const acord = { userId: user.id, withdrawal_waiver_at: new Date().toISOString() }
 
+    // Pagina de preţuri ascunde plata sub 14 ani, dar o cerere trimisă direct
+    // ar fi trecut. Aceleaşi reguli, şi aici: sub 14 ani plăteşte părintele
+    // (Codul civil), iar un cont blocat nu cumpără nimic până nu e deschis.
+    const { data: profil } = await supabase
+      .from('profiles')
+      .select('birth_year, account_frozen')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (profil?.account_frozen) {
+      return json({ error: 'Contul tău așteaptă acordul unui părinte, deci încă nu poate face plăți.' }, 403)
+    }
+    if (profil?.birth_year != null && new Date().getFullYear() - profil.birth_year < 14) {
+      return json({ error: 'Sub 14 ani, abonamentul îl plătește un părinte.' }, 403)
+    }
+
     const { data: existing } = await supabase
       .from('subscriptions')
       .select('status, stripe_customer_id')
