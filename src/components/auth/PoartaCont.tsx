@@ -96,7 +96,9 @@ function ContBlocat() {
           titlu={respins ? 'Contul nu a fost aprobat' : 'Așteptăm acordul părintelui tău'}
           subtitlu={respins
             ? 'Părintele tău nu a fost de acord cu acest cont, așa că nu-l putem deschide.'
-            : `I-am scris la ${ascundeEmail(profile?.parental_email)}. Contul se deschide imediat ce apasă butonul de acord din email.`}
+            // Nu „i-am scris": ecranul nu ştie dacă emailul a plecat (poate n-a
+            // plecat deloc). Spune doar unde merge şi ce urmează.
+            : `Cererea de acord merge la ${ascundeEmail(profile?.parental_email)}. Contul se deschide imediat ce părintele apasă butonul de acord din email.`}
         />
         {!respins && (
           <Button className="w-full" onClick={() => void retrimite()} loading={trimit}>
