@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { CheckCircle2, ChevronRight, BarChart2, BookOpen, Puzzle, Trophy, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { LEAGUES } from '@/types'
-import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, pret } from '@/lib/preturi'
+import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, GARANTIE_ZILE, pret } from '@/lib/preturi'
 
 const FEATURES = [
   {
@@ -50,7 +50,7 @@ const PRICING = [
     description: 'Tot ce ai nevoie, fără nicio limită',
     // Ca pe pagina de preţuri: doar ce primeşte în plus abonatul. Statisticile şi
     // recomandările le au toţi, deci nu se vând ca Pro.
-    features: ['Toate cele 20 de deschideri', 'Puzzle-uri nelimitate', 'Toate categoriile de tactici', 'Căluțul savant fără limită', 'Refund după 60 zile'],
+    features: ['Toate cele 20 de deschideri', 'Puzzle-uri nelimitate', 'Toate categoriile de tactici', 'Căluțul savant fără limită', `Banii înapoi în ${GARANTIE_ZILE} zile`],
     cta: 'Vreau Pro',
     href: '/register?plan=monthly',
     highlight: true,
@@ -60,7 +60,7 @@ const PRICING = [
     price: pret(PRET_ANUAL),
     period: '/an',
     description: `Câștigi aproape ${LUNI_ECONOMISITE} luni față de planul lunar`,
-    features: ['Tot din Pro Lunar', `Economisești ${pret(ECONOMIE_ANUALA)} pe an`, 'Refund după 60 zile'],
+    features: ['Tot din Pro Lunar', `Economisești ${pret(ECONOMIE_ANUALA)} pe an`, `Banii înapoi în ${GARANTIE_ZILE} zile`],
     cta: 'Cel mai bun preț',
     href: '/register?plan=annual',
     highlight: false,
@@ -202,7 +202,7 @@ export function Landing() {
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold text-[#F0F0F0] mb-3">Alege ritmul tău</h2>
-            <p className="text-[#A0A0A0]">Dacă după 60 de zile nu simți că ai progresat, îți dăm banii înapoi — simplu.</p>
+            <p className="text-[#A0A0A0]">Dacă în primele {GARANTIE_ZILE} zile Pro nu te convinge, îți dăm banii înapoi, fără întrebări.</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {PRICING.map(plan => (

@@ -43,9 +43,18 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser(token)
     if (!user) return json({ error: 'Trebuie să fii autentificat.' }, 401)
 
-    const { plan } = await req.json() as { plan?: string }
+    const { plan, renuntareRetragere } = await req.json() as { plan?: string; renuntareRetragere?: boolean }
     const priceId = plan ? PRICES[plan] : undefined
     if (!priceId) return json({ error: 'Plan necunoscut.' }, 400)
+
+    // Acordul expres pentru acces imediat = renunţarea la retragerea de 14 zile
+    // (OUG 34/2014, art. 16 lit. m). Fără el, excepţia nu se aplică.
+    if (renuntareRetragere !== true) {
+      return json({ error: 'Bifează căsuța de acord înainte de plată.' }, 400)
+    }
+    // Momentul acordului rămâne pe sesiune şi pe abonament, în Stripe: e dovada,
+    // dacă plata e vreodată contestată la bancă.
+    const acord = { userId: user.id, withdrawal_waiver_at: new Date().toISOString() }
 
     const { data: existing } = await supabase
       .from('subscriptions')
@@ -68,9 +77,15 @@ serve(async (req) => {
       client_reference_id: user.id,
       success_url: `${APP_URL}/dashboard?checkout=success`,
       cancel_url: `${APP_URL}/pricing`,
-      metadata: { userId: user.id },
-      subscription_data: { metadata: { userId: user.id } },
+      metadata: acord,
+      subscription_data: { metadata: acord },
       locale: 'ro',
+      custom_text: {
+        submit: {
+          message: 'Accesul la Pro începe imediat după plată, iar dreptul de retragere de 14 zile nu se mai aplică. ' +
+            'Garanția CleanChess rămâne: în primele 7 zile de la primul abonament primești banii înapoi integral, la cerere.',
+        },
+      },
     })
 
     return json({ url: session.url })

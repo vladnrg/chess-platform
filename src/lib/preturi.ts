@@ -20,6 +20,18 @@ export const ECONOMIE_ANUALA = PRET_LUNAR * 12 - PRET_ANUAL
 /** Economia, în luni de abonament: 89 / 24 ≈ 3,7 — „aproape 4". */
 export const LUNI_ECONOMISITE = Math.ceil(ECONOMIE_ANUALA / PRET_LUNAR)
 
+/**
+ * Garanţia: banii înapoi integral, fără întrebări, în primele 7 zile de la
+ * PRIMUL abonament. Reînnoirile nu intră, iar cine a primit o dată banii înapoi
+ * nu mai are garanţie — ca la Chessly şi Chess Tempo.
+ *
+ * A înlocuit „60 de zile, dacă nu progresezi" (cea mai lungă de pe piaţă şi
+ * singura cu o condiţie, iar „progres" e exact lucrul despre care te cerţi).
+ * Separat de ea, la plată omul renunţă expres la dreptul legal de retragere
+ * de 14 zile (OUG 34/2014, art. 16 lit. m) — vezi PricingPage.
+ */
+export const GARANTIE_ZILE = 7
+
 export function pret(suma: number): string {
   return `${suma} ${MONEDA}`
 }

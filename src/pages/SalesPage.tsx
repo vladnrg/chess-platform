@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { LEAGUES } from '@/types'
-import { PRET_LUNAR, PRET_ANUAL, LUNI_ECONOMISITE, pret } from '@/lib/preturi'
+import { PRET_LUNAR, PRET_ANUAL, LUNI_ECONOMISITE, GARANTIE_ZILE, pret } from '@/lib/preturi'
 import { CinematicImage } from '@/components/marketing/CinematicImage'
 import heroImg from '@/assets/marketing/hero.jpg'
 import problemImg from '@/assets/marketing/problem.jpg'
@@ -128,7 +128,7 @@ const PRICING = [
       'Tot ce e în Pro Lunar',
       `Aproape ${LUNI_ECONOMISITE} luni gratuite față de plata lunară`,
       'Suport prioritar',
-      'Garanția de 30 de zile',
+      `Garanția de ${GARANTIE_ZILE} zile`,
     ],
     cta: 'Cel mai bun preț',
     href: '/register?plan=annual',
@@ -155,7 +155,7 @@ const FAQ = [
   },
   {
     q: 'Pot renunța oricând?',
-    a: 'Da. Anulezi când vrei, fără penalizări. Iar în primele 30 de zile ai garanția: dacă nu te-a ajutat, îți dăm banii înapoi.',
+    a: `Da. Anulezi când vrei, fără penalizări. Iar în primele ${GARANTIE_ZILE} zile de la primul abonament ai garanția: dacă nu te-a convins, îți dăm banii înapoi.`,
   },
   {
     q: 'Antrenorul AI chiar ajută sau e doar un gadget?',
@@ -488,13 +488,13 @@ export function SalesPage() {
           <h2 className="mb-4 text-3xl font-bold text-[#F0F0F0]">Riscul e la noi, nu la tine</h2>
           <div className="mx-auto max-w-xl space-y-4 text-[15px] leading-relaxed text-[#A0A0A0]">
             <p>
-              Încearcă CleanChess Pro 30 de zile. Dacă în tot acest timp simți că nu te-a ajutat cu nimic, ne
-              scrii și îți dăm banii înapoi. Fără formulare complicate, fără să te punem să explici de zece
-              ori.
+              Încearcă CleanChess Pro {GARANTIE_ZILE} zile. Dacă în acest timp simți că nu e pentru tine, ne
+              scrii și îți dăm banii înapoi, integral. Fără formulare complicate, fără să te punem să explici
+              de ce.
             </p>
             <p>
-              Noi credem că, dacă intri și îți faci partea, o să vezi diferența în felul în care gândești
-              pozițiile. Dar dacă nu se întâmplă, nu vrem banii tăi. Simplu.
+              O săptămână ajunge ca să parcurgi o deschidere întreagă, cu jocul de mijloc și capcanele ei, și
+              să vezi dacă felul nostru de a explica ți se potrivește. Dacă nu, nu vrem banii tăi. Simplu.
             </p>
             <p>
               Iar până să ajungi acolo, ai oricum partea gratuită: testul de plasament și primele cursuri nu

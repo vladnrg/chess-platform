@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
 import { RestrictedPricing } from '@/components/auth/RestrictedPricing'
 import { supabase } from '@/lib/supabase'
-import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, pret } from '@/lib/preturi'
+import { PRET_LUNAR, PRET_ANUAL, ECONOMIE_ANUALA, LUNI_ECONOMISITE, GARANTIE_ZILE, pret } from '@/lib/preturi'
 
 type CheckoutPlan = 'monthly' | 'annual'
 
@@ -43,7 +43,7 @@ const PLANS = [
       'Puzzle-uri nelimitate',
       'Toate cele 16 categorii de tactici',
       'Căluțul savant fără limită',
-      'Refund după 60 de zile dacă nu progresezi',
+      `Banii înapoi în ${GARANTIE_ZILE} zile, fără întrebări`,
     ],
     cta: 'Alege Pro Lunar',
     highlight: true,
@@ -59,7 +59,7 @@ const PLANS = [
     features: [
       'Tot din Pro Lunar',
       `Economisești ${pret(ECONOMIE_ANUALA)}: aproape ${LUNI_ECONOMISITE} luni gratuite`,
-      'Refund după 60 de zile dacă nu progresezi',
+      `Banii înapoi în ${GARANTIE_ZILE} zile, fără întrebări`,
     ],
     cta: 'Cel mai bun preț',
     highlight: false,
@@ -71,18 +71,27 @@ export function PricingPage() {
   const { user, profile } = useAuth()
   const { isPro, subscription } = useSubscription()
   const [pending, setPending] = useState<CheckoutPlan | null>(null)
+  const [acord, setAcord] = useState(false)
+  const [arataAcord, setArataAcord] = useState(false)
 
   const birthYear = profile?.birth_year
   const isMinor = birthYear != null && (new Date().getFullYear() - birthYear) < 14
   if (user && isMinor) return <RestrictedPricing />
 
   async function handleCheckout(plan: CheckoutPlan) {
+    // Fără bifă nu pornim plata, dar nici nu ţinem butonul stins: un buton stins
+    // nu spune de ce. Apăsat, arată căsuţa care lipseşte.
+    if (!acord) {
+      setArataAcord(true)
+      toast.error('Bifează mai întâi căsuța de deasupra planurilor.')
+      return
+    }
     setPending(plan)
     // `functions.invoke` trimite sesiunea celui logat; serverul află din ea cine
     // plăteşte, în loc să creadă pe cuvânt un id scris în cerere.
     const { data, error } = await supabase.functions.invoke<{ url?: string }>(
       'create-checkout-session',
-      { body: { plan } },
+      { body: { plan, renuntareRetragere: true } },
     )
     if (data?.url) {
       // assign() în loc de `location.href = ...`: aceeași redirecționare, dar apel de
@@ -113,9 +122,35 @@ export function PricingPage() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-[#F0F0F0] mb-3">Prețuri simple și corecte</h1>
           <p className="text-[#A0A0A0] max-w-xl mx-auto">
-            Refund garantat după 60 de zile de utilizare activă dacă nu observi progres real în partide.
+            Dacă în primele {GARANTIE_ZILE} zile Pro nu te convinge, îți dăm banii înapoi integral, fără întrebări.
           </p>
         </div>
+
+        {/* Renunţarea la dreptul de retragere de 14 zile (OUG 34/2014, art. 16
+            lit. m). Pentru conţinut digital, excepţia ţine doar cu acordul expres
+            al omului, dat ÎNAINTE de plată, şi cu confirmarea că ştie ce pierde.
+            Fără ea, oricine poate cere banii înapoi 14 zile — sau 12 luni, dacă
+            n-a fost informat. Garanţia de 7 zile e separată şi rămâne. */}
+        {user && !isPro && (
+          <label
+            className={`mx-auto mb-8 flex max-w-2xl cursor-pointer items-start gap-3 rounded-xl border p-4 text-sm transition-colors ${
+              arataAcord && !acord
+                ? 'border-[#E2B340] bg-[rgba(226,179,64,0.08)]'
+                : 'border-[#2A2A2A] bg-[#141414]'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={acord}
+              onChange={e => setAcord(e.target.checked)}
+              className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#E2B340]"
+            />
+            <span className="text-[#A0A0A0]">
+              Vreau acces la Pro imediat după plată și înțeleg că, astfel, renunț la dreptul legal de retragere
+              de 14 zile. Garanția CleanChess de {GARANTIE_ZILE} zile rămâne valabilă.
+            </span>
+          </label>
+        )}
 
         <div className="grid gap-6 md:grid-cols-3">
           {PLANS.map(plan => (
@@ -177,8 +212,8 @@ export function PricingPage() {
 
         <div className="mt-12 text-center text-sm text-[#6B6B6B]">
           <p className="mb-1">
-            <span className="text-[#E2B340]">Politica de refund</span> — Dacă după 60 de zile de utilizare activă nu observi progres real
-            (măsurat prin statisticile din aplicație), primești banii înapoi integral.
+            <span className="text-[#E2B340]">Garanția</span>: în primele {GARANTIE_ZILE} zile de la primul abonament ne scrii
+            și primești banii înapoi integral, fără să explici de ce. Reînnoirile nu intră în garanție.
           </p>
           <p>Plăți procesate securizat prin Stripe. Poți anula oricând.</p>
         </div>

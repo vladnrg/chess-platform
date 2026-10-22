@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { LEAGUES } from '@/types'
-import { PRET_LUNAR, PRET_ANUAL, pret } from '@/lib/preturi'
+import { PRET_LUNAR, PRET_ANUAL, GARANTIE_ZILE, pret } from '@/lib/preturi'
 import heroImg from '@/assets/marketing/hero.jpg'
 import problemImg from '@/assets/marketing/problem.jpg'
 import parentsImg from '@/assets/marketing/parents.jpg'
@@ -109,7 +109,7 @@ const MATRIX: { label: string; free: string; monthly: string; annual: string }[]
   { label: 'Reminderul săptămânal de memorie', free: '—', monthly: '●', annual: '●' },
   { label: 'Recomandări personalizate', free: '—', monthly: '●', annual: '●' },
   { label: 'Suport prioritar', free: '—', monthly: '—', annual: '●' },
-  { label: 'Garanția de 30 de zile', free: '—', monthly: '●', annual: '●' },
+  { label: `Garanția de ${GARANTIE_ZILE} zile`, free: '—', monthly: '●', annual: '●' },
 ]
 
 const FAQ = [
@@ -117,7 +117,7 @@ const FAQ = [
   { q: 'Pot juca partide live cu alți jucători?', a: 'Deocamdată nu direct în platformă. CleanChess e făcut pentru antrenament: openings, tactici, puzzle-uri și explicații. Pentru partide live rămâi pe chess.com sau lichess. Aici vii ca să te faci mai bun, apoi câștigi acolo.' },
   { q: 'E pentru nivelul meu?', a: 'Dacă ești între început și nivel intermediar-avansat și vrei să crești, da, exact pentru tine e construit. Dacă ești deja la nivel de Maestru FIDE sau peste, CleanChess o să ți se pară prea ușor. Ne concentrăm pe viitoarele staruri, nu pe jucătorii care sunt deja sus.' },
   { q: 'Chiar e totul în română?', a: 'Da. Cursuri, explicații, antrenorul Căluțul savant, tot. Fără momente în care un termen în engleză te lasă blocat.' },
-  { q: 'Pot renunța oricând?', a: 'Da. Anulezi când vrei, fără penalizări. Iar în primele 30 de zile ai garanția: dacă nu te-a ajutat, îți dăm banii înapoi.' },
+  { q: 'Pot renunța oricând?', a: `Da. Anulezi când vrei, fără penalizări. Iar în primele ${GARANTIE_ZILE} zile de la primul abonament ai garanția: dacă nu te-a convins, îți dăm banii înapoi.` },
   { q: 'Antrenorul AI chiar ajută sau e doar un gadget?', a: 'Îl întrebi despre poziția exactă din fața ta și îți răspunde despre ea, nu cu o teorie generală. Îl folosești când te blochezi, cum ai întreba un antrenor care stă lângă tine. Încearcă-l gratis în primele cursuri și vezi singur.' },
 ]
 
@@ -415,14 +415,14 @@ export function SalesPageBulletin() {
           <div className="grid gap-8 md:grid-cols-[auto_1fr] md:gap-12">
             <div className="flex items-center justify-center border-2 border-[#E2B340] p-8 md:w-64">
               <div className="text-center">
-                <div className="text-6xl font-bold leading-none text-[#E2B340]">30</div>
+                <div className="text-6xl font-bold leading-none text-[#E2B340]">{GARANTIE_ZILE}</div>
                 <div className={`${MONO} mt-2 text-[11px] uppercase tracking-[0.2em] text-[#A0A0A0]`}>zile · risc zero</div>
               </div>
             </div>
             <div className="max-w-2xl space-y-4 text-[15px] leading-relaxed text-[#A0A0A0]">
               <h2 className="text-3xl font-bold tracking-tight text-[#F0F0F0]">Riscul e la noi, nu la tine</h2>
-              <p>Încearcă CleanChess Pro 30 de zile. Dacă în tot acest timp simți că nu te-a ajutat cu nimic, ne scrii și îți dăm banii înapoi. Fără formulare complicate, fără să te punem să explici de zece ori.</p>
-              <p>Noi credem că, dacă intri și îți faci partea, o să vezi diferența în felul în care gândești pozițiile. Dar dacă nu se întâmplă, nu vrem banii tăi. Simplu.</p>
+              <p>Încearcă CleanChess Pro {GARANTIE_ZILE} zile. Dacă în acest timp simți că nu e pentru tine, ne scrii și îți dăm banii înapoi, integral. Fără formulare complicate, fără să te punem să explici de ce.</p>
+              <p>O săptămână ajunge ca să parcurgi o deschidere întreagă, cu jocul de mijloc și capcanele ei, și să vezi dacă felul nostru de a explica ți se potrivește. Dacă nu, nu vrem banii tăi. Simplu.</p>
               <p className="text-[#8A8A8A]">Iar până să ajungi acolo, ai oricum partea gratuită: testul de plasament și primele cursuri nu te costă nimic și nu cer card.</p>
             </div>
           </div>
