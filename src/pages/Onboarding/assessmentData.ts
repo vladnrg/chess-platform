@@ -17,14 +17,15 @@ export interface McqQuestion {
 
 export type AssessmentQuestion = TacticsQuestion | McqQuestion
 
+// Întrebările de tactică, de la uşor la greu: două maturi într-o mutare, apoi
+// trei tactici din banca de puzzle-uri Lichess, cu dificultatea lor măsurată
+// (~960, ~1290, ~1590).
+//
+// Fiecare e trecută prin motor (scripts/verificari/evaluare-nivel.mjs): mutarea
+// cerută e cea mai bună şi câştigă clar faţă de a doua. Înainte, t3 şi t5 cereau
+// mutări care pierdeau o piesă (−7,34 şi −3,46), iar t1 era o poziţie egală, fără
+// tactică — deci cine ştia şah era notat greşit tocmai fiindcă nu făcea gafa.
 export const TACTICS_QUESTIONS: TacticsQuestion[] = [
-  {
-    type: 'tactics',
-    id: 't1',
-    fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4',
-    correctMove: 'f3g5',
-    hint: 'Atacă pionul negru neprotejat de pe e5',
-  },
   {
     type: 'tactics',
     id: 't2',
@@ -34,24 +35,36 @@ export const TACTICS_QUESTIONS: TacticsQuestion[] = [
   },
   {
     type: 'tactics',
-    id: 't3',
-    fen: 'r1b1kb1r/pppp1ppp/2n2q2/4p3/3PP3/2N5/PPP2PPP/R1BQKBNR b KQkq d3 0 5',
-    correctMove: 'f6f2',
-    hint: 'Regina albă este pe d1 — există o mișcare câștigătoare?',
-  },
-  {
-    type: 'tactics',
     id: 't4',
     fen: '2r3k1/5ppp/8/8/8/8/5PPP/2R3K1 w - - 0 1',
     correctMove: 'c1c8',
-    hint: 'Schimb egal sau câștig material?',
+    hint: 'Uită-te la regele negru: are unde să fugă?',
   },
   {
+    // Lichess 00bns (959): calul dă şah şi atacă în acelaşi timp regina de pe g6.
+    type: 'tactics',
+    id: 't1',
+    fen: '6k1/1pp2ppp/p3n1q1/4PN2/2P2Q2/1P1rBP1P/r4P1K/4R3 w - - 6 31',
+    correctMove: 'f5e7',
+    hint: 'Un șah cu calul poate ataca două piese deodată.',
+  },
+  {
+    // Lichess 00nHy (1285): şahul cu calul eliberează diagonala nebunului de pe g7
+    // spre regina albă de pe d4.
+    type: 'tactics',
+    id: 't3',
+    fen: 'r2q1rk1/p4pbp/1pp1p1p1/4n3/2PQN3/1P4P1/PB2PP1P/1R3RK1 b - - 0 16',
+    correctMove: 'e5f3',
+    hint: 'Negrul mută. Ce se întâmplă cu nebunul de pe g7 dacă pleacă calul?',
+  },
+  {
+    // Lichess 00oXF (1589): pionul de pe g6 e legat de rege de tura de pe g3,
+    // deci nu poate lua înapoi pe f5.
     type: 'tactics',
     id: 't5',
-    fen: 'rnbqkb1r/ppp2ppp/3p1n2/4p3/2B1P3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 2 4',
-    correctMove: 'f3e5',
-    hint: 'Există un cal agățat?',
+    fen: '3r1rk1/1p3p1p/p1q3p1/4Pb1P/2p2P2/P5R1/2Q1B1P1/3R2K1 w - - 2 26',
+    correctMove: 'c2f5',
+    hint: 'Uită-te la pionul de pe g6: e liber să ia?',
   },
 ]
 

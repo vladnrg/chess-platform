@@ -5,6 +5,7 @@ import { Chess } from 'chess.js'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { getLeagueForXp } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
@@ -18,14 +19,16 @@ const ALL_QUESTIONS: AssessmentQuestion[] = [
 ]
 
 interface TacticsState {
+  /** A cărei întrebări e tabla. Fără el, tabla rămânea cea de la prima tactică. */
+  id: string
   game: Chess
   solved: boolean | null
   attempted: boolean
 }
 
-function initTactics(fen: string): TacticsState {
+function initTactics(id: string, fen: string): TacticsState {
   const g = new Chess(fen)
-  return { game: g, solved: null, attempted: false }
+  return { id, game: g, solved: null, attempted: false }
 }
 
 function computeResults(answers: Record<string, string>) {
@@ -69,9 +72,12 @@ export function Onboarding() {
   const total = ALL_QUESTIONS.length
   const pct = Math.round((step / total) * 100)
 
-  // Init tactics board when we reach a tactics question
-  if (current?.type === 'tactics' && !tacticsState) {
-    setTacticsState(initTactics(current.fen))
+  // Tabla se pregăteşte la FIECARE întrebare de tactică, nu doar la prima.
+  // Înainte condiţia era „nu există încă o tablă", iar tabla nu se golea decât la
+  // întrebările cu variante — deci de la a doua tactică încolo toată lumea vedea
+  // poziţia primei întrebări, verificată faţă de mutarea alteia.
+  if (current?.type === 'tactics' && tacticsState?.id !== current.id) {
+    setTacticsState(initTactics(current.id, current.fen))
   }
   if (current?.type !== 'tactics' && tacticsState) {
     setTacticsState(null)
@@ -90,7 +96,7 @@ export function Onboarding() {
       gameCopy.move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
       const isCorrect = move === current.correctMove
       setAnswers(prev => ({ ...prev, [current.id]: isCorrect ? 'correct' : 'wrong' }))
-      setTacticsState({ game: gameCopy, solved: isCorrect, attempted: true })
+      setTacticsState({ id: current.id, game: gameCopy, solved: isCorrect, attempted: true })
       setTimeout(() => nextStep(), 1800)
       return true
     } catch {
@@ -143,7 +149,14 @@ export function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] px-2 py-6 sm:px-4 sm:py-12">
-      <div className="w-full max-w-2xl">
+      {/* La tactică pagina se lărgeşte după tablă, ca tabla să aibă aceeaşi latură
+          ca în cursuri (--board-max). Lăţimea fixă de 2xl o strângea la ~600px, iar
+          tabla avea oricum un plafon de 380px. La întrebările cu variante de
+          răspuns rămâne îngustă: acolo un rând lung de buton se citeşte greu. */}
+      <div
+        className={`w-full ${current?.type === 'tactics' ? '' : 'max-w-2xl'}`}
+        style={current?.type === 'tactics' ? { maxWidth: 'max(42rem, calc(var(--board-max) + 3rem))' } : undefined}
+      >
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="flex items-center gap-2 justify-center mb-2">
@@ -205,20 +218,29 @@ function TacticsQuestion({
   onDrop: (from: string, to: string) => boolean
   onSkip: () => void
 }) {
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
+  // Cine e la mutare joacă de jos, ca în cursuri: la o poziţie cu negrul la
+  // mutare, tabla întoarsă cu albul jos te punea să gândeşti cu capul în jos.
+  const negrulMuta = question.fen.split(' ')[1] === 'b'
   return (
     <div>
       <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Găsește cea mai bună mutare</h2>
       <p className="text-sm text-[#A0A0A0] mb-4">{question.hint}</p>
-      <div className="mx-auto" style={{ maxWidth: 380 }}>
+      {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
+      <div
+        className="mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
+        style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+      >
         <Chessboard
           options={{
             position: tacticsState.game.fen(),
             // targetSquare e null la drop în afara tablei → snap-back
             onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
               targetSquare ? onDrop(sourceSquare, targetSquare) : false,
-            boardStyle: { borderRadius: 8 },
-            darkSquareStyle: { backgroundColor: '#3A3A3A' },
-            lightSquareStyle: { backgroundColor: '#f0d9b5' },
+            boardOrientation: negrulMuta ? 'black' : 'white',
+            boardStyle: { borderRadius: 0 },
+            darkSquareStyle,
+            lightSquareStyle,
           }}
         />
       </div>
