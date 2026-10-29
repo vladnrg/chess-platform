@@ -641,13 +641,31 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const plyBalon = state.status === 'user-turn' && !seMuta
     ? state.plyIdx
     : ultimaMutareATa(line, state.plyIdx - 1)
-  // La exersare nu se explică nimic, ca pe Chessly; finalul arată la fel.
-  const balon = gata ? textFinal(line) : isGuided ? textBalon(line, plyBalon) : []
+  // Recapitularea, după ce ai terminat varianta (la învăţare şi la exersare,
+  // ca pe Chessly): cu săgeţile te întorci prin poziţii, iar fiecare îşi arată
+  // comentariul. O poziţie în care eşti tu la mutare are comentariul mutării
+  // tale de acolo; una în care mută adversarul îl păstrează pe al mutării tale
+  // de dinainte. În timpul jocului, privitul înapoi rămâne fără comentariu: acolo
+  // textul e despre partida în curs, nu despre poziţia răsfoită.
+  const recapitulare = gata && priveste
+  const albPrimul = whiteMovesFirst(line)
+  const plyRecapitulare = recapitulare
+    ? isUserPly(plyVazut, line.user_color, albPrimul) ? plyVazut : ultimaMutareATa(line, plyVazut - 1)
+    : null
+  // La exersare nu se explică nimic în timpul jocului; finalul arată la fel.
+  const balon = recapitulare && plyRecapitulare !== null
+    ? textBalon(line, plyRecapitulare)
+    : gata ? textFinal(line) : isGuided ? textBalon(line, plyBalon) : []
 
   // ── Tabla: săgeţi şi pătrate ────────────────────────────────────────────────
   const sageti: Arrow[] = []
   if (!priveste && state.status === 'user-turn' && urmatoarea && (isGuided || solutieLa === state.plyIdx)) {
     sageti.push({ startSquare: urmatoarea.slice(0, 2), endSquare: urmatoarea.slice(2, 4), color: 'rgba(226,179,64,0.9)' })
+  }
+  // În recapitulare, săgeata arată mutarea ta din poziţia pe care o priveşti.
+  const mutareaVazuta = recapitulare && isUserPly(plyVazut, line.user_color, albPrimul) ? moves[plyVazut] : null
+  if (mutareaVazuta) {
+    sageti.push({ startSquare: mutareaVazuta.slice(0, 2), endSquare: mutareaVazuta.slice(2, 4), color: 'rgba(226,179,64,0.9)' })
   }
   if (!priveste && gata) {
     for (const s of line.final_arrows ?? []) {
@@ -844,14 +862,20 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 <Icoana className="h-4 w-4" />
               </button>
             ))}
-            {gata && !priveste && (
+            {gata && (
               <span className="ml-auto flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-[#4ade80]">
                 <CheckCircle2 className="h-4 w-4" /> Variantă completă
               </span>
             )}
           </div>
 
-          {priveste && (
+          {recapitulare && (
+            <p className="px-1 text-sm text-[#60A5FA]">
+              Recapitulare · {plyVazut === 0 ? 'poziţia de plecare' : `poziţia după mutarea ${plyVazut}`}
+            </p>
+          )}
+
+          {priveste && !gata && (
             <div className="space-y-2 rounded-lg border border-[#2A2A2A] bg-[#141414] p-3.5">
               <p className="text-sm text-[#60A5FA]">
                 {plyVazut === 0 ? 'Priveşti poziţia de plecare.' : `Priveşti poziţia după mutarea ${plyVazut}.`}{' '}
@@ -868,7 +892,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </div>
           )}
 
-          {gata && !priveste && (
+          {gata && (
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" onClick={resetLine}>
                 <RotateCcw className="h-3.5 w-3.5" /> Reia
@@ -881,9 +905,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </div>
           )}
 
-          {/* Balonul de comentariu. Cât timp priveşti în urmă, dispare: textul e
-              despre poziţia din partidă, nu despre cea pe care o răsfoieşti. */}
-          {!priveste && balon.length > 0 && (
+          {/* Balonul de comentariu. Cât timp priveşti în urmă în timpul jocului,
+              dispare: textul e despre poziţia din partidă, nu despre cea
+              răsfoită. După final rămâne, cu comentariul poziţiei privite. */}
+          {(!priveste || recapitulare) && balon.length > 0 && (
             <div className="space-y-3 rounded-lg border border-[rgba(226,179,64,0.35)] bg-[rgba(226,179,64,0.07)] p-4">
               {balon.map((paragraf, i) => (
                 <p key={i} className="text-[15px] leading-relaxed text-[#E8E8E8]">{paragraf}</p>

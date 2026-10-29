@@ -56,6 +56,13 @@ apare acolo unde contează alegerea adversarului.
 - Butonul **Soluție** din antet arată mutarea.
 - Finalul arată la fel ca la învățare.
 
+### Recapitularea, după final
+
+La învățare și la exersare, după ultima mutare, săgețile de navigare te duc înapoi prin
+poziții, iar **fiecare își arată comentariul**, plus săgeata mutării tale de acolo. „Reia” și
+„Continuă” rămân pe ecran tot timpul. (Adăugat de utilizator pe 2026-10-29.) În timpul
+jocului, privitul înapoi rămâne fără comentariu.
+
 ### Trecerea mai departe
 
 După învățare, **Continuă la exersare**. După exersare, se trece la varianta următoare, cu o
