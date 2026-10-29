@@ -233,6 +233,12 @@ export interface MiddlegamePlanRow {
   moves_uci: string | null
   move_explanations: Record<string, string>
   created_at: string
+  // Textele antrenorului în stilul Chessly (migrarea 118), ca la `OpeningLine`.
+  intro?: string | null
+  move_comments?: Record<string, string> | null
+  move_hints?: Record<string, string> | null
+  final_text?: string | null
+  final_arrows?: { from: string; to: string }[] | null
 }
 
 export interface OpeningTrapRow {

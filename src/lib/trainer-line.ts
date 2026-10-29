@@ -71,7 +71,7 @@ async function linieJocDeMijloc(lineId: string): Promise<TrainerLine | null> {
 
   const { data: plan } = await supabase
     .from('middlegame_plans')
-    .select('moves_uci, move_explanations, structure, ideas, avoid')
+    .select('moves_uci, move_explanations, structure, ideas, avoid, intro, move_comments, move_hints, final_text, final_arrows')
     .eq('opening_line_id', opening.id)
     .single()
   if (!plan?.moves_uci) return null
@@ -80,6 +80,12 @@ async function linieJocDeMijloc(lineId: string): Promise<TrainerLine | null> {
     ...opening,
     moves_uci: plan.moves_uci,
     move_explanations: (plan.move_explanations ?? {}) as Record<string, string>,
+    // Textele jocului de mijloc sunt ale lui, nu ale deschiderii din care pleacă.
+    intro: plan.intro ?? null,
+    move_comments: (plan.move_comments ?? null) as Record<string, string> | null,
+    move_hints: (plan.move_hints ?? null) as Record<string, string> | null,
+    final_text: plan.final_text ?? null,
+    final_arrows: (plan.final_arrows ?? null) as { from: string; to: string }[] | null,
     // Poziţia de la capătul deschiderii, reconstruită — ca să nu ţinem un FEN
     // duplicat în baza de date.
     start_fen: fenDupa(opening.moves_uci, opening.moves_uci.split(' ').length),
@@ -129,6 +135,8 @@ async function linieCapcana(trapId: string, mode: 'guided' | 'practice'): Promis
     moves_uci: exerseaza ? toate.slice(trap.spring_ply!).join(' ') : trap.moves_uci,
     // La exerciţiu nu se arată explicaţii, deci nu are rost să le reindexăm.
     move_explanations: exerseaza ? {} : (trap.move_explanations ?? {}),
+    // Capcanele n-au încă textele noi; nu moştenesc nimic de la variantă.
+    intro: null, move_comments: null, move_hints: null, final_text: null, final_arrows: null,
     start_fen: exerseaza ? fenDupa(trap.moves_uci, trap.spring_ply!) : undefined,
     fromVariation: linie.variation_name,
     conclusion: trap.explanation,

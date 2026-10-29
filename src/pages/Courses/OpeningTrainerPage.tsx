@@ -2,8 +2,12 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Chessboard, type PieceDropHandlerArgs, type Arrow } from 'react-chessboard'
+import type { Square } from 'chess.js'
+import {
+  ChevronLeft, ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight, RotateCcw, CheckCircle2, AlertTriangle,
+  BookOpen, Dumbbell, Lightbulb, MoreHorizontal, Search, LogOut,
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
@@ -11,9 +15,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-
-// Part boundaries (ply indices): Part1 = 0-9, Part2 = 10-15, Part3 = 16+
-const PART_ENDS = [10, 16]
+import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 
 /**
  * Cât durează alunecarea unei piese dintr-un pătrat în altul.
@@ -23,21 +25,6 @@ const PART_ENDS = [10, 16]
  * adversarului nu are ce căuta pe ecran cât timp piesa e încă în aer.
  */
 const ANIMATIE_MS = 350
-
-function getPartEnd(totalPlies: number, part: number, singlePart = false): number {
-  if (singlePart) return totalPlies
-  if (part === 1) return Math.min(PART_ENDS[0], totalPlies)
-  if (part === 2) return Math.min(PART_ENDS[1], totalPlies)
-  return totalPlies
-}
-
-function getTotalParts(totalPlies: number, singlePart = false): number {
-  if (singlePart) return 1
-  if (totalPlies > PART_ENDS[1]) return 3
-  if (totalPlies > PART_ENDS[0]) return 2
-  return 1
-}
-
 
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
@@ -168,17 +155,19 @@ function planuriDeExecutie(plan: MiddlegamePlan, line: TrainerLine): PlanBranchV
   })
 }
 
+// Varianta se joacă dintr-o bucată, ca pe Chessly. Înainte se rupea în trei
+// („primele 5 mutări", „următoarele 5", „spre jocul de mijloc"), cu o pauză şi
+// un buton între ele; părţile de acum sunt deschiderea şi jocul de mijloc.
 type TrainerStatus =
   | 'user-turn'
   | 'computer-thinking'
   | 'wrong'
-  | 'part-done'
   | 'line-done'
 
 interface TrainerState {
   game: Chess
   plyIdx: number
-  part: number
+  /** Unde se opreşte varianta: numărul de semi-mutări. */
   partEnd: number
   status: TrainerStatus
   wrongFrom: string | null
@@ -187,12 +176,10 @@ interface TrainerState {
 
 function buildInitialState(line: TrainerLine): TrainerState {
   const moves = line.moves_uci.split(' ')
-  const partEnd = getPartEnd(moves.length, 1, line.singlePart)
   return {
     game: new Chess(line.start_fen),
     plyIdx: 0,
-    part: 1,
-    partEnd,
+    partEnd: moves.length,
     status: isUserPly(0, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking',
     wrongFrom: null,
     wrongTo: null,
@@ -208,14 +195,10 @@ function buildResumedState(line: TrainerLine, plyIdx: number): TrainerState {
     const m = moves[i]
     try { game.move({ from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] ?? 'q' }) } catch { break }
   }
-  const part = target >= PART_ENDS[1] ? 3 : target >= PART_ENDS[0] ? 2 : 1
-  const partEnd = getPartEnd(moves.length, part, line.singlePart)
   const status: TrainerStatus = target >= moves.length
     ? 'line-done'
-    : target >= partEnd
-    ? 'part-done'
     : isUserPly(target, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
-  return { game, plyIdx: target, part, partEnd, status, wrongFrom: null, wrongTo: null }
+  return { game, plyIdx: target, partEnd: moves.length, status, wrongFrom: null, wrongTo: null }
 }
 
 /**
@@ -239,7 +222,72 @@ function pozitiaLa(line: TrainerLine, ply: number): { fen: string; de: string | 
 
 const resumeKey = (lineId: string, stage: string) => `op-resume:${stage}:${lineId}`
 
-const PART_LABELS = ['Primele 5 mutări', 'Următoarele 5 mutări', 'Spre jocul de mijloc']
+/** Textul împărţit în paragrafe, la rândurile goale. */
+function paragrafe(text: string | null | undefined): string[] {
+  return (text ?? '').split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+}
+
+/** Prima semi-mutare a ta din variantă. */
+function primaMutareATa(line: TrainerLine): number {
+  return isUserPly(0, line.user_color, whiteMovesFirst(line)) ? 0 : 1
+}
+
+/** Ultima semi-mutare a ta, la `ply` sau înaintea lui; -1 dacă nu e niciuna. */
+function ultimaMutareATa(line: TrainerLine, ply: number): number {
+  const albPrimul = whiteMovesFirst(line)
+  for (let i = ply; i >= 0; i--) if (isUserPly(i, line.user_color, albPrimul)) return i
+  return -1
+}
+
+/**
+ * Ce scrie în balon înaintea mutării tale de la semi-mutarea `ply`.
+ *
+ * Textele noi (migrarea 118) au întâietate: la prima ta mutare introducerea, la
+ * celelalte comentariul care leagă mutarea adversarului de răspunsul tău. Unde
+ * lipsesc, se compune acelaşi lucru din explicaţiile vechi, câte una pe
+ * semi-mutare: întâi a adversarului, apoi a ta. Aşa panoul nou merge şi pe
+ * cursurile pe care flota nu le-a rescris încă.
+ */
+function textBalon(line: TrainerLine, ply: number): string[] {
+  if (ply < 0) return paragrafe(line.intro)
+  if (ply === primaMutareATa(line) && line.intro) return paragrafe(line.intro)
+  const scris = line.move_comments?.[String(ply)]
+  if (scris) return paragrafe(scris)
+
+  const parti: string[] = []
+  if (ply > 0 && !isUserPly(ply - 1, line.user_color, whiteMovesFirst(line))) {
+    const aLui = line.move_explanations?.[String(ply - 1)]?.trim()
+    if (aLui) parti.push(aLui)
+  }
+  const aTa = line.move_explanations?.[String(ply)]?.trim()
+  if (aTa) parti.push(aTa)
+  return parti
+}
+
+/** Balonul de la capătul variantei: planul de după, sau ce avem în loc. */
+function textFinal(line: TrainerLine): string[] {
+  if (line.final_text) return paragrafe(line.final_text)
+  if (line.conclusion) return paragrafe(line.conclusion)
+  const ultima = line.move_explanations?.[String(line.moves_uci.split(' ').length - 1)]?.trim()
+  return ultima ? [ultima] : []
+}
+
+const NUME_PIESA: Record<string, string> = {
+  p: 'pionul', n: 'calul', b: 'nebunul', r: 'tura', q: 'regina', k: 'regele',
+}
+
+/**
+ * Indiciul de la a treia greşeală: piesa de mutat, nu şi unde. Cel scris de
+ * flotă are întâietate; altfel îl spunem din poziţie.
+ */
+function indiciu(line: TrainerLine, ply: number, game: Chess): string {
+  const scris = line.move_hints?.[String(ply)]?.trim()
+  if (scris) return scris
+  const mutare = line.moves_uci.split(' ')[ply]
+  if (!mutare) return ''
+  const piesa = game.get(mutare.slice(0, 2) as Square)
+  return `Mută ${piesa ? NUME_PIESA[piesa.type] : 'piesa'} de pe ${mutare.slice(0, 2)}.`
+}
 
 interface Props {
   mode: 'guided' | 'practice'
@@ -270,6 +318,32 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     enabled: !!lineId,
   })
 
+  // Cursul din care face parte varianta: titlul pentru antet, variantele pentru
+  // „Capitolul N" şi meniu, şi care dintre ele au joc de mijloc — de aici ies
+  // segmentele barei de sus şi unde duce „Continuă".
+  const { data: curs } = useQuery({
+    queryKey: ['trainer-curs', slug],
+    enabled: !!slug,
+    queryFn: async () => {
+      const { data: c } = await supabase.from('courses').select('id, title').eq('slug', slug!).single()
+      if (!c) return null
+      const { data: linii } = await supabase
+        .from('opening_lines')
+        .select('id, variation_name')
+        .eq('course_id', c.id)
+        .order('order_index')
+      const ids = (linii ?? []).map(l => l.id)
+      const { data: planuri } = ids.length > 0
+        ? await supabase.from('middlegame_plans').select('opening_line_id, moves_uci').in('opening_line_id', ids)
+        : { data: [] }
+      return {
+        titlu: c.title,
+        linii: linii ?? [],
+        cuPlan: new Set((planuri ?? []).filter(p => p.moves_uci).map(p => p.opening_line_id)),
+      }
+    },
+  })
+
   const [state, setState] = useState<TrainerState | null>(null)
   /**
    * Ce semi-mutare priveşti acum. `null` = poziţia din partidă.
@@ -284,6 +358,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const [arataRamificari, setArataRamificari] = useState(true)
   const [ramuraAleasa, setRamuraAleasa] = useState<number | null>(null)
   const [semnalRamificari, setSemnalRamificari] = useState(0)
+  /** Greşelile la mutarea curentă, la exersare. La o semi-mutare nouă se numără de la zero. */
+  const [greseli, setGreseli] = useState<{ ply: number; n: number }>({ ply: -1, n: 0 })
+  /** La ce semi-mutare ai cerut soluţia. */
+  const [solutieLa, setSolutieLa] = useState<number | null>(null)
+  const [meniu, setMeniu] = useState(false)
 
   /**
    * Când treci la altă variantă, panoul se întoarce la lista de ramificaţii.
@@ -296,6 +375,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     setVariantaVazuta(cheieVarianta)
     setArataRamificari(true)
     setRamuraAleasa(null)
+    setGreseli({ ply: -1, n: 0 })
+    setSolutieLa(null)
+    setMeniu(false)
   }
 
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
@@ -382,7 +464,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         const nextPly = state.plyIdx + 1
         let nextStatus: TrainerStatus
         if (nextPly >= state.partEnd) {
-          nextStatus = state.partEnd >= moves.length ? 'line-done' : 'part-done'
+          nextStatus = 'line-done'
         } else {
           nextStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
         }
@@ -429,6 +511,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       if (myMove !== expected.slice(0, 4)) {
         if (!isGuided) {
           setState(s => s ? { ...s, status: 'wrong', wrongFrom: from, wrongTo: to } : null)
+          const ply = state.plyIdx
+          setGreseli(g => ({ ply, n: g.ply === ply ? g.n + 1 : 1 }))
         }
         return false
       }
@@ -443,7 +527,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       const nextPly = state.plyIdx + 1
       let nextStatus: TrainerStatus
       if (nextPly >= state.partEnd) {
-        nextStatus = state.partEnd >= moves.length ? 'line-done' : 'part-done'
+        nextStatus = 'line-done'
       } else {
         nextStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
       }
@@ -456,22 +540,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     [state, line, isGuided]
   )
 
-  function advancePart() {
-    if (!state || !line) return
-    const moves = line.moves_uci.split(' ')
-    const nextPart = state.part + 1
-    const nextPartEnd = getPartEnd(moves.length, nextPart, line.singlePart)
-    const nextPly = state.plyIdx
-    const nextStatus: TrainerStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
-    setState(s => s
-      ? { ...s, part: nextPart, partEnd: nextPartEnd, status: nextStatus, wrongFrom: null, wrongTo: null }
-      : null)
-  }
-
   function resetLine() {
     if (!line) return
     setState(buildInitialState(line))
     setVazut(null)
+    setGreseli({ ply: -1, n: 0 })
+    setSolutieLa(null)
   }
 
   function alegeRamuraPlan(index: number) {
@@ -513,113 +587,209 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   }
 
   const moves = line.moves_uci.split(' ')
-  const totalParts = getTotalParts(moves.length, line.singlePart)
-  const progressPct = moves.length > 0 ? (state.plyIdx / moves.length) * 100 : 0
-
-  // Explicaţia mutării care TOCMAI s-a jucat, nu a celei care urmează.
-  //
-  // Înainte se arăta explicaţia mutării următoare — deci textul despre mutarea
-  // adversarului apărea cât timp scria „Calculez răspunsul teoretic...", iar
-  // după 600 ms, când mutarea chiar se făcea pe tablă, textul dispărea şi îi lua
-  // locul altul. Se citea despre ceva ce încă nu se întâmplase.
+  const gata = state.status === 'line-done'
   const plyVazut = vazut ?? state.plyIdx
-  const explicatiaUltimei = state.plyIdx > 0
-    ? line.move_explanations?.[String(state.plyIdx - 1)] ?? ''
-    : ''
-  const ultimaEAAdversarului = state.plyIdx > 0
-    && !isUserPly(state.plyIdx - 1, line.user_color, whiteMovesFirst(line))
-  /** Îndrumarea pentru mutarea ta, în modul ghidat. */
-  const explanation = line.move_explanations?.[String(state.plyIdx)] ?? ''
-  const arataMutareaAdversarului = state.status === 'computer-thinking'
-    || (state.status === 'user-turn' && seMuta && ultimaEAAdversarului)
-  const explicatiaPanoului = arataMutareaAdversarului
-    ? state.status === 'computer-thinking' ? explanation : explicatiaUltimei
-    : explanation
-
   const priveste = vazut !== null
   const vedere = priveste ? pozitiaLa(line, vazut) : null
+  const urmatoarea = moves[state.plyIdx]
+  const greseliAici = greseli.ply === state.plyIdx ? greseli.n : 0
 
-  // Square highlights
-  const squareStyles: Record<string, React.CSSProperties> = {}
-  if (vazut !== null) {
-    // Cât timp priveşti înapoi, se marchează mutarea care a dus la poziţia
-    // aceea — nu îndrumarea aurie, care ar arăta un sfat pentru altă clipă.
-    const v = pozitiaLa(line, vazut)
-    if (v.de) squareStyles[v.de] = { backgroundColor: 'rgba(96,165,250,0.45)' }
-    if (v.la) squareStyles[v.la] = { backgroundColor: 'rgba(96,165,250,0.30)' }
+  // ── Părţile capitolului ─────────────────────────────────────────────────────
+  // Ca la Chessly: fiecare parte se învaţă, apoi se exersează imediat, iar bara
+  // de sus are câte un segment pentru fiecare dintre ele. La noi un capitol are
+  // două părţi, deschiderea şi jocul de mijloc, deci tot patru segmente.
+  const arePlan = isMiddlegame || (curs?.cuPlan.has(line.id) ?? false)
+  const parti = isTrap
+    ? [{ nume: 'Capcana', invatare: `/courses/${slug}/trap/${lineId}`, exersare: `/courses/${slug}/trap-practice/${lineId}` }]
+    : [
+        { nume: 'Deschiderea', invatare: `/courses/${slug}/guided/${lineId}`, exersare: `/courses/${slug}/practice/${lineId}` },
+        ...(arePlan
+          ? [{ nume: 'Jocul de mijloc', invatare: `/courses/${slug}/middlegame/${lineId}`, exersare: `/courses/${slug}/middlegame-practice/${lineId}` }]
+          : []),
+      ]
+  const parteaCurenta = isMiddlegame ? 1 : 0
+  const segmente = parti.flatMap(p => [
+    { eticheta: `${p.nume}, învățare`, href: p.invatare },
+    { eticheta: `${p.nume}, exersare`, href: p.exersare },
+  ])
+  const segmentCurent = parteaCurenta * 2 + (isGuided ? 0 : 1)
+  const umplere = (i: number) =>
+    i < segmentCurent ? 100
+      : i > segmentCurent ? 0
+      : gata ? 100
+      : moves.length > 0 ? (state.plyIdx / moves.length) * 100 : 0
+
+  const indexCapitol = curs?.linii.findIndex(l => l.id === lineId) ?? -1
+  const capitolUrmator = indexCapitol >= 0 ? curs?.linii[indexCapitol + 1] : undefined
+  const etichetaCapitol = isTrap
+    ? `Capcane uzuale · ${line.variation_name}`
+    : indexCapitol >= 0 ? `Capitolul ${indexCapitol + 1} · ${line.variation_name}` : line.variation_name
+
+  /** Unde duce „Continuă" de la capătul variantei. */
+  const urmator = isGuided
+    ? { eticheta: 'Continuă la exersare', href: practicePath }
+    : !isTrap && !isMiddlegame && arePlan
+    ? { eticheta: 'Continuă: jocul de mijloc', href: `/courses/${slug}/middlegame/${lineId}` }
+    : !isTrap && capitolUrmator
+    ? { eticheta: 'Capitolul următor', href: `/courses/${slug}/guided/${capitolUrmator.id}` }
+    : { eticheta: 'Înapoi la curs', href: `/courses/${slug}` }
+
+  // ── Balonul ─────────────────────────────────────────────────────────────────
+  // Textul stă pe mutarea TA: înaintea ei spune ce a jucat adversarul şi ce
+  // răspunzi. Cât timp adversarul mută (sau piesa lui încă alunecă), rămâne
+  // textul de dinainte — altfel balonul ar clipi la fiecare mutare a lui.
+  const plyBalon = state.status === 'user-turn' && !seMuta
+    ? state.plyIdx
+    : ultimaMutareATa(line, state.plyIdx - 1)
+  // La exersare nu se explică nimic, ca pe Chessly; finalul arată la fel.
+  const balon = gata ? textFinal(line) : isGuided ? textBalon(line, plyBalon) : []
+
+  // ── Tabla: săgeţi şi pătrate ────────────────────────────────────────────────
+  const sageti: Arrow[] = []
+  if (!priveste && state.status === 'user-turn' && urmatoarea && (isGuided || solutieLa === state.plyIdx)) {
+    sageti.push({ startSquare: urmatoarea.slice(0, 2), endSquare: urmatoarea.slice(2, 4), color: 'rgba(226,179,64,0.9)' })
   }
-  if (vazut === null && state.status === 'user-turn') {
-    const nextMove = moves[state.plyIdx]
-    if (isGuided && nextMove) {
-      squareStyles[nextMove.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.65)' }
-      squareStyles[nextMove.slice(2, 4)] = { backgroundColor: 'rgba(226,179,64,0.35)' }
+  if (!priveste && gata) {
+    for (const s of line.final_arrows ?? []) {
+      sageti.push({ startSquare: s.from, endSquare: s.to, color: 'rgba(45,212,191,0.85)' })
     }
   }
-  if (state.wrongFrom) {
-    squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
-  }
-  if (state.wrongTo) {
-    squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }
-  }
 
-  const isPlaying = state.status === 'user-turn' || state.status === 'computer-thinking' || state.status === 'wrong'
+  const squareStyles: Record<string, React.CSSProperties> = {}
+  if (vedere) {
+    // Cât timp priveşti înapoi, se marchează mutarea care a dus la poziţia aceea.
+    if (vedere.de) squareStyles[vedere.de] = { backgroundColor: 'rgba(96,165,250,0.45)' }
+    if (vedere.la) squareStyles[vedere.la] = { backgroundColor: 'rgba(96,165,250,0.30)' }
+  } else {
+    // Ultima mutare jucată, discret: ca să se vadă ce tocmai s-a schimbat pe tablă.
+    // Îndrumarea pentru mutarea ta e săgeata, nu pătratele.
+    const ultima = state.plyIdx > 0 ? moves[state.plyIdx - 1] : null
+    if (ultima) {
+      squareStyles[ultima.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.18)' }
+      squareStyles[ultima.slice(2, 4)] = { backgroundColor: 'rgba(226,179,64,0.32)' }
+    }
+    // De la a treia greşeală: piesa care trebuie mutată se luminează.
+    if (!isGuided && state.status === 'user-turn' && greseliAici >= 3 && urmatoarea) {
+      squareStyles[urmatoarea.slice(0, 2)] = { backgroundColor: 'rgba(74,222,128,0.55)' }
+    }
+  }
+  if (state.wrongFrom) squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
+  if (state.wrongTo) squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }
+
+  const fenAcum = vedere ? vedere.fen : state.game.fen()
+  const elementMeniu = 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[#D0D0D0] transition-colors hover:bg-[#1C1C1C]'
 
   return (
     // Pagina umple ecranul: antetul rămâne sus, iar tabla primeşte toată înălţimea
     // rămasă. Înainte, un `max-w-4xl` plafona totul la 896px şi tabla lua 2/3 din
     // atât — pe un ecran lat rezulta o tablă mică într-o mare de negru.
-    <div className="flex flex-col gap-4 lg:h-[var(--app-page-h)]">
-      {/* Back */}
-      <Link
-        to={`/courses/${slug}`}
-        className="flex flex-shrink-0 items-center gap-1.5 text-sm text-[#A0A0A0] hover:text-[#F0F0F0] transition-colors"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        Înapoi la curs
-      </Link>
+    <div className="flex flex-col gap-3 lg:h-[var(--app-page-h)]">
+      {meniu && <div className="fixed inset-0 z-30" onClick={() => setMeniu(false)} aria-hidden />}
 
-      {/* Title row */}
-      <div className="flex flex-shrink-0 items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#F0F0F0]">{line.variation_name}</h1>
-          <p className="text-sm text-[#6B6B6B] mt-0.5">
-            {isGuided ? 'Mod ghidat' : 'Pe cont propriu'}
-            {isPlaying && (
-              <> · <span className="text-[#A0A0A0]">Partea {state.part} din {totalParts}</span></>
-            )}
-          </p>
-          {isTrap && line.fromVariation && (
-            <p className="mt-1 text-sm text-[#6B6B6B]">
-              Din <span className="text-[#A0A0A0]">{line.fromVariation}</span> · {line.user_color === 'white'
-                ? 'joci cu albul — tu întinzi cursa'
-                : 'joci cu negrul — tu pedepseşti greşeala'}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-xs font-medium px-2 py-1 rounded-full border ${
-            line.user_color === 'white'
-              ? 'bg-[#F0F0F0] text-black border-[#F0F0F0]'
-              : 'bg-[#141414] text-[#F0F0F0] border-[#3A3A3A]'
-          }`}>
-            {line.user_color === 'white' ? '♔ Alb' : '♚ Negru'}
-          </span>
-          <button
-            onClick={resetLine}
-            aria-label="Reia de la început"
-            className="p-1.5 text-[#3A3A3A] hover:text-[#A0A0A0] transition-colors"
+      {/* Antetul: cursul şi capitolul */}
+      <div className="flex flex-shrink-0 items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            to={`/courses/${slug}`}
+            aria-label="Înapoi la curs"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#141414] text-[#A0A0A0] transition-colors hover:text-[#F0F0F0]"
           >
-            <RotateCcw className="h-4 w-4" />
-          </button>
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+          <div className="min-w-0">
+            <p className="truncate text-base font-bold text-[#F0F0F0]">{curs?.titlu ?? line.variation_name}</p>
+            <p className="truncate text-sm text-[#A0A0A0]">{etichetaCapitol}</p>
+          </div>
         </div>
+        <span className={`flex-shrink-0 rounded-full border px-2 py-1 text-xs font-medium ${
+          line.user_color === 'white'
+            ? 'border-[#F0F0F0] bg-[#F0F0F0] text-black'
+            : 'border-[#3A3A3A] bg-[#141414] text-[#F0F0F0]'
+        }`}>
+          {line.user_color === 'white' ? '♔ Alb' : '♚ Negru'}
+        </span>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1.5 flex-shrink-0 bg-[#2A2A2A] rounded-full overflow-hidden">
-        <div
-          className="h-full bg-[#E2B340] rounded-full transition-all duration-500"
-          style={{ width: `${progressPct}%` }}
-        />
+      {/* Partea în care eşti, cu segmentele ei. Segmentele duc direct la partea lor. */}
+      <div className="flex-shrink-0 space-y-1">
+        <div className="relative flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-2">
+          {isGuided
+            ? <BookOpen className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />
+            : <Dumbbell className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />}
+          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#E2B340]">
+            {parti.length > 1 && `Partea ${parteaCurenta + 1} din ${parti.length} · `}
+            {parti[parteaCurenta].nume} · {isGuided ? 'învățare' : 'exersare'}
+          </p>
+          {!isGuided && !gata && (
+            <button
+              type="button"
+              onClick={() => setSolutieLa(state.plyIdx)}
+              disabled={state.status !== 'user-turn' || priveste}
+              className="flex items-center gap-1.5 rounded-md border border-[#2A2A2A] px-2.5 py-1 text-sm text-[#A0A0A0] transition-colors hover:text-[#F0F0F0] disabled:opacity-40"
+            >
+              <Lightbulb className="h-3.5 w-3.5" />
+              Soluție
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setMeniu(m => !m)}
+            aria-label="Mai multe"
+            aria-expanded={meniu}
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] hover:text-[#F0F0F0]"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+
+          {meniu && (
+            <div className="absolute right-2 top-full z-40 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-xl border border-[#2A2A2A] bg-[#141414] p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
+              <Link
+                to={`/analiza?fen=${encodeURIComponent(fenAcum)}&orientare=${line.user_color === 'black' ? 'negru' : 'alb'}`}
+                className={elementMeniu}
+              >
+                <Search className="h-4 w-4 text-[#6B6B6B]" /> Analizează poziția
+              </Link>
+              <button type="button" onClick={() => { resetLine(); setMeniu(false) }} className={elementMeniu}>
+                <RotateCcw className="h-4 w-4 text-[#6B6B6B]" /> Reia de la început
+              </button>
+              {!isTrap && curs && curs.linii.length > 1 && (
+                <>
+                  <p className="px-3 pb-1 pt-2.5 text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
+                    Mergi la variantă
+                  </p>
+                  {curs.linii.map((l, i) => (
+                    <Link
+                      key={l.id}
+                      to={`/courses/${slug}/guided/${l.id}`}
+                      onClick={() => setMeniu(false)}
+                      className={`${elementMeniu} ${l.id === lineId ? 'text-[#E2B340]' : ''}`}
+                    >
+                      <span className="w-4 flex-shrink-0 text-[#6B6B6B]">{i + 1}.</span>
+                      <span className="truncate">{l.variation_name}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
+              <div className="my-1 border-t border-[#2A2A2A]" />
+              <Link to={`/courses/${slug}`} className={`${elementMeniu} text-[#FB7185]`}>
+                <LogOut className="h-4 w-4" /> Încheie sesiunea
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-1.5">
+          {segmente.map((segment, i) => (
+            <Link key={segment.href} to={segment.href} aria-label={segment.eticheta} className="flex-1 py-1.5">
+              <div className="h-1.5 overflow-hidden rounded-full bg-[#2A2A2A]">
+                <div
+                  className="h-full rounded-full bg-[#E2B340] transition-all duration-500"
+                  style={{ width: `${umplere(i)}%` }}
+                />
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-4">
@@ -635,11 +805,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
             <Chessboard
               options={{
-                position: vedere ? vedere.fen : state.game.fen(),
+                position: fenAcum,
                 onPieceDrop: handlePieceDrop,
                 allowDragging: !priveste && state.status === 'user-turn',
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
+                arrows: sageti,
                 boardStyle: { borderRadius: 0 },
                 animationDurationInMs: ANIMATIE_MS,
                 darkSquareStyle,
@@ -651,123 +822,100 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
         {/* Coloana dreaptă — lăţime fixă, cu scroll propriu dacă e nevoie, ca
             înălţimea ei să nu influenţeze niciodată dimensiunea tablei.
-            De aici vine şi libertatea de a pune planul întreg în ea. */}
-        <div
-          className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[21rem]"
-        >
-          {/* Derularea prin mutările deja jucate.
-              Apare abia după prima mutare — până atunci n-are ce arăta. */}
-          {state.plyIdx > 0 && (
-            <div className="rounded-lg border border-[#2A2A2A] bg-[#141414] p-3.5">
-              <div className="flex items-center justify-center gap-1">
-                {([
-                  ['La început', ChevronsLeft, () => setVazut(0), plyVazut === 0],
-                  ['Înapoi', ChevronLeft, () => setVazut(Math.max(0, plyVazut - 1)), plyVazut === 0],
-                  ['Înainte', ChevronRight, () => setVazut(plyVazut + 1 >= state.plyIdx ? null : plyVazut + 1), !priveste],
-                  ['La poziţia curentă', ChevronsRight, () => setVazut(null), !priveste],
-                ] as const).map(([eticheta, Icoana, apasa, stins]) => (
-                  <button
-                    key={eticheta}
-                    type="button"
-                    onClick={apasa}
-                    disabled={stins}
-                    aria-label={eticheta}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
-                  >
-                    <Icoana className="h-4 w-4" />
-                  </button>
-                ))}
-                <span className="ml-2 min-w-[3.5rem] text-center text-sm text-[#6B6B6B]">
-                  {plyVazut} / {state.plyIdx}
-                </span>
-              </div>
+            Ca la Chessly, are doar două lucruri: navigarea şi balonul. Progresul
+            şi alegerea modului au urcat în antet. */}
+        <div className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[21rem]">
+          {/* Navigarea, mereu sus — şi la poziţia de start, unde e doar stinsă. */}
+          <div className="flex items-center gap-1.5">
+            {([
+              ['La început', ChevronsLeft, () => setVazut(0), plyVazut === 0],
+              ['Înapoi', ChevronLeft, () => setVazut(Math.max(0, plyVazut - 1)), plyVazut === 0],
+              ['Înainte', ChevronRight, () => setVazut(plyVazut + 1 >= state.plyIdx ? null : plyVazut + 1), !priveste],
+              ['La poziţia curentă', ChevronsRight, () => setVazut(null), !priveste],
+            ] as const).map(([eticheta, Icoana, apasa, stins]) => (
+              <button
+                key={eticheta}
+                type="button"
+                onClick={apasa}
+                disabled={stins}
+                aria-label={eticheta}
+                className="flex h-9 w-11 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+              >
+                <Icoana className="h-4 w-4" />
+              </button>
+            ))}
+            {gata && !priveste && (
+              <span className="ml-auto flex items-center gap-1 text-sm font-semibold text-[#4ade80]">
+                <CheckCircle2 className="h-4 w-4" /> Variantă completă
+              </span>
+            )}
+          </div>
 
-              {priveste && (
-                <div className="mt-3 space-y-2 border-t border-[#2A2A2A] pt-3">
-                  <p className="text-sm text-[#60A5FA]">
-                    Priveşti o poziţie de mai devreme. Partida te aşteaptă.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={reiaDeAici}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-base text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    Reia de aici
-                  </button>
-                </div>
-              )}
+          {priveste && (
+            <div className="space-y-2 rounded-lg border border-[#2A2A2A] bg-[#141414] p-3.5">
+              <p className="text-sm text-[#60A5FA]">
+                {plyVazut === 0 ? 'Priveşti poziţia de plecare.' : `Priveşti poziţia după mutarea ${plyVazut}.`}{' '}
+                Partida te aşteaptă.
+              </p>
+              <button
+                type="button"
+                onClick={reiaDeAici}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-base text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reia de aici
+              </button>
             </div>
           )}
 
-          {/* Status + explanation card */}
-          <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-5">
-            {/* Cât timp te uiţi în urmă, comentariul dispare.
-                El e despre poziţia din partidă, nu despre cea pe care o
-                răsfoieşti — lăsat pe ecran, ar fi părut că explică ce vezi.
-                Se întoarce singur când te întorci cu săgeata dreapta. */}
-            {priveste ? (
-              <div>
-                <p className="mb-2 text-sm font-bold uppercase tracking-wider text-[#60A5FA]">
-                  {plyVazut === 0 ? 'Poziţia de plecare' : `Mutarea ${plyVazut}`}
-                </p>
-                <p className="text-base leading-relaxed text-[#6B6B6B]">
-                  Întoarce-te la poziţia curentă ca să vezi comentariul.
-                </p>
-              </div>
-            ) : <>
-            {(state.status === 'user-turn' || state.status === 'computer-thinking') && (
-              <div>
-                <p className={`text-sm font-bold uppercase tracking-wider mb-3 ${
-                  arataMutareaAdversarului ? 'text-[#60A5FA]' : 'text-[#E2B340]'
-                }`}>
-                  {arataMutareaAdversarului ? 'Adversarul joacă' : 'Mutarea ta'}
-                </p>
-                {explicatiaPanoului ? (
-                  <p className="text-base leading-relaxed text-[#D0D0D0]">
-                    {explicatiaPanoului}
-                  </p>
-                ) : !isGuided && (
-                  <p className="text-base leading-relaxed text-[#A0A0A0]">
-                    Gândește-te la teoria opening-ului și mută.
-                  </p>
-                )}
-              </div>
-            )}
-            {state.status === 'wrong' && (
-              <div>
-                <p className="text-sm font-bold text-[#FB7185] uppercase tracking-wider mb-3">
-                  Mutare greșită
-                </p>
-                <p className="text-base leading-relaxed text-[#A0A0A0]">
-                  Aceasta nu este mutarea din teorie. Gândește-te din nou.
-                </p>
-              </div>
-            )}
-            {(state.status === 'part-done' || state.status === 'line-done') && (
-              <div>
-                <p className="text-sm font-bold text-[#4ade80] uppercase tracking-wider mb-3">
-                  {state.status === 'line-done' ? 'Variantă completă' : 'Fază completă'}
-                </p>
-                <p className="text-base leading-relaxed text-[#A0A0A0]">
-                  {state.status === 'line-done'
-                    ? 'Ai parcurs toate mutările din această variantă.'
-                    : 'Excelent! Ai finalizat această parte a opening-ului.'}
-                </p>
-                {state.status === 'line-done' && isMiddlegame && (
-                  <button
-                    type="button"
-                    onClick={revinoLaRamificari}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[rgba(45,212,191,0.3)] bg-[rgba(45,212,191,0.08)] px-3 py-2.5 text-sm font-semibold text-[#2DD4BF] transition-colors hover:bg-[rgba(45,212,191,0.14)]"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Înapoi la ramificări
-                  </button>
-                )}
-              </div>
-            )}
-            </>}
-          </div>
+          {gata && !priveste && (
+            <div className="flex gap-2">
+              <Button variant="secondary" size="sm" onClick={resetLine}>
+                <RotateCcw className="h-3.5 w-3.5" /> Reia
+              </Button>
+              <Link to={urmator.href} className="flex-1">
+                <Button size="sm" className="w-full">
+                  {urmator.eticheta} <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Balonul de comentariu. Cât timp priveşti în urmă, dispare: textul e
+              despre poziţia din partidă, nu despre cea pe care o răsfoieşti. */}
+          {!priveste && balon.length > 0 && (
+            <div className="space-y-3 rounded-lg border border-[rgba(226,179,64,0.35)] bg-[rgba(226,179,64,0.07)] p-4">
+              {balon.map((paragraf, i) => (
+                <p key={i} className="text-[15px] leading-relaxed text-[#E8E8E8]">{paragraf}</p>
+              ))}
+            </div>
+          )}
+
+          {gata && isMiddlegame && !priveste && (
+            <button
+              type="button"
+              onClick={revinoLaRamificari}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[rgba(45,212,191,0.3)] bg-[rgba(45,212,191,0.08)] px-3 py-2.5 text-sm font-semibold text-[#2DD4BF] transition-colors hover:bg-[rgba(45,212,191,0.14)]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Înapoi la ramificări
+            </button>
+          )}
+
+          {/* Exersarea: tăcută până la a treia greşeală, apoi Căluţul dă un indiciu. */}
+          {!isGuided && !gata && !priveste && greseliAici < 3 && (
+            <p className="px-1 text-sm leading-relaxed text-[#6B6B6B]">
+              Joacă varianta din memorie. La a treia greșeală pe aceeași mutare, Căluțul savant îți dă un indiciu.
+            </p>
+          )}
+          {!isGuided && !gata && !priveste && greseliAici >= 3 && (
+            <div className="flex items-end gap-3 pt-2">
+              <CalutulOmniscient mood="encouraging" size={64} />
+              <p className="flex-1 rounded-xl rounded-bl-none border border-[rgba(74,222,128,0.35)] bg-[rgba(74,222,128,0.07)] p-3 text-sm leading-relaxed text-[#E8E8E8]">
+                {indiciu(line, state.plyIdx, state.game)}
+              </p>
+            </div>
+          )}
 
           {/* Planul variantei — doar la jocul de mijloc, unde există.
               Deschis din start la lecţie, strâns la exerciţiu: acolo te testezi,
@@ -786,125 +934,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               deschisInitial={isGuided}
             />
           )}
-
-          {/* Parts tracker */}
-          <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-5">
-            <p className="text-sm font-semibold text-[#6B6B6B] uppercase tracking-wider mb-4">Progres Variație</p>
-            <div className="space-y-3">
-              {Array.from({ length: totalParts }).map((_, i) => {
-                const partNum = i + 1
-                const isDone = state.part > partNum || state.status === 'line-done'
-                const isCurrent = state.part === partNum && state.status !== 'line-done'
-                return (
-                  <div
-                    key={i}
-                    className={`flex items-center gap-3 text-base ${
-                      isDone ? 'text-[#4ade80]' : isCurrent ? 'text-[#F0F0F0]' : 'text-[#3A3A3A]'
-                    }`}
-                  >
-                    <div className={`h-7 w-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                      isDone
-                        ? 'bg-[#4ade80] text-black'
-                        : isCurrent
-                        ? 'bg-[#E2B340] text-black'
-                        : 'bg-[#1C1C1C] text-[#3A3A3A]'
-                    }`}>
-                      {isDone ? <CheckCircle2 className="h-4 w-4" /> : partNum}
-                    </div>
-                    <span>{line.singlePart ? 'Capcana, de la cap la coadă' : PART_LABELS[i]}</span>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Part-done CTA — inline, not fullscreen */}
-            {state.status === 'part-done' && (
-              <button
-                onClick={advancePart}
-                className="mt-4 w-full flex items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-base text-[#E2B340] hover:bg-[rgba(226,179,64,0.14)] transition-colors"
-              >
-                <span>Ești gata de următoarea fază a opening-ului?</span>
-                <ChevronRight className="h-4 w-4 flex-shrink-0" />
-              </button>
-            )}
-
-            {/* Line-done CTAs */}
-            {state.status === 'line-done' && (
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-[#4ade80] font-semibold">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {isTrap ? 'Capcana, ştiută pe de rost!' : isMiddlegame ? 'Planul dus până la capăt!' : 'Opening parcurs cu succes!'}
-                </div>
-
-                {isTrap && line.conclusion && (
-                  <p className="mt-2 text-sm leading-relaxed text-[#A0A0A0]">{line.conclusion}</p>
-                )}
-
-                {/* Următoarea etapă. Din deschidere treci la jocul de mijloc,
-                    plecând exact din poziţia la care ai ajuns. */}
-                {stage === 'opening' && (
-                  <Link
-                    to={`/courses/${slug}/middlegame/${lineId}`}
-                    className="flex w-full items-center justify-between gap-2 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2.5 text-sm text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
-                  >
-                    <span>Parcurge ideile din jocul de mijloc</span>
-                    <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                  </Link>
-                )}
-
-                <div className="flex gap-2 pt-1">
-                  <Button variant="secondary" size="sm" className="flex-1" onClick={resetLine}>
-                    Repetă
-                  </Button>
-                  {isGuided && (
-                    <Link to={practicePath} className="flex-1">
-                      <Button size="sm" className="w-full">Pe cont propriu</Button>
-                    </Link>
-                  )}
-                  {!isGuided && (
-                    <Link to={`/courses/${slug}`} className="flex-1">
-                      <Button variant="secondary" size="sm" className="w-full">Alte variante</Button>
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Mode switcher. Rămâne în etapa în care eşti: de la planul de joc de
-              mijloc, „pe cont propriu" înseamnă tot jocul de mijloc, nu te aruncă
-              înapoi în deschidere. */}
-          <div className="rounded-lg bg-[#141414] border border-[#2A2A2A] p-5">
-            <p className="text-sm font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">Antrenează-te</p>
-            <div className="space-y-1.5">
-              <Link
-                to={
-                  isTrap
-                    ? `/courses/${slug}/trap/${lineId}`
-                    : isMiddlegame
-                    ? `/courses/${slug}/middlegame/${lineId}`
-                    : `/courses/${slug}/guided/${lineId}`
-                }
-                className={`block text-base px-3 py-2.5 rounded-lg transition-colors ${
-                  isGuided
-                    ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
-                    : 'text-[#6B6B6B] hover:text-[#A0A0A0] hover:bg-[#1C1C1C]'
-                }`}
-              >
-                Ghidat — vreau indicații vizuale
-              </Link>
-              <Link
-                to={practicePath}
-                className={`block text-base px-3 py-2.5 rounded-lg transition-colors ${
-                  !isGuided
-                    ? 'bg-[rgba(226,179,64,0.15)] text-[#E2B340]'
-                    : 'text-[#6B6B6B] hover:text-[#A0A0A0] hover:bg-[#1C1C1C]'
-                }`}
-              >
-                Pe cont propriu — vreau să mă testez
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

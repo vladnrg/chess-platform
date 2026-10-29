@@ -484,6 +484,18 @@ export interface OpeningLine {
   moves_uci: string
   move_explanations: Record<string, string>
   created_at: string
+  // Textele antrenorului în stilul Chessly (migrarea 118). Lipsă = se folosesc
+  // `move_explanations`. Le scrie flota de cursuri, curs cu curs.
+  /** Introducerea variantei, la poziţia de start. */
+  intro?: string | null
+  /** Pe fiecare semi-mutare a ta: ce a jucat adversarul, ce răspunzi şi de ce. */
+  move_comments?: Record<string, string> | null
+  /** Indiciul de la a treia greşeală: piesa de mutat, fără pătratul ţintă. */
+  move_hints?: Record<string, string> | null
+  /** Planul de după ultima mutare. */
+  final_text?: string | null
+  /** Săgeţile ideilor din plan. */
+  final_arrows?: { from: string; to: string }[] | null
 }
 
 export interface AssessmentResult {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Chess } from 'chess.js'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { useSearchParams } from 'react-router-dom'
 import {
   SkipBack, SkipForward, ChevronLeft, ChevronRight,
   RotateCcw, FlipVertical2, Cpu,
@@ -11,6 +12,16 @@ import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { translateNotation } from '@/lib/chess-translations'
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+/** Poziţia din link (`?fen=`), dacă e una validă; altfel `null`. */
+function fenDinLink(fen: string | null): string | null {
+  if (!fen) return null
+  try {
+    return new Chess(fen).fen()
+  } catch {
+    return null
+  }
+}
 const MULTI_PV = 3
 // 16, nu 20: motorul rulează pe un singur fir în browser, iar la 20 o căutare
 // ţine zeci de secunde — timp în care fiecare mutare aşteaptă oprirea celei
@@ -98,9 +109,14 @@ export function AnalysisPage() {
   const { analyze } = useStockfish()
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
 
+  // Antrenorul de deschideri trimite aici poziţia de pe tabla lui („Analizează
+  // poziţia"), cu `?fen=` şi `?orientare=negru`. Citite o singură dată, la
+  // deschidere: după aceea poziţia de plecare e a paginii, nu a linkului.
+  const [searchParams] = useSearchParams()
+  const [startFen] = useState(() => fenDinLink(searchParams.get('fen')) ?? START_FEN)
   const [plies, setPlies] = useState<Ply[]>([])
-  const [cursor, setCursor] = useState(0)          // 0 = poziţia iniţială
-  const [flipped, setFlipped] = useState(false)
+  const [cursor, setCursor] = useState(0)          // 0 = poziţia de plecare
+  const [flipped, setFlipped] = useState(() => searchParams.get('orientare') === 'negru')
   const [engineOn, setEngineOn] = useState(true)
   // Rezultatele poartă poziţia din care au ieşit. Aşa cele de la poziţia
   // anterioară se ignoră singure, fără să trebuiască golite la fiecare mutare —
@@ -110,7 +126,7 @@ export function AnalysisPage() {
     fen: '', lines: [], depth: 0,
   })
 
-  const currentFen = cursor === 0 ? START_FEN : plies[cursor - 1].fen
+  const currentFen = cursor === 0 ? startFen : plies[cursor - 1].fen
   const whiteToMove = currentFen.includes(' w ')
 
   const fresh = engine.fen === currentFen
@@ -163,16 +179,23 @@ export function AnalysisPage() {
   /** Mutările grupate pe rânduri: [număr, alb, negru]. */
   const rows = useMemo(() => {
     const out: { no: number; white?: { san: string; ply: number }; black?: { san: string; ply: number } }[] = []
+    // Dintr-o poziţie primită prin link, prima mutare poate fi a negrului, iar
+    // numerotarea porneşte de la mutarea scrisă în poziţie, nu de la 1.
+    const [, laMutare, , , , nrMutare] = startFen.split(' ')
+    const decalaj = laMutare === 'b' ? 1 : 0
+    const primul = parseInt(nrMutare ?? '1', 10) || 1
     plies.forEach((p, i) => {
-      const no = Math.floor(i / 2) + 1
-      if (i % 2 === 0) out.push({ no, white: { san: p.san, ply: i + 1 } })
+      const j = i + decalaj
+      const no = primul + Math.floor(j / 2)
+      if (j % 2 === 0) out.push({ no, white: { san: p.san, ply: i + 1 } })
       else {
-        const row = out[out.length - 1]
-        if (row) row.black = { san: p.san, ply: i + 1 }
+        let row = out[out.length - 1]
+        if (!row || row.no !== no) { row = { no }; out.push(row) }
+        row.black = { san: p.san, ply: i + 1 }
       }
     })
     return out
-  }, [plies])
+  }, [plies, startFen])
 
   function reset() {
     setPlies([])
