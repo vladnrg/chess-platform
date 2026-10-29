@@ -386,7 +386,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     const { data: existing } = await supabase
       .from('user_course_progress')
       .select('completed_lesson_ids, xp_earned')
-      .eq('user_id', user.id).eq('course_id', line.course_id).single()
+      .eq('user_id', user.id).eq('course_id', line.course_id).maybeSingle() // primul pas: încă niciun rând
     const prev: string[] = existing?.completed_lesson_ids ?? []
     const already = prev.includes(line.id)
     await supabase.from('user_course_progress').upsert({
@@ -839,13 +839,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 onClick={apasa}
                 disabled={stins}
                 aria-label={eticheta}
-                className="flex h-9 w-11 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                className="flex h-9 w-10 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
               >
                 <Icoana className="h-4 w-4" />
               </button>
             ))}
             {gata && !priveste && (
-              <span className="ml-auto flex items-center gap-1 text-sm font-semibold text-[#4ade80]">
+              <span className="ml-auto flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-[#4ade80]">
                 <CheckCircle2 className="h-4 w-4" /> Variantă completă
               </span>
             )}
@@ -910,7 +910,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           )}
           {!isGuided && !gata && !priveste && greseliAici >= 3 && (
             <div className="flex items-end gap-3 pt-2">
-              <CalutulOmniscient mood="encouraging" size={64} />
+              <CalutulOmniscient mood="encouraging" size={96} />
               <p className="flex-1 rounded-xl rounded-bl-none border border-[rgba(74,222,128,0.35)] bg-[rgba(74,222,128,0.07)] p-3 text-sm leading-relaxed text-[#E8E8E8]">
                 {indiciu(line, state.plyIdx, state.game)}
               </p>
