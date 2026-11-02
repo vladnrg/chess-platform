@@ -869,27 +869,15 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             )}
           </div>
 
-          {recapitulare && (
-            <p className="px-1 text-sm text-[#60A5FA]">
-              Recapitulare · {plyVazut === 0 ? 'poziţia de plecare' : `poziţia după mutarea ${plyVazut}`}
-            </p>
-          )}
-
           {priveste && !gata && (
-            <div className="space-y-2 rounded-lg border border-[#2A2A2A] bg-[#141414] p-3.5">
-              <p className="text-sm text-[#60A5FA]">
-                {plyVazut === 0 ? 'Priveşti poziţia de plecare.' : `Priveşti poziţia după mutarea ${plyVazut}.`}{' '}
-                Partida te aşteaptă.
-              </p>
-              <button
-                type="button"
-                onClick={reiaDeAici}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-base text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reia de aici
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={reiaDeAici}
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-base text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reia de aici
+            </button>
           )}
 
           {gata && (
