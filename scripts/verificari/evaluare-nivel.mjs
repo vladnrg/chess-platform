@@ -34,7 +34,7 @@ async function dupaMutare(fen, uci) {
 for (const q of TACTICS_QUESTIONS) {
   const top = await analizeaza(q.fen, { adancime: 20, variante: 3 })
   const ceruta = await dupaMutare(q.fen, q.correctMove)
-  console.log(`\n${q.id}  „${q.hint}"`)
+  console.log(`\n${q.id}  (Lichess ~${q.rating}, ${q.fen.split(' ')[1] === 'w' ? 'albul' : 'negrul'} la mutare)`)
   console.log(`   cerută: ${san(q.fen, q.correctMove)} → ${ceruta}`)
   for (const r of top) console.log(`   motor ${r.nr}: ${san(q.fen, r.linie[0])} → ${scrieScor(r)}`)
 }

@@ -49,13 +49,15 @@ function computeResults(answers: Record<string, string>) {
 
   const playing_style = (Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0][0]) as PlayingStyle
 
-  const totalScore = puzzleScore * 2 + knowledgeScore
-  const estimated_elo =
-    totalScore >= 13 ? 1800 :
-    totalScore >= 10 ? 1400 :
-    totalScore >= 7 ? 1100 :
-    totalScore >= 4 ? 800 :
-    600
+  // Nivelul vine din tactică, fiindcă puzzle-urile au dificultate măsurată:
+  // cel mai greu rezolvat, cu o treaptă mai jos (o nimereală norocoasă nu te
+  // urcă la nivelul ei). Fără niciunul, 700. Cunoştinţele de deschideri mută
+  // doar cu o sută în sus sau în jos — se pot învăţa pe de rost, tactica nu.
+  // Înainte se aduna un scor din două maturi într-o mutare puse ca puncte gratuite.
+  const rezolvate = TACTICS_QUESTIONS.filter(q => answers[q.id] === 'correct').map(q => q.rating)
+  const dinTactica = rezolvate.length === 0 ? 700 : Math.max(...rezolvate) - 150
+  const dinCunostinte = knowledgeScore >= 4 ? 100 : knowledgeScore <= 1 ? -100 : 0
+  const estimated_elo = Math.round(Math.min(2100, Math.max(600, dinTactica + dinCunostinte)) / 50) * 50
 
   return { puzzleScore, knowledgeScore, playing_style, estimated_elo }
 }
@@ -213,7 +215,7 @@ export function Onboarding() {
 function TacticsQuestion({
   question, tacticsState, onDrop, onSkip,
 }: {
-  question: { fen: string; hint: string; correctMove: string }
+  question: { fen: string; correctMove: string }
   tacticsState: TacticsState
   onDrop: (from: string, to: string) => boolean
   onSkip: () => void
@@ -225,7 +227,8 @@ function TacticsQuestion({
   return (
     <div>
       <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Găsește cea mai bună mutare</h2>
-      <p className="text-sm text-[#A0A0A0] mb-4">{question.hint}</p>
+      {/* Doar cine e la mutare. Niciun indiciu: testul măsoară ce vezi singur. */}
+      <p className="text-sm text-[#A0A0A0] mb-4">{negrulMuta ? 'Negrul la mutare' : 'Albul la mutare'}</p>
       {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
       <div
         className="mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"

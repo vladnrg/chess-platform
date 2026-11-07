@@ -3,7 +3,8 @@ export interface TacticsQuestion {
   id: string
   fen: string
   correctMove: string
-  hint: string
+  /** Dificultatea puzzle-ului pe Lichess. Din ea se estimează nivelul. */
+  rating: number
 }
 
 export interface McqQuestion {
@@ -17,54 +18,54 @@ export interface McqQuestion {
 
 export type AssessmentQuestion = TacticsQuestion | McqQuestion
 
-// Întrebările de tactică, de la uşor la greu: două maturi într-o mutare, apoi
-// trei tactici din banca de puzzle-uri Lichess, cu dificultatea lor măsurată
-// (~960, ~1290, ~1590).
+// Întrebările de tactică: cinci puzzle-uri Lichess pe trepte de dificultate
+// (~1160, ~1460, ~1750, ~1960, ~2150). Fără indicii — pe ecran scrie doar cine e
+// la mutare, dedus din poziţie. Un test de plasament cu „Mat în 1" lângă o
+// poziţie uşoară nu plasează pe nimeni.
 //
 // Fiecare e trecută prin motor (scripts/verificari/evaluare-nivel.mjs): mutarea
-// cerută e cea mai bună şi câştigă clar faţă de a doua. Înainte, t3 şi t5 cereau
-// mutări care pierdeau o piesă (−7,34 şi −3,46), iar t1 era o poziţie egală, fără
-// tactică — deci cine ştia şah era notat greşit tocmai fiindcă nu făcea gafa.
+// cerută e cea mai bună şi e cu cel puţin doi pioni peste a doua. Contează doar
+// prima mutare din puzzle; restul liniei nu se joacă aici.
 export const TACTICS_QUESTIONS: TacticsQuestion[] = [
   {
-    type: 'tactics',
-    id: 't2',
-    fen: '6k1/5ppp/8/8/8/8/5PPP/4R1K1 w - - 0 1',
-    correctMove: 'e1e8',
-    hint: 'Mat în 1 — unde îl atacă tura?',
-  },
-  {
-    type: 'tactics',
-    id: 't4',
-    fen: '2r3k1/5ppp/8/8/8/8/5PPP/2R3K1 w - - 0 1',
-    correctMove: 'c1c8',
-    hint: 'Uită-te la regele negru: are unde să fugă?',
-  },
-  {
-    // Lichess 00bns (959): calul dă şah şi atacă în acelaşi timp regina de pe g6.
+    // Lichess 01VBW: şah dublu cu calul, care loveşte apoi şi regina.
     type: 'tactics',
     id: 't1',
-    fen: '6k1/1pp2ppp/p3n1q1/4PN2/2P2Q2/1P1rBP1P/r4P1K/4R3 w - - 6 31',
-    correctMove: 'f5e7',
-    hint: 'Un șah cu calul poate ataca două piese deodată.',
+    fen: '2b1rr1k/3q2pB/p1p5/PpPp4/1P1b1Np1/8/2Q2P1P/R4RK1 w - - 0 22',
+    correctMove: 'f4g6',
+    rating: 1157,
   },
   {
-    // Lichess 00nHy (1285): şahul cu calul eliberează diagonala nebunului de pe g7
-    // spre regina albă de pe d4.
+    // Lichess 01Btz: regina ia calul de pe b3; pionul care l-ar lua înapoi e legat.
+    type: 'tactics',
+    id: 't2',
+    fen: '2r1k2r/1p2bppp/1q1p4/p2Pp1P1/P4n1P/1N3P2/1PPQ4/2KR1B1R b k - 0 17',
+    correctMove: 'b6b3',
+    rating: 1459,
+  },
+  {
+    // Lichess 006fF: şahul cu regina descoperă atacul nebunului.
     type: 'tactics',
     id: 't3',
-    fen: 'r2q1rk1/p4pbp/1pp1p1p1/4n3/2PQN3/1P4P1/PB2PP1P/1R3RK1 b - - 0 16',
-    correctMove: 'e5f3',
-    hint: 'Negrul mută. Ce se întâmplă cu nebunul de pe g7 dacă pleacă calul?',
+    fen: 'r1b4r/pp1k2p1/2nb2qp/1B1p2B1/3p3Q/8/PPP2PPP/3RR1K1 w - - 0 18',
+    correctMove: 'h4g4',
+    rating: 1752,
   },
   {
-    // Lichess 00oXF (1589): pionul de pe g6 e legat de rege de tura de pe g3,
-    // deci nu poate lua înapoi pe f5.
+    // Lichess 000mr: tura se dă pe pionul de pe f4 şi rupe apărarea regelui alb.
+    type: 'tactics',
+    id: 't4',
+    fen: '5r1k/5rp1/p7/1b2B2p/1P1P1Pq1/2R3Q1/P3p1P1/2R3K1 b - - 1 41',
+    correctMove: 'f7f4',
+    rating: 1957,
+  },
+  {
+    // Lichess 08p1T: mat în trei, începând cu nebunul pe b5.
     type: 'tactics',
     id: 't5',
-    fen: '3r1rk1/1p3p1p/p1q3p1/4Pb1P/2p2P2/P5R1/2Q1B1P1/3R2K1 w - - 2 26',
-    correctMove: 'c2f5',
-    hint: 'Uită-te la pionul de pe g6: e liber să ia?',
+    fen: 'Q2r3r/1ppkbppp/3p1n2/3P4/4Pq2/3B4/PPPN2PP/R5K1 w - - 2 16',
+    correctMove: 'd3b5',
+    rating: 2154,
   },
 ]
 
