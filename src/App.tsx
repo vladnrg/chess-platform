@@ -1,51 +1,53 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import { useAuthInit, useAuth } from '@/hooks/useAuth'
 import { PageLoader } from '@/components/ui/Spinner'
 import { PoartaCont } from '@/components/auth/PoartaCont'
+import { EroarePagina } from '@/components/ui/EroarePagina'
+import { lazyPagina } from '@/lib/lazy-pagina'
 
 // Rutele se încarcă „lazy" (code-splitting): fiecare pagină devine un chunk separat,
 // așa că o pagină publică (ex. /vanzare) nu mai trage după ea chess.js, Stockfish,
 // recharts sau tot dashboard-ul. Named exports → mapate la `default` pentru React.lazy.
-const AppLayout = lazy(() => import('@/components/layout/AppLayout').then(m => ({ default: m.AppLayout })))
-const Landing = lazy(() => import('@/pages/Landing').then(m => ({ default: m.Landing })))
-const SalesPage = lazy(() => import('@/pages/SalesPage').then(m => ({ default: m.SalesPage })))
-const SalesPageBulletin = lazy(() => import('@/pages/SalesPageBulletin').then(m => ({ default: m.SalesPageBulletin })))
-const Login = lazy(() => import('@/pages/Auth/Login').then(m => ({ default: m.Login })))
-const Register = lazy(() => import('@/pages/Auth/Register').then(m => ({ default: m.Register })))
-const ForgotPassword = lazy(() => import('@/pages/Auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })))
-const ResetPassword = lazy(() => import('@/pages/Auth/ResetPassword').then(m => ({ default: m.ResetPassword })))
-const NotationGuide = lazy(() => import('@/pages/Resources/NotationGuide').then(m => ({ default: m.NotationGuide })))
-const ResourcesPage = lazy(() => import('@/pages/Resources/ResourcesPage').then(m => ({ default: m.ResourcesPage })))
-const BeginnersPage = lazy(() => import('@/pages/Resources/BeginnersPage').then(m => ({ default: m.BeginnersPage })))
-const Onboarding = lazy(() => import('@/pages/Onboarding/Onboarding').then(m => ({ default: m.Onboarding })))
-const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
-const CoursesPage = lazy(() => import('@/pages/Courses/CoursesPage').then(m => ({ default: m.CoursesPage })))
-const CourseDetail = lazy(() => import('@/pages/Courses/CourseDetail').then(m => ({ default: m.CourseDetail })))
-const LessonPage = lazy(() => import('@/pages/Courses/LessonPage').then(m => ({ default: m.LessonPage })))
-const OpeningTrainerPage = lazy(() => import('@/pages/Courses/OpeningTrainerPage').then(m => ({ default: m.OpeningTrainerPage })))
-const PuzzlesPage = lazy(() => import('@/pages/PuzzlesPage').then(m => ({ default: m.PuzzlesPage })))
-const PuzzlePlacement = lazy(() => import('@/pages/PuzzlePlacement').then(m => ({ default: m.PuzzlePlacement })))
-const StatsPage = lazy(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
-const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
-const PricingPage = lazy(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
-const MatchPage = lazy(() => import('@/pages/MatchPage').then(m => ({ default: m.MatchPage })))
-const LeaderboardPage = lazy(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
-const CalendarPage = lazy(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
-const TacticsChestPage = lazy(() => import('@/pages/TacticsChestPage').then(m => ({ default: m.TacticsChestPage })))
-const TacticsCategoryPage = lazy(() => import('@/pages/TacticsCategoryPage').then(m => ({ default: m.TacticsCategoryPage })))
-const RepertoirePage = lazy(() => import('@/pages/RepertoirePage').then(m => ({ default: m.RepertoirePage })))
-const LeaguesPage = lazy(() => import('@/pages/LeaguesPage').then(m => ({ default: m.LeaguesPage })))
-const EventsPage = lazy(() => import('@/pages/EventsPage').then(m => ({ default: m.EventsPage })))
-const AnalysisPage = lazy(() => import('@/pages/AnalysisPage').then(m => ({ default: m.AnalysisPage })))
-const EventDetailPage = lazy(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
-const SpecialePage = lazy(() => import('@/pages/Speciale/SpecialePage').then(m => ({ default: m.SpecialePage })))
-const ArenaRunPage = lazy(() => import('@/pages/ArenaRunPage').then(m => ({ default: m.ArenaRunPage })))
-const BreakPage = lazy(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
-const ParentalConfirmPage = lazy(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
-const ParentalStatsPage = lazy(() => import('@/pages/ParentalStatsPage').then(m => ({ default: m.ParentalStatsPage })))
+const AppLayout = lazyPagina(() => import('@/components/layout/AppLayout').then(m => ({ default: m.AppLayout })))
+const Landing = lazyPagina(() => import('@/pages/Landing').then(m => ({ default: m.Landing })))
+const SalesPage = lazyPagina(() => import('@/pages/SalesPage').then(m => ({ default: m.SalesPage })))
+const SalesPageBulletin = lazyPagina(() => import('@/pages/SalesPageBulletin').then(m => ({ default: m.SalesPageBulletin })))
+const Login = lazyPagina(() => import('@/pages/Auth/Login').then(m => ({ default: m.Login })))
+const Register = lazyPagina(() => import('@/pages/Auth/Register').then(m => ({ default: m.Register })))
+const ForgotPassword = lazyPagina(() => import('@/pages/Auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })))
+const ResetPassword = lazyPagina(() => import('@/pages/Auth/ResetPassword').then(m => ({ default: m.ResetPassword })))
+const NotationGuide = lazyPagina(() => import('@/pages/Resources/NotationGuide').then(m => ({ default: m.NotationGuide })))
+const ResourcesPage = lazyPagina(() => import('@/pages/Resources/ResourcesPage').then(m => ({ default: m.ResourcesPage })))
+const BeginnersPage = lazyPagina(() => import('@/pages/Resources/BeginnersPage').then(m => ({ default: m.BeginnersPage })))
+const Onboarding = lazyPagina(() => import('@/pages/Onboarding/Onboarding').then(m => ({ default: m.Onboarding })))
+const Dashboard = lazyPagina(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
+const CoursesPage = lazyPagina(() => import('@/pages/Courses/CoursesPage').then(m => ({ default: m.CoursesPage })))
+const CourseDetail = lazyPagina(() => import('@/pages/Courses/CourseDetail').then(m => ({ default: m.CourseDetail })))
+const LessonPage = lazyPagina(() => import('@/pages/Courses/LessonPage').then(m => ({ default: m.LessonPage })))
+const OpeningTrainerPage = lazyPagina(() => import('@/pages/Courses/OpeningTrainerPage').then(m => ({ default: m.OpeningTrainerPage })))
+const PuzzlesPage = lazyPagina(() => import('@/pages/PuzzlesPage').then(m => ({ default: m.PuzzlesPage })))
+const PuzzlePlacement = lazyPagina(() => import('@/pages/PuzzlePlacement').then(m => ({ default: m.PuzzlePlacement })))
+const StatsPage = lazyPagina(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
+const ProfilePage = lazyPagina(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
+const PricingPage = lazyPagina(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
+const MatchPage = lazyPagina(() => import('@/pages/MatchPage').then(m => ({ default: m.MatchPage })))
+const LeaderboardPage = lazyPagina(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
+const CalendarPage = lazyPagina(() => import('@/pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
+const TacticsChestPage = lazyPagina(() => import('@/pages/TacticsChestPage').then(m => ({ default: m.TacticsChestPage })))
+const TacticsCategoryPage = lazyPagina(() => import('@/pages/TacticsCategoryPage').then(m => ({ default: m.TacticsCategoryPage })))
+const RepertoirePage = lazyPagina(() => import('@/pages/RepertoirePage').then(m => ({ default: m.RepertoirePage })))
+const LeaguesPage = lazyPagina(() => import('@/pages/LeaguesPage').then(m => ({ default: m.LeaguesPage })))
+const EventsPage = lazyPagina(() => import('@/pages/EventsPage').then(m => ({ default: m.EventsPage })))
+const AnalysisPage = lazyPagina(() => import('@/pages/AnalysisPage').then(m => ({ default: m.AnalysisPage })))
+const EventDetailPage = lazyPagina(() => import('@/pages/EventDetailPage').then(m => ({ default: m.EventDetailPage })))
+const SpecialePage = lazyPagina(() => import('@/pages/Speciale/SpecialePage').then(m => ({ default: m.SpecialePage })))
+const ArenaRunPage = lazyPagina(() => import('@/pages/ArenaRunPage').then(m => ({ default: m.ArenaRunPage })))
+const BreakPage = lazyPagina(() => import('@/pages/BreakPage').then(m => ({ default: m.BreakPage })))
+const ParentalConfirmPage = lazyPagina(() => import('@/pages/ParentalConfirmPage').then(m => ({ default: m.ParentalConfirmPage })))
+const ParentalStatsPage = lazyPagina(() => import('@/pages/ParentalStatsPage').then(m => ({ default: m.ParentalStatsPage })))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -71,6 +73,8 @@ function AppRoutes() {
   if (!initialized) return <PageLoader />
 
   return (
+    // Fără plasă, o pagină care cădea lăsa ecranul negru. Vezi `EroarePagina`.
+    <EroarePagina>
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Public */}
@@ -131,6 +135,7 @@ function AppRoutes() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Suspense>
+    </EroarePagina>
   )
 }
 
