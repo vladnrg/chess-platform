@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chessboard, type PieceDropHandlerArgs, type Arrow } from 'react-chessboard'
+import { Chessboard, type Arrow } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
+import { usePromovare } from '@/hooks/usePromovare'
 import { getLeagueForXp } from '@/lib/utils'
 import { translateNotation } from '@/lib/chess-translations'
-import { AlegePromovare } from '@/components/chess/AlegePromovare'
-import { ePromovare } from '@/lib/promovare'
 import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
 import { TACTICS_QUESTIONS, MCQ_QUESTIONS, type AssessmentQuestion, type TacticsQuestion as Tactica } from './assessmentData'
@@ -21,6 +20,10 @@ const ALL_QUESTIONS: AssessmentQuestion[] = [
 ]
 
 const NR_TACTICI = TACTICS_QUESTIONS.length
+/** Cât costă, din nivelul final, un puzzle la care ai greşit (o singură dată pe puzzle). */
+const PENALIZARE_GRESEALA = 100
+/** De la a câta greşeală la rând apar ajutoarele. */
+const GRESELI_PANA_LA_AJUTOR = 2
 
 interface TacticsState {
   /** A cărei întrebări e tabla. Fără el, tabla rămânea cea de la prima tactică. */
@@ -30,20 +33,41 @@ interface TacticsState {
   pas: number
   /** Cât timp răspunde adversarul, în secvenţe, nu se poate muta. */
   adversarMuta: boolean
-  solved: boolean | null
-  attempted: boolean
+  /** Mutarea greşită, încă pe tablă până apeşi „Mai încearcă o dată". */
+  gresit: { fenInainte: string; de: string; la: string } | null
+  /** Greşeli una după alta la mutarea curentă; de la a doua apar ajutoarele. */
+  greseliLaRand: number
+  /** Piesa de mutat, luminată („Oferă un indiciu"). */
+  indiciu: boolean
+  /** Săgeata mutării corecte („Arată mutarea"). */
+  arataMutarea: boolean
+  /** Soluţia rulează singură („Arată secvenţa"). */
+  ruleazaSecventa: boolean
+  /** Ultima mutare jucată pe tablă (a ta sau a adversarului), marcată discret. */
+  ultima: string | null
+  terminat: 'rezolvat' | 'dezvaluit' | null
+}
+
+/** Ce s-a întâmplat la un puzzle, pentru nivel şi pentru revedere. */
+interface Incercare {
+  /** Prima greşeală: la ce mutare din soluţie şi ce ai jucat. Costă o dată −100. */
+  primaGreseala?: { pas: number; uci: string }
+  /** Ai cerut mutarea sau secvenţa: puzzle-ul nu mai contează ca rezolvat. */
+  dezvaluit?: boolean
 }
 
 function initTactics(id: string, fen: string): TacticsState {
-  const g = new Chess(fen)
-  return { id, game: g, pas: 0, adversarMuta: false, solved: null, attempted: false }
+  return {
+    id, game: new Chess(fen), pas: 0, adversarMuta: false, gresit: null, greseliLaRand: 0,
+    indiciu: false, arataMutarea: false, ruleazaSecventa: false, ultima: null, terminat: null,
+  }
 }
 
 function mutaUci(game: Chess, uci: string) {
   return game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] ?? 'q' })
 }
 
-function computeResults(answers: Record<string, string>) {
+function computeResults(answers: Record<string, string>, incercari: Record<string, Incercare>) {
   let puzzleScore = 0
   const styleCounts: Record<string, number> = { offensive: 0, balanced: 0, pragmatic: 0, defensive: 0 }
 
@@ -57,14 +81,17 @@ function computeResults(answers: Record<string, string>) {
 
   const playing_style = (Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0][0]) as PlayingStyle
 
-  // Nivelul vine din tactică, fiindcă puzzle-urile au dificultate măsurată:
-  // cel mai greu rezolvat, cu o treaptă mai jos (o nimereală norocoasă nu te
-  // urcă la nivelul ei). Fără niciunul, 400 — cât primul puzzle. Plafonul urcă
-  // odată cu treptele (ultimul puzzle e ~2400). Întrebările despre deschideri, care
-  // mutau rezultatul cu ±100, au fost scoase: nivelul vine doar din tablă.
+  // Nivelul vine din tactică, fiindcă puzzle-urile au dificultate măsurată: cel
+  // mai greu rezolvat (fără să ceri soluţia), cu o treaptă mai jos — o nimereală
+  // norocoasă nu te urcă la nivelul ei. Fără niciunul, 400, cât primul puzzle.
+  // Din el se scad 100 pentru fiecare puzzle la care ai greşit măcar o dată:
+  // poţi reîncerca oricât, dar prima greşeală se plăteşte (cerut pe 2026-11-13).
   const rezolvate = TACTICS_QUESTIONS.filter(q => answers[q.id] === 'correct').map(q => q.rating)
   const dinTactica = rezolvate.length === 0 ? 400 : Math.max(...rezolvate) - 150
-  const estimated_elo = Math.round(Math.min(2400, Math.max(400, dinTactica)) / 50) * 50
+  const cuGreseli = TACTICS_QUESTIONS.filter(q => incercari[q.id]?.primaGreseala).length
+  const estimated_elo = Math.round(
+    Math.max(400, Math.min(2400, dinTactica) - cuGreseli * PENALIZARE_GRESEALA) / 50,
+  ) * 50
 
   // Coloana `knowledge_score` rămâne în baza de date; fără întrebări, e 0.
   return { puzzleScore, knowledgeScore: 0, playing_style, estimated_elo }
@@ -77,8 +104,7 @@ export function Onboarding() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [tacticsState, setTacticsState] = useState<TacticsState | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  /** Mutările jucate la fiecare puzzle (ale tale, în ordine), ca să poată fi revăzute. Lipsă = sărit. */
-  const [mutari, setMutari] = useState<Record<string, string[]>>({})
+  const [incercari, setIncercari] = useState<Record<string, Incercare>>({})
   /**
    * Indexul puzzle-ului revăzut, dacă te-ai întors la unul de dinainte; altfel
    * `null`. Întrebarea curentă nu se atinge cât revezi: „Reia de unde ai rămas"
@@ -120,54 +146,126 @@ export function Onboarding() {
     setTimeout(() => nextStep(), 500)
   }
 
+  /** Răspunsul adversarului într-o secvenţă, după o mutare corectă a ta. */
+  function raspundeAdversarul(qId: string, raspuns: string, pasDupa: number) {
+    setTimeout(() => {
+      setTacticsState(s => {
+        if (!s || s.id !== qId) return s
+        const g = new Chess(s.game.fen())
+        mutaUci(g, raspuns)
+        return { ...s, game: g, pas: pasDupa, adversarMuta: false, ultima: raspuns }
+      })
+    }, 600)
+  }
+
   /**
    * O mutare a jucătorului. E corectă dacă e cea din soluţie sau dacă dă mat (un
-   * mat e un mat, oricum ar fi dat). La o secvenţă, după fiecare mutare corectă
-   * răspunde adversarul; prima greşeală încheie puzzle-ul ca greşit.
+   * mat e un mat, oricum ar fi dat). O greşeală rămâne pe tablă, în roşu, până
+   * apeşi „Mai încearcă o dată"; prima greşeală de la un puzzle costă 100 din
+   * nivelul final, următoarele nimic.
    */
   function handlePieceDrop(sourceSquare: string, targetSquare: string, promovare?: string) {
-    if (!tacticsState || current.type !== 'tactics') return false
-    if (tacticsState.attempted || tacticsState.adversarMuta) return false
+    const ts = tacticsState
+    if (!ts || current.type !== 'tactics') return false
+    if (ts.terminat || ts.adversarMuta || ts.gresit || ts.ruleazaSecventa) return false
     const q = current
-    const asteptata = q.solutie[tacticsState.pas]
-    const copie = new Chess(tacticsState.game.fen())
+    const asteptata = q.solutie[ts.pas]
+    const copie = new Chess(ts.game.fen())
     let jucata
     try {
-      // Piesa de promovare o alege jucătorul (vezi `AlegePromovare`); fără promovare,
-      // `promotion` e ignorat.
+      // Piesa de promovare o alege jucătorul (vezi `usePromovare`); fără
+      // promovare, `promotion` e ignorat.
       jucata = copie.move({ from: sourceSquare, to: targetSquare, promotion: promovare ?? 'q' })
     } catch {
       return false
     }
     const uci = sourceSquare + targetSquare + (jucata.promotion ?? '')
-    setMutari(prev => ({ ...prev, [q.id]: [...(prev[q.id] ?? []), uci] }))
 
     // La promovare contează şi piesa aleasă: un pion făcut nebun nu e soluţia care
     // cere regină — decât dacă dă tot mat.
     const corecta = (jucata.promotion ? uci === asteptata : (sourceSquare + targetSquare) === asteptata?.slice(0, 4))
       || copie.isCheckmate()
-    const urmatorul = tacticsState.pas + 1
-    const gata = !corecta || urmatorul >= q.solutie.length || copie.isCheckmate()
 
-    if (gata) {
-      setAnswers(prev => ({ ...prev, [q.id]: corecta ? 'correct' : 'wrong' }))
-      setTacticsState({ ...tacticsState, game: copie, solved: corecta, attempted: true })
+    if (!corecta) {
+      setIncercari(prev => prev[q.id]?.primaGreseala
+        ? prev
+        : { ...prev, [q.id]: { ...prev[q.id], primaGreseala: { pas: ts.pas, uci } } })
+      setTacticsState({
+        ...ts, game: copie, ultima: null, arataMutarea: false,
+        gresit: { fenInainte: ts.game.fen(), de: sourceSquare, la: targetSquare },
+        greseliLaRand: ts.greseliLaRand + 1,
+      })
+      return true
+    }
+
+    const urmatorul = ts.pas + 1
+    const ajutor = { greseliLaRand: 0, indiciu: false, arataMutarea: false, ultima: uci }
+    if (urmatorul >= q.solutie.length || copie.isCheckmate()) {
+      const dezvaluit = !!incercari[q.id]?.dezvaluit
+      setAnswers(prev => ({ ...prev, [q.id]: dezvaluit ? 'wrong' : 'correct' }))
+      setTacticsState({ ...ts, ...ajutor, game: copie, terminat: dezvaluit ? 'dezvaluit' : 'rezolvat' })
       setTimeout(() => nextStep(), 1800)
       return true
     }
 
     // Secvenţă, mutare corectă: răspunde adversarul, apoi e iar rândul tău.
-    setTacticsState({ ...tacticsState, game: copie, pas: urmatorul, adversarMuta: true })
-    const raspuns = q.solutie[urmatorul]
-    setTimeout(() => {
-      setTacticsState(s => {
-        if (!s || s.id !== q.id) return s
-        const g = new Chess(s.game.fen())
-        mutaUci(g, raspuns)
-        return { ...s, game: g, pas: urmatorul + 1, adversarMuta: false }
-      })
-    }, 600)
+    setTacticsState({ ...ts, ...ajutor, game: copie, pas: urmatorul, adversarMuta: true })
+    raspundeAdversarul(q.id, q.solutie[urmatorul], urmatorul + 1)
     return true
+  }
+
+  /** „Mai încearcă o dată": mutarea greşită dispare, poziţia e cea de dinainte. */
+  function reincearca() {
+    setTacticsState(s => s?.gresit ? { ...s, game: new Chess(s.gresit.fenInainte), gresit: null } : s)
+  }
+
+  function dezvaluie() {
+    if (current?.type !== 'tactics') return
+    setIncercari(prev => ({ ...prev, [current.id]: { ...prev[current.id], dezvaluit: true } }))
+  }
+
+  function oferaIndiciu() {
+    reincearca()
+    setTacticsState(s => s ? { ...s, indiciu: true } : s)
+  }
+
+  function arataMutarea() {
+    dezvaluie()
+    reincearca()
+    setTacticsState(s => s ? { ...s, arataMutarea: true } : s)
+  }
+
+  /** „Arată secvenţa": restul soluţiei se joacă singur, mutare cu mutare. */
+  function arataSecventa() {
+    const ts = tacticsState
+    if (!ts || current?.type !== 'tactics') return
+    const q = current
+    dezvaluie()
+    const rest = q.solutie.slice(ts.pas)
+    setTacticsState({
+      ...ts, game: new Chess(ts.gresit ? ts.gresit.fenInainte : ts.game.fen()),
+      gresit: null, indiciu: false, arataMutarea: false, ruleazaSecventa: true,
+    })
+    rest.forEach((uci, i) => {
+      setTimeout(() => {
+        const gata = i === rest.length - 1
+        setTacticsState(s => {
+          if (!s || s.id !== q.id) return s
+          const g = new Chess(s.game.fen())
+          mutaUci(g, uci)
+          return { ...s, game: g, pas: ts.pas + i + 1, ultima: uci, ruleazaSecventa: !gata, terminat: gata ? 'dezvaluit' : null }
+        })
+        if (gata) setAnswers(prev => ({ ...prev, [q.id]: 'wrong' }))
+      }, 800 * (i + 1))
+    })
+  }
+
+  function treciMaiDeparte() {
+    // Sărit după o greşeală: nu e rezolvat. Fără greşeală, rămâne pur şi simplu sărit.
+    if (current?.type === 'tactics' && incercari[current.id]?.primaGreseala && !answers[current.id]) {
+      setAnswers(prev => ({ ...prev, [current.id]: 'wrong' }))
+    }
+    nextStep()
   }
 
   function nextStep() {
@@ -181,7 +279,7 @@ export function Onboarding() {
   async function handleFinish() {
     if (!user) return
     setSubmitting(true)
-    const { puzzleScore, knowledgeScore, playing_style, estimated_elo } = computeResults(answers)
+    const { puzzleScore, knowledgeScore, playing_style, estimated_elo } = computeResults(answers, incercari)
     const league = getLeagueForXp(0)
 
     const { error: assessErr } = await supabase.from('assessment_results').upsert({
@@ -246,7 +344,7 @@ export function Onboarding() {
             <Revizuire
               question={ALL_QUESTIONS[deRevazut] as Tactica}
               numar={deRevazut + 1}
-              mutari={mutari[ALL_QUESTIONS[deRevazut].id]}
+              incercare={incercari[ALL_QUESTIONS[deRevazut].id]}
               rezultat={answers[ALL_QUESTIONS[deRevazut].id]}
             />
           )}
@@ -256,7 +354,11 @@ export function Onboarding() {
               question={current}
               tacticsState={tacticsState}
               onDrop={handlePieceDrop}
-              onSkip={nextStep}
+              onReincearca={reincearca}
+              onIndiciu={oferaIndiciu}
+              onArataMutarea={arataMutarea}
+              onArataSecventa={arataSecventa}
+              onSkip={treciMaiDeparte}
             />
           )}
           {deRevazut === null && current?.type === 'mcq' && (
@@ -303,27 +405,73 @@ export function Onboarding() {
 }
 
 function TacticsQuestion({
-  question, tacticsState, onDrop, onSkip,
+  question, tacticsState: ts, onDrop, onReincearca, onIndiciu, onArataMutarea, onArataSecventa, onSkip,
 }: {
   question: Tactica
   tacticsState: TacticsState
   onDrop: (from: string, to: string, promovare?: string) => boolean
+  onReincearca: () => void
+  onIndiciu: () => void
+  onArataMutarea: () => void
+  onArataSecventa: () => void
   onSkip: () => void
 }) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
-  /** Un pion ajuns pe ultimul rând aşteaptă să alegi piesa. */
-  const [deAles, setDeAles] = useState<{ de: string; la: string } | null>(null)
+  // La promovare alegi piesa (usePromovare); restul mutărilor merg direct.
+  const promovare = usePromovare(ts.game.fen(), onDrop)
   // Cine e la mutare joacă de jos, ca în cursuri: la o poziţie cu negrul la
   // mutare, tabla întoarsă cu albul jos te punea să gândeşti cu capul în jos.
   const negrulMuta = question.fen.split(' ')[1] === 'b'
   const secventa = question.solutie.length > 1
+  const urmatoarea = question.solutie[ts.pas]
+  const ocupat = !!ts.terminat || ts.adversarMuta || !!ts.gresit || ts.ruleazaSecventa
+  const ajutoare = !ts.terminat && !ts.ruleazaSecventa && ts.greseliLaRand >= GRESELI_PANA_LA_AJUTOR
+
+  const squareStyles: Record<string, React.CSSProperties> = {}
+  if (ts.ultima) {
+    squareStyles[ts.ultima.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.22)' }
+    squareStyles[ts.ultima.slice(2, 4)] = { backgroundColor: 'rgba(226,179,64,0.38)' }
+  }
+  if (ts.indiciu && urmatoarea && !ts.gresit) {
+    squareStyles[urmatoarea.slice(0, 2)] = { backgroundColor: 'rgba(74,222,128,0.55)' }
+  }
+  if (ts.gresit) {
+    squareStyles[ts.gresit.de] = { backgroundColor: 'rgba(251,113,133,0.45)' }
+    squareStyles[ts.gresit.la] = { backgroundColor: 'rgba(251,113,133,0.6)' }
+  }
+  const sageti: Arrow[] = ts.arataMutarea && urmatoarea && !ts.gresit
+    ? [{ startSquare: urmatoarea.slice(0, 2), endSquare: urmatoarea.slice(2, 4), color: 'rgba(74,222,128,0.9)' }]
+    : []
+
   return (
     <div>
-      <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">
-        {secventa ? 'Găsește cea mai bună secvență' : 'Găsește cea mai bună mutare'}
-      </h2>
-      {/* Doar cine e la mutare. Niciun indiciu: testul măsoară ce vezi singur. */}
-      <p className="text-sm text-[#A0A0A0] mb-4">{negrulMuta ? 'Negrul la mutare' : 'Albul la mutare'}</p>
+      {/* Antetul: întrebarea în stânga, verdictul în dreapta sus. */}
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">
+            {secventa ? 'Găsește cea mai bună secvență' : 'Găsește cea mai bună mutare'}
+          </h2>
+          {/* Doar cine e la mutare. Niciun indiciu: testul măsoară ce vezi singur. */}
+          <p className="text-sm text-[#A0A0A0]">{negrulMuta ? 'Negrul la mutare' : 'Albul la mutare'}</p>
+        </div>
+        <div className="flex min-h-[2.5rem] flex-col items-end gap-1.5 text-right">
+          {ts.terminat === 'rezolvat' && (
+            <p className="text-base font-semibold text-[#4ade80]">✓ Corect</p>
+          )}
+          {ts.terminat === 'dezvaluit' && (
+            <p className="text-sm font-semibold text-[#A0A0A0]">Aceasta era soluția</p>
+          )}
+          {ts.gresit && (
+            <>
+              <p className="text-base font-semibold text-[#FB7185]">Greșit.</p>
+              <Button size="sm" variant="secondary" onClick={onReincearca}>
+                Mai încearcă o dată
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
       <div
         className="relative mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
@@ -331,76 +479,69 @@ function TacticsQuestion({
       >
         <Chessboard
           options={{
-            position: tacticsState.game.fen(),
-            onPieceDrop: ({ piece, sourceSquare, targetSquare }: PieceDropHandlerArgs) => {
-              // targetSquare e null la drop în afara tablei → snap-back
-              if (!targetSquare) return false
-              if (ePromovare(piece.pieceType, targetSquare)) {
-                // Doar dacă mutarea e legală; altfel piesa se întoarce, fără întrebare.
-                try {
-                  new Chess(tacticsState.game.fen()).move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
-                } catch {
-                  return false
-                }
-                setDeAles({ de: sourceSquare, la: targetSquare })
-                return false
-              }
-              return onDrop(sourceSquare, targetSquare)
-            },
-            allowDragging: !tacticsState.attempted && !tacticsState.adversarMuta && !deAles,
+            position: ts.game.fen(),
+            onPieceDrop: promovare.laDrop,
+            allowDragging: !ocupat && !promovare.asteapta,
             boardOrientation: negrulMuta ? 'black' : 'white',
             boardStyle: { borderRadius: 0 },
+            squareStyles,
+            arrows: sageti,
             darkSquareStyle,
             lightSquareStyle,
           }}
         />
-        {deAles && (
-          <AlegePromovare
-            culoare={negrulMuta ? 'b' : 'w'}
-            onAlege={litera => {
-              const { de, la } = deAles
-              setDeAles(null)
-              onDrop(de, la, litera)
-            }}
-          />
-        )}
+        {promovare.alegere}
       </div>
-      {tacticsState.solved === true && (
-        <p className="mt-4 text-center text-[#4ade80] font-semibold">✓ Corect!</p>
+
+      {/* Ajutoarele, de la a doua greşeală la rând. Indiciul nu costă nimic;
+          mutarea sau secvenţa arătată face ca puzzle-ul să nu mai conteze. */}
+      {ajutoare && (
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Button size="sm" variant="secondary" onClick={onIndiciu} disabled={ts.indiciu}>
+            Oferă un indiciu
+          </Button>
+          <Button size="sm" variant="secondary" onClick={onArataMutarea} disabled={ts.arataMutarea}>
+            Arată mutarea
+          </Button>
+          {secventa && (
+            <Button size="sm" variant="secondary" onClick={onArataSecventa}>
+              Arată secvența
+            </Button>
+          )}
+        </div>
       )}
-      {/* Răspunsul e definitiv, deci nu „mai gândeşte-te": urmează întrebarea următoare. */}
-      {tacticsState.solved === false && (
-        <p className="mt-4 text-center text-[#fbbf24] font-semibold">Nu e cea mai bună mutare.</p>
-      )}
-      {!tacticsState.attempted && (
+
+      {!ts.terminat && !ts.ruleazaSecventa && (
         <button onClick={onSkip} className="mt-4 w-full text-sm text-[#6B6B6B] hover:text-[#A0A0A0] transition-colors">
           Nu știu — treci mai departe
         </button>
+      )}
+      {/* După o secvenţă arătată, omul se uită cât vrea şi merge mai departe singur. */}
+      {ts.terminat === 'dezvaluit' && (
+        <div className="mt-4 flex justify-center">
+          <Button size="sm" onClick={onSkip}>Mai departe →</Button>
+        </div>
       )}
     </div>
   )
 }
 
 /**
- * Un puzzle deja parcurs. Tabla arată poziţia din clipa în care ai greşit (sau
- * de la început, dacă ai rezolvat ori ai sărit), cu mutarea ta în roşu şi cea
- * bună în verde. La secvenţe, dedesubt e scrisă toată soluţia.
+ * Un puzzle deja parcurs. Tabla arată poziţia din clipa primei greşeli (sau de
+ * la început, dacă ai rezolvat din prima ori ai sărit), cu mutarea ta în roşu şi
+ * cea bună în verde. La secvenţe, dedesubt e scrisă toată soluţia.
  */
-function Revizuire({ question, numar, mutari, rezultat }: {
+function Revizuire({ question, numar, incercare, rezultat }: {
   question: Tactica
   numar: number
-  mutari: string[] | undefined
+  incercare: Incercare | undefined
   rezultat: string | undefined
 }) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const negrulMuta = question.fen.split(' ')[1] === 'b'
   const corect = rezultat === 'correct'
-  const ale = mutari ?? []
-
-  // Unde s-a rupt: prima mutare a ta care nu e cea din soluţie.
-  let k = 0
-  while (!corect && k < ale.length && ale[k].slice(0, 4) === question.solutie[2 * k]?.slice(0, 4)) k++
-  const indexRuptura = corect ? 0 : 2 * k
+  const greseala = incercare?.primaGreseala
+  const indexRuptura = greseala?.pas ?? 0
 
   const joc = new Chess(question.fen)
   const sanSolutie: string[] = []
@@ -418,26 +559,33 @@ function Revizuire({ question, numar, mutari, rezultat }: {
   }
 
   const buna = question.solutie[indexRuptura]
-  const gresita = !corect ? ale[k] : undefined
   const sageti: Arrow[] = []
-  if (gresita) {
-    sageti.push({ startSquare: gresita.slice(0, 2), endSquare: gresita.slice(2, 4), color: 'rgba(251,113,133,0.9)' })
+  if (greseala) {
+    sageti.push({ startSquare: greseala.uci.slice(0, 2), endSquare: greseala.uci.slice(2, 4), color: 'rgba(251,113,133,0.9)' })
   }
   if (buna) {
     sageti.push({ startSquare: buna.slice(0, 2), endSquare: buna.slice(2, 4), color: 'rgba(74,222,128,0.9)' })
   }
   const secventa = question.solutie.length > 1
 
+  let text: string
+  if (greseala) {
+    const gresit = `Ai greșit întâi cu ${san(fenRuptura, greseala.uci)} (roșu); mutarea cea mai bună era ${san(fenRuptura, buna)} (verde).`
+    text = corect
+      ? `${gresit} Ai găsit soluția la reîncercare (−${PENALIZARE_GRESEALA}).`
+      : incercare?.dezvaluit
+      ? `${gresit} Ai cerut apoi soluția.`
+      : gresit
+  } else if (corect) {
+    text = secventa ? 'Ai găsit toată secvența din prima: corect.' : `Ai jucat ${sanSolutie[0]}: corect.`
+  } else {
+    text = `Ai sărit peste acest puzzle. Mutarea cea mai bună era ${san(fenRuptura, buna)} (verde).`
+  }
+
   return (
     <div>
       <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Revezi întrebarea {numar}</h2>
-      <p className="text-sm text-[#A0A0A0] mb-1">
-        {corect
-          ? secventa ? 'Ai găsit toată secvența: corect.' : `Ai jucat ${sanSolutie[0]}: corect.`
-          : gresita
-          ? `Ai jucat ${san(fenRuptura, gresita)} (roșu). Mutarea cea mai bună era ${san(fenRuptura, buna)} (verde).`
-          : `Ai sărit peste acest puzzle. Mutarea cea mai bună era ${san(fenRuptura, buna)} (verde).`}
-      </p>
+      <p className="text-sm text-[#A0A0A0] mb-1">{text}</p>
       {secventa && (
         <p className="text-sm text-[#A0A0A0] mb-4">
           Secvența completă: <span className="text-[#F0F0F0]">{sanSolutie.join('  ')}</span>
