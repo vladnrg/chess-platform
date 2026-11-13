@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs, type Arrow } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { getLeagueForXp } from '@/lib/utils'
+import { translateNotation } from '@/lib/chess-translations'
 import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
-import { TACTICS_QUESTIONS, MCQ_QUESTIONS, type AssessmentQuestion } from './assessmentData'
+import { TACTICS_QUESTIONS, MCQ_QUESTIONS, type AssessmentQuestion, type TacticsQuestion as Tactica } from './assessmentData'
 import type { PlayingStyle } from '@/types'
 
 const ALL_QUESTIONS: AssessmentQuestion[] = [
@@ -69,10 +70,32 @@ export function Onboarding() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [tacticsState, setTacticsState] = useState<TacticsState | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  /** Mutarea jucată la fiecare puzzle, ca să poată fi revăzută. Lipsă = sărit. */
+  const [mutari, setMutari] = useState<Record<string, string>>({})
+  /**
+   * Indexul puzzle-ului revăzut, dacă te-ai întors la unul de dinainte; altfel
+   * `null`. Întrebarea curentă nu se atinge cât revezi: „Reia de unde ai rămas"
+   * te duce înapoi exact unde erai.
+   */
+  const [revazut, setRevazut] = useState<number | null>(null)
 
   const current = ALL_QUESTIONS[step]
   const total = ALL_QUESTIONS.length
   const pct = Math.round((step / total) * 100)
+
+  /** Ultimul puzzle dinaintea poziţiei `pana` (exclusiv), sau -1. */
+  const puzzleInainte = (pana: number) => {
+    for (let i = Math.min(pana, ALL_QUESTIONS.length) - 1; i >= 0; i--) {
+      if (ALL_QUESTIONS[i].type === 'tactics') return i
+    }
+    return -1
+  }
+  const deRevazut = revazut
+  // „Înapoi" pleacă de la puzzle-ul revăzut, dacă eşti deja într-unul: aşa poţi
+  // merge pas cu pas până la primul.
+  const anterior = puzzleInainte(deRevazut ?? step)
+  /** Pe ecran e o tablă — întrebarea curentă sau un puzzle revăzut. */
+  const cuTabla = deRevazut !== null || current?.type === 'tactics'
 
   // Tabla se pregăteşte la FIECARE întrebare de tactică, nu doar la prima.
   // Înainte condiţia era „nu există încă o tablă", iar tabla nu se golea decât la
@@ -98,6 +121,7 @@ export function Onboarding() {
       gameCopy.move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
       const isCorrect = move === current.correctMove
       setAnswers(prev => ({ ...prev, [current.id]: isCorrect ? 'correct' : 'wrong' }))
+      setMutari(prev => ({ ...prev, [current.id]: move }))
       setTacticsState({ id: current.id, game: gameCopy, solved: isCorrect, attempted: true })
       setTimeout(() => nextStep(), 1800)
       return true
@@ -156,8 +180,8 @@ export function Onboarding() {
           tabla avea oricum un plafon de 380px. La întrebările cu variante de
           răspuns rămâne îngustă: acolo un rând lung de buton se citeşte greu. */}
       <div
-        className={`w-full ${current?.type === 'tactics' ? '' : 'max-w-2xl'}`}
-        style={current?.type === 'tactics' ? { maxWidth: 'max(42rem, calc(var(--board-max) + 3rem))' } : undefined}
+        className={`w-full ${cuTabla ? '' : 'max-w-2xl'}`}
+        style={cuTabla ? { maxWidth: 'max(42rem, calc(var(--board-max) + 3rem))' } : undefined}
       >
         {/* Header */}
         <div className="mb-8 text-center">
@@ -178,7 +202,15 @@ export function Onboarding() {
 
         {/* Question */}
         <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-3 sm:p-6">
-          {current?.type === 'tactics' && tacticsState && (
+          {deRevazut !== null && ALL_QUESTIONS[deRevazut].type === 'tactics' && (
+            <Revizuire
+              question={ALL_QUESTIONS[deRevazut] as Tactica}
+              numar={deRevazut + 1}
+              mutare={mutari[ALL_QUESTIONS[deRevazut].id]}
+              rezultat={answers[ALL_QUESTIONS[deRevazut].id]}
+            />
+          )}
+          {deRevazut === null && current?.type === 'tactics' && tacticsState && (
             <TacticsQuestion
               question={current}
               tacticsState={tacticsState}
@@ -186,14 +218,14 @@ export function Onboarding() {
               onSkip={nextStep}
             />
           )}
-          {current?.type === 'mcq' && (
+          {deRevazut === null && current?.type === 'mcq' && (
             <McqQuestion
               question={current}
               selected={answers[current.id]}
               onAnswer={handleMcqAnswer}
             />
           )}
-          {!current && (
+          {deRevazut === null && !current && (
             <div className="text-center py-8">
               <p className="text-[#A0A0A0] mb-4">Evaluare completată!</p>
               <Button onClick={handleFinish} loading={submitting} size="lg">
@@ -202,6 +234,23 @@ export function Onboarding() {
             </div>
           )}
         </div>
+
+        {/* Drumul înapoi la puzzle-urile deja parcurse, şi înapoi la exerciţiul
+            curent. Răspunsurile nu se schimbă: aici doar te uiţi. */}
+        {(anterior >= 0 || deRevazut !== null) && (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            {anterior >= 0 && (
+              <Button variant="secondary" size="sm" onClick={() => setRevazut(anterior)}>
+                ← Înapoi la dezlegarea anterioară
+              </Button>
+            )}
+            {deRevazut !== null && (
+              <Button size="sm" onClick={() => setRevazut(null)}>
+                Reia de unde ai rămas →
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Section label */}
         <p className="mt-4 text-center text-xs text-[#6B6B6B]">
@@ -258,6 +307,67 @@ function TacticsQuestion({
           Nu știu — treci mai departe
         </button>
       )}
+    </div>
+  )
+}
+
+/** Un puzzle deja parcurs: poziţia, mutarea ta şi, dacă n-a fost ea, cea mai bună. */
+function Revizuire({ question, numar, mutare, rezultat }: {
+  question: Tactica
+  numar: number
+  mutare: string | undefined
+  rezultat: string | undefined
+}) {
+  const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
+  const negrulMuta = question.fen.split(' ')[1] === 'b'
+  const san = (uci: string) => {
+    try {
+      const m = new Chess(question.fen).move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] ?? 'q' })
+      return translateNotation(m.san)
+    } catch {
+      return uci
+    }
+  }
+  const corect = rezultat === 'correct'
+  const sageti: Arrow[] = []
+  if (mutare && !corect) {
+    sageti.push({ startSquare: mutare.slice(0, 2), endSquare: mutare.slice(2, 4), color: 'rgba(251,113,133,0.9)' })
+  }
+  sageti.push({
+    startSquare: question.correctMove.slice(0, 2),
+    endSquare: question.correctMove.slice(2, 4),
+    color: 'rgba(74,222,128,0.9)',
+  })
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Revezi întrebarea {numar}</h2>
+      <p className="text-sm text-[#A0A0A0] mb-4">
+        {corect
+          ? `Ai jucat ${san(mutare!)}: corect.`
+          : mutare
+          ? `Ai jucat ${san(mutare)} (roșu). Mutarea cea mai bună era ${san(question.correctMove)} (verde).`
+          : `Ai sărit peste acest puzzle. Mutarea cea mai bună era ${san(question.correctMove)} (verde).`}
+      </p>
+      <div
+        className="mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
+        style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+      >
+        <Chessboard
+          options={{
+            position: question.fen,
+            allowDragging: false,
+            arrows: sageti,
+            boardOrientation: negrulMuta ? 'black' : 'white',
+            boardStyle: { borderRadius: 0 },
+            darkSquareStyle,
+            lightSquareStyle,
+          }}
+        />
+      </div>
+      <p className="mt-3 text-center text-xs text-[#6B6B6B]">
+        Răspunsul rămâne cel dat. Aici doar revezi poziția.
+      </p>
     </div>
   )
 }
