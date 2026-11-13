@@ -15,12 +15,10 @@ import type { PlayingStyle } from '@/types'
 
 const ALL_QUESTIONS: AssessmentQuestion[] = [
   ...TACTICS_QUESTIONS,
-  ...MCQ_QUESTIONS.filter(q => q.category === 'knowledge'),
   ...MCQ_QUESTIONS.filter(q => q.category === 'style'),
 ]
 
 const NR_TACTICI = TACTICS_QUESTIONS.length
-const NR_CUNOSTINTE = MCQ_QUESTIONS.filter(q => q.category === 'knowledge').length
 
 interface TacticsState {
   /** A cărei întrebări e tabla. Fără el, tabla rămânea cea de la prima tactică. */
@@ -45,14 +43,10 @@ function mutaUci(game: Chess, uci: string) {
 
 function computeResults(answers: Record<string, string>) {
   let puzzleScore = 0
-  let knowledgeScore = 0
   const styleCounts: Record<string, number> = { offensive: 0, balanced: 0, pragmatic: 0, defensive: 0 }
 
   TACTICS_QUESTIONS.forEach(q => {
     if (answers[q.id] === 'correct') puzzleScore++
-  })
-  MCQ_QUESTIONS.filter(q => q.category === 'knowledge').forEach(q => {
-    if (answers[q.id] === q.correct) knowledgeScore++
   })
   MCQ_QUESTIONS.filter(q => q.category === 'style').forEach(q => {
     const ans = answers[q.id]
@@ -63,15 +57,15 @@ function computeResults(answers: Record<string, string>) {
 
   // Nivelul vine din tactică, fiindcă puzzle-urile au dificultate măsurată:
   // cel mai greu rezolvat, cu o treaptă mai jos (o nimereală norocoasă nu te
-  // urcă la nivelul ei). Fără niciunul, 400 — cât primul puzzle. Cunoştinţele de
-  // deschideri mută doar cu o sută în sus sau în jos — se pot învăţa pe de rost,
-  // tactica nu. Plafonul urcă odată cu treptele (ultimul puzzle e ~2400).
+  // urcă la nivelul ei). Fără niciunul, 400 — cât primul puzzle. Plafonul urcă
+  // odată cu treptele (ultimul puzzle e ~2400). Întrebările despre deschideri, care
+  // mutau rezultatul cu ±100, au fost scoase: nivelul vine doar din tablă.
   const rezolvate = TACTICS_QUESTIONS.filter(q => answers[q.id] === 'correct').map(q => q.rating)
   const dinTactica = rezolvate.length === 0 ? 400 : Math.max(...rezolvate) - 150
-  const dinCunostinte = knowledgeScore >= 4 ? 100 : knowledgeScore <= 1 ? -100 : 0
-  const estimated_elo = Math.round(Math.min(2400, Math.max(400, dinTactica + dinCunostinte)) / 50) * 50
+  const estimated_elo = Math.round(Math.min(2400, Math.max(400, dinTactica)) / 50) * 50
 
-  return { puzzleScore, knowledgeScore, playing_style, estimated_elo }
+  // Coloana `knowledge_score` rămâne în baza de date; fără întrebări, e 0.
+  return { puzzleScore, knowledgeScore: 0, playing_style, estimated_elo }
 }
 
 export function Onboarding() {
@@ -293,7 +287,7 @@ export function Onboarding() {
 
         {/* Section label */}
         <p className="mt-4 text-center text-xs text-[#6B6B6B]">
-          {step < NR_TACTICI ? '♟ Tactici' : step < NR_TACTICI + NR_CUNOSTINTE ? '📚 Cunoștințe openings' : '🎯 Stil de joc'}
+          {step < NR_TACTICI ? '♟ Tactici' : '🎯 Stil de joc'}
         </p>
       </div>
     </div>

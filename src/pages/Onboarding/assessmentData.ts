@@ -157,72 +157,11 @@ export const TACTICS_QUESTIONS: TacticsQuestion[] = [
 ]
 
 export const MCQ_QUESTIONS: McqQuestion[] = [
-  // Cunoștințe openings
-  {
-    type: 'mcq',
-    id: 'k1',
-    category: 'knowledge',
-    question: 'Care este prima mutare tipică în Sistemul Londra pentru alb?',
-    options: [
-      { label: '1.d4', value: 'd4' },
-      { label: '1.e4', value: 'e4' },
-      { label: '1.c4', value: 'c4' },
-      { label: '1.Nf3', value: 'nf3' },
-    ],
-    correct: 'd4',
-  },
-  {
-    type: 'mcq',
-    id: 'k2',
-    category: 'knowledge',
-    question: 'Apărarea Siciliană pornește cu...',
-    options: [
-      { label: '1.e4 c5', value: 'e4c5' },
-      { label: '1.e4 e5', value: 'e4e5' },
-      { label: '1.e4 d5', value: 'e4d5' },
-      { label: '1.e4 e6', value: 'e4e6' },
-    ],
-    correct: 'e4c5',
-  },
-  {
-    type: 'mcq',
-    id: 'k3',
-    category: 'knowledge',
-    question: 'Ce urmărește Gambitul Damei (1.d4 d5 2.c4)?',
-    options: [
-      { label: 'Câștigarea unui pion central', value: 'pion' },
-      { label: 'Control spațiu + presiune centrală', value: 'spatiu' },
-      { label: 'Atac rapid pe flanc', value: 'flanc' },
-      { label: 'Schimb de regine rapid', value: 'regine' },
-    ],
-    correct: 'spatiu',
-  },
-  {
-    type: 'mcq',
-    id: 'k4',
-    category: 'knowledge',
-    question: 'Caro-Kann (1.e4 c6) este considerată o deschidere...',
-    options: [
-      { label: 'Solidă și defensivă', value: 'defensiv' },
-      { label: 'Agresivă și tactică', value: 'agresiv' },
-      { label: 'Dezechilibrată', value: 'dezechilibrat' },
-      { label: 'Potrivită doar pentru avansați', value: 'avansat' },
-    ],
-    correct: 'defensiv',
-  },
-  {
-    type: 'mcq',
-    id: 'k5',
-    category: 'knowledge',
-    question: 'În partida italiană, după 1.e4 e5 2.Nf3 Nc6 3.Bc4, care este ideea principală a albului?',
-    options: [
-      { label: 'Presiune pe f7 și control al centrului', value: 'f7' },
-      { label: 'Schimb rapid de piese', value: 'schimb' },
-      { label: 'Atac pe flancul reginei', value: 'regina' },
-      { label: 'Structură de pioni solidă', value: 'pioni' },
-    ],
-    correct: 'f7',
-  },
+  // Întrebările despre deschideri (5, „Cu ce începe Siciliana?") au fost scoase pe
+  // 2026-11-13: testul avea 25 de întrebări, iar ele verificau nume învăţate pe de
+  // rost, nu nivelul — pe care tactica îl măsoară deja. Au rămas cele de stil, singura
+  // sursă a stilului de joc (recomandările de cursuri, eticheta din comunitate).
+
   // Stil de joc
   {
     type: 'mcq',
