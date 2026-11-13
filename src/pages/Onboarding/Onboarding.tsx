@@ -19,11 +19,17 @@ const ALL_QUESTIONS: AssessmentQuestion[] = [
   ...MCQ_QUESTIONS.filter(q => q.category === 'style'),
 ]
 
-const NR_TACTICI = TACTICS_QUESTIONS.length
 /** Cât costă, din nivelul final, un puzzle la care ai greşit (o singură dată pe puzzle). */
 const PENALIZARE_GRESEALA = 100
 /** De la a câta greşeală la rând apar ajutoarele. */
 const GRESELI_PANA_LA_AJUTOR = 2
+/**
+ * Latura tablei: tot ecranul pe înălţime, minus ce stă deasupra ei (antetul
+ * paginii, bara de progres, titlul întrebării). Cu `--board-max` de la cursuri
+ * pagina ieşea mai înaltă decât ecranul şi butoanele cereau derulare.
+ */
+const INALTIME_TABLA = 'calc(100dvh - 18rem)'
+const LATURA_TABLA = `min(${INALTIME_TABLA}, 100%)`
 
 interface TacticsState {
   /** A cărei întrebări e tabla. Fără el, tabla rămânea cea de la prima tactică. */
@@ -98,7 +104,7 @@ function computeResults(answers: Record<string, string>, incercari: Record<strin
 }
 
 export function Onboarding() {
-  const { user, fetchProfile } = useAuth()
+  const { user, profile, fetchProfile } = useAuth()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
@@ -145,6 +151,9 @@ export function Onboarding() {
     setAnswers(prev => ({ ...prev, [current.id]: value }))
     setTimeout(() => nextStep(), 500)
   }
+
+  /** La întrebările de stil, „înapoi" e întrebarea dinainte, cu răspunsul încă de schimbat. */
+  const intrebareAnterioara = current?.type === 'mcq' && deRevazut === null && ALL_QUESTIONS[step - 1]?.type === 'mcq'
 
   /** Răspunsul adversarului într-o secvenţă, după o mutare corectă a ta. */
   function raspundeAdversarul(qId: string, raspuns: string, pasDupa: number) {
@@ -282,6 +291,9 @@ export function Onboarding() {
     const { puzzleScore, knowledgeScore, playing_style, estimated_elo } = computeResults(answers, incercari)
     const league = getLeagueForXp(0)
 
+    // `onConflict: user_id`: un cont are un singur rând de evaluare. Fără asta,
+    // cine refăcea testul încerca să adauge al doilea rând şi primea „Eroare la
+    // salvarea evaluării" (23505), deşi răspunsese la tot.
     const { error: assessErr } = await supabase.from('assessment_results').upsert({
       user_id: user.id,
       answers,
@@ -290,14 +302,17 @@ export function Onboarding() {
       estimated_elo,
       playing_style,
       recommended_course_ids: [],
-    })
+      taken_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
 
+    // Cei 100 XP şi liga de start se dau doar la prima evaluare. Înainte, refăcută,
+    // evaluarea punea XP-ul înapoi la 100 şi ştergea tot ce strânsese omul.
+    const primaOara = !profile?.assessment_completed
     const { error: profileErr } = await supabase.from('profiles').update({
       assessment_completed: true,
       estimated_elo,
       playing_style,
-      current_league: league,
-      xp: 100,
+      ...(primaOara ? { current_league: league, xp: 100 } : {}),
     }).eq('id', user.id)
 
     if (assessErr || profileErr) {
@@ -307,114 +322,145 @@ export function Onboarding() {
     }
 
     await fetchProfile(user.id)
-    toast.success('Evaluare completată! +100 XP')
+    toast.success(primaOara ? 'Evaluare completată! +100 XP' : 'Evaluare refăcută: nivelul tău e actualizat.')
     navigate('/dashboard')
   }
 
+  const ts = current?.type === 'tactics' ? tacticsState : null
+  const intrebareCuTabla = deRevazut === null && current?.type === 'tactics' && ts
+  const ajutoare = !!intrebareCuTabla && !ts.terminat && !ts.ruleazaSecventa && ts.greseliLaRand >= GRESELI_PANA_LA_AJUTOR
+  const secventaCurenta = current?.type === 'tactics' && current.solutie.length > 1
+
+  /** Butoanele de navigare şi de ajutor. Lângă tablă, pe o coloană; fără tablă, sub întrebare. */
+  const butoane = (
+    <>
+      {intrebareCuTabla && !ts.terminat && !ts.ruleazaSecventa && (
+        <Button variant="secondary" size="sm" className="w-full" onClick={treciMaiDeparte}>
+          Nu știu — treci mai departe
+        </Button>
+      )}
+      {/* După o secvenţă arătată, omul se uită cât vrea şi merge mai departe singur. */}
+      {intrebareCuTabla && ts.terminat === 'dezvaluit' && (
+        <Button size="sm" className="w-full" onClick={treciMaiDeparte}>Mai departe →</Button>
+      )}
+      {/* Ajutoarele, de la a doua greşeală la rând. Indiciul nu costă nimic;
+          mutarea sau secvenţa arătată face ca puzzle-ul să nu mai conteze. */}
+      {ajutoare && (
+        <>
+          <Button variant="secondary" size="sm" className="w-full" onClick={oferaIndiciu} disabled={ts.indiciu}>
+            Oferă un indiciu
+          </Button>
+          <Button variant="secondary" size="sm" className="w-full" onClick={arataMutarea} disabled={ts.arataMutarea}>
+            Arată mutarea
+          </Button>
+          {secventaCurenta && (
+            <Button variant="secondary" size="sm" className="w-full" onClick={arataSecventa}>
+              Arată secvența
+            </Button>
+          )}
+        </>
+      )}
+      {/* Drumul înapoi la puzzle-urile deja parcurse, şi înapoi la exerciţiul
+          curent. Răspunsurile la puzzle nu se schimbă: aici doar te uiţi. */}
+      {deRevazut !== null && (
+        <Button size="sm" className="w-full" onClick={() => setRevazut(null)}>
+          Reia de unde ai rămas →
+        </Button>
+      )}
+      {intrebareAnterioara ? (
+        <Button variant="secondary" size="sm" className="w-full" onClick={() => setStep(s => s - 1)}>
+          ← Înapoi la întrebarea anterioară
+        </Button>
+      ) : anterior >= 0 && (
+        <Button variant="secondary" size="sm" className="w-full" onClick={() => setRevazut(anterior)}>
+          ← Înapoi la dezlegarea anterioară
+        </Button>
+      )}
+    </>
+  )
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] px-2 py-6 sm:px-4 sm:py-12">
-      {/* La tactică pagina se lărgeşte după tablă, ca tabla să aibă aceeaşi latură
-          ca în cursuri (--board-max). Lăţimea fixă de 2xl o strângea la ~600px, iar
-          tabla avea oricum un plafon de 380px. La întrebările cu variante de
-          răspuns rămâne îngustă: acolo un rând lung de buton se citeşte greu. */}
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0A0A0A] px-2 py-4 sm:px-4">
+      {/* Cu tablă, pagina e cât tabla plus coloana de butoane din dreapta, iar
+          totul încape pe înălţimea ecranului. Fără tablă rămâne îngustă: un rând
+          lung de buton se citeşte greu. */}
       <div
         className={`w-full ${cuTabla ? '' : 'max-w-2xl'}`}
-        style={cuTabla ? { maxWidth: 'max(42rem, calc(var(--board-max) + 3rem))' } : undefined}
+        style={cuTabla ? { maxWidth: `calc(${INALTIME_TABLA} + 3rem + 18rem + 1rem)` } : undefined}
       >
         {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="flex items-center gap-2 justify-center mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E2B340]">
+        <div className="mb-3 text-center">
+          <div className="flex items-center gap-2 justify-center mb-1">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#E2B340]">
               <span className="text-black font-black">♟</span>
             </div>
             <span className="font-bold text-[#F0F0F0] text-lg">CleanChess</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#F0F0F0] mb-1">Evaluare nivel</h1>
+          <h1 className="text-xl font-bold text-[#F0F0F0]">Evaluare nivel</h1>
           <p className="text-[#A0A0A0] text-sm">
             Întrebarea {step + 1} din {total} — răspunde cinstit pentru recomandări precise
           </p>
         </div>
 
         {/* Progress */}
-        <Progress value={pct} className="mb-8 h-2" />
+        <Progress value={pct} className="mb-3 h-2" />
 
-        {/* Question */}
-        <div className="rounded-xl border border-[#2A2A2A] bg-[#141414] p-3 sm:p-6">
-          {deRevazut !== null && ALL_QUESTIONS[deRevazut].type === 'tactics' && (
-            <Revizuire
-              question={ALL_QUESTIONS[deRevazut] as Tactica}
-              numar={deRevazut + 1}
-              incercare={incercari[ALL_QUESTIONS[deRevazut].id]}
-              rezultat={answers[ALL_QUESTIONS[deRevazut].id]}
-            />
-          )}
-          {deRevazut === null && current?.type === 'tactics' && tacticsState && (
-            <TacticsQuestion
-              key={current.id}
-              question={current}
-              tacticsState={tacticsState}
-              onDrop={handlePieceDrop}
-              onReincearca={reincearca}
-              onIndiciu={oferaIndiciu}
-              onArataMutarea={arataMutarea}
-              onArataSecventa={arataSecventa}
-              onSkip={treciMaiDeparte}
-            />
-          )}
-          {deRevazut === null && current?.type === 'mcq' && (
-            <McqQuestion
-              question={current}
-              selected={answers[current.id]}
-              onAnswer={handleMcqAnswer}
-            />
-          )}
-          {deRevazut === null && !current && (
-            <div className="text-center py-8">
-              <p className="text-[#A0A0A0] mb-4">Evaluare completată!</p>
-              <Button onClick={handleFinish} loading={submitting} size="lg">
-                Salvează și continuă
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Drumul înapoi la puzzle-urile deja parcurse, şi înapoi la exerciţiul
-            curent. Răspunsurile nu se schimbă: aici doar te uiţi. */}
-        {(anterior >= 0 || deRevazut !== null) && (
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            {anterior >= 0 && (
-              <Button variant="secondary" size="sm" onClick={() => setRevazut(anterior)}>
-                ← Înapoi la dezlegarea anterioară
-              </Button>
+        <div className={cuTabla ? 'flex flex-col gap-4 lg:flex-row lg:items-start' : ''}>
+          {/* Question */}
+          <div className="min-w-0 flex-1 rounded-xl border border-[#2A2A2A] bg-[#141414] p-3 sm:p-6">
+            {deRevazut !== null && ALL_QUESTIONS[deRevazut].type === 'tactics' && (
+              <Revizuire
+                question={ALL_QUESTIONS[deRevazut] as Tactica}
+                numar={deRevazut + 1}
+                incercare={incercari[ALL_QUESTIONS[deRevazut].id]}
+                rezultat={answers[ALL_QUESTIONS[deRevazut].id]}
+              />
             )}
-            {deRevazut !== null && (
-              <Button size="sm" onClick={() => setRevazut(null)}>
-                Reia de unde ai rămas →
-              </Button>
+            {intrebareCuTabla && (
+              <TacticsQuestion
+                key={current.id}
+                question={current}
+                tacticsState={ts}
+                onDrop={handlePieceDrop}
+                onReincearca={reincearca}
+              />
+            )}
+            {deRevazut === null && current?.type === 'mcq' && (
+              <McqQuestion
+                question={current}
+                selected={answers[current.id]}
+                onAnswer={handleMcqAnswer}
+              />
+            )}
+            {deRevazut === null && !current && (
+              <div className="text-center py-8">
+                <p className="text-[#A0A0A0] mb-4">Evaluare completată!</p>
+                <Button onClick={handleFinish} loading={submitting} size="lg">
+                  Salvează și continuă
+                </Button>
+              </div>
             )}
           </div>
-        )}
 
-        {/* Section label */}
-        <p className="mt-4 text-center text-xs text-[#6B6B6B]">
-          {step < NR_TACTICI ? '♟ Tactici' : '🎯 Stil de joc'}
-        </p>
+          {/* Coloana din dreapta tablei: butoanele, unul sub altul. */}
+          {cuTabla && <aside className="flex w-full flex-col gap-2 lg:w-72">{butoane}</aside>}
+        </div>
+
+        {/* Fără tablă, butoanele stau sub întrebare. Eticheta „Tactici / Stil de
+            joc" de dedesubt a dispărut: nu spunea nimic în plus. */}
+        {!cuTabla && <div className="mx-auto mt-4 flex max-w-xs flex-col gap-2">{butoane}</div>}
       </div>
     </div>
   )
 }
 
 function TacticsQuestion({
-  question, tacticsState: ts, onDrop, onReincearca, onIndiciu, onArataMutarea, onArataSecventa, onSkip,
+  question, tacticsState: ts, onDrop, onReincearca,
 }: {
   question: Tactica
   tacticsState: TacticsState
   onDrop: (from: string, to: string, promovare?: string) => boolean
   onReincearca: () => void
-  onIndiciu: () => void
-  onArataMutarea: () => void
-  onArataSecventa: () => void
-  onSkip: () => void
 }) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   // La promovare alegi piesa (usePromovare); restul mutărilor merg direct.
@@ -425,7 +471,6 @@ function TacticsQuestion({
   const secventa = question.solutie.length > 1
   const urmatoarea = question.solutie[ts.pas]
   const ocupat = !!ts.terminat || ts.adversarMuta || !!ts.gresit || ts.ruleazaSecventa
-  const ajutoare = !ts.terminat && !ts.ruleazaSecventa && ts.greseliLaRand >= GRESELI_PANA_LA_AJUTOR
 
   const squareStyles: Record<string, React.CSSProperties> = {}
   if (ts.ultima) {
@@ -472,10 +517,10 @@ function TacticsQuestion({
         </div>
       </div>
 
-      {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
+      {/* Latura din înălţimea ecranului — vezi LATURA_TABLA */}
       <div
         className="relative mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
-        style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+        style={{ maxWidth: LATURA_TABLA }}
       >
         <Chessboard
           options={{
@@ -493,35 +538,6 @@ function TacticsQuestion({
         {promovare.alegere}
       </div>
 
-      {/* Ajutoarele, de la a doua greşeală la rând. Indiciul nu costă nimic;
-          mutarea sau secvenţa arătată face ca puzzle-ul să nu mai conteze. */}
-      {ajutoare && (
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <Button size="sm" variant="secondary" onClick={onIndiciu} disabled={ts.indiciu}>
-            Oferă un indiciu
-          </Button>
-          <Button size="sm" variant="secondary" onClick={onArataMutarea} disabled={ts.arataMutarea}>
-            Arată mutarea
-          </Button>
-          {secventa && (
-            <Button size="sm" variant="secondary" onClick={onArataSecventa}>
-              Arată secvența
-            </Button>
-          )}
-        </div>
-      )}
-
-      {!ts.terminat && !ts.ruleazaSecventa && (
-        <button onClick={onSkip} className="mt-4 w-full text-sm text-[#6B6B6B] hover:text-[#A0A0A0] transition-colors">
-          Nu știu — treci mai departe
-        </button>
-      )}
-      {/* După o secvenţă arătată, omul se uită cât vrea şi merge mai departe singur. */}
-      {ts.terminat === 'dezvaluit' && (
-        <div className="mt-4 flex justify-center">
-          <Button size="sm" onClick={onSkip}>Mai departe →</Button>
-        </div>
-      )}
     </div>
   )
 }
@@ -594,7 +610,7 @@ function Revizuire({ question, numar, incercare, rezultat }: {
       {!secventa && <div className="mb-3" />}
       <div
         className="mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
-        style={{ maxWidth: 'min(var(--board-max), 100%)' }}
+        style={{ maxWidth: LATURA_TABLA }}
       >
         <Chessboard
           options={{
@@ -629,7 +645,9 @@ function McqQuestion({
         {question.options.map(opt => (
           <button
             key={opt.value}
-            onClick={() => !selected && onAnswer(opt.value)}
+            // Se poate schimba: la stil nu e un răspuns corect, iar „Înapoi la
+            // întrebarea anterioară" există tocmai ca să-l poţi alege altfel.
+            onClick={() => onAnswer(opt.value)}
             className={`w-full rounded-lg border px-4 py-3 text-left text-sm font-medium transition-all ${
               selected === opt.value
                 ? 'border-[#E2B340] bg-[rgba(226,179,64,0.12)] text-[#E2B340]'
