@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard } from 'react-chessboard'
 import { X, Brain, Loader2, ChevronRight, ChevronLeft, Lightbulb, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useStockfish } from '@/hooks/useStockfish'
 import { useAuth } from '@/hooks/useAuth'
@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { uciToSan } from '@/lib/puzzle-utils'
 import { Button } from '@/components/ui/Button'
 import type { LichessGame } from './GameListModal'
+import { usePromovare } from '@/hooks/usePromovare'
 
 interface CriticalPosition {
   gameId: string
@@ -41,7 +42,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
   const [progressLabel, setProgressLabel] = useState('Se descarcă partidele...')
   const [positions, setPositions] = useState<CriticalPosition[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
-  const [userMove, setUserMove] = useState<{ from: string; to: string } | null>(null)
+  const [userMove, setUserMove] = useState<{ from: string; to: string; promotion?: string } | null>(null)
   const [moveResult, setMoveResult] = useState<'correct' | 'wrong' | null>(null)
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [hint, setHint] = useState<string | null>(null)
@@ -191,27 +192,26 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
   }
 
   // Logica unei mutări, independentă de sursa ei (drag sau click-to-move).
-  const tryMove = useCallback((from: string, to: string) => {
+  const tryMove = useCallback((from: string, to: string, promovare?: string) => {
     if (!current || moveResult !== null) return false
     try {
       const g = new Chess(current.fen)
-      const result = g.move({ from, to, promotion: 'q' })
+      const result = g.move({ from, to, promotion: promovare ?? 'q' })
       if (!result) return false
-      const uci = from + to
-      const isCorrect = uci === current.bestUci.slice(0, 4)
-      setUserMove({ from, to })
+      // La promovare contează şi piesa aleasă, ca în mutarea motorului (`e7e8q`).
+      const isCorrect = result.promotion
+        ? from + to + result.promotion === current.bestUci
+        : from + to === current.bestUci.slice(0, 4)
+      setUserMove({ from, to, promotion: result.promotion })
       setMoveResult(isCorrect ? 'correct' : 'wrong')
       setSelectedSquare(null)
       return true
     } catch { return false }
   }, [current, moveResult])
 
-  // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
-  const onPieceDrop = useCallback(
-    ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
-      targetSquare ? tryMove(sourceSquare, targetSquare) : false,
-    [tryMove]
-  )
+  // La promovare alegi piesa (usePromovare), şi la tras piesa, şi la clic.
+  const promovare = usePromovare(current?.fen ?? '', tryMove)
+  const onPieceDrop = promovare.laDrop
 
   const onSquareClick = useCallback(({ square }: { square: string }) => {
     if (!current || moveResult !== null) return
@@ -226,8 +226,9 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
     if (square === selectedSquare) { setSelectedSquare(null); return }
     if (isMyPiece) { setSelectedSquare(square); return }
 
-    tryMove(selectedSquare, square)
-  }, [current, moveResult, selectedSquare, tryMove])
+    promovare.mutaCuAlegere(selectedSquare, square)
+    setSelectedSquare(null)
+  }, [current, moveResult, selectedSquare, promovare])
 
   async function askHint() {
     if (!current || !user) return
@@ -266,7 +267,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
   const boardForSolving = (() => {
     if (!current || moveResult === null) return current?.fen ?? null
     const g = new Chess(current.fen)
-    try { g.move({ from: userMove!.from, to: userMove!.to, promotion: 'q' }) } catch { /* */ }
+    try { g.move({ from: userMove!.from, to: userMove!.to, promotion: userMove!.promotion ?? 'q' }) } catch { /* */ }
     return g.fen()
   })()
 
@@ -387,12 +388,12 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
               </div>
 
               {/* Board */}
-              <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
+              <div className="relative rounded-xl overflow-hidden border border-[#2A2A2A]">
                 <Chessboard
                   options={{
                     position: moveResult !== null ? (boardForSolving ?? current.fen) : current.fen,
                     boardOrientation: current.playerColor,
-                    allowDragging: moveResult === null,
+                    allowDragging: moveResult === null && !promovare.asteapta,
                     onPieceDrop,
                     onSquareClick,
                     squareStyles,
@@ -400,6 +401,7 @@ export function PersonalTacticsModal({ lichessUsername, onClose }: Props) {
                     lightSquareStyle: { backgroundColor: '#c8e6c0' },
                   }}
                 />
+                {promovare.alegere}
               </div>
 
               {/* Result feedback */}

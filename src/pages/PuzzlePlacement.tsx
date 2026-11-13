@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
+import { usePromovare } from '@/hooks/usePromovare'
 import { fetchLichessPuzzleNext, eloToDifficulty } from '@/lib/lichess'
 import { initPuzzleState, lichessPuzzleToLocal, type PuzzleState } from '@/lib/puzzle-utils'
 import {
@@ -117,15 +118,18 @@ export function PuzzlePlacement() {
     }
   }
 
-  function handleDrop(source: string, target: string): boolean {
+  function handleDrop(source: string, target: string, promovare?: string): boolean {
     if (!state || !puzzles || feedback) return false
     const expected = state.solutionMoves[state.currentMoveIdx]
     if (!expected) return false
     try {
       const copy = new Chess(state.game.fen())
-      const moved = copy.move({ from: source, to: target, promotion: 'q' })
+      const moved = copy.move({ from: source, to: target, promotion: promovare ?? 'q' })
       if (!moved) return false
-      const correct = source + target === expected.slice(0, 4)
+      // La promovare contează şi piesa aleasă, ca în soluţie (`e7e8q`).
+      const correct = moved.promotion
+        ? source + target + moved.promotion === expected
+        : source + target === expected.slice(0, 4)
       setPlayed({ idx, game: copy, feedback: correct ? 'correct' : 'wrong' })
       setTimeout(() => advance(correct), 900)
       return true
@@ -150,6 +154,10 @@ export function PuzzlePlacement() {
     toast.success(`Plasat la rating ${stored} (${bandForRating(stored).label})`)
     navigate('/puzzles', { replace: true })
   }
+
+  // La promovare alegi piesa (usePromovare); restul mutărilor merg direct.
+  // Înaintea ecranelor de încărcare, „Îţi calculăm rating-ul", care ies mai devreme din pagină.
+  const promovare = usePromovare(state?.game.fen() ?? '', handleDrop)
 
   // ---- UI ----
   if (!puzzles) {
@@ -197,20 +205,19 @@ export function PuzzlePlacement() {
           </div>
 
           {state && (
-            <div className="mx-auto" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
+            <div className="relative mx-auto" style={{ maxWidth: 'min(var(--board-max), 100%)' }}>
               <Chessboard
                 options={{
                   position: state.game.fen(),
-                  // targetSquare e null la drop în afara tablei → snap-back
-                  onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
-                    targetSquare ? handleDrop(sourceSquare, targetSquare) : false,
-                  allowDragging: !feedback,
+                  onPieceDrop: promovare.laDrop,
+                  allowDragging: !feedback && !promovare.asteapta,
                   boardOrientation: playerColor,
                   boardStyle: { borderRadius: 8 },
                   darkSquareStyle,
                   lightSquareStyle,
                 }}
               />
+              {promovare.alegere}
             </div>
           )}
 

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import { CheckCircle2, RefreshCw, Loader2, Info, Target, Flame, Calendar, Lightbulb, Sparkles, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -25,6 +25,7 @@ import { AICoachPanel } from '@/components/chess/AICoachPanel'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
 import { cn } from '@/lib/utils'
 import type { Puzzle } from '@/types'
+import { usePromovare } from '@/hooks/usePromovare'
 
 // Culoare per poziție a benzii (inferioară / curentă / superioară)
 function offsetColor(o: BandOffset): string {
@@ -169,6 +170,8 @@ export function PuzzlesPage() {
   // Wrong move state
   const [wrongMoveFrom, setWrongMoveFrom] = useState<string | null>(null)
   const [wrongMoveTo, setWrongMoveTo] = useState<string | null>(null)
+  /** Piesa aleasă la o promovare greşită, ca refutarea s-o rejoace pe ea, nu regina. */
+  const [wrongPromo, setWrongPromo] = useState<string | undefined>(undefined)
   const [moveExplanation, setMoveExplanation] = useState<MoveExplanation | null>(null)
   const [evalLoading, setEvalLoading] = useState(false)
   const [expectedMoveUci, setExpectedMoveUci] = useState<string | null>(null)
@@ -376,7 +379,7 @@ export function PuzzlesPage() {
     try {
       // Poziţia de după mutarea greşită — de acolo pleacă refutarea.
       const after = new Chess(wrongFen)
-      after.move({ from: wrongMoveFrom, to: wrongMoveTo, promotion: 'q' })
+      after.move({ from: wrongMoveFrom, to: wrongMoveTo, promotion: wrongPromo ?? 'q' })
 
       const { pv } = await getLine(after.fen(), 14, 6)
       if (!pv.length) {
@@ -551,7 +554,7 @@ export function PuzzlesPage() {
   }, [puzzleRating])
 
   // Logica unei mutări, independentă de sursa ei (drag sau click-to-move).
-  const tryMove = useCallback((source: string, target: string) => {
+  const tryMove = useCallback((source: string, target: string, promovare?: string) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
     if (!currentPuzzle) return false
     // În timpul derulării poți ajunge la o poziție unde e rândul adversarului — atunci nu se mută.
@@ -560,11 +563,11 @@ export function PuzzlesPage() {
     const expectedMove = puzzleState.solutionMoves[puzzleState.currentMoveIdx]
     if (!expectedMove) return false
 
-    const myMove = source + target
-
     try {
       const gameCopy = new Chess(puzzleState.game.fen())
-      gameCopy.move({ from: source, to: target, promotion: 'q' })
+      const mutat = gameCopy.move({ from: source, to: target, promotion: promovare ?? 'q' })
+      // Cu piesa aleasă, dacă e o promovare: notaţia şi refutarea o folosesc pe ea.
+      const myMove = source + target + (mutat.promotion ?? '')
 
       const fenBeforeMove = puzzleState.game.fen()
       const correctUci = expectedMove.slice(0, 4)
@@ -617,6 +620,7 @@ export function PuzzlesPage() {
         setMaxPly(puzzleState.currentMoveIdx)
         setWrongMoveFrom(source)
         setWrongMoveTo(target)
+        setWrongPromo(mutat.promotion)
         setExpectedMoveUci(correctUci)
         setMoveExplanation({
           type: 'wrong',
@@ -710,12 +714,9 @@ export function PuzzlesPage() {
     }
   }, [puzzleState, currentPuzzle, playerColor, attemptMutation, applyRating, computeSolveXp, evalPosition])
 
-  // Adaptor pentru tablă: targetSquare e null când piesa e lăsată în afara ei.
-  const onPieceDrop = useCallback(
-    ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
-      targetSquare ? tryMove(sourceSquare, targetSquare) : false,
-    [tryMove]
-  )
+  // La promovare alegi piesa (usePromovare), şi la tras piesa, şi la clic.
+  const promovare = usePromovare(puzzleState?.game.fen() ?? '', tryMove)
+  const onPieceDrop = promovare.laDrop
 
   const onSquareClick = useCallback(({ square }: { square: string; piece?: unknown }) => {
     if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return
@@ -739,14 +740,15 @@ export function PuzzlesPage() {
       return
     }
 
-    const ok = tryMove(selectedSquare, square)
+    const ok = promovare.mutaCuAlegere(selectedSquare, square)
     const from = selectedSquare
     setSelectedSquare(null)
-    if (!ok) {
+    // `'alege'` = s-a deschis alegerea piesei, nu e o mutare greşită.
+    if (ok === false) {
       setShakingSquare(from)
       setTimeout(() => setShakingSquare(null), 1500)
     }
-  }, [puzzleState, selectedSquare, playerColor, tryMove])
+  }, [puzzleState, selectedSquare, playerColor, promovare])
 
   const limitReached = !isPro && todayCount >= FREE_LIMIT
   const hasRating = puzzleRating != null
@@ -1087,7 +1089,7 @@ export function PuzzlesPage() {
                         : puzzleState.game.fen(),
                       onPieceDrop,
                       onSquareClick,
-                      allowDragging: !inRefutation && puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b'),
+                      allowDragging: !inRefutation && !promovare.asteapta && puzzleState.status === 'playing' && !puzzleState.waitingOpponent && puzzleState.game.turn() === (playerColor === 'white' ? 'w' : 'b'),
                       boardOrientation: playerColor,
                       boardStyle: { borderRadius: 0 },
                       darkSquareStyle,
@@ -1096,6 +1098,7 @@ export function PuzzlesPage() {
                       arrows: boardArrows,
                     }}
                   />
+                  {promovare.alegere}
                   {xpBurst !== null && (
                     <div
                       className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 z-10 rounded-full bg-[rgba(226,179,64,0.95)] px-4 py-1.5 text-sm font-black text-black shadow-lg"

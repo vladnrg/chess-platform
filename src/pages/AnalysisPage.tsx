@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard } from 'react-chessboard'
 import { useSearchParams } from 'react-router-dom'
 import {
   SkipBack, SkipForward, ChevronLeft, ChevronRight,
@@ -9,6 +9,7 @@ import {
 import { Card } from '@/components/ui/Card'
 import { useStockfish, type EngineLine } from '@/hooks/useStockfish'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
+import { usePromovare } from '@/hooks/usePromovare'
 import { translateNotation } from '@/lib/chess-translations'
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -142,11 +143,11 @@ export function AnalysisPage() {
     })
   }, [currentFen, engineOn, analyze])
 
-  const play = useCallback((from: string, to: string): boolean => {
+  const play = useCallback((from: string, to: string, promovare?: string): boolean => {
     const game = new Chess(currentFen)
     let mv
     try {
-      mv = game.move({ from, to, promotion: 'q' })
+      mv = game.move({ from, to, promotion: promovare ?? 'q' })
     } catch {
       return false
     }
@@ -162,10 +163,9 @@ export function AnalysisPage() {
     return true
   }, [currentFen, cursor])
 
-  const onPieceDrop = useCallback(({ sourceSquare, targetSquare }: PieceDropHandlerArgs) => {
-    if (!targetSquare) return false     // lăsat în afara tablei
-    return play(sourceSquare, targetSquare)
-  }, [play])
+  // La promovare alegi piesa (usePromovare); restul mutărilor merg direct.
+  const promovare = usePromovare(currentFen, play)
+  const onPieceDrop = promovare.laDrop
 
   const squareStyles = useMemo(() => {
     if (cursor === 0) return {}
@@ -219,11 +219,12 @@ export function AnalysisPage() {
           className="mx-auto w-full min-w-0 xl:mx-0"
           style={{ maxWidth: 'min(var(--board-max), 100%)' }}
         >
-          <div className="overflow-hidden rounded-xl border border-[#2A2A2A]">
+          <div className="relative overflow-hidden rounded-xl border border-[#2A2A2A]">
             <Chessboard
               options={{
                 position: currentFen,
                 onPieceDrop,
+                allowDragging: !promovare.asteapta,
                 boardOrientation: flipped ? 'black' : 'white',
                 boardStyle: { borderRadius: 0 },
                 lightSquareStyle,
@@ -231,6 +232,7 @@ export function AnalysisPage() {
                 squareStyles,
               }}
             />
+            {promovare.alegere}
           </div>
 
           {/* Navigare */}

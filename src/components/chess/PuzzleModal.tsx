@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Chess } from 'chess.js'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard } from 'react-chessboard'
 import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
+import { usePromovare } from '@/hooks/usePromovare'
 import { useSubscription } from '@/hooks/useSubscription'
 import { initPuzzleState, type PuzzleState } from '@/lib/puzzle-utils'
 import { Button } from '@/components/ui/Button'
@@ -213,24 +214,23 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const onPieceDrop = useCallback(
-    ({ sourceSquare: source, targetSquare: target }: PieceDropHandlerArgs): boolean => {
+  const mutaPuzzle = useCallback(
+    (source: string, target: string, promovare?: string): boolean => {
       if (!puzzleState || puzzleState.status !== 'playing' || puzzleState.waitingOpponent) return false
       if (!currentPuzzle) return false
-      // Piesă lăsată în afara tablei — snap-back, fără să conteze ca încercare
-      if (!target) return false
 
       const expectedMove = puzzleState.solutionMoves[puzzleState.currentMoveIdx]
       if (!expectedMove) return false
 
-      const myMove = source + target
-
       try {
         const gameCopy = new Chess(puzzleState.game.fen())
-        const moved = gameCopy.move({ from: source, to: target, promotion: 'q' })
+        const moved = gameCopy.move({ from: source, to: target, promotion: promovare ?? 'q' })
         if (!moved) return false   // mutare ilegală → snap-back curat
 
-        const isCorrect = myMove === expectedMove.slice(0, 4)
+        // La promovare contează şi piesa aleasă, ca în soluţie (`e7e8q`).
+        const isCorrect = moved.promotion
+          ? source + target + moved.promotion === expectedMove
+          : source + target === expectedMove.slice(0, 4)
 
         if (!isCorrect) {
           // Snap-back curat: NU actualizăm poziția, returnăm false (fără glitch)
@@ -275,6 +275,9 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
     },
     [puzzleState, currentPuzzle, attemptMutation, onRezultat, xpDublu],
   )
+  // La promovare alegi piesa (usePromovare); restul mutărilor merg direct.
+  const promovare = usePromovare(puzzleState?.game.fen() ?? '', mutaPuzzle)
+  const onPieceDrop = promovare.laDrop
 
   // Mutarea pe care trebuie să o facă jucătorul acum (UCI)
   const expectedNext = puzzleState && puzzleState.status === 'playing'
@@ -424,12 +427,12 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
 
                 {/* Lăţimea vine din coloană (--board-max), nu se mai repetă aici */}
                 <div className="relative w-full">
-                  <div className="rounded-xl overflow-hidden border border-[#2A2A2A]">
+                  <div className="relative rounded-xl overflow-hidden border border-[#2A2A2A]">
                     <Chessboard
                       options={{
                         position: puzzleState.game.fen(),
                         onPieceDrop,
-                        allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed,
+                        allowDragging: puzzleState.status === 'playing' && !puzzleState.waitingOpponent && !seqPlaying && !revealed && !promovare.asteapta,
                         boardOrientation: playerColor,
                         boardStyle: { borderRadius: 0 },
                         darkSquareStyle,
@@ -438,6 +441,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
                         arrows: boardArrows,
                       }}
                     />
+                    {promovare.alegere}
                   </div>
                   {/* Bifă verde la fiecare mutare corectă */}
                   {flashCheck && (

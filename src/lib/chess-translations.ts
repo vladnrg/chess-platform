@@ -106,10 +106,14 @@ const SUBTYPE_MAP: [RegExp, string][] = [
 const PIECE_MAP: Record<string, string> = { K: 'R', Q: 'D', R: 'T', B: 'N', N: 'C' }
 
 export function translateNotation(text: string): string {
-  return text.replace(
-    /\b([KQRBN])([a-h1-8]?x?)(?=[a-h][1-8])/g,
-    (_m, piece: string, rest: string) => (PIECE_MAP[piece] ?? piece) + rest
-  )
+  return text
+    .replace(
+      /\b([KQRBN])([a-h1-8]?x?)(?=[a-h][1-8])/g,
+      (_m, piece: string, rest: string) => (PIECE_MAP[piece] ?? piece) + rest
+    )
+    // Piesa aleasă la promovare: „e8=N" → „e8=C". Rămânea în engleză, fiindcă
+    // după ea nu mai vine nicio coordonată.
+    .replace(/([a-h][18])=([QRBN])/g, (_m, patrat: string, piece: string) => `${patrat}=${PIECE_MAP[piece] ?? piece}`)
 }
 
 export function translateOpeningName(name: string): string {

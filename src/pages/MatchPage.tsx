@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import { ChevronLeft, Flag, Handshake, Trophy } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase, type Match } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
+import { usePromovare } from '@/hooks/usePromovare'
 import { useMatch, formatClock, timeLeft, useTicker } from '@/hooks/useMatch'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -52,22 +53,24 @@ export function MatchPage() {
   const [optimistic, setOptimistic] = useState<{ fen: string; basedOn: string } | null>(null)
   const optimisticFen = optimistic && optimistic.basedOn === match?.fen ? optimistic.fen : null
 
-  const onPieceDrop = useCallback(({ sourceSquare, targetSquare }: PieceDropHandlerArgs) => {
-    if (!targetSquare || !match || !isMyTurn) return false
+  const muta = useCallback((sourceSquare: string, targetSquare: string, promovare?: string) => {
+    if (!match || !isMyTurn) return false
 
     // Verificăm local întâi, ca o mutare evident greşită să nu mai facă drumul
     // până la server. Arbitrul o verifică oricum din nou.
     const probe = new Chess(match.fen)
     let ok
     try {
-      ok = probe.move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
+      ok = probe.move({ from: sourceSquare, to: targetSquare, promotion: promovare ?? 'q' })
     } catch {
       ok = null
     }
     if (!ok) return false
 
     setOptimistic({ fen: probe.fen(), basedOn: match.fen })
-    void playMove(sourceSquare, targetSquare, 'q').then(err => {
+    // Piesa aleasă merge la arbitru; înainte se trimitea mereu regina, deşi regula
+    // îţi dă voie să alegi orice piesă.
+    void playMove(sourceSquare, targetSquare, promovare ?? 'q').then(err => {
       if (err) {
         setOptimistic(null)
         toast.error(MOVE_ERRORS[err] ?? 'Mutarea n-a putut fi trimisă.')
@@ -75,6 +78,8 @@ export function MatchPage() {
     })
     return true
   }, [match, isMyTurn, playMove])
+  const promovare = usePromovare(optimisticFen ?? match?.fen ?? '', muta)
+  const onPieceDrop = promovare.laDrop
 
   if (isLoading) {
     return <div className="flex justify-center py-16"><Spinner className="h-7 w-7" /></div>
@@ -114,18 +119,19 @@ export function MatchPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
         {/* Tabla — pătrată, dimensionată din înălţimea rămasă */}
         <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
-          <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
+          <div className="relative aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
             <Chessboard
               options={{
                 position: optimisticFen ?? match.fen,
                 onPieceDrop,
-                allowDragging: isMyTurn && !isOver,
+                allowDragging: isMyTurn && !isOver && !promovare.asteapta,
                 boardOrientation: myColor === 'w' ? 'white' : 'black',
                 boardStyle: { borderRadius: 0 },
                 darkSquareStyle,
                 lightSquareStyle,
               }}
             />
+            {promovare.alegere}
           </div>
         </div>
 
