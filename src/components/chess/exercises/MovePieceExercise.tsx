@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Chessboard, defaultPieces, type PieceDropHandlerArgs } from 'react-chessboard'
+import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Lightbulb } from 'lucide-react'
 import type { MovePieceExerciseData } from '@/types'
 import { aplicaMutarea } from '@/lib/mutare-pe-tabla'
 import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
 import { stilulZonei } from '@/lib/zona-de-pe-tabla'
+import { AlegePromovare } from '@/components/chess/AlegePromovare'
+import { ePromovare } from '@/lib/promovare'
 import { RamaTablei } from './rama-tablei'
 import { EtichetaUltimeiMutari } from './eticheta-ultimei-mutari'
 import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
@@ -25,23 +27,6 @@ type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare' | 'alta-piesa'
 
 /** Cât stă verdele pe tablă înainte să răspundă adversarul. */
 const PAUZA_INAINTE_DE_RASPUNS = 950
-
-/**
- * În ce se poate transforma un pion ajuns la capăt.
- *
- * Toate patru, în ordinea puterii. Regina prima fiindcă e alegerea de nouă ori
- * din zece, dar celelalte sunt acolo — asta e chiar regula pe care o predă
- * lecţia, iar dacă programul alege singur regina, regula rămâne o vorbă.
- *
- * `litera` e cea din notaţia mutării (`e7e8q`), `simbol` e cheia sub care
- * react-chessboard ţine desenul piesei.
- */
-const PIESE_DE_PROMOVARE = [
-  { litera: 'q', nume: 'regină', simbol: 'Q' },
-  { litera: 'r', nume: 'tură', simbol: 'R' },
-  { litera: 'b', nume: 'nebun', simbol: 'B' },
-  { litera: 'n', nume: 'cal', simbol: 'N' },
-] as const
 
 export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: Props) {
   /**
@@ -205,9 +190,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
 
     if (sourceSquare === expectedFrom && targetSquare === expectedTo) {
       // Pion ajuns pe ultimul rând: alegerea e a lui, nu a noastră.
-      const ePion = piece.pieceType[1]?.toLowerCase() === 'p'
-      const laCapat = targetSquare[1] === (piece.pieceType[0] === 'w' ? '8' : '1')
-      if (ePion && laCapat) {
+      if (ePromovare(piece.pieceType, targetSquare)) {
         setDeAles({ de: sourceSquare, la: targetSquare })
         return false
       }
@@ -268,32 +251,8 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
           />
         </RamaTablei>
 
-        {/* Alegerea piesei, peste tablă. Acoperă tabla intenţionat: până nu
-            alegi, mutarea nu s-a terminat, iar un panou pe lângă tablă ar fi
-            uşor de ratat exact în momentul în care e singurul lucru de făcut. */}
-        {deAles && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#0A0A0A]/85 p-4">
-            <div className="flex flex-wrap justify-center gap-2">
-              {PIESE_DE_PROMOVARE.map(p => {
-                // Chiar desenul folosit pe tablă, cerut de la bibliotecă. Un set
-                // propriu ar fi însemnat că piesa aleasă arată altfel decât cea
-                // care apare o clipă mai târziu pe pătrat.
-                const Deseneaza = defaultPieces[`${laMutare}${p.simbol}`]
-                return (
-                  <button
-                    key={p.litera}
-                    type="button"
-                    onClick={() => alege(p.litera)}
-                    aria-label={p.nume}
-                    className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#2A2A2A] bg-[#161616] p-1.5 transition-colors hover:border-[#E2B340] hover:bg-[#1C1C1C]"
-                  >
-                    <Deseneaza />
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
+        {/* Alegerea piesei, peste tablă — vezi `AlegePromovare`. */}
+        {deAles && <AlegePromovare culoare={laMutare} onAlege={alege} />}
       </div>
 
       {/* Explicaţia mutării lui, sub tablă şi nu deasupra: apare exact în clipa

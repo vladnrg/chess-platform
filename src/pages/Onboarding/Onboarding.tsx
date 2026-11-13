@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { getLeagueForXp } from '@/lib/utils'
 import { translateNotation } from '@/lib/chess-translations'
+import { AlegePromovare } from '@/components/chess/AlegePromovare'
+import { ePromovare } from '@/lib/promovare'
 import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
 import { TACTICS_QUESTIONS, MCQ_QUESTIONS, type AssessmentQuestion, type TacticsQuestion as Tactica } from './assessmentData'
@@ -123,7 +125,7 @@ export function Onboarding() {
    * mat e un mat, oricum ar fi dat). La o secvenţă, după fiecare mutare corectă
    * răspunde adversarul; prima greşeală încheie puzzle-ul ca greşit.
    */
-  function handlePieceDrop(sourceSquare: string, targetSquare: string) {
+  function handlePieceDrop(sourceSquare: string, targetSquare: string, promovare?: string) {
     if (!tacticsState || current.type !== 'tactics') return false
     if (tacticsState.attempted || tacticsState.adversarMuta) return false
     const q = current
@@ -131,14 +133,19 @@ export function Onboarding() {
     const copie = new Chess(tacticsState.game.fen())
     let jucata
     try {
-      jucata = copie.move({ from: sourceSquare, to: targetSquare, promotion: asteptata?.[4] ?? 'q' })
+      // Piesa de promovare o alege jucătorul (vezi `AlegePromovare`); fără promovare,
+      // `promotion` e ignorat.
+      jucata = copie.move({ from: sourceSquare, to: targetSquare, promotion: promovare ?? 'q' })
     } catch {
       return false
     }
     const uci = sourceSquare + targetSquare + (jucata.promotion ?? '')
     setMutari(prev => ({ ...prev, [q.id]: [...(prev[q.id] ?? []), uci] }))
 
-    const corecta = (sourceSquare + targetSquare) === asteptata?.slice(0, 4) || copie.isCheckmate()
+    // La promovare contează şi piesa aleasă: un pion făcut nebun nu e soluţia care
+    // cere regină — decât dacă dă tot mat.
+    const corecta = (jucata.promotion ? uci === asteptata : (sourceSquare + targetSquare) === asteptata?.slice(0, 4))
+      || copie.isCheckmate()
     const urmatorul = tacticsState.pas + 1
     const gata = !corecta || urmatorul >= q.solutie.length || copie.isCheckmate()
 
@@ -245,6 +252,7 @@ export function Onboarding() {
           )}
           {deRevazut === null && current?.type === 'tactics' && tacticsState && (
             <TacticsQuestion
+              key={current.id}
               question={current}
               tacticsState={tacticsState}
               onDrop={handlePieceDrop}
@@ -299,10 +307,12 @@ function TacticsQuestion({
 }: {
   question: Tactica
   tacticsState: TacticsState
-  onDrop: (from: string, to: string) => boolean
+  onDrop: (from: string, to: string, promovare?: string) => boolean
   onSkip: () => void
 }) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
+  /** Un pion ajuns pe ultimul rând aşteaptă să alegi piesa. */
+  const [deAles, setDeAles] = useState<{ de: string; la: string } | null>(null)
   // Cine e la mutare joacă de jos, ca în cursuri: la o poziţie cu negrul la
   // mutare, tabla întoarsă cu albul jos te punea să gândeşti cu capul în jos.
   const negrulMuta = question.fen.split(' ')[1] === 'b'
@@ -316,22 +326,44 @@ function TacticsQuestion({
       <p className="text-sm text-[#A0A0A0] mb-4">{negrulMuta ? 'Negrul la mutare' : 'Albul la mutare'}</p>
       {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
       <div
-        className="mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
+        className="relative mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
         style={{ maxWidth: 'min(var(--board-max), 100%)' }}
       >
         <Chessboard
           options={{
             position: tacticsState.game.fen(),
-            // targetSquare e null la drop în afara tablei → snap-back
-            onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
-              targetSquare ? onDrop(sourceSquare, targetSquare) : false,
-            allowDragging: !tacticsState.attempted && !tacticsState.adversarMuta,
+            onPieceDrop: ({ piece, sourceSquare, targetSquare }: PieceDropHandlerArgs) => {
+              // targetSquare e null la drop în afara tablei → snap-back
+              if (!targetSquare) return false
+              if (ePromovare(piece.pieceType, targetSquare)) {
+                // Doar dacă mutarea e legală; altfel piesa se întoarce, fără întrebare.
+                try {
+                  new Chess(tacticsState.game.fen()).move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
+                } catch {
+                  return false
+                }
+                setDeAles({ de: sourceSquare, la: targetSquare })
+                return false
+              }
+              return onDrop(sourceSquare, targetSquare)
+            },
+            allowDragging: !tacticsState.attempted && !tacticsState.adversarMuta && !deAles,
             boardOrientation: negrulMuta ? 'black' : 'white',
             boardStyle: { borderRadius: 0 },
             darkSquareStyle,
             lightSquareStyle,
           }}
         />
+        {deAles && (
+          <AlegePromovare
+            culoare={negrulMuta ? 'b' : 'w'}
+            onAlege={litera => {
+              const { de, la } = deAles
+              setDeAles(null)
+              onDrop(de, la, litera)
+            }}
+          />
+        )}
       </div>
       {tacticsState.solved === true && (
         <p className="mt-4 text-center text-[#4ade80] font-semibold">✓ Corect!</p>
