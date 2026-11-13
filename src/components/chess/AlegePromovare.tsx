@@ -33,8 +33,9 @@ export function AlegePromovare({ culoare, onAlege }: {
 }) {
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[#0A0A0A]/85 p-4">
-      <div className="text-center">
-        <p className="mb-3 text-sm font-semibold text-[#F0F0F0]">În ce se transformă pionul?</p>
+      {/* Fără întrebare deasupra: cine joacă şah ştie ce înseamnă cele patru
+          piese apărute la promovare, iar regula se învaţă din cursurile gratuite. */}
+      <div>
         <div className="flex flex-wrap justify-center gap-2">
           {PIESE_DE_PROMOVARE.map(p => {
             // Chiar desenul folosit pe tablă, cerut de la bibliotecă. Un set
