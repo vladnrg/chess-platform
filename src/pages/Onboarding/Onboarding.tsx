@@ -19,17 +19,28 @@ const ALL_QUESTIONS: AssessmentQuestion[] = [
   ...MCQ_QUESTIONS.filter(q => q.category === 'style'),
 ]
 
+const NR_TACTICI = TACTICS_QUESTIONS.length
+const NR_CUNOSTINTE = MCQ_QUESTIONS.filter(q => q.category === 'knowledge').length
+
 interface TacticsState {
   /** A cărei întrebări e tabla. Fără el, tabla rămânea cea de la prima tactică. */
   id: string
   game: Chess
+  /** Indexul din soluţie al mutării pe care o aşteptăm de la jucător. */
+  pas: number
+  /** Cât timp răspunde adversarul, în secvenţe, nu se poate muta. */
+  adversarMuta: boolean
   solved: boolean | null
   attempted: boolean
 }
 
 function initTactics(id: string, fen: string): TacticsState {
   const g = new Chess(fen)
-  return { id, game: g, solved: null, attempted: false }
+  return { id, game: g, pas: 0, adversarMuta: false, solved: null, attempted: false }
+}
+
+function mutaUci(game: Chess, uci: string) {
+  return game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] ?? 'q' })
 }
 
 function computeResults(answers: Record<string, string>) {
@@ -52,13 +63,13 @@ function computeResults(answers: Record<string, string>) {
 
   // Nivelul vine din tactică, fiindcă puzzle-urile au dificultate măsurată:
   // cel mai greu rezolvat, cu o treaptă mai jos (o nimereală norocoasă nu te
-  // urcă la nivelul ei). Fără niciunul, 700. Cunoştinţele de deschideri mută
-  // doar cu o sută în sus sau în jos — se pot învăţa pe de rost, tactica nu.
-  // Înainte se aduna un scor din două maturi într-o mutare puse ca puncte gratuite.
+  // urcă la nivelul ei). Fără niciunul, 400 — cât primul puzzle. Cunoştinţele de
+  // deschideri mută doar cu o sută în sus sau în jos — se pot învăţa pe de rost,
+  // tactica nu. Plafonul urcă odată cu treptele (ultimul puzzle e ~2400).
   const rezolvate = TACTICS_QUESTIONS.filter(q => answers[q.id] === 'correct').map(q => q.rating)
-  const dinTactica = rezolvate.length === 0 ? 700 : Math.max(...rezolvate) - 150
+  const dinTactica = rezolvate.length === 0 ? 400 : Math.max(...rezolvate) - 150
   const dinCunostinte = knowledgeScore >= 4 ? 100 : knowledgeScore <= 1 ? -100 : 0
-  const estimated_elo = Math.round(Math.min(2100, Math.max(600, dinTactica + dinCunostinte)) / 50) * 50
+  const estimated_elo = Math.round(Math.min(2400, Math.max(400, dinTactica + dinCunostinte)) / 50) * 50
 
   return { puzzleScore, knowledgeScore, playing_style, estimated_elo }
 }
@@ -70,8 +81,8 @@ export function Onboarding() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [tacticsState, setTacticsState] = useState<TacticsState | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  /** Mutarea jucată la fiecare puzzle, ca să poată fi revăzută. Lipsă = sărit. */
-  const [mutari, setMutari] = useState<Record<string, string>>({})
+  /** Mutările jucate la fiecare puzzle (ale tale, în ordine), ca să poată fi revăzute. Lipsă = sărit. */
+  const [mutari, setMutari] = useState<Record<string, string[]>>({})
   /**
    * Indexul puzzle-ului revăzut, dacă te-ai întors la unul de dinainte; altfel
    * `null`. Întrebarea curentă nu se atinge cât revezi: „Reia de unde ai rămas"
@@ -113,21 +124,49 @@ export function Onboarding() {
     setTimeout(() => nextStep(), 500)
   }
 
+  /**
+   * O mutare a jucătorului. E corectă dacă e cea din soluţie sau dacă dă mat (un
+   * mat e un mat, oricum ar fi dat). La o secvenţă, după fiecare mutare corectă
+   * răspunde adversarul; prima greşeală încheie puzzle-ul ca greşit.
+   */
   function handlePieceDrop(sourceSquare: string, targetSquare: string) {
     if (!tacticsState || current.type !== 'tactics') return false
-    const move = sourceSquare + targetSquare
+    if (tacticsState.attempted || tacticsState.adversarMuta) return false
+    const q = current
+    const asteptata = q.solutie[tacticsState.pas]
+    const copie = new Chess(tacticsState.game.fen())
+    let jucata
     try {
-      const gameCopy = new Chess(tacticsState.game.fen())
-      gameCopy.move({ from: sourceSquare, to: targetSquare, promotion: 'q' })
-      const isCorrect = move === current.correctMove
-      setAnswers(prev => ({ ...prev, [current.id]: isCorrect ? 'correct' : 'wrong' }))
-      setMutari(prev => ({ ...prev, [current.id]: move }))
-      setTacticsState({ id: current.id, game: gameCopy, solved: isCorrect, attempted: true })
-      setTimeout(() => nextStep(), 1800)
-      return true
+      jucata = copie.move({ from: sourceSquare, to: targetSquare, promotion: asteptata?.[4] ?? 'q' })
     } catch {
       return false
     }
+    const uci = sourceSquare + targetSquare + (jucata.promotion ?? '')
+    setMutari(prev => ({ ...prev, [q.id]: [...(prev[q.id] ?? []), uci] }))
+
+    const corecta = (sourceSquare + targetSquare) === asteptata?.slice(0, 4) || copie.isCheckmate()
+    const urmatorul = tacticsState.pas + 1
+    const gata = !corecta || urmatorul >= q.solutie.length || copie.isCheckmate()
+
+    if (gata) {
+      setAnswers(prev => ({ ...prev, [q.id]: corecta ? 'correct' : 'wrong' }))
+      setTacticsState({ ...tacticsState, game: copie, solved: corecta, attempted: true })
+      setTimeout(() => nextStep(), 1800)
+      return true
+    }
+
+    // Secvenţă, mutare corectă: răspunde adversarul, apoi e iar rândul tău.
+    setTacticsState({ ...tacticsState, game: copie, pas: urmatorul, adversarMuta: true })
+    const raspuns = q.solutie[urmatorul]
+    setTimeout(() => {
+      setTacticsState(s => {
+        if (!s || s.id !== q.id) return s
+        const g = new Chess(s.game.fen())
+        mutaUci(g, raspuns)
+        return { ...s, game: g, pas: urmatorul + 1, adversarMuta: false }
+      })
+    }, 600)
+    return true
   }
 
   function nextStep() {
@@ -206,7 +245,7 @@ export function Onboarding() {
             <Revizuire
               question={ALL_QUESTIONS[deRevazut] as Tactica}
               numar={deRevazut + 1}
-              mutare={mutari[ALL_QUESTIONS[deRevazut].id]}
+              mutari={mutari[ALL_QUESTIONS[deRevazut].id]}
               rezultat={answers[ALL_QUESTIONS[deRevazut].id]}
             />
           )}
@@ -254,7 +293,7 @@ export function Onboarding() {
 
         {/* Section label */}
         <p className="mt-4 text-center text-xs text-[#6B6B6B]">
-          {step < 5 ? '♟ Tactici' : step < 10 ? '📚 Cunoștințe openings' : '🎯 Stil de joc'}
+          {step < NR_TACTICI ? '♟ Tactici' : step < NR_TACTICI + NR_CUNOSTINTE ? '📚 Cunoștințe openings' : '🎯 Stil de joc'}
         </p>
       </div>
     </div>
@@ -264,7 +303,7 @@ export function Onboarding() {
 function TacticsQuestion({
   question, tacticsState, onDrop, onSkip,
 }: {
-  question: { fen: string; correctMove: string }
+  question: Tactica
   tacticsState: TacticsState
   onDrop: (from: string, to: string) => boolean
   onSkip: () => void
@@ -273,9 +312,12 @@ function TacticsQuestion({
   // Cine e la mutare joacă de jos, ca în cursuri: la o poziţie cu negrul la
   // mutare, tabla întoarsă cu albul jos te punea să gândeşti cu capul în jos.
   const negrulMuta = question.fen.split(' ')[1] === 'b'
+  const secventa = question.solutie.length > 1
   return (
     <div>
-      <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Găsește cea mai bună mutare</h2>
+      <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">
+        {secventa ? 'Găsește cea mai bună secvență' : 'Găsește cea mai bună mutare'}
+      </h2>
       {/* Doar cine e la mutare. Niciun indiciu: testul măsoară ce vezi singur. */}
       <p className="text-sm text-[#A0A0A0] mb-4">{negrulMuta ? 'Negrul la mutare' : 'Albul la mutare'}</p>
       {/* Aceeaşi latură ca oriunde altundeva — vezi --board-max */}
@@ -289,6 +331,7 @@ function TacticsQuestion({
             // targetSquare e null la drop în afara tablei → snap-back
             onPieceDrop: ({ sourceSquare, targetSquare }: PieceDropHandlerArgs) =>
               targetSquare ? onDrop(sourceSquare, targetSquare) : false,
+            allowDragging: !tacticsState.attempted && !tacticsState.adversarMuta,
             boardOrientation: negrulMuta ? 'black' : 'white',
             boardStyle: { borderRadius: 0 },
             darkSquareStyle,
@@ -299,8 +342,9 @@ function TacticsQuestion({
       {tacticsState.solved === true && (
         <p className="mt-4 text-center text-[#4ade80] font-semibold">✓ Corect!</p>
       )}
+      {/* Răspunsul e definitiv, deci nu „mai gândeşte-te": urmează întrebarea următoare. */}
       {tacticsState.solved === false && (
-        <p className="mt-4 text-center text-[#fbbf24] font-semibold">Mai gândește-te</p>
+        <p className="mt-4 text-center text-[#fbbf24] font-semibold">Nu e cea mai bună mutare.</p>
       )}
       {!tacticsState.attempted && (
         <button onClick={onSkip} className="mt-4 w-full text-sm text-[#6B6B6B] hover:text-[#A0A0A0] transition-colors">
@@ -311,51 +355,76 @@ function TacticsQuestion({
   )
 }
 
-/** Un puzzle deja parcurs: poziţia, mutarea ta şi, dacă n-a fost ea, cea mai bună. */
-function Revizuire({ question, numar, mutare, rezultat }: {
+/**
+ * Un puzzle deja parcurs. Tabla arată poziţia din clipa în care ai greşit (sau
+ * de la început, dacă ai rezolvat ori ai sărit), cu mutarea ta în roşu şi cea
+ * bună în verde. La secvenţe, dedesubt e scrisă toată soluţia.
+ */
+function Revizuire({ question, numar, mutari, rezultat }: {
   question: Tactica
   numar: number
-  mutare: string | undefined
+  mutari: string[] | undefined
   rezultat: string | undefined
 }) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const negrulMuta = question.fen.split(' ')[1] === 'b'
-  const san = (uci: string) => {
+  const corect = rezultat === 'correct'
+  const ale = mutari ?? []
+
+  // Unde s-a rupt: prima mutare a ta care nu e cea din soluţie.
+  let k = 0
+  while (!corect && k < ale.length && ale[k].slice(0, 4) === question.solutie[2 * k]?.slice(0, 4)) k++
+  const indexRuptura = corect ? 0 : 2 * k
+
+  const joc = new Chess(question.fen)
+  const sanSolutie: string[] = []
+  let fenRuptura = question.fen
+  question.solutie.forEach((uci, i) => {
+    if (i === indexRuptura) fenRuptura = joc.fen()
+    sanSolutie.push(translateNotation(mutaUci(joc, uci).san))
+  })
+  const san = (fen: string, uci: string) => {
     try {
-      const m = new Chess(question.fen).move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] ?? 'q' })
-      return translateNotation(m.san)
+      return translateNotation(mutaUci(new Chess(fen), uci).san)
     } catch {
       return uci
     }
   }
-  const corect = rezultat === 'correct'
+
+  const buna = question.solutie[indexRuptura]
+  const gresita = !corect ? ale[k] : undefined
   const sageti: Arrow[] = []
-  if (mutare && !corect) {
-    sageti.push({ startSquare: mutare.slice(0, 2), endSquare: mutare.slice(2, 4), color: 'rgba(251,113,133,0.9)' })
+  if (gresita) {
+    sageti.push({ startSquare: gresita.slice(0, 2), endSquare: gresita.slice(2, 4), color: 'rgba(251,113,133,0.9)' })
   }
-  sageti.push({
-    startSquare: question.correctMove.slice(0, 2),
-    endSquare: question.correctMove.slice(2, 4),
-    color: 'rgba(74,222,128,0.9)',
-  })
+  if (buna) {
+    sageti.push({ startSquare: buna.slice(0, 2), endSquare: buna.slice(2, 4), color: 'rgba(74,222,128,0.9)' })
+  }
+  const secventa = question.solutie.length > 1
 
   return (
     <div>
       <h2 className="text-lg font-semibold text-[#F0F0F0] mb-2">Revezi întrebarea {numar}</h2>
-      <p className="text-sm text-[#A0A0A0] mb-4">
+      <p className="text-sm text-[#A0A0A0] mb-1">
         {corect
-          ? `Ai jucat ${san(mutare!)}: corect.`
-          : mutare
-          ? `Ai jucat ${san(mutare)} (roșu). Mutarea cea mai bună era ${san(question.correctMove)} (verde).`
-          : `Ai sărit peste acest puzzle. Mutarea cea mai bună era ${san(question.correctMove)} (verde).`}
+          ? secventa ? 'Ai găsit toată secvența: corect.' : `Ai jucat ${sanSolutie[0]}: corect.`
+          : gresita
+          ? `Ai jucat ${san(fenRuptura, gresita)} (roșu). Mutarea cea mai bună era ${san(fenRuptura, buna)} (verde).`
+          : `Ai sărit peste acest puzzle. Mutarea cea mai bună era ${san(fenRuptura, buna)} (verde).`}
       </p>
+      {secventa && (
+        <p className="text-sm text-[#A0A0A0] mb-4">
+          Secvența completă: <span className="text-[#F0F0F0]">{sanSolutie.join('  ')}</span>
+        </p>
+      )}
+      {!secventa && <div className="mb-3" />}
       <div
         className="mx-auto overflow-hidden rounded-xl border border-[#2A2A2A]"
         style={{ maxWidth: 'min(var(--board-max), 100%)' }}
       >
         <Chessboard
           options={{
-            position: question.fen,
+            position: fenRuptura,
             allowDragging: false,
             arrows: sageti,
             boardOrientation: negrulMuta ? 'black' : 'white',

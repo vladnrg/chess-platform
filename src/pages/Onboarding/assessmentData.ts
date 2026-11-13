@@ -2,7 +2,12 @@ export interface TacticsQuestion {
   type: 'tactics'
   id: string
   fen: string
-  correctMove: string
+  /**
+   * Mutările soluţiei, în UCI, pe rând: a ta, a adversarului, a ta… Una singură
+   * = „Găseşte cea mai bună mutare"; mai multe = „Găseşte cea mai bună secvenţă",
+   * iar adversarul răspunde singur după fiecare mutare corectă.
+   */
+  solutie: string[]
   /** Dificultatea puzzle-ului pe Lichess. Din ea se estimează nivelul. */
   rating: number
 }
@@ -18,54 +23,136 @@ export interface McqQuestion {
 
 export type AssessmentQuestion = TacticsQuestion | McqQuestion
 
-// Întrebările de tactică: cinci puzzle-uri Lichess pe trepte de dificultate
-// (~1160, ~1460, ~1750, ~1960, ~2150). Fără indicii — pe ecran scrie doar cine e
-// la mutare, dedus din poziţie. Un test de plasament cu „Mat în 1" lângă o
-// poziţie uşoară nu plasează pe nimeni.
+// Întrebările de tactică: 15 puzzle-uri Lichess, tot mai grele (~400 → ~2400),
+// în ordinea cerută de utilizator pe 2026-11-13: trei de o mutare, o secvenţă,
+// două de o mutare, o secvenţă, două de o mutare, două secvenţe, una de o mutare,
+// trei secvenţe. Fără indicii — pe ecran scrie doar cine e la mutare.
 //
-// Fiecare e trecută prin motor (scripts/verificari/evaluare-nivel.mjs): mutarea
-// cerută e cea mai bună şi e cu cel puţin doi pioni peste a doua. Contează doar
-// prima mutare din puzzle; restul liniei nu se joacă aici.
+// Fiecare mutare a jucătorului din soluţie e trecută prin motor
+// (scripts/verificari/evaluare-nivel.mjs): e cea mai bună şi singura care
+// câştigă (cel puţin 1,5 pioni peste a doua), sau dă mat. La treptele unde
+// puzzle-urile de o mutare erau doar maturi, întrebarea cere prima mutare dintr-un
+// puzzle mai lung — verificată la fel.
 export const TACTICS_QUESTIONS: TacticsQuestion[] = [
   {
-    // Lichess 01VBW: şah dublu cu calul, care loveşte apoi şi regina.
+    // Lichess 02NvQ (405) · o mutare · şah descoperit, mat
     type: 'tactics',
     id: 't1',
-    fen: '2b1rr1k/3q2pB/p1p5/PpPp4/1P1b1Np1/8/2Q2P1P/R4RK1 w - - 0 22',
-    correctMove: 'f4g6',
-    rating: 1157,
+    fen: '2krr3/1pp3p1/p4p2/5P2/5P2/7P/PPQp2R1/1R1KBB2 b - - 0 30',
+    solutie: ["d2e1q"],
+    rating: 405,
   },
   {
-    // Lichess 01Btz: regina ia calul de pe b3; pionul care l-ar lua înapoi e legat.
+    // Lichess 00FHX (475) · o mutare · piesă neapărată, mat
     type: 'tactics',
     id: 't2',
-    fen: '2r1k2r/1p2bppp/1q1p4/p2Pp1P1/P4n1P/1N3P2/1PPQ4/2KR1B1R b k - 0 17',
-    correctMove: 'b6b3',
-    rating: 1459,
+    fen: '2r3k1/5p1p/4pP2/3p3P/8/5P2/p5P1/1bR3K1 w - - 1 31',
+    solutie: ["c1c8"],
+    rating: 475,
   },
   {
-    // Lichess 006fF: şahul cu regina descoperă atacul nebunului.
+    // Lichess 002vV (564) · o mutare · mat
     type: 'tactics',
     id: 't3',
-    fen: 'r1b4r/pp1k2p1/2nb2qp/1B1p2B1/3p3Q/8/PPP2PPP/3RR1K1 w - - 0 18',
-    correctMove: 'h4g4',
-    rating: 1752,
+    fen: '8/6k1/1R5p/5p1P/5P1K/6P1/8/r7 b - - 3 58',
+    solutie: ["a1h1"],
+    rating: 564,
   },
   {
-    // Lichess 000mr: tura se dă pe pionul de pe f4 şi rupe apărarea regelui alb.
+    // Lichess 005N7 (651) · secvenţă · mat pe ultimul rând, piesă neapărată, mat
     type: 'tactics',
     id: 't4',
-    fen: '5r1k/5rp1/p7/1b2B2p/1P1P1Pq1/2R3Q1/P3p1P1/2R3K1 b - - 1 41',
-    correctMove: 'f7f4',
-    rating: 1957,
+    fen: 'r6k/2q3pp/8/2p5/R1np4/7P/2PB1PP1/6K1 w - - 0 33',
+    solutie: ["a4a8", "c7b8", "a8b8"],
+    rating: 651,
   },
   {
-    // Lichess 08p1T: mat în trei, începând cu nebunul pe b5.
+    // Lichess 09Skm (786) · o mutare · final de pioni
     type: 'tactics',
     id: 't5',
-    fen: 'Q2r3r/1ppkbppp/3p1n2/3P4/4Pq2/3B4/PPPN2PP/R5K1 w - - 2 16',
-    correctMove: 'd3b5',
-    rating: 2154,
+    fen: '8/8/3k1p1p/1p3P1P/1Pp2K2/2P5/8/8 b - - 4 47',
+    solutie: ["d6d5"],
+    rating: 786,
+  },
+  {
+    // Lichess 0F9xB (931) · o mutare · mutare intermediară
+    type: 'tactics',
+    id: 't6',
+    fen: 'r1bqk2r/pp3ppp/2n2b2/1B1Q4/8/2N1P3/PP3PPP/R3K1NR b KQkq - 0 10',
+    solutie: ["f6c3"],
+    rating: 931,
+  },
+  {
+    // Lichess 003r5 (1107) · secvenţă · furculiţă
+    type: 'tactics',
+    id: 't7',
+    fen: 'r2qr1k1/ppp2ppp/4P3/8/1nP2Q2/2N2N1P/PP3KP1/R4R2 b - - 0 15',
+    solutie: ["b4d3", "f2g1", "d3f4"],
+    rating: 1107,
+  },
+  {
+    // Lichess 007OE (1284) · o mutare · piesă neapărată, mutare liniştită
+    type: 'tactics',
+    id: 't8',
+    fen: '8/pkp5/2p1p3/3p4/N2q4/1P4Q1/1PP3Pr/K2R4 b - - 0 29',
+    solutie: ["d4d1"],
+    rating: 1284,
+  },
+  {
+    // Lichess 0199s (1441) · o mutare · tactică
+    type: 'tactics',
+    id: 't9',
+    fen: 'r3qr1k/1p2b1p1/4p1Qp/2ppP3/p4P2/2P1P1P1/PP4P1/1K1R3R w - - 1 21',
+    solutie: ["h1h6"],
+    rating: 1441,
+  },
+  {
+    // Lichess 00Gc5 (1600) · secvenţă · deviere
+    type: 'tactics',
+    id: 't10',
+    fen: '8/p1r2p2/4r3/2P1PK2/1P4R1/3R2pk/8/8 b - - 3 46',
+    solutie: ["e6e5", "f5e5", "h3g4"],
+    rating: 1600,
+  },
+  {
+    // Lichess 001h8 (1780) · secvenţă · deviere
+    type: 'tactics',
+    id: 't11',
+    fen: '2r3k1/2r4p/4p1p1/1p1q1pP1/p2P1P1Q/P6R/4bB2/2R3K1 w - - 6 35',
+    solutie: ["h4h7", "c7h7", "c1c8", "g8g7", "c8c7"],
+    rating: 1780,
+  },
+  {
+    // Lichess 00A5m (1965) · o mutare · mutare liniştită
+    type: 'tactics',
+    id: 't12',
+    fen: '8/1p6/p1p2p2/P3b3/1PK3P1/2PB4/3k4/8 w - - 4 61',
+    solutie: ["d3f5"],
+    rating: 1965,
+  },
+  {
+    // Lichess 00JH5 (2082) · secvenţă · tactică
+    type: 'tactics',
+    id: 't13',
+    fen: '8/2Q2pk1/8/3pp2P/2q5/2P5/KP6/8 w - - 2 37',
+    solutie: ["c7c4", "d5c4", "b2b4"],
+    rating: 2082,
+  },
+  {
+    // Lichess 00mca (2242) · secvenţă · legare
+    type: 'tactics',
+    id: 't14',
+    fen: '7Q/p3nkpp/3p2q1/3P4/4P3/B1r2B1b/P4PPP/R4RK1 b - - 0 20',
+    solutie: ["c3f3", "g2g3", "f3a3"],
+    rating: 2242,
+  },
+  {
+    // Lichess 00BZ6 (2401) · secvenţă · tactică
+    type: 'tactics',
+    id: 't15',
+    fen: '1r1r1bk1/3n1p1p/1qp3p1/2N1p3/PpQ1P3/4BP2/4N1PP/1RR3K1 b - - 1 24',
+    solutie: ["f8c5", "e3c5", "d7c5"],
+    rating: 2401,
   },
 ]
 
