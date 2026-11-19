@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Chessboard, type PieceDropHandlerArgs } from 'react-chessboard'
 import { Lightbulb } from 'lucide-react'
 import type { MovePieceExerciseData } from '@/types'
@@ -21,6 +22,12 @@ interface Props {
    * cerinţa exerciţiului e şi cerinţa pasului.
    */
   onCerinta?: (text: string | null) => void
+  /**
+   * Panoul din dreapta tablei, unde se pun cerinţa pasului, mesajele şi
+   * butoanele. Tabla rămâne pe loc, în stânga; restul ajunge aici. `null` cât
+   * panoul nu e încă pe pagină, sau după ultimul exerciţiu — atunci nu se pune nimic.
+   */
+  panou: HTMLElement | null
 }
 
 type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare' | 'alta-piesa'
@@ -28,7 +35,7 @@ type Status = 'idle' | 'correct' | 'wrong' | 'alta-culoare' | 'alta-piesa'
 /** Cât stă verdele pe tablă înainte să răspundă adversarul. */
 const PAUZA_INAINTE_DE_RASPUNS = 950
 
-export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: Props) {
+export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta, panou }: Props) {
   /**
    * Paşii, când exerciţiul ţine mai mult de o mutare.
    *
@@ -216,7 +223,7 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
     return false
   }
 
-  return (
+  const lateral = (
     <div className="space-y-3">
       {pasi && pasi.length > 1 && (
         <p className="text-xs font-medium text-[#6B6B6B]">
@@ -228,36 +235,8 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
         <EtichetaUltimeiMutari mutare={comentariu ? null : ultima} tineLocul />
       )}
 
-      <div className="relative">
-        <RamaTablei>
-          <Chessboard
-            options={{
-              position: fen,
-              allowDragging: status !== 'correct' && !deAles,
-              onPieceDrop: onDrop,
-              // Zona stă dedesubt: e fundal pentru o explicaţie, iar mutarea
-              // tocmai făcută trebuie să rămână cea mai aprinsă de pe tablă.
-              squareStyles: {
-                ...stilulZonei(comentariu?.zona, orientareaTablei(exercise.fen)),
-                ...(aratamUltima ? stilulUltimeiMutari(ultima) : {}),
-                ...highlight,
-              },
-              arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
-              arrowOptions: OPTIUNI_SAGEATA,
-              boardStyle: { borderRadius: 0 },
-              boardOrientation: orientareaTablei(exercise.fen),
-              ...CULORI_TABLA,
-            }}
-          />
-        </RamaTablei>
-
-        {/* Alegerea piesei, peste tablă — vezi `AlegePromovare`. */}
-        {deAles && <AlegePromovare culoare={laMutare} onAlege={alege} />}
-      </div>
-
-      {/* Explicaţia mutării lui, sub tablă şi nu deasupra: apare exact în clipa
-          în care omul se uită la piese, iar un rând nou deasupra ar împinge
-          tabla în jos tocmai atunci. */}
+      {/* Explicaţia mutării lui, în panoul de lângă tablă: apare exact în clipa
+          în care omul se uită la piese, deci nu are voie să mute tabla din loc. */}
       {comentariu && (
         <p className="flex items-start gap-2 rounded-lg border border-[#2A2A2A] bg-[#161616] px-3 py-2.5 text-sm leading-relaxed text-[#D8D8D8]">
           <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#E2B340]" />
@@ -293,5 +272,37 @@ export function MovePieceExerciseComponent({ exercise, onCorrect, onCerinta }: P
         </p>
       )}
     </div>
+  )
+
+  return (
+    <>
+      <div className="relative">
+        <RamaTablei>
+          <Chessboard
+            options={{
+              position: fen,
+              allowDragging: status !== 'correct' && !deAles,
+              onPieceDrop: onDrop,
+              // Zona stă dedesubt: e fundal pentru o explicaţie, iar mutarea
+              // tocmai făcută trebuie să rămână cea mai aprinsă de pe tablă.
+              squareStyles: {
+                ...stilulZonei(comentariu?.zona, orientareaTablei(exercise.fen)),
+                ...(aratamUltima ? stilulUltimeiMutari(ultima) : {}),
+                ...highlight,
+              },
+              arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
+              arrowOptions: OPTIUNI_SAGEATA,
+              boardStyle: { borderRadius: 0 },
+              boardOrientation: orientareaTablei(exercise.fen),
+              ...CULORI_TABLA,
+            }}
+          />
+        </RamaTablei>
+
+        {/* Alegerea piesei, peste tablă — vezi `AlegePromovare`. */}
+        {deAles && <AlegePromovare culoare={laMutare} onAlege={alege} />}
+      </div>
+      {panou && createPortal(lateral, panou)}
+    </>
   )
 }

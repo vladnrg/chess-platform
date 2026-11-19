@@ -16,7 +16,7 @@ import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
-import { useLaturaTablei } from '@/hooks/useLaturaTablei'
+import { useLaturaTablei, LATIME_PANOU, SPATIU_TABLA_PANOU } from '@/hooks/useLaturaTablei'
 
 /**
  * Cât durează alunecarea unei piese dintr-un pătrat în altul.
@@ -26,15 +26,6 @@ import { useLaturaTablei } from '@/hooks/useLaturaTablei'
  * adversarului nu are ce căuta pe ecran cât timp piesa e încă în aer.
  */
 const ANIMATIE_MS = 350
-/** Lăţimea panoului din dreapta tablei (21rem) şi spaţiul dintre ele (1rem), în pixeli. */
-const LATIME_PANOU = 336
-const SPATIU_TABLA_PANOU = 16
-/**
- * Latura maximă a tablei, în pixeli de pagină. Fără plafon, la zoom 50% tabla
- * creştea de două ori şi umplea iar ecranul; cu el, se micşorează odată cu
- * restul paginii, ca la Chessly. La zoom 100% contează doar pe ecrane foarte înalte.
- */
-const LATURA_MAXIMA = 920
 
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
@@ -375,7 +366,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const [meniu, setMeniu] = useState(false)
   // Rândul cu tabla şi panoul: din el se calculează latura tablei (vezi useLaturaTablei).
   const [randTabla, setRandTabla] = useState<HTMLDivElement | null>(null)
-  const latura = useLaturaTablei(randTabla, LATIME_PANOU + SPATIU_TABLA_PANOU, LATURA_MAXIMA)
+  const latura = useLaturaTablei(randTabla)
 
   /**
    * Când treci la altă variantă, panoul se întoarce la lista de ramificaţii.

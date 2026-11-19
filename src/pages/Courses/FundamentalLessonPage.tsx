@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, ChevronLeft, ChevronRight, Target } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, Target } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useLaturaTablei, LATIME_PANOU, SPATIU_TABLA_PANOU } from '@/hooks/useLaturaTablei'
 import { Button } from '@/components/ui/Button'
-import { Progress } from '@/components/ui/Progress'
 import { SquareClickExerciseComponent } from '@/components/chess/exercises/SquareClickExercise'
 import { MovePieceExerciseComponent } from '@/components/chess/exercises/MovePieceExercise'
 import { IdentifyNotationExerciseComponent } from '@/components/chess/exercises/IdentifyNotationExercise'
@@ -39,14 +39,22 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
    * fiecare dată când trece la pasul următor, şi o şterge când pleacă de tot.
    */
   const [cerintaPasului, setCerintaPasului] = useState<string | null>(null)
+  // Rândul cu tabla şi panoul (din el se calculează latura tablei) şi locul din
+  // panou unde exerciţiul curent îşi pune mesajele şi butoanele.
+  const [randTabla, setRandTabla] = useState<HTMLDivElement | null>(null)
+  const [slotPanou, setSlotPanou] = useState<HTMLDivElement | null>(null)
+  const latura = useLaturaTablei(randTabla)
+  // Creşte când „Înapoi" redeschide ultimul exerciţiu după final: exerciţiul
+  // porneşte curat, altfel rămânea „rezolvat" şi nu mai putea fi terminat.
+  const [reluare, setReluare] = useState(0)
 
   /**
    * Toate cerinţele care pot apărea în lecţie: ale exerciţiilor şi ale paşilor.
    *
-   * Nu ca să fie citite, ci ca să ţină locul. Rândul de sus îşi ia înălţimea
+   * Nu ca să fie citite, ci ca să ţină locul. Rândul cerinţei îşi ia înălţimea
    * de la cea mai lungă dintre ele şi n-o mai schimbă niciodată — altfel
    * „Împinge pionul pe e7" ocupă un rând, cerinţa următoare ocupă trei, iar
-   * tabla coboară cu vreo cincizeci de pixeli exact când omul se uită la ea.
+   * ce e dedesubt sare exact când omul se uită la el.
    */
   const cerinteleLectiei = useMemo(
     () =>
@@ -109,94 +117,55 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
   }
 
   const currentExercise = exercises[exerciseIndex]
-  const progressPct = exercises.length > 0
-    ? Math.round(((allDone ? exercises.length : exerciseIndex) / exercises.length) * 100)
-    : 100
+  // Ultimul exerciţiu rămâne pe tablă şi după ce s-a terminat lecţia, ca locul
+  // din stânga să nu rămână gol; mesajele lui nu se mai pun (vezi `panou`).
+  const exercitiulDePeTabla = currentExercise ?? exercises[exercises.length - 1]
+  const panouExercitiu = allDone ? null : slotPanou
+  const facute = allDone ? exercises.length : exerciseIndex
 
   return (
-    <div className="space-y-4 max-w-2xl mx-auto">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
-        <Link to="/courses" className="hover:text-[#F0F0F0] transition-colors">Cursuri</Link>
-        <span>›</span>
-        <Link to={`/courses/${course.slug}`} className="hover:text-[#F0F0F0] transition-colors">{course.title}</Link>
-        <span>›</span>
-        <span className="text-[#A0A0A0]">{lesson.title}</span>
-      </div>
+    // Aceeaşi aşezare ca la cursurile de deschideri (OpeningTrainerPage): pagina
+    // umple ecranul, tabla şi panoul formează un bloc centrat, iar antetul are
+    // exact lăţimea blocului. Înainte, lecţia era o coloană îngustă, cu tabla
+    // între două carduri şi butoanele sub ea, adesea în afara ecranului.
+    <div className="flex flex-col gap-3 lg:h-[var(--app-page-h)]">
+      <div
+        className="flex flex-shrink-0 flex-col gap-3 lg:mx-auto lg:max-w-full"
+        style={latura ? { width: latura + SPATIU_TABLA_PANOU + LATIME_PANOU } : undefined}
+      >
+        {/* Antetul: cursul şi lecţia */}
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            to={`/courses/${course.slug}`}
+            aria-label="Înapoi la curs"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#141414] text-[#A0A0A0] transition-colors hover:text-[#F0F0F0]"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+          <div className="min-w-0">
+            <p className="truncate text-base font-bold text-[#F0F0F0]">{course.title}</p>
+            <p className="truncate text-sm text-[#A0A0A0]">{lesson.title}</p>
+          </div>
+        </div>
 
-      {/* Header lecție */}
-      <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5 space-y-3">
-        <h1 className="text-xl font-bold text-[#F0F0F0]">{lesson.title}</h1>
-
-        {/* Teoria e scrisă pentru începutul lecţiei, nu pentru fiecare pas: la
-            „Tabla şi setup-ul" explică notaţia pătratelor, ceea ce ajută la
-            primul exerciţiu (apasă e4) şi nu mai spune nimic la al doilea.
-            De aceea rămâne doar cât timp eşti la primul, iar de acolo încolo îi
-            ia locul cerinţa exerciţiului curent. */}
-        {lesson.theory_html && exerciseIndex === 0 && !allDone && (
-          <div
-            className="prose prose-sm prose-invert max-w-none text-[#A0A0A0] leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: lesson.theory_html }}
-          />
-        )}
-
-        {/* Ce ai de făcut ACUM, sus, mare şi colorat.
-            Stătea sub numărul exerciţiului, scrisă mic şi gri — adică exact
-            lucrul de care are omul nevoie era cel mai greu de găsit din pagină. */}
-        {!allDone && currentExercise && (
-          <div className="grid">
-            {/* Toate cerinţele lecţiei, una peste alta în aceeaşi celulă şi
-                nevăzute: celula rămâne cât cea mai înaltă dintre ele, deci
-                rândul nu se mai umflă şi nu se mai strânge de la un pas la
-                altul. Restul paginii — tabla mai ales — stă pe loc. */}
-            {cerinteleLectiei.map((text, i) => (
-              <p
-                key={i}
-                aria-hidden
-                className="invisible col-start-1 row-start-1 flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]"
-              >
-                <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
-                {text}
-              </p>
-            ))}
-            <p className="col-start-1 row-start-1 flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]">
-              <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
-              {cerintaPasului ?? currentExercise.instruction}
+        {/* Exerciţiul în care eşti, cu săgeţile lui. Înapoi merge oriunde ai
+            fost deja; înainte doar până la cel mai departe ajuns. */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-2">
+            <BookOpen className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />
+            <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#E2B340]">
+              {allDone
+                ? 'Toate exercițiile rezolvate'
+                : `Exercițiul ${exerciseIndex + 1} din ${exercises.length}`}
             </p>
-          </div>
-        )}
-
-        {/* Progress exerciții */}
-        {exercises.length > 0 && (
-          <div className="space-y-1.5 pt-2 border-t border-[#2A2A2A]">
-            <div className="flex justify-between text-xs text-[#6B6B6B]">
-              <span>Exerciții</span>
-              <span>{allDone ? exercises.length : exerciseIndex} / {exercises.length}</span>
-            </div>
-            <Progress value={progressPct} className="h-1.5" />
-          </div>
-        )}
-      </div>
-
-      {/* Exercițiu curent */}
-      {!allDone && currentExercise && (
-        <div className="rounded-xl bg-[#141414] border border-[#2A2A2A] p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <span className="rounded-full bg-[rgba(226,179,64,0.15)] px-3 py-1 text-xs font-medium text-[#E2B340]">
-              Exercițiu {exerciseIndex + 1} din {exercises.length}
-            </span>
-
-            {/* Înapoi la un exerciţiu deja făcut, şi înapoi de unde ai venit.
-                Până acum se putea doar înainte, deci cine voia să recitească
-                prima poziţie trebuia să reîncarce toată lecţia. */}
-            {exercises.length > 1 && (
-              <div className="flex items-center gap-1.5">
+            {exercises.length > 1 && !allDone && (
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
                   disabled={exerciseIndex === 0}
                   aria-label="Exercițiul anterior"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -205,7 +174,7 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
                   onClick={() => setExerciseIndex(i => Math.min(maxAtins, i + 1))}
                   disabled={exerciseIndex >= maxAtins}
                   aria-label="Exercițiul următor"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#2A2A2A] bg-[#1C1C1C] text-[#A0A0A0] transition-colors hover:border-[#3A3A3A] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] hover:text-[#F0F0F0] disabled:pointer-events-none disabled:opacity-30"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -213,95 +182,169 @@ export function FundamentalLessonPage({ lesson, course, nextLesson }: Props) {
             )}
           </div>
 
-          {/* `key={exerciseIndex}` NU e decorativ, e reparaţia unui blocaj.
-              Fiecare exerciţiu îşi ţine starea la el (rezolvat / greşit / pătrate
-              colorate, iar la „mută piesa" chiar poziţia de pe tablă). Fără key,
-              React refoloseşte aceeaşi componentă când se schimbă exerciţiul,
-              deci starea veche rămâne: `status` era încă 'correct', iar prima
-              linie din handler e `if (status === 'correct') return` — adică
-              tabla nu mai răspundea deloc la clicuri. Se vedea la „Tabla şi
-              setup-ul": după e4, întrebarea trecea la d5, dar e4 rămânea verde,
-              „Corect! Super!" rămânea pe ecran şi nu se mai putea da click.
-              Cu key, componenta se remontează şi porneşte curată. */}
-          {currentExercise.type === 'click_square' && (
-            <SquareClickExerciseComponent
-              key={exerciseIndex}
-              exercise={currentExercise}
-              onCorrect={handleExerciseCorrect}
-            />
-          )}
-          {currentExercise.type === 'move_piece' && (
-            <MovePieceExerciseComponent
-              key={exerciseIndex}
-              exercise={currentExercise}
-              onCorrect={handleExerciseCorrect}
-              onCerinta={setCerintaPasului}
-            />
-          )}
-          {currentExercise.type === 'identify_square' && (
-            <IdentifyNotationExerciseComponent
-              key={exerciseIndex}
-              exercise={currentExercise}
-              onCorrect={handleExerciseCorrect}
-            />
+          {/* Câte o liniuţă pe exerciţiu, ca segmentele de la deschideri. */}
+          {exercises.length > 0 && (
+            <div className="flex gap-1.5">
+              {exercises.map((_, i) => (
+                <div key={i} className="flex-1 py-1.5">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-[#2A2A2A]">
+                    <div
+                      className="h-full rounded-full bg-[#E2B340] transition-all duration-500"
+                      style={{ width: i < facute ? '100%' : '0%' }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Toate exercițiile completate */}
-      {allDone && (
-        <div className="rounded-xl bg-[rgba(74,222,128,0.08)] border border-[rgba(74,222,128,0.2)] p-5 text-center space-y-3">
-          <CheckCircle2 className="h-10 w-10 text-[#4ade80] mx-auto" />
-          <p className="font-semibold text-[#F0F0F0]">Toate exercițiile rezolvate!</p>
-          <p className="text-sm text-[#6B6B6B]">Apasă "Finalizează" pentru a câștiga XP-ul.</p>
-        </div>
-      )}
-
-      {/* Navigare */}
-      <div className="flex items-center gap-3">
-        {/* „Înapoi" înseamnă un pas înapoi, nu o lecţie înapoi.
-            Butonul ducea direct la lecţia dinainte, chiar dacă erai la
-            exerciţiul 3 din 3 — adică pierdeai toată lecţia ca să revezi o
-            poziţie.
-
-            De la primul exerciţiu nu mai duce în lecţia vecină: cine apasă
-            „înapoi" acolo vrea să iasă, nu să nimerească într-o altă lecţie pe
-            care n-a cerut-o. Îl scoate la pagina de start, şi o spune pe faţă. */}
-        {exerciseIndex > 0 ? (
-          <Button
-            variant="secondary"
-            className="flex-1"
-            onClick={() => setExerciseIndex(i => Math.max(0, i - 1))}
-          >
-            <ChevronLeft className="h-4 w-4" /> Înapoi
-          </Button>
-        ) : (
-          <Link to="/dashboard" className="flex-1">
-            <Button variant="secondary" className="w-full">
-              <ChevronLeft className="h-4 w-4" /> Înapoi la pagina principală
-            </Button>
-          </Link>
+      {/* `lg:pb-24`: acelaşi spaţiu negru sub tablă ca la deschideri. */}
+      <div ref={setRandTabla} className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4 lg:pb-24">
+        {exercitiulDePeTabla && (
+          <div className={`flex min-h-0 min-w-0 justify-center ${latura ? 'lg:items-start' : 'flex-1 items-center'}`}>
+            <div className="w-full max-w-full" style={latura ? { width: latura, height: latura } : undefined}>
+              {/* `key={exerciseIndex}` NU e decorativ, e reparaţia unui blocaj.
+                  Fiecare exerciţiu îşi ţine starea la el (rezolvat / greşit /
+                  pătrate colorate, iar la „mută piesa" chiar poziţia de pe tablă).
+                  Fără key, React refoloseşte aceeaşi componentă când se schimbă
+                  exerciţiul, deci starea veche rămâne: `status` era încă
+                  'correct', iar prima linie din handler e
+                  `if (status === 'correct') return` — adică tabla nu mai
+                  răspundea deloc la clicuri. Cu key, componenta se remontează şi
+                  porneşte curată. */}
+              {exercitiulDePeTabla.type === 'click_square' && (
+                <SquareClickExerciseComponent
+                  key={`${exerciseIndex}-${reluare}`}
+                  exercise={exercitiulDePeTabla}
+                  onCorrect={handleExerciseCorrect}
+                  panou={panouExercitiu}
+                />
+              )}
+              {exercitiulDePeTabla.type === 'move_piece' && (
+                <MovePieceExerciseComponent
+                  key={`${exerciseIndex}-${reluare}`}
+                  exercise={exercitiulDePeTabla}
+                  onCorrect={handleExerciseCorrect}
+                  onCerinta={setCerintaPasului}
+                  panou={panouExercitiu}
+                />
+              )}
+              {exercitiulDePeTabla.type === 'identify_square' && (
+                <IdentifyNotationExerciseComponent
+                  key={`${exerciseIndex}-${reluare}`}
+                  exercise={exercitiulDePeTabla}
+                  onCorrect={handleExerciseCorrect}
+                  panou={panouExercitiu}
+                />
+              )}
+            </div>
+          </div>
         )}
-        <Button
-          className="flex-1"
-          disabled={!allDone}
-          onClick={() => completeMutation.mutate()}
-          loading={completeMutation.isPending}
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          {nextLesson ? 'Finalizează' : 'Gata!'}
-        </Button>
-        {nextLesson && allDone && (
-          <Link to={`/courses/${course.slug}/lessons/${nextLesson.id}`} className="flex-1">
+
+        {/* Coloana dreaptă: cerinţa, teoria, ce spune exerciţiul, butoanele. */}
+        <div className="min-h-0 shrink-0 space-y-3 overflow-y-auto lg:w-[21rem]">
+          {/* Ce ai de făcut ACUM, sus, mare şi colorat.
+              Stătea sub numărul exerciţiului, scrisă mic şi gri — adică exact
+              lucrul de care are omul nevoie era cel mai greu de găsit din pagină. */}
+          {!allDone && currentExercise && (
+            <div className="grid rounded-xl border border-[#2A2A2A] bg-[#141414] p-4">
+              {/* Toate cerinţele lecţiei, una peste alta în aceeaşi celulă şi
+                  nevăzute: celula rămâne cât cea mai înaltă dintre ele, deci nu
+                  se mai umflă şi nu se mai strânge de la un pas la altul. */}
+              {cerinteleLectiei.map((text, i) => (
+                <p
+                  key={i}
+                  aria-hidden
+                  className="invisible col-start-1 row-start-1 flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]"
+                >
+                  <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
+                  {text}
+                </p>
+              ))}
+              <p className="col-start-1 row-start-1 flex items-start gap-2 text-base font-semibold leading-relaxed text-[#F0F0F0]">
+                <Target className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#E2B340]" />
+                {cerintaPasului ?? currentExercise.instruction}
+              </p>
+            </div>
+          )}
+
+          {/* Teoria e scrisă pentru începutul lecţiei, nu pentru fiecare pas: la
+              „Tabla şi setup-ul" explică notaţia pătratelor, ceea ce ajută la
+              primul exerciţiu (apasă e4) şi nu mai spune nimic la al doilea.
+              De aceea rămâne doar cât timp eşti la primul. */}
+          {lesson.theory_html && exerciseIndex === 0 && !allDone && (
+            <div
+              className="prose prose-sm prose-invert max-w-none rounded-xl border border-[#2A2A2A] bg-[#141414] p-4 leading-relaxed text-[#A0A0A0]"
+              dangerouslySetInnerHTML={{ __html: lesson.theory_html }}
+            />
+          )}
+
+          {/* Aici îşi pune exerciţiul curent mesajele şi butoanele. */}
+          <div ref={setSlotPanou} />
+
+          {allDone && (
+            <div className="space-y-3 rounded-xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.08)] p-5 text-center">
+              <CheckCircle2 className="mx-auto h-10 w-10 text-[#4ade80]" />
+              <p className="font-semibold text-[#F0F0F0]">Toate exercițiile rezolvate!</p>
+              <p className="text-sm text-[#6B6B6B]">
+                Apasă „{nextLesson ? 'Finalizează' : 'Gata!'}" pentru a câștiga XP-ul.
+              </p>
+            </div>
+          )}
+
+          {/* Navigare — una sub alta: panoul e prea îngust pentru trei butoane
+              pe un rând. */}
+          <div className="flex flex-col gap-2">
             <Button
-              variant="secondary"
-              className="w-full"
+              disabled={!allDone}
               onClick={() => completeMutation.mutate()}
+              loading={completeMutation.isPending}
             >
-              Următoarea <ChevronRight className="h-4 w-4" />
+              <CheckCircle2 className="h-4 w-4" />
+              {nextLesson ? 'Finalizează' : 'Gata!'}
             </Button>
-          </Link>
-        )}
+            {nextLesson && allDone && (
+              <Link to={`/courses/${course.slug}/lessons/${nextLesson.id}`}>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => completeMutation.mutate()}
+                >
+                  Următoarea <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            )}
+            {/* „Înapoi" înseamnă un pas înapoi, nu o lecţie înapoi. De la primul
+                exerciţiu nu mai duce în lecţia vecină: cine apasă „înapoi" acolo
+                vrea să iasă, nu să nimerească într-o lecţie pe care n-a cerut-o.
+                Îl scoate la pagina de start, şi o spune pe faţă. */}
+            {/* După ultimul exerciţiu, „Înapoi" redeschide ultimul exerciţiu; altfel
+                pagina rămânea pe „rezolvate" cu tabla altui exerciţiu. */}
+            {exerciseIndex > 0 || allDone ? (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  if (allDone) {
+                    setAllDone(false)
+                    setReluare(r => r + 1)
+                  } else {
+                    setExerciseIndex(i => Math.max(0, i - 1))
+                  }
+                }}
+              >
+                <ChevronLeft className="h-4 w-4" /> Înapoi
+              </Button>
+            ) : (
+              <Link to="/dashboard">
+                <Button variant="secondary" className="w-full">
+                  <ChevronLeft className="h-4 w-4" /> Înapoi la pagina principală
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

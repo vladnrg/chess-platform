@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Chessboard } from 'react-chessboard'
 import type { ClickSquareExercise } from '@/types'
 import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
@@ -9,11 +10,17 @@ import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 interface Props {
   exercise: ClickSquareExercise
   onCorrect: () => void
+  /**
+   * Panoul din dreapta tablei, unde se pun cerinţa pasului, mesajele şi
+   * butoanele. Tabla rămâne pe loc, în stânga; restul ajunge aici. `null` cât
+   * panoul nu e încă pe pagină, sau după ultimul exerciţiu — atunci nu se pune nimic.
+   */
+  panou: HTMLElement | null
 }
 
 type Status = 'idle' | 'correct' | 'wrong'
 
-export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
+export function SquareClickExerciseComponent({ exercise, onCorrect, panou }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [highlighted, setHighlighted] = useState<Record<string, React.CSSProperties>>({})
 
@@ -41,10 +48,20 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
     }
   }
 
-  return (
+  const lateral = (
     <div className="space-y-3">
       <EtichetaUltimeiMutari mutare={ultima} />
+      {status === 'correct' && (
+        <p className="text-sm font-medium text-[#4ade80]">Corect! Super!</p>
+      )}
+      {status === 'wrong' && (
+        <p className="text-sm font-medium text-[#FB7185]">Încearcă din nou — uite unde e!</p>
+      )}
+    </div>
+  )
 
+  return (
+    <>
       <RamaTablei>
         <Chessboard
           options={{
@@ -60,13 +77,7 @@ export function SquareClickExerciseComponent({ exercise, onCorrect }: Props) {
           }}
         />
       </RamaTablei>
-
-      {status === 'correct' && (
-        <p className="text-sm font-medium text-[#4ade80]">Corect! Super!</p>
-      )}
-      {status === 'wrong' && (
-        <p className="text-sm font-medium text-[#FB7185]">Încearcă din nou — uite unde e!</p>
-      )}
-    </div>
+      {panou && createPortal(lateral, panou)}
+    </>
   )
 }

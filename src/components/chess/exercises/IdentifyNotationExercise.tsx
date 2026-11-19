@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Chessboard } from 'react-chessboard'
 import type { IdentifySquareExercise } from '@/types'
 import { citesteUltimaMutare, OPTIUNI_SAGEATA, sagetileUltimeiMutari, stilulUltimeiMutari } from '@/lib/ultima-mutare'
@@ -9,9 +10,15 @@ import { CULORI_TABLA, orientareaTablei } from './culori-tabla'
 interface Props {
   exercise: IdentifySquareExercise
   onCorrect: () => void
+  /**
+   * Panoul din dreapta tablei, unde se pun cerinţa pasului, mesajele şi
+   * butoanele. Tabla rămâne pe loc, în stânga; restul ajunge aici. `null` cât
+   * panoul nu e încă pe pagină, sau după ultimul exerciţiu — atunci nu se pune nimic.
+   */
+  panou: HTMLElement | null
 }
 
-export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props) {
+export function IdentifyNotationExerciseComponent({ exercise, onCorrect, panou }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [locked, setLocked] = useState(false)
 
@@ -30,8 +37,11 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
     }
   }
 
-  function getOptionClass(option: string) {
-    const base = 'rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors text-left'
+  /** `mari`: plăcile care iau locul tablei, la întrebările fără poziţie. */
+  function getOptionClass(option: string, mari = false) {
+    const base = mari
+      ? 'flex items-center justify-center rounded-xl border px-4 text-center text-3xl font-bold transition-colors'
+      : 'rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors text-left'
     if (!selected) {
       return `${base} border-[#2A2A2A] bg-[#141414] text-[#A0A0A0] hover:border-[#E2B340] hover:text-[#F0F0F0] cursor-pointer`
     }
@@ -79,35 +89,18 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
   const ultima = exercise.fen ? citesteUltimaMutare(exercise.fen, exercise.last_move) : null
   const aratamUltima = !selected
 
-  return (
-    <div className="space-y-4">
-      <EtichetaUltimeiMutari mutare={ultima} />
+  const variante = (
+    <div className="grid grid-cols-2 gap-2">
+      {exercise.options.map(opt => (
+        <button key={opt} className={getOptionClass(opt)} onClick={() => handleSelect(opt)}>
+          {opt}
+        </button>
+      ))}
+    </div>
+  )
 
-      {exercise.fen && (
-        <RamaTablei inerta>
-          <Chessboard
-            options={{
-              position: exercise.fen,
-              allowDragging: false,
-              squareStyles: aratamUltima ? stilulUltimeiMutari(ultima) : highlight,
-              arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
-              arrowOptions: OPTIUNI_SAGEATA,
-              boardStyle: { borderRadius: 0 },
-              boardOrientation: orientareaTablei(exercise.fen),
-            ...CULORI_TABLA,
-            }}
-          />
-        </RamaTablei>
-      )}
-
-      <div className="grid grid-cols-2 gap-2">
-        {exercise.options.map(opt => (
-          <button key={opt} className={getOptionClass(opt)} onClick={() => handleSelect(opt)}>
-            {opt}
-          </button>
-        ))}
-      </div>
-
+  const mesaje = (
+    <>
       {selected && selected === exercise.square && (
         <p className="text-sm font-medium text-[#4ade80]">Corect!</p>
       )}
@@ -116,6 +109,52 @@ export function IdentifyNotationExerciseComponent({ exercise, onCorrect }: Props
           Nu chiar — răspunsul corect e <span className="font-bold">{exercise.square}</span>
         </p>
       )}
-    </div>
+    </>
+  )
+
+  // Întrebările fără poziţie („Cum se notează rocada mică?") n-au ce arăta pe
+  // tablă: variantele de răspuns iau locul tablei, ca patru plăci mari care umplu
+  // pătratul, iar panoul păstrează doar mesajul. Puse mici, în locul tablei,
+  // lăsau un gol negru mare deasupra lor.
+  if (!exercise.fen) {
+    return (
+      <>
+        <div className="grid aspect-square w-full grid-cols-2 grid-rows-2 gap-3">
+          {exercise.options.map(opt => (
+            <button key={opt} className={getOptionClass(opt, true)} onClick={() => handleSelect(opt)}>
+              {opt}
+            </button>
+          ))}
+        </div>
+        {panou && createPortal(<div className="space-y-3">{mesaje}</div>, panou)}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <RamaTablei inerta>
+        <Chessboard
+          options={{
+            position: exercise.fen,
+            allowDragging: false,
+            squareStyles: aratamUltima ? stilulUltimeiMutari(ultima) : highlight,
+            arrows: aratamUltima ? sagetileUltimeiMutari(ultima) : [],
+            arrowOptions: OPTIUNI_SAGEATA,
+            boardStyle: { borderRadius: 0 },
+            boardOrientation: orientareaTablei(exercise.fen),
+            ...CULORI_TABLA,
+          }}
+        />
+      </RamaTablei>
+      {panou && createPortal(
+        <div className="space-y-3">
+          <EtichetaUltimeiMutari mutare={ultima} />
+          {variante}
+          {mesaje}
+        </div>,
+        panou,
+      )}
+    </>
   )
 }
