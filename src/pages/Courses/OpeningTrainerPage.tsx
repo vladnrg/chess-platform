@@ -29,6 +29,12 @@ const ANIMATIE_MS = 350
 /** Lăţimea panoului din dreapta tablei (21rem) şi spaţiul dintre ele (1rem), în pixeli. */
 const LATIME_PANOU = 336
 const SPATIU_TABLA_PANOU = 16
+/**
+ * Latura maximă a tablei, în pixeli de pagină. Fără plafon, la zoom 50% tabla
+ * creştea de două ori şi umplea iar ecranul; cu el, se micşorează odată cu
+ * restul paginii, ca la Chessly. La zoom 100% contează doar pe ecrane foarte înalte.
+ */
+const LATURA_MAXIMA = 920
 
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
@@ -369,7 +375,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const [meniu, setMeniu] = useState(false)
   // Rândul cu tabla şi panoul: din el se calculează latura tablei (vezi useLaturaTablei).
   const [randTabla, setRandTabla] = useState<HTMLDivElement | null>(null)
-  const latura = useLaturaTablei(randTabla, LATIME_PANOU + SPATIU_TABLA_PANOU)
+  const latura = useLaturaTablei(randTabla, LATIME_PANOU + SPATIU_TABLA_PANOU, LATURA_MAXIMA)
 
   /**
    * Când treci la altă variantă, panoul se întoarce la lista de ramificaţii.
@@ -826,7 +832,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       </div>
       </div>
 
-      <div ref={setRandTabla} className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4">
+      {/* `lg:pb-24`: spaţiu negru sub tablă, de cinci ori cât marginea paginii (24px),
+          cerut ca tabla să nu mai atingă marginea de jos a ecranului. */}
+      <div ref={setRandTabla} className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4 lg:pb-24">
         {/* Tabla — pătrată şi centrată, dar dimensionată din altceva după ecran.
             Pe lat, din înălţime (`lg:h-full`): pagina e blocată la înălţimea
             ecranului şi tabla ia tot ce rămâne pe verticală.

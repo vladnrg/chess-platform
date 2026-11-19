@@ -16,6 +16,12 @@ export function useLaturaTablei(
   rand: HTMLElement | null,
   /** Lăţimea panoului din dreapta plus spaţiul dintre el şi tablă, în pixeli. */
   latimePanou: number,
+  /**
+   * Latura cea mai mare, în pixeli de pagină. Ca la Chessly: când micşorezi
+   * pagina din browser (zoom 50%), tabla se micşorează odată cu textul, în loc
+   * să crească şi să umple iar tot ecranul.
+   */
+  maxim: number,
 ): number | null {
   const [latura, setLatura] = useState<number | null>(null)
 
@@ -29,8 +35,11 @@ export function useLaturaTablei(
         setLatura(null)
         return
       }
-      const { width, height } = rand.getBoundingClientRect()
-      const l = Math.floor(Math.min(height, width - latimePanou))
+      // Fără padding: spaţiul liber de sub tablă e pus ca padding pe rând.
+      const stil = getComputedStyle(rand)
+      const inaltime = rand.clientHeight - parseFloat(stil.paddingTop) - parseFloat(stil.paddingBottom)
+      const latime = rand.clientWidth - parseFloat(stil.paddingLeft) - parseFloat(stil.paddingRight)
+      const l = Math.floor(Math.min(inaltime, latime - latimePanou, maxim))
       setLatura(l > 0 ? l : null)
     }
 
@@ -42,7 +51,7 @@ export function useLaturaTablei(
       observator.disconnect()
       lat.removeEventListener('change', masoara)
     }
-  }, [rand, latimePanou])
+  }, [rand, latimePanou, maxim])
 
   return latura
 }
