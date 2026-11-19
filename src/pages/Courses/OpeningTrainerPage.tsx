@@ -16,6 +16,7 @@ import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
+import { useLaturaTablei } from '@/hooks/useLaturaTablei'
 
 /**
  * Cât durează alunecarea unei piese dintr-un pătrat în altul.
@@ -25,6 +26,9 @@ import { CalutulOmniscient } from '@/components/ui/CalutulOmniscient'
  * adversarului nu are ce căuta pe ecran cât timp piesa e încă în aer.
  */
 const ANIMATIE_MS = 350
+/** Lăţimea panoului din dreapta tablei (21rem) şi spaţiul dintre ele (1rem), în pixeli. */
+const LATIME_PANOU = 336
+const SPATIU_TABLA_PANOU = 16
 
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
@@ -363,6 +367,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   /** La ce semi-mutare ai cerut soluţia. */
   const [solutieLa, setSolutieLa] = useState<number | null>(null)
   const [meniu, setMeniu] = useState(false)
+  // Rândul cu tabla şi panoul: din el se calculează latura tablei (vezi useLaturaTablei).
+  const [randTabla, setRandTabla] = useState<HTMLDivElement | null>(null)
+  const latura = useLaturaTablei(randTabla, LATIME_PANOU + SPATIU_TABLA_PANOU)
 
   /**
    * Când treci la altă variantă, panoul se întoarce la lista de ramificaţii.
@@ -704,6 +711,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     <div className="flex flex-col gap-3 lg:h-[var(--app-page-h)]">
       {meniu && <div className="fixed inset-0 z-30" onClick={() => setMeniu(false)} aria-hidden />}
 
+      {/* Antetul şi bara părţii au lăţimea blocului tablă + panou, ca să înceapă
+          deasupra marginii stângi a tablei şi să se termine deasupra panoului —
+          ca la Chessly. Înainte se întindeau pe tot ecranul, iar tabla stătea
+          împinsă spre dreapta, sub ele. */}
+      <div
+        className="flex flex-shrink-0 flex-col gap-3 lg:mx-auto lg:max-w-full"
+        style={latura ? { width: latura + SPATIU_TABLA_PANOU + LATIME_PANOU } : undefined}
+      >
       {/* Antetul: cursul şi capitolul */}
       <div className="flex flex-shrink-0 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
@@ -809,8 +824,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           ))}
         </div>
       </div>
+      </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-4">
+      <div ref={setRandTabla} className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:justify-center lg:gap-4">
         {/* Tabla — pătrată şi centrată, dar dimensionată din altceva după ecran.
             Pe lat, din înălţime (`lg:h-full`): pagina e blocată la înălţimea
             ecranului şi tabla ia tot ce rămâne pe verticală.
@@ -819,8 +835,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             127px, cu pătrate de 16px pe care nu poţi juca (măsurat). Tot de-aia
             înălţimea fixă a paginii e şi ea doar de la `lg` în sus: pe telefon
             pagina se derulează, în loc să înghesuie totul într-un ecran. */}
-        <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center lg:justify-end">
-          <div className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A] lg:h-full lg:max-h-full lg:w-auto">
+        <div className={`flex min-h-0 min-w-0 items-center justify-center ${latura ? 'lg:items-start' : 'flex-1'}`}>
+          <div
+            className="aspect-square w-full max-w-full overflow-hidden rounded-xl border border-[#2A2A2A]"
+            style={latura ? { width: latura, height: latura } : undefined}
+          >
             <Chessboard
               options={{
                 position: fenAcum,
