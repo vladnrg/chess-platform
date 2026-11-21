@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js'
 import { supabase } from '@/lib/supabase'
-import type { OpeningLine } from '@/types'
+import type { MarcajeMutari, OpeningLine } from '@/types'
 
 export type TrainerStage = 'opening' | 'middlegame' | 'trap'
 
@@ -71,7 +71,7 @@ async function linieJocDeMijloc(lineId: string): Promise<TrainerLine | null> {
 
   const { data: plan } = await supabase
     .from('middlegame_plans')
-    .select('moves_uci, move_explanations, structure, ideas, avoid, intro, move_comments, move_hints, final_text, final_arrows')
+    .select('moves_uci, move_explanations, structure, ideas, avoid, intro, move_comments, move_hints, final_text, final_arrows, move_marks')
     .eq('opening_line_id', opening.id)
     .single()
   if (!plan?.moves_uci) return null
@@ -86,6 +86,7 @@ async function linieJocDeMijloc(lineId: string): Promise<TrainerLine | null> {
     move_hints: (plan.move_hints ?? null) as Record<string, string> | null,
     final_text: plan.final_text ?? null,
     final_arrows: (plan.final_arrows ?? null) as { from: string; to: string }[] | null,
+    move_marks: (plan.move_marks ?? null) as MarcajeMutari | null,
     // Poziţia de la capătul deschiderii, reconstruită — ca să nu ţinem un FEN
     // duplicat în baza de date.
     start_fen: fenDupa(opening.moves_uci, opening.moves_uci.split(' ').length),
@@ -136,7 +137,7 @@ async function linieCapcana(trapId: string, mode: 'guided' | 'practice'): Promis
     // La exerciţiu nu se arată explicaţii, deci nu are rost să le reindexăm.
     move_explanations: exerseaza ? {} : (trap.move_explanations ?? {}),
     // Capcanele n-au încă textele noi; nu moştenesc nimic de la variantă.
-    intro: null, move_comments: null, move_hints: null, final_text: null, final_arrows: null,
+    intro: null, move_comments: null, move_hints: null, final_text: null, final_arrows: null, move_marks: null,
     start_fen: exerseaza ? fenDupa(trap.moves_uci, trap.spring_ply!) : undefined,
     fromVariation: linie.variation_name,
     conclusion: trap.explanation,

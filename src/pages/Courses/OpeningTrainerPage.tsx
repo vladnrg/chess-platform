@@ -27,6 +27,12 @@ import { useLaturaTablei, LATIME_PANOU, SPATIU_TABLA_PANOU } from '@/hooks/useLa
  */
 const ANIMATIE_MS = 350
 
+/** Săgeţile din marcajele unei mutări: roşu = ce nu vrei, verde = răspunsul tău. */
+const CULOARE_SAGEATA = {
+  red: 'rgba(239,68,68,0.85)',
+  green: 'rgba(34,197,94,0.85)',
+} as const
+
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
   return !line.start_fen || line.start_fen.includes(' w ')
@@ -151,7 +157,7 @@ function planuriDeExecutie(plan: MiddlegamePlan, line: TrainerLine): PlanBranchV
       response: adversarDupa && replicaTa
         ? `Dacă vine ${adversarDupa.san}, continuă cu ${replicaTa.san}.`
         : undefined,
-      detail: explicatieMutare || 'Pune piesa pe cel mai activ pătrat și păstrează presiunea pe centrul poziției.',
+      detail: explicatieMutare || 'Pune piesa pe cel mai activ câmp și păstrează presiunea pe centrul poziției.',
     }
   })
 }
@@ -661,8 +667,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     ? textBalon(line, plyRecapitulare)
     : gata ? textFinal(line) : isGuided ? textBalon(line, plyBalon) : []
 
-  // ── Tabla: săgeţi şi pătrate ────────────────────────────────────────────────
+  // ── Tabla: săgeţi şi câmpuri ────────────────────────────────────────────────
+  // Marcajele scrise lângă textul unei mutări (câmpuri-cheie, săgeţi cu o idee)
+  // se văd exact cât se vede şi textul: la învăţare şi în recapitulare.
+  const plyMarcaje = recapitulare ? plyRecapitulare : isGuided && !gata ? plyBalon : null
+  const marcaje = plyMarcaje !== null ? line.move_marks?.[String(plyMarcaje)] : undefined
+
   const sageti: Arrow[] = []
+  for (const s of marcaje?.arrows ?? []) {
+    sageti.push({ startSquare: s.from, endSquare: s.to, color: CULOARE_SAGEATA[s.color ?? 'green'] })
+  }
   if (!priveste && state.status === 'user-turn' && urmatoarea && (isGuided || solutieLa === state.plyIdx)) {
     sageti.push({ startSquare: urmatoarea.slice(0, 2), endSquare: urmatoarea.slice(2, 4), color: 'rgba(226,179,64,0.9)' })
   }
@@ -694,6 +708,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     if (!isGuided && state.status === 'user-turn' && greseliAici >= 3 && urmatoarea) {
       squareStyles[urmatoarea.slice(0, 2)] = { backgroundColor: 'rgba(74,222,128,0.55)' }
     }
+  }
+  // Câmpurile-cheie din text (f7, punctul slab), în roz deschis.
+  for (const camp of marcaje?.squares ?? []) {
+    squareStyles[camp] = { ...squareStyles[camp], backgroundColor: 'rgba(249,168,212,0.6)' }
   }
   if (state.wrongFrom) squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
   if (state.wrongTo) squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }

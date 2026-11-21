@@ -496,7 +496,20 @@ export interface OpeningLine {
   final_text?: string | null
   /** Săgeţile ideilor din plan. */
   final_arrows?: { from: string; to: string }[] | null
+  /** Câmpuri şi săgeţi desenate pe ecranul unei mutări (migrarea 121). */
+  move_marks?: MarcajeMutari | null
 }
+
+/**
+ * Ce se desenează pe tablă lângă textul unei mutări, cheia fiind semi-mutarea ta
+ * (aceeaşi ca la `move_comments`): câmpurile-cheie colorate în roz şi săgeţi
+ * care arată o idee — roşu pentru mutarea pe care n-o vrei, verde pentru
+ * răspunsul tău. Se văd la învăţare şi în recapitulare, odată cu balonul.
+ */
+export type MarcajeMutari = Record<string, {
+  squares?: string[]
+  arrows?: { from: string; to: string; color?: 'red' | 'green' }[]
+}>
 
 export interface AssessmentResult {
   id: string

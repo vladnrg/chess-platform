@@ -108,7 +108,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   {
     id: 'trapped',
     title: 'Prinderea piesei',
-    description: 'O piesă adversă rămâne fără pătrate sigure și o capturezi în câteva mutări. Toată tabla, și ea tot n-are unde fugi.',
+    description: 'O piesă adversă rămâne fără câmpuri sigure și o capturezi în câteva mutări. Toată tabla, și ea tot n-are unde fugi.',
     lichessThemes: ['trappedPiece'],
     isPro: true,
     coverFen: '8/8/5k2/6p1/5Bp1/8/8/5K2 b - - 0 1',

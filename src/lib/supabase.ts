@@ -5,6 +5,7 @@ import type {
   CosmeticKind, CosmeticRarity, EventKind, EventTaskType,
   SeasonalEvent, SeasonalEventDetail, TaskResult, ChessathonProgress, OwnedCosmetic,
   OpeningChallengeStatus, OpeningSession, OpeningAnswerResult, OpeningSessionSummary,
+  MarcajeMutari,
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -239,6 +240,7 @@ export interface MiddlegamePlanRow {
   move_hints?: Record<string, string> | null
   final_text?: string | null
   final_arrows?: { from: string; to: string }[] | null
+  move_marks?: MarcajeMutari | null
 }
 
 export interface OpeningTrapRow {

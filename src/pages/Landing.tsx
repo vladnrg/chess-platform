@@ -123,7 +123,7 @@ export function Landing() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#F0F0F0] leading-tight mb-6">
             Mulți doar joacă șah.<br />
             Alții fac din șah o artă.<br />
-            <span className="text-[#E2B340]">Arată-ți măiestria în universul celor 64 de pătrate.</span>
+            <span className="text-[#E2B340]">Arată-ți măiestria în universul celor 64 de câmpuri.</span>
           </h1>
           <p className="text-lg text-[#A0A0A0] mb-10 max-w-xl mx-auto">
             De la prima mutare până la finalul care decide totul — avem rețeta clară pentru orice nivel ai acum.
