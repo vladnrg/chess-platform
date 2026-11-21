@@ -68,7 +68,7 @@ export function MatchPage() {
     if (!ok) return false
 
     setOptimistic({ fen: probe.fen(), basedOn: match.fen })
-    // Piesa aleasă merge la arbitru; înainte se trimitea mereu regina, deşi regula
+    // Piesa aleasă merge la arbitru; înainte se trimitea mereu dama, deşi regula
     // îţi dă voie să alegi orice piesă.
     void playMove(sourceSquare, targetSquare, promovare ?? 'q').then(err => {
       if (err) {

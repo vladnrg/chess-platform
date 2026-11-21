@@ -27,7 +27,7 @@ const verificari = [
   {
     ce: 'Lectia „Pionul" are fraza noua',
     async cum() {
-      const r = await ia('lessons?select=title&theory_html=like.*promovarea%20%C3%AEn%20regin%C4%83*')
+      const r = await ia('lessons?select=title&theory_html=like.*promovarea%20%C3%AEn%20dam%C4%83*')
       return r.ok && r.corp.length > 0
         ? 'da'
         : 'NU — a ramas fraza veche'

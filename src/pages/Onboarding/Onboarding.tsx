@@ -191,7 +191,7 @@ export function Onboarding() {
     const uci = sourceSquare + targetSquare + (jucata.promotion ?? '')
 
     // La promovare contează şi piesa aleasă: un pion făcut nebun nu e soluţia care
-    // cere regină — decât dacă dă tot mat.
+    // cere damă — decât dacă dă tot mat.
     const corecta = (jucata.promotion ? uci === asteptata : (sourceSquare + targetSquare) === asteptata?.slice(0, 4))
       || copie.isCheckmate()
 

@@ -280,7 +280,7 @@ function textFinal(line: TrainerLine): string[] {
 }
 
 const NUME_PIESA: Record<string, string> = {
-  p: 'pionul', n: 'calul', b: 'nebunul', r: 'tura', q: 'regina', k: 'regele',
+  p: 'pionul', n: 'calul', b: 'nebunul', r: 'tura', q: 'dama', k: 'regele',
 }
 
 /**

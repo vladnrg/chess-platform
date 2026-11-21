@@ -383,9 +383,9 @@ export interface MovePieceExerciseData extends CuUltimaMutare {
    * La promovare, orice piesă aleasă e bună.
    *
    * Există fiindcă promovarea se învaţă în doi paşi. Întâi că **poţi alege** —
-   * acolo regina, tura, nebunul şi calul sunt la fel de corecte, iar litera din
+   * acolo dama, tura, nebunul şi calul sunt la fel de corecte, iar litera din
    * `correct_move` nu decide nimic. Apoi că **alegerea contează**: la poziţia cu
-   * calul care dă şah şi atacă regina, o damă în plus nu face nimic, deci
+   * calul care dă şah şi atacă dama, o damă în plus nu face nimic, deci
    * răspunsul e doar calul.
    *
    * Lipsă = piesa cerută e cea din `correct_move`.

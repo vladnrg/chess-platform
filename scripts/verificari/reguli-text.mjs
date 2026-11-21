@@ -14,6 +14,15 @@ export const INTERZISE = [
     corect: 'tură / tura / ture (piesa e la feminin)',
   },
   {
+    // Piesa se numeşte **dama**, termenul oficial în şahul românesc (de aici şi
+    // litera D din notaţie). Utilizatorul, pe 2026-11-21: „vreau să înlocuim
+    // peste tot în text cu «dama», fiindcă până la urmă acesta este termenul
+    // oficial". Migrarea 122 a schimbat cele ~420 de apariţii din bază.
+    ce: /(?<![A-Za-zĂÂÎŞŢȘȚăâîşţșț])[Rr]egin(ă|a|ei|e|ele|elor)(?![A-Za-zĂÂÎŞŢȘȚăâîşţșț])/g,
+    gresit: 'regină / regina / reginei / reginele',
+    corect: 'damă / dama / damei / damele',
+  },
+  {
     // Mutarea care se iveşte ACUM pe tablă se scrie la prezent şi fără „tocmai".
     // „Negrul tocmai a mutat regele de pe a8 pe b7" pune între elev şi tablă o
     // mutare terminată şi dusă, când de fapt el se uită la ea cum se face; iar

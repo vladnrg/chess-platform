@@ -44,7 +44,7 @@ const NUME_PIESE: Record<string, string> = {
   r: 'tura',
   n: 'calul',
   b: 'nebunul',
-  q: 'regina',
+  q: 'dama',
   k: 'regele',
 }
 

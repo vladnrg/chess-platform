@@ -48,7 +48,7 @@ export const TACTIC_CATEGORIES: TacticCategory[] = [
   {
     id: 'fork',
     title: 'Furculița',
-    description: 'O piesă atacă simultan două ținte, iar adversarul nu le poate salva pe amândouă. E momentul în care un singur cal valorează cât o regină furată.',
+    description: 'O piesă atacă simultan două ținte, iar adversarul nu le poate salva pe amândouă. E momentul în care un singur cal valorează cât o damă furată.',
     lichessThemes: ['fork'],
     isPro: false,
     coverFen: '4k3/3q1r2/8/4N3/8/8/8/4K3 w - - 0 1',

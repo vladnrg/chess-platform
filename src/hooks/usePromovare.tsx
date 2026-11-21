@@ -16,7 +16,7 @@ import { ePromovare } from '@/lib/promovare'
  * O mutare obişnuită merge direct mai departe; un pion ajuns pe ultimul rând
  * aşteaptă alegerea, iar mutarea se face abia după ea.
  *
- * Înainte, şase table transformau pionul în regină fără să întrebe — în partide
+ * Înainte, şase table transformau pionul în damă fără să întrebe — în partide
  * şi pe tabla de analiză asta e chiar împotriva regulilor.
  */
 export function usePromovare(

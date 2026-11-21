@@ -3,15 +3,15 @@ import { defaultPieces } from 'react-chessboard'
 /**
  * În ce se poate transforma un pion ajuns la capăt.
  *
- * Toate patru, în ordinea puterii. Regina prima fiindcă e alegerea de nouă ori
+ * Toate patru, în ordinea puterii. Dama prima fiindcă e alegerea de nouă ori
  * din zece, dar celelalte sunt acolo — asta e regula, iar dacă programul alege
- * singur regina, regula rămâne o vorbă.
+ * singur dama, regula rămâne o vorbă.
  *
  * `litera` e cea din notaţia mutării (`e7e8q`), `simbol` e cheia sub care
  * react-chessboard ţine desenul piesei.
  */
 const PIESE_DE_PROMOVARE = [
-  { litera: 'q', nume: 'regină', simbol: 'Q' },
+  { litera: 'q', nume: 'damă', simbol: 'Q' },
   { litera: 'r', nume: 'tură', simbol: 'R' },
   { litera: 'b', nume: 'nebun', simbol: 'B' },
   { litera: 'n', nume: 'cal', simbol: 'N' },
@@ -24,7 +24,7 @@ const PIESE_DE_PROMOVARE = [
  * care e singurul lucru de făcut.
  *
  * Folosită în lecţii şi în evaluarea de nivel; înainte, evaluarea transforma
- * pionul în regină fără să întrebe.
+ * pionul în damă fără să întrebe.
  */
 export function AlegePromovare({ culoare, onAlege }: {
   /** Culoarea pionului: 'w' sau 'b'. */

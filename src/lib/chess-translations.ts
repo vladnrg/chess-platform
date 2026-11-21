@@ -99,7 +99,7 @@ const SUBTYPE_MAP: [RegExp, string][] = [
 /**
  * Traduce notaţia SAN englezească (Rxg7, Qh6, Nf3) în română (Txg7, Dh6, Cf3).
  *
- * K=Rege→R, Q=Regină→D, R=Tură→T, B=Nebun→N, C=Cal→C. Se aplică doar când litera
+ * K=Rege→R, Q=Damă→D, R=Tură→T, B=Nebun→N, C=Cal→C. Se aplică doar când litera
  * e urmată de o coordonată — deci cuvintele întregi (Regele, Nebunul) rămân
  * neatinse, iar un text amestecat se poate trece prin ea fără grijă.
  */

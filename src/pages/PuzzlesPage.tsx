@@ -170,7 +170,7 @@ export function PuzzlesPage() {
   // Wrong move state
   const [wrongMoveFrom, setWrongMoveFrom] = useState<string | null>(null)
   const [wrongMoveTo, setWrongMoveTo] = useState<string | null>(null)
-  /** Piesa aleasă la o promovare greşită, ca refutarea s-o rejoace pe ea, nu regina. */
+  /** Piesa aleasă la o promovare greşită, ca refutarea s-o rejoace pe ea, nu dama. */
   const [wrongPromo, setWrongPromo] = useState<string | undefined>(undefined)
   const [moveExplanation, setMoveExplanation] = useState<MoveExplanation | null>(null)
   const [evalLoading, setEvalLoading] = useState(false)

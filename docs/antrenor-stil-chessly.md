@@ -104,10 +104,10 @@ scrie.
 | `popularitate[i]` | opțional, pe mutările adversarului | „cam X% din partide” | cifra vine din baza de partide Lichess, nu din memorie |
 | `final` | 1 pe variantă | planul de după ultima mutare | 2–4 idei; fiecare idee e o mutare legală în poziția finală |
 | `sageti_final` | 2–6 pe variantă | săgețile ideilor din `final` | fiecare săgeată e o mutare legală sau un drum de piesă posibil |
-| `indiciu[i]` | 1 pe fiecare mutare a ta | piesa de mutat, fără pătrat | numește o piesă care chiar are mutarea corectă |
+| `indiciu[i]` | 1 pe fiecare mutare a ta | piesa de mutat, fără câmp | numește o piesă care chiar are mutarea corectă |
 
-Regulile de scris rămân cele din proiect: mutările la prezent, „tura”, nu „turnul”, „regina”,
-niciun „tocmai”, poziții măsurate în pătrate, iar orice afirmație de șah trecută prin motor.
+Regulile de scris rămân cele din proiect: mutările la prezent, „tura”, nu „turnul”, „dama”, nu „regina”,
+niciun „tocmai”, poziții măsurate în câmpuri, iar orice afirmație de șah trecută prin motor.
 
 ---
 
