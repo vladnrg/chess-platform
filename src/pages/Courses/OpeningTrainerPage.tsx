@@ -649,8 +649,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       ]
   const parteaCurenta = isMiddlegame ? 1 : 0
   const segmente = parti.flatMap(p => [
-    { eticheta: `${p.nume}, învățare`, href: p.invatare },
-    { eticheta: `${p.nume}, exersare`, href: p.exersare },
+    { eticheta: `${p.nume}: Studiu`, href: p.invatare },
+    { eticheta: `${p.nume}: Practică pe baza studiului`, href: p.exersare },
   ])
   const segmentCurent = parteaCurenta * 2 + (isGuided ? 0 : 1)
   const umplere = (i: number) =>
@@ -814,8 +814,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             ? <BookOpen className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />
             : <Dumbbell className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />}
           <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#E2B340]">
-            {parti.length > 1 && `Partea ${parteaCurenta + 1} din ${parti.length} · `}
-            {parti[parteaCurenta].nume} · {isGuided ? 'învățare' : 'exersare: Pune în practică ce tocmai ai studiat!'}
+            {/* Numele etapelor, cerute pe 2026-11-23: „Studiu" şi „Practică pe baza studiului". */}
+            {parti.length > 1 && `Partea ${parteaCurenta + 1} din ${parti.length}: `}
+            {parti[parteaCurenta].nume}: {isGuided ? 'Studiu' : 'Practică pe baza studiului'}
           </p>
           {!isGuided && !gata && (
             <button
