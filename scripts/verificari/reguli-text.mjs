@@ -23,6 +23,14 @@ export const INTERZISE = [
     corect: 'damă / dama / damei / damele',
   },
   {
+    // „Apasă pe X" a ieşit din cursuri pe 2026-11-23 (migrarea 126). În loc,
+    // prin rotaţie, ca textul să nu se repete: „ţinteşte X", „pune presiune pe
+    // X", „pune (piesa de pe X) sub presiune". Câmpul numit primeşte roz.
+    ce: /(?<![A-Za-zĂÂÎŞŢȘȚăâîşţșț])(apasă|apăsa|apăsând)(?![A-Za-zĂÂÎŞŢȘȚăâîşţșț])/gi,
+    gresit: 'apasă pe X / va apăsa',
+    corect: 'ţinteşte X / pune presiune pe X / pune (piesa de pe X) sub presiune, prin rotaţie',
+  },
+  {
     // Mutarea care se iveşte ACUM pe tablă se scrie la prezent şi fără „tocmai".
     // „Negrul tocmai a mutat regele de pe a8 pe b7" pune între elev şi tablă o
     // mutare terminată şi dusă, când de fapt el se uită la ea cum se face; iar
