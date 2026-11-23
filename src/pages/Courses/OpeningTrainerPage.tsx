@@ -27,10 +27,28 @@ import { useLaturaTablei, LATIME_PANOU, SPATIU_TABLA_PANOU } from '@/hooks/useLa
  */
 const ANIMATIE_MS = 350
 
-/** Săgeţile din marcajele unei mutări: roşu = ce nu vrei, verde = răspunsul tău. */
+/*
+ * Regulile de culoare pentru toate cursurile de deschideri (utilizatorul,
+ * 2026-11-23):
+ *   1. câmp ţintit (al tău sau al lui) → roz;
+ *   2. câmp al cărui control se discută → după ce stă pe el: piesa adversarului
+ *      verde închis, piesa ta roşu închis, gol albastru;
+ *   3. săgeţi pentru mutări posibile sau viitoare → ale tale verde deschis, ale
+ *      adversarului roşu deschis. Săgeata aurie, care arată mutarea de jucat,
+ *      rămâne separată.
+ */
+
+/** Regula 3: `green` = o mutare posibilă a ta, `red` = una a adversarului. */
 const CULOARE_SAGEATA = {
-  red: 'rgba(239,68,68,0.85)',
-  green: 'rgba(34,197,94,0.85)',
+  red: 'rgba(252,165,165,0.9)',
+  green: 'rgba(134,239,172,0.9)',
+} as const
+
+/** Regula 2. */
+const CULOARE_CONTROL = {
+  alLui: 'rgba(21,128,61,0.8)',
+  alMeu: 'rgba(185,28,28,0.75)',
+  gol: 'rgba(59,130,246,0.65)',
 } as const
 
 /**
@@ -685,7 +703,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   }
   if (!priveste && gata) {
     for (const s of line.final_arrows ?? []) {
-      sageti.push({ startSquare: s.from, endSquare: s.to, color: 'rgba(45,212,191,0.85)' })
+      // Ideile de după deschidere sunt mutări viitoare ale tale: verde deschis.
+      sageti.push({ startSquare: s.from, endSquare: s.to, color: CULOARE_SAGEATA.green })
     }
   }
 
@@ -707,9 +726,22 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       squareStyles[urmatoarea.slice(0, 2)] = { backgroundColor: 'rgba(74,222,128,0.55)' }
     }
   }
-  // Câmpurile-cheie din text (f7, punctul slab), în roz deschis.
+  // Câmpurile ţintite din text (f7, punctul slab), în roz.
   for (const camp of marcaje?.squares ?? []) {
     squareStyles[camp] = { ...squareStyles[camp], backgroundColor: CULOARE_CAMP_CHEIE }
+  }
+  // Câmpurile al căror control se discută: culoarea vine din ce stă pe câmp, nu
+  // din cine preia controlul (regula din 2026-11-23). Se judecă poziţia de după
+  // mutarea ta, când textul devine adevărat: la „Cb6 — păzeşte d5" calul încă
+  // stă pe d5 înainte să mute, dar câmpul despre care se vorbeşte e cel gol.
+  if (marcaje?.control?.length && plyMarcaje !== null) {
+    const tabla = new Chess(pozitiaLa(line, plyMarcaje + 1).fen)
+    const culoareaMea = line.user_color === 'white' ? 'w' : 'b'
+    for (const camp of marcaje.control) {
+      const piesa = tabla.get(camp as Square)
+      const fel = !piesa ? 'gol' : piesa.color === culoareaMea ? 'alMeu' : 'alLui'
+      squareStyles[camp] = { ...squareStyles[camp], backgroundColor: CULOARE_CONTROL[fel] }
+    }
   }
   if (state.wrongFrom) squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
   if (state.wrongTo) squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }

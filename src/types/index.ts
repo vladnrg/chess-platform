@@ -507,7 +507,11 @@ export interface OpeningLine {
  * răspunsul tău. Se văd la învăţare şi în recapitulare, odată cu balonul.
  */
 export type MarcajeMutari = Record<string, {
+  /** Câmpuri ţintite (roz). */
   squares?: string[]
+  /** Câmpuri al căror control se discută; culoarea vine din ce stă pe ele. */
+  control?: string[]
+  /** Mutări posibile/viitoare: `green` ale tale, `red` ale adversarului. */
   arrows?: { from: string; to: string; color?: 'red' | 'green' }[]
 }>
 
