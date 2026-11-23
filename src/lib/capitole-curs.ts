@@ -14,6 +14,18 @@
 import type { PathNode } from '@/components/courses/ChapterPath'
 import type { Lesson, OpeningLine } from '@/types'
 
+/**
+ * Eticheta de popularitate a unui capitol. Procentele vin din partidele de
+ * nivel mediu de pe Chess.com (rapid şi blitz, 1000–2000), iar acolo unele
+ * variante se joacă rar: sub 1% s-ar rotunji la „0%" sau ar apărea cu zecimale
+ * fără rost. Chess.com scrie în locul lor „<1%"; aici, „sub 1%".
+ */
+export function popularitate(procent: number): string {
+  // `Number`: coloana e `numeric`, iar PostgREST o poate trimite şi ca text.
+  const p = Number(procent)
+  return p < 1 ? 'sub 1% popularitate' : `${Math.round(p)}% popularitate`
+}
+
 export interface Capitol {
   /** Id-ul variantei, `capcane`, sau `lectii` la cursurile fundamentale. */
   id: string
@@ -50,7 +62,7 @@ export function capitoleDeDeschidere(
     return {
       id: linie.id,
       titlu: linie.variation_name,
-      subtitlu: `${linie.popularity_pct}% popularitate`,
+      subtitlu: popularitate(linie.popularity_pct),
       terminat: teorieGata,
       noduri: [
         {
