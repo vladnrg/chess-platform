@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
+import { CULORI_SAGETI, OPTIUNI_SAGETI } from '@/lib/sageti'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
@@ -33,16 +34,13 @@ const ANIMATIE_MS = 350
  *   1. câmp ţintit (al tău sau al lui) → roz;
  *   2. câmp al cărui control se discută → după ce stă pe el: piesa adversarului
  *      verde închis, piesa ta roşu închis, gol albastru;
- *   3. săgeţi pentru mutări posibile sau viitoare → ale tale verde deschis, ale
- *      adversarului roşu deschis. Săgeata aurie, care arată mutarea de jucat,
+ *   3. săgeţi pentru mutări posibile sau viitoare → ale tale verde, ale
+ *      adversarului roşu (nuanţe calde, din `lib/sageti.ts`). Săgeata aurie, care arată mutarea de jucat,
  *      rămâne separată.
  */
 
 /** Regula 3: `green` = o mutare posibilă a ta, `red` = una a adversarului. */
-const CULOARE_SAGEATA = {
-  red: 'rgba(252,165,165,0.9)',
-  green: 'rgba(134,239,172,0.9)',
-} as const
+const CULOARE_SAGEATA = CULORI_SAGETI
 
 /** Regula 2. */
 const CULOARE_CONTROL = {
@@ -703,7 +701,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   }
   if (!priveste && gata) {
     for (const s of line.final_arrows ?? []) {
-      // Ideile de după deschidere sunt mutări viitoare ale tale: verde deschis.
+      // Ideile de după deschidere sunt mutări viitoare ale tale: verde.
       sageti.push({ startSquare: s.from, endSquare: s.to, color: CULOARE_SAGEATA.green })
     }
   }
@@ -895,6 +893,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
                 arrows: sageti,
+                arrowOptions: OPTIUNI_SAGETI,
                 boardStyle: { borderRadius: 0 },
                 animationDurationInMs: ANIMATIE_MS,
                 darkSquareStyle,

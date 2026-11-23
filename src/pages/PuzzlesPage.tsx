@@ -6,6 +6,7 @@ import { Chess } from 'chess.js'
 import { CheckCircle2, RefreshCw, Loader2, Info, Target, Flame, Calendar, Lightbulb, Sparkles, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
+import { OPTIUNI_SAGETI } from '@/lib/sageti'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -1096,6 +1097,7 @@ export function PuzzlesPage() {
                       lightSquareStyle,
                       squareStyles: boardSquareStyles,
                       arrows: boardArrows,
+                      arrowOptions: OPTIUNI_SAGETI,
                     }}
                   />
                   {promovare.alegere}

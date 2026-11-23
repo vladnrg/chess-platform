@@ -4,6 +4,7 @@ import { Chessboard, type Arrow } from 'react-chessboard'
 import { Chess } from 'chess.js'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
+import { CULORI_SAGETI, OPTIUNI_SAGETI } from '@/lib/sageti'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { usePromovare } from '@/hooks/usePromovare'
@@ -485,7 +486,7 @@ function TacticsQuestion({
     squareStyles[ts.gresit.la] = { backgroundColor: 'rgba(251,113,133,0.6)' }
   }
   const sageti: Arrow[] = ts.arataMutarea && urmatoarea && !ts.gresit
-    ? [{ startSquare: urmatoarea.slice(0, 2), endSquare: urmatoarea.slice(2, 4), color: 'rgba(74,222,128,0.9)' }]
+    ? [{ startSquare: urmatoarea.slice(0, 2), endSquare: urmatoarea.slice(2, 4), color: CULORI_SAGETI.green }]
     : []
 
   return (
@@ -531,6 +532,7 @@ function TacticsQuestion({
             boardStyle: { borderRadius: 0 },
             squareStyles,
             arrows: sageti,
+            arrowOptions: OPTIUNI_SAGETI,
             darkSquareStyle,
             lightSquareStyle,
           }}
@@ -577,10 +579,10 @@ function Revizuire({ question, numar, incercare, rezultat }: {
   const buna = question.solutie[indexRuptura]
   const sageti: Arrow[] = []
   if (greseala) {
-    sageti.push({ startSquare: greseala.uci.slice(0, 2), endSquare: greseala.uci.slice(2, 4), color: 'rgba(251,113,133,0.9)' })
+    sageti.push({ startSquare: greseala.uci.slice(0, 2), endSquare: greseala.uci.slice(2, 4), color: CULORI_SAGETI.red })
   }
   if (buna) {
-    sageti.push({ startSquare: buna.slice(0, 2), endSquare: buna.slice(2, 4), color: 'rgba(74,222,128,0.9)' })
+    sageti.push({ startSquare: buna.slice(0, 2), endSquare: buna.slice(2, 4), color: CULORI_SAGETI.green })
   }
   const secventa = question.solutie.length > 1
 
@@ -617,6 +619,7 @@ function Revizuire({ question, numar, incercare, rezultat }: {
             position: fenRuptura,
             allowDragging: false,
             arrows: sageti,
+            arrowOptions: OPTIUNI_SAGETI,
             boardOrientation: negrulMuta ? 'black' : 'white',
             boardStyle: { borderRadius: 0 },
             darkSquareStyle,

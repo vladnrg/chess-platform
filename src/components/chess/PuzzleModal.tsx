@@ -5,6 +5,7 @@ import { CheckCircle2, XCircle, RefreshCw, X, Lightbulb, Eye, ListVideo, Target 
 import toast from 'react-hot-toast'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { OPTIUNI_SAGETI } from '@/lib/sageti'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { usePromovare } from '@/hooks/usePromovare'
@@ -439,6 +440,7 @@ export function PuzzleModal({ theme, initialPuzzle, onClose, onSolved, onNext,
                         lightSquareStyle,
                         squareStyles,
                         arrows: boardArrows,
+                        arrowOptions: OPTIUNI_SAGETI,
                       }}
                     />
                     {promovare.alegere}

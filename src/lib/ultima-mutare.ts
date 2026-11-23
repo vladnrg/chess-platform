@@ -21,7 +21,7 @@
  * toată aplicaţia.
  */
 import type { CSSProperties } from 'react'
-import { defaultArrowOptions } from 'react-chessboard'
+import { OPTIUNI_SAGETI } from './sageti'
 import { piesaDePe } from './mutare-pe-tabla'
 
 export interface UltimaMutare {
@@ -128,10 +128,11 @@ export function sagetileUltimeiMutari(mutare: UltimaMutare | null) {
  * Săgeata implicită a bibliotecii e lată cât o cincime de pătrat şi merge până
  * în mijlocul pătratului de sosire — adică fix peste pionul pe care omul trebuie
  * să-l vadă, fiindcă pe el urmează să-l captureze. Mai subţire, şi oprită
- * înainte de piesă: arată spre pătrat, nu peste el.
+ * înainte de piesă: arată spre pătrat, nu peste el. Pleacă, ca peste tot, de la
+ * marginea piesei (`OPTIUNI_SAGETI`).
  */
 export const OPTIUNI_SAGEATA = {
-  ...defaultArrowOptions,
+  ...OPTIUNI_SAGETI,
   arrowWidthDenominator: 9,
   arrowLengthReducerDenominator: 3,
   opacity: 0.8,
