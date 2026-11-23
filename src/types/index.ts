@@ -308,6 +308,8 @@ export interface Course {
   order_index: number
   created_at: string
   progress?: UserCourseProgress
+  /** Bun venitul de la începutul primului capitol (migrarea 133). */
+  bun_venit?: string | null
 }
 
 export type LessonType = 'pgn' | 'rules' | 'notation'

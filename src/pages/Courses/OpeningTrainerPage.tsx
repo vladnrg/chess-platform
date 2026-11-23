@@ -12,6 +12,8 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI } from '@/lib/sageti'
 import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
+import { introCapitol, mutariDefinitorii } from '@/lib/intro-capitol'
+import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
@@ -356,7 +358,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     queryKey: ['trainer-curs', slug],
     enabled: !!slug,
     queryFn: async () => {
-      const { data: c } = await supabase.from('courses').select('id, title').eq('slug', slug!).single()
+      // `*`: `bun_venit` vine din migrarea 133; cerut pe nume, o bază fără ea ar strica tot.
+      const { data: c } = await supabase.from('courses').select('*').eq('slug', slug!).single()
       if (!c) return null
       // `*`, nu doar coloanele folosite: o bază care n-a primit încă migrarea 132
       // n-are `grup` şi `popularitate_niveluri`, iar cerute pe nume ar strica tot.
@@ -371,6 +374,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         : { data: [] }
       return {
         titlu: c.title,
+        bunVenit: c.bun_venit ?? null,
         linii: linii ?? [],
         cuPlan: new Set((planuri ?? []).filter(p => p.moves_uci).map(p => p.opening_line_id)),
       }
@@ -702,6 +706,29 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     ? textBalon(line, plyRecapitulare)
     : gata ? textFinal(line) : isGuided ? textBalon(line, plyBalon) : []
 
+  // Începutul capitolului (cerut pe 2026-11-24): bun venitul — doar la primul
+  // capitol din ordinea nivelului tău, ca să nu-l citeşti la fiecare —, o frază
+  // despre capitol şi mini-tabla cu mutările lui comune. Doar la studiul
+  // deschiderii, cât balonul arată introducerea.
+  const laInceput = stage === 'opening' && isGuided && indexCapitol >= 0 && (
+    recapitulare
+      ? plyRecapitulare !== null && plyRecapitulare <= primaMutareATa(line)
+      : !gata && plyBalon <= primaMutareATa(line)
+  )
+  const liniaCurs = laInceput ? liniiCurs[indexCapitol] : undefined
+  const inceput = liniaCurs
+    ? {
+        paragrafe: introCapitol({
+          linie: liniaCurs,
+          toate: liniiCurs,
+          nivel: nivelDin(profile),
+          index: indexCapitol,
+          bunVenit: indexCapitol === 0 ? curs?.bunVenit : null,
+        }),
+        mutari: mutariDefinitorii(liniaCurs, liniiCurs),
+      }
+    : null
+
   // ── Tabla: săgeţi şi câmpuri ────────────────────────────────────────────────
   // Marcajele scrise lângă textul unei mutări (câmpuri-cheie, săgeţi cu o idee)
   // se văd exact cât se vede şi textul: la învăţare şi în recapitulare.
@@ -971,8 +998,22 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
           {/* Balonul de comentariu: al poziţiei privite, în recapitulare; la
               exersare, cât priveşti înapoi în timpul jocului, dispare. */}
-          {(!priveste || recapitulare) && balon.length > 0 && (
+          {(!priveste || recapitulare) && (balon.length > 0 || inceput) && (
             <div className="space-y-3 rounded-lg border border-[rgba(226,179,64,0.35)] bg-[rgba(226,179,64,0.07)] p-4">
+              {/* `flow-root`: blocul îşi cuprinde mini-tabla aşezată la stânga, iar
+                  textul de după el începe sub ea, nu lângă ea. */}
+              {inceput && (
+                <div className="flow-root space-y-3">
+                  <MiniTablaVarianta
+                    mutari={inceput.mutari}
+                    orientare={line.user_color === 'white' ? 'white' : 'black'}
+                    titlu={line.variation_name}
+                  />
+                  {inceput.paragrafe.map((paragraf, i) => (
+                    <p key={`inceput-${i}`} className="text-[15px] leading-relaxed text-[#E8E8E8]">{paragraf}</p>
+                  ))}
+                </div>
+              )}
               {balon.map((paragraf, i) => (
                 <p key={i} className="text-[15px] leading-relaxed text-[#E8E8E8]">{paragraf}</p>
               ))}
