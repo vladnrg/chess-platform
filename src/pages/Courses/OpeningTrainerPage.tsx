@@ -360,8 +360,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
    * derularea ar fi însemnat că pierzi ce ai jucat.
    */
   const [vazut, setVazut] = useState<number | null>(null)
-  /** Adevărat cât timp piesa adversarului încă alunecă pe tablă. */
-  const [seMuta, setSeMuta] = useState(false)
   const [arataRamificari, setArataRamificari] = useState(true)
   const [ramuraAleasa, setRamuraAleasa] = useState<number | null>(null)
   const [semnalRamificari, setSemnalRamificari] = useState(0)
@@ -479,7 +477,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           nextStatus = isUserPly(nextPly, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
         }
         setState(s => s ? { ...s, game: gameCopy, plyIdx: nextPly, status: nextStatus } : null)
-        setSeMuta(true) // explicaţia aşteaptă să se aşeze piesa
       } catch {
         // invalid move in seed data — skip silently
       }
@@ -490,13 +487,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // schimbă la fiecare mutare și ar reporni cronometrul de 600 ms al calculatorului.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, plyIdx, line, vazut])
-
-  // Piesa s-a aşezat: de-abia acum poate apărea explicaţia.
-  useEffect(() => {
-    if (!seMuta) return
-    const t = setTimeout(() => setSeMuta(false), ANIMATIE_MS)
-    return () => clearTimeout(t)
-  }, [seMuta])
 
   // Auto-clear wrong feedback after 1.2s in practice mode
   useEffect(() => {
@@ -646,9 +636,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
   // ── Balonul ─────────────────────────────────────────────────────────────────
   // Textul stă pe mutarea TA: înaintea ei spune ce a jucat adversarul şi ce
-  // răspunzi. Cât timp adversarul mută (sau piesa lui încă alunecă), rămâne
-  // textul de dinainte — altfel balonul ar clipi la fiecare mutare a lui.
-  const plyBalon = state.status === 'user-turn' && !seMuta
+  // răspunzi. Textul nou apare odată cu mutarea adversarului, cât piesa lui
+  // încă alunecă (cerut pe 2026-11-23: înainte aştepta să se aşeze piesa şi
+  // părea întârziat). Până mută el, rămâne textul de dinainte.
+  const plyBalon = state.status === 'user-turn'
     ? state.plyIdx
     : ultimaMutareATa(line, state.plyIdx - 1)
   // Recapitularea, după ce ai terminat varianta (la învăţare şi la exersare,
