@@ -2,8 +2,9 @@ import { Fragment, useState } from 'react'
 import { ChevronDown, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChapterPath } from './ChapterPath'
-import { capitoleDeDeschidere, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, nivelDin, type Capitol } from '@/lib/capitole-curs'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
+import { useAuth } from '@/hooks/useAuth'
 import type { OpeningLine } from '@/types'
 
 /**
@@ -26,8 +27,10 @@ export function CourseChapters({
   // Ce variante au plan de joc de mijloc şi capcanele deschiderii.
   // Fără asta, am pune pe traseu paşi care duc într-o pagină goală.
   const { data: dinCurs } = useDateDeCurs(slug)
+  const { profile } = useAuth()
 
-  const capitole = capitoleDeDeschidere(slug, lines, completedIds, dinCurs)
+  // Ordinea capitolelor depinde de nivelul tău (din testul de plasament).
+  const capitole = capitoleDeDeschidere(slug, lines, completedIds, dinCurs, nivelDin(profile))
 
   // Capitolele se ţin deschise câte vrei, nu unul singur. Cine compară două
   // variante — şi asta face oricine îşi alege un repertoriu — vrea traseele
@@ -50,7 +53,9 @@ export function CourseChapters({
 
   // Titlurile de grupă apar doar unde există capitole de practică: un curs care
   // are numai teorie nu câştigă nimic dintr-un titlu deasupra tuturor capitolelor.
-  const cuGrupe = capitole.some(c => c.grupa === 'practica')
+  // Nici la cursurile ordonate pe nivel: acolo teoria şi practica se amestecă,
+  // după cât de des le întâlneşti, iar titlurile s-ar repeta printre capitole.
+  const cuGrupe = capitole.some(c => c.grupa === 'practica') && !lines.some(l => l.popularitate_niveluri)
 
   return (
     <div className="space-y-3">
@@ -106,7 +111,7 @@ const GRUPE: Record<NonNullable<Capitol['grupa']>, { titlu: string; text: string
   },
   practica: {
     titlu: 'Când adversarul nu joacă la carte',
-    text: 'Ce joacă de fapt adversarii de 1000–2000 de pe Chess.com şi cum profiţi de greşelile lor.',
+    text: 'Ce joacă de fapt adversarii de la nivelul tău şi cum profiţi de greşelile lor.',
   },
   capcane: {
     titlu: 'Capcane',

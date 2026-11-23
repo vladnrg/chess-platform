@@ -12,7 +12,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { CourseChapters } from '@/components/courses/CourseChapters'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { useMarcheazaCursul } from '@/hooks/useMarcheazaCursul'
-import { subtitluCapitol } from '@/lib/capitole-curs'
+import { nivelDin, ordoneazaPeNivel, subtitluCapitol } from '@/lib/capitole-curs'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -26,7 +26,7 @@ interface PathStep {
 
 export function CourseDetail() {
   const { slug } = useParams<{ slug: string }>()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { isPro } = useSubscription()
 
   const { data: course, isLoading } = useQuery({
@@ -114,9 +114,12 @@ export function CourseDetail() {
   const firstLine = openingLines?.[0]
 
   // Pașii traseului (noduri): variante pentru deschideri, lecții pentru fundamentale.
+  // Aceeaşi ordine ca în cuprins: „Continuă de unde ai rămas" duce la primul
+  // capitol neterminat din ordinea nivelului tău.
+  const nivel = nivelDin(profile)
   const steps: PathStep[] = hasOpeningLines
-    ? (openingLines ?? []).map(l => ({
-        id: l.id, title: l.variation_name, sub: subtitluCapitol(l),
+    ? ordoneazaPeNivel(openingLines ?? [], nivel).map(l => ({
+        id: l.id, title: l.variation_name, sub: subtitluCapitol(l, nivel),
         href: `/courses/${slug}/guided/${l.id}`, premium: false,
       }))
     : (lessons ?? []).map(l => ({

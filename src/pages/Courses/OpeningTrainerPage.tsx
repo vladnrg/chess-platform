@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI } from '@/lib/sageti'
+import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
@@ -327,7 +328,7 @@ interface Props {
 
 export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const { slug, lineId } = useParams<{ slug: string; lineId: string }>()
-  const { user, fetchProfile } = useAuth()
+  const { user, profile, fetchProfile } = useAuth()
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const isGuided = mode === 'guided'
   const isMiddlegame = stage === 'middlegame'
@@ -357,9 +358,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     queryFn: async () => {
       const { data: c } = await supabase.from('courses').select('id, title').eq('slug', slug!).single()
       if (!c) return null
+      // `*`, nu doar coloanele folosite: o bază care n-a primit încă migrarea 132
+      // n-are `grup` şi `popularitate_niveluri`, iar cerute pe nume ar strica tot.
       const { data: linii } = await supabase
         .from('opening_lines')
-        .select('id, variation_name')
+        .select('*')
         .eq('course_id', c.id)
         .order('order_index')
       const ids = (linii ?? []).map(l => l.id)
@@ -642,8 +645,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       : gata ? 100
       : moves.length > 0 ? (state.plyIdx / moves.length) * 100 : 0
 
-  const indexCapitol = curs?.linii.findIndex(l => l.id === lineId) ?? -1
-  const capitolUrmator = indexCapitol >= 0 ? curs?.linii[indexCapitol + 1] : undefined
+  // Ordinea capitolelor e a nivelului tău, ca în cuprins: „Capitolul N" şi
+  // „Capitolul următor" trebuie să spună acelaşi lucru ca pagina cursului.
+  const liniiCurs = curs ? ordoneazaPeNivel(curs.linii, nivelDin(profile)) : []
+  const indexCapitol = liniiCurs.findIndex(l => l.id === lineId)
+  const capitolUrmator = indexCapitol >= 0 ? liniiCurs[indexCapitol + 1] : undefined
   const etichetaCapitol = isTrap
     ? `Capcane uzuale · ${line.variation_name}`
     : indexCapitol >= 0 ? `Capitolul ${indexCapitol + 1} · ${line.variation_name}` : line.variation_name
@@ -828,12 +834,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               <button type="button" onClick={() => { resetLine(); setMeniu(false) }} className={elementMeniu}>
                 <RotateCcw className="h-4 w-4 text-[#6B6B6B]" /> Reia de la început
               </button>
-              {!isTrap && curs && curs.linii.length > 1 && (
+              {!isTrap && liniiCurs.length > 1 && (
                 <>
                   <p className="px-3 pb-1 pt-2.5 text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
                     Mergi la variantă
                   </p>
-                  {curs.linii.map((l, i) => (
+                  {liniiCurs.map((l, i) => (
                     <Link
                       key={l.id}
                       to={`/courses/${slug}/guided/${l.id}`}

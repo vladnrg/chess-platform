@@ -9,7 +9,7 @@ import { ChapterPath, type PathNode } from '@/components/courses/ChapterPath'
 import { inaltimeaTraseului } from '@/components/courses/geometrie-traseu'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
-import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, nivelDin, type Capitol } from '@/lib/capitole-curs'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
 
 /**
@@ -234,13 +234,15 @@ function CapitolulCursului({
   })
 
   const { data: dinCurs } = useDateDeCurs(linii?.length ? curs.slug : undefined)
+  const { profile } = useAuth()
+  const nivel = nivelDin(profile)
 
   const capitole = useMemo(() => {
     if (!linii) return []
     return linii.length > 0
-      ? capitoleDeDeschidere(curs.slug, linii, parcurse, dinCurs)
+      ? capitoleDeDeschidere(curs.slug, linii, parcurse, dinCurs, nivel)
       : capitolDeLectii(curs.slug, lectii ?? [], parcurse)
-  }, [linii, lectii, dinCurs, curs.slug, parcurse])
+  }, [linii, lectii, dinCurs, curs.slug, parcurse, nivel])
 
   // Capitolul curent la montare; de-acolo încolo îl mută utilizatorul.
   const [capitol, setCapitol] = useState<number | null>(null)

@@ -12,11 +12,70 @@
  *   - fundamentale  — un singur capitol, cu lecţiile lui în ordine.
  */
 import type { PathNode } from '@/components/courses/ChapterPath'
-import type { Lesson, OpeningLine } from '@/types'
+import type { Lesson, OpeningLine, Profile } from '@/types'
+
+/**
+ * Nivelul cursantului, pentru procentele şi ordinea capitolelor.
+ *
+ * Cerut pe 2026-11-23: trei niveluri, nu un singur interval 1000–2000, fiindcă
+ * platforma e pentru 400–2300 şi un începător întâlneşte alte mutări decât un
+ * avansat. Nivelul vine din testul de plasament (`estimated_elo`); cine nu l-a
+ * dat vede nivelul intermediar, cel mai apropiat de majoritate.
+ */
+export type Nivel = 'incepator' | 'intermediar' | 'avansat'
+
+export function nivelDin(profil: Pick<Profile, 'estimated_elo' | 'assessment_completed'> | null | undefined): Nivel {
+  if (!profil?.assessment_completed) return 'intermediar'
+  if (profil.estimated_elo < 1000) return 'incepator'
+  if (profil.estimated_elo < 1600) return 'intermediar'
+  return 'avansat'
+}
+
+/** Procentul afişat al unui capitol: al nivelului tău, dacă există măsurat. */
+export function procentPeNivel(
+  linie: Pick<OpeningLine, 'popularity_pct' | 'popularitate_niveluri'>,
+  nivel: Nivel,
+): number {
+  const peNivel = linie.popularitate_niveluri?.[nivel]
+  return Number(peNivel ?? linie.popularity_pct)
+}
+
+/**
+ * Capitolele în ordinea în care le vei întâlni: întâi cele la care adversarul
+ * te duce cel mai des, la nivelul tău.
+ *
+ * Se ordonează după mutarea adversarului (`grup`), nu după capitol: Giuoco
+ * Piano, Pianissimo şi Gambitul Evans răspund toate la 3…Nc5 şi stau împreună,
+ * între ele în ordinea de învăţare (`order_index`). Un curs fără cifre pe
+ * niveluri îşi păstrează ordinea de acum. Ordinea e stabilă, deci aplicată de
+ * două ori dă acelaşi rezultat.
+ */
+export function ordoneazaPeNivel<T extends Pick<OpeningLine, 'order_index' | 'grup' | 'popularitate_niveluri'>>(
+  linii: T[],
+  nivel: Nivel,
+): T[] {
+  if (!linii.some(l => l.popularitate_niveluri)) return linii
+  const cheie = (l: T) => l.grup ?? `#${l.order_index}`
+  const procentGrup = new Map<string, number>()
+  const primulInGrup = new Map<string, number>()
+  for (const l of linii) {
+    const k = cheie(l)
+    const p = Number(l.popularitate_niveluri?.[nivel] ?? -1)
+    procentGrup.set(k, Math.max(procentGrup.get(k) ?? -1, p))
+    primulInGrup.set(k, Math.min(primulInGrup.get(k) ?? Infinity, l.order_index))
+  }
+  return [...linii].sort((a, b) => {
+    const ka = cheie(a), kb = cheie(b)
+    if (ka !== kb) {
+      return (procentGrup.get(kb)! - procentGrup.get(ka)!) || (primulInGrup.get(ka)! - primulInGrup.get(kb)!)
+    }
+    return a.order_index - b.order_index
+  })
+}
 
 /**
  * Eticheta de popularitate a unui capitol. Procentele vin din partidele de
- * nivel mediu de pe Chess.com (rapid şi blitz, 1000–2000), iar acolo unele
+ * rapid şi blitz de pe Chess.com, iar acolo unele
  * variante se joacă rar: sub 1% s-ar rotunji la „0%" sau ar apărea cu zecimale
  * fără rost. Chess.com scrie în locul lor „<1%"; aici, „sub 1%".
  */
@@ -34,13 +93,25 @@ export function popularitate(procent: number): string {
  */
 export const PRAG_RAR = 5
 
-/** Eticheta de sub titlul unui capitol de deschidere. */
-export function subtitluCapitol(linie: Pick<OpeningLine, 'popularity_pct' | 'tip'>): string {
-  const p = Number(linie.popularity_pct)
+/**
+ * Eticheta de sub titlul unui capitol de deschidere.
+ *
+ * Unde capitolul are un `grup`, procentul e al mutării adversarului, iar eticheta
+ * o numeşte: la Giuoco Piano, Pianissimo şi Evans scrie de trei ori „3…Nc5",
+ * ca să se vadă că e aceeaşi cifră, nu trei întâmplări diferite.
+ */
+export function subtitluCapitol(
+  linie: Pick<OpeningLine, 'popularity_pct' | 'tip' | 'grup' | 'popularitate_niveluri'>,
+  nivel: Nivel = 'intermediar',
+): string {
+  const p = procentPeNivel(linie, nivel)
   if (linie.tip === 'practica') {
     return p < 1 ? 'sub 1% din partidele de la nivelul tău' : `${Math.round(p)}% din partidele de la nivelul tău`
   }
-  return p < PRAG_RAR ? `${popularitate(p)} · rar la nivelul tău` : popularitate(p)
+  const eticheta = linie.grup && linie.popularitate_niveluri
+    ? `${linie.grup} · ${p < 1 ? 'sub 1%' : `${Math.round(p)}%`} din partidele de la nivelul tău`
+    : popularitate(p)
+  return p < PRAG_RAR ? `${eticheta} · rar la nivelul tău` : eticheta
 }
 
 export interface Capitol {
@@ -76,15 +147,16 @@ export function capitoleDeDeschidere(
   linii: OpeningLine[],
   parcurse: string[],
   date: DateDeCurs | undefined,
+  nivel: Nivel = 'intermediar',
 ): Capitol[] {
-  const capitole: Capitol[] = linii.map(linie => {
+  const capitole: Capitol[] = ordoneazaPeNivel(linii, nivel).map(linie => {
     const arePlan = date?.cuPlan.has(linie.id) ?? false
     const teorieGata = parcurse.includes(linie.id)
 
     return {
       id: linie.id,
       titlu: linie.variation_name,
-      subtitlu: subtitluCapitol(linie),
+      subtitlu: subtitluCapitol(linie, nivel),
       terminat: teorieGata,
       grupa: linie.tip === 'practica' ? 'practica' : 'teorie',
       noduri: [

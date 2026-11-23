@@ -503,6 +503,13 @@ export interface OpeningLine {
    * 1000–2000 când ies din teorie, şi cum îi pedepseşti (migrarea 131).
    */
   tip?: 'teorie' | 'practica'
+  /**
+   * Mutarea adversarului care duce în capitol (ex. „3…Nc5"). Capitolele cu
+   * acelaşi grup răspund la aceeaşi mutare şi stau împreună (migrarea 132).
+   */
+  grup?: string | null
+  /** Cât de des joacă adversarul mutarea din `grup`, pe niveluri (migrarea 132). */
+  popularitate_niveluri?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
 }
 
 /**
