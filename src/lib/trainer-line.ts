@@ -137,7 +137,9 @@ async function linieCapcana(trapId: string, mode: 'guided' | 'practice'): Promis
     // La exerciţiu nu se arată explicaţii, deci nu are rost să le reindexăm.
     move_explanations: exerseaza ? {} : (trap.move_explanations ?? {}),
     // Capcanele n-au încă textele noi; nu moştenesc nimic de la variantă.
-    intro: null, move_comments: null, move_hints: null, final_text: null, final_arrows: null, move_marks: null,
+    intro: null, move_comments: null, move_hints: null, final_text: null, final_arrows: null,
+    // Marcajele stau pe semi-mutările capcanei întregi; la exerciţiu nu se văd.
+    move_marks: exerseaza ? null : ((trap.move_marks ?? null) as MarcajeMutari | null),
     start_fen: exerseaza ? fenDupa(trap.moves_uci, trap.spring_ply!) : undefined,
     fromVariation: linie.variation_name,
     conclusion: trap.explanation,

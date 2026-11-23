@@ -33,6 +33,13 @@ const CULOARE_SAGEATA = {
   green: 'rgba(34,197,94,0.85)',
 } as const
 
+/**
+ * Câmpul-cheie dintr-un text („nebunul ţinteşte f7"). Roz închis, ca să se vadă
+ * şi pe câmpurile negre: rozul deschis de la început (cerut pe 2026-11-21) se
+ * pierdea, iar utilizatorul a cerut pe 2026-11-23 unul mai închis.
+ */
+const CULOARE_CAMP_CHEIE = 'rgba(236,72,153,0.7)'
+
 /** E albul la mutare în poziţia de plecare? */
 function whiteMovesFirst(line: TrainerLine): boolean {
   return !line.start_fen || line.start_fen.includes(' w ')
@@ -702,7 +709,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   }
   // Câmpurile-cheie din text (f7, punctul slab), în roz deschis.
   for (const camp of marcaje?.squares ?? []) {
-    squareStyles[camp] = { ...squareStyles[camp], backgroundColor: 'rgba(249,168,212,0.6)' }
+    squareStyles[camp] = { ...squareStyles[camp], backgroundColor: CULOARE_CAMP_CHEIE }
   }
   if (state.wrongFrom) squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
   if (state.wrongTo) squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }

@@ -257,6 +257,8 @@ export interface OpeningTrapRow {
   move_explanations: Record<string, string>
   /** De la a câta semi-mutare porneşte exerciţiul. */
   spring_ply: number | null
+  /** Câmpuri-cheie şi săgeţi lângă textul unei mutări (migrarea 124). */
+  move_marks?: MarcajeMutari | null
 }
 
 /** O poziţie de plecare aleasă de om pentru Proba de foc (migrarea 043). */
