@@ -586,17 +586,31 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   }
 
   /**
-   * Reia partida din poziţia pe care o priveşti.
-   *
-   * Nu „derulează" starea înapoi, ci o reconstruieşte de la zero până la
-   * semi-mutarea aceea — aceeaşi cale ca la reluarea de a doua zi. Aşa nu poate
-   * rămâne nimic din ce s-a jucat după, nici pe tablă, nici în status.
+   * Săgeţile de la tastatură răsfoiesc mutările deja jucate, ca butoanele de
+   * navigare: stânga înapoi, dreapta înainte, dar nu mai departe de poziţia din
+   * partidă — o mutare pe care n-ai făcut-o încă nu se poate vedea dinainte.
+   * Cerut pe 2026-11-23. („Reia de aici" a fost scos atunci: n-avea rost.)
    */
-  function reiaDeAici() {
-    if (!line || vazut === null) return
-    setState(buildResumedState(line, vazut))
-    setVazut(null)
-  }
+  const plyJucat = state?.plyIdx ?? 0
+  useEffect(() => {
+    function laTasta(e: KeyboardEvent) {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+      const tinta = e.target as HTMLElement | null
+      if (tinta && (tinta.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tinta.tagName))) return
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        setVazut(v => {
+          const acum = v ?? plyJucat
+          return acum === 0 ? v : acum - 1
+        })
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        setVazut(v => (v === null || v + 1 >= plyJucat ? null : v + 1))
+      }
+    }
+    window.addEventListener('keydown', laTasta)
+    return () => window.removeEventListener('keydown', laTasta)
+  }, [plyJucat])
 
 
 
@@ -656,7 +670,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
   /** Unde duce „Continuă" de la capătul variantei. */
   const urmator = isGuided
-    ? { eticheta: 'Continuă la exersare', href: practicePath }
+    ? { eticheta: 'Continuă spre exersare', href: practicePath }
     : !isTrap && !isMiddlegame && arePlan
     ? { eticheta: 'Continuă: jocul de mijloc', href: `/courses/${slug}/middlegame/${lineId}` }
     : !isTrap && capitolUrmator
@@ -671,13 +685,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const plyBalon = state.status === 'user-turn'
     ? state.plyIdx
     : ultimaMutareATa(line, state.plyIdx - 1)
-  // Recapitularea, după ce ai terminat varianta (la învăţare şi la exersare,
-  // ca pe Chessly): cu săgeţile te întorci prin poziţii, iar fiecare îşi arată
-  // comentariul. O poziţie în care eşti tu la mutare are comentariul mutării
-  // tale de acolo; una în care mută adversarul îl păstrează pe al mutării tale
-  // de dinainte. În timpul jocului, privitul înapoi rămâne fără comentariu: acolo
-  // textul e despre partida în curs, nu despre poziţia răsfoită.
-  const recapitulare = gata && priveste
+  // Recapitularea: cu săgeţile te întorci prin poziţii, iar fiecare îşi arată
+  // comentariul, câmpurile colorate şi săgeţile ei — nu pe ale mutării din
+  // partidă (cerut pe 2026-11-23: culorile de mai târziu rămâneau pe poziţiile
+  // vechi). O poziţie în care eşti tu la mutare are comentariul mutării tale de
+  // acolo; una în care mută adversarul îl păstrează pe al mutării tale de
+  // dinainte. Merge după final (ca pe Chessly) şi la învăţare oricând; la
+  // exersare, în timpul jocului, privitul înapoi rămâne tăcut.
+  const recapitulare = priveste && (gata || isGuided)
   const albPrimul = whiteMovesFirst(line)
   const plyRecapitulare = recapitulare
     ? isUserPly(plyVazut, line.user_color, albPrimul) ? plyVazut : ultimaMutareATa(line, plyVazut - 1)
@@ -940,21 +955,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             )}
           </div>
 
-          {priveste && !gata && (
-            <button
-              type="button"
-              onClick={reiaDeAici}
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[rgba(226,179,64,0.3)] bg-[rgba(226,179,64,0.08)] px-3 py-2 text-base text-[#E2B340] transition-colors hover:bg-[rgba(226,179,64,0.14)]"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Reia de aici
-            </button>
-          )}
-
           {gata && (
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" onClick={resetLine}>
-                <RotateCcw className="h-3.5 w-3.5" /> Reia
+                <RotateCcw className="h-3.5 w-3.5" /> {isGuided ? 'Refă studiul' : 'Refă exersarea'}
               </Button>
               <Link to={urmator.href} className="flex-1">
                 <Button size="sm" className="w-full">
@@ -964,9 +968,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </div>
           )}
 
-          {/* Balonul de comentariu. Cât timp priveşti în urmă în timpul jocului,
-              dispare: textul e despre poziţia din partidă, nu despre cea
-              răsfoită. După final rămâne, cu comentariul poziţiei privite. */}
+          {/* Balonul de comentariu: al poziţiei privite, în recapitulare; la
+              exersare, cât priveşti înapoi în timpul jocului, dispare. */}
           {(!priveste || recapitulare) && balon.length > 0 && (
             <div className="space-y-3 rounded-lg border border-[rgba(226,179,64,0.35)] bg-[rgba(226,179,64,0.07)] p-4">
               {balon.map((paragraf, i) => (
