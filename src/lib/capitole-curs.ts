@@ -26,6 +26,23 @@ export function popularitate(procent: number): string {
   return p < 1 ? 'sub 1% popularitate' : `${Math.round(p)}% popularitate`
 }
 
+/**
+ * Sub atât, o linie de teorie se întâlneşte rar la nivelul cursanţilor şi o
+ * spunem pe faţă. Utilizatorul, pe 2026-11-23: „aş putea menţiona în dreptul
+ * variantei jucate de mari maeştri că este puţin probabil ca adversarii userilor
+ * să joace asta, dar totuşi să le ofer secvenţa de mutări".
+ */
+export const PRAG_RAR = 5
+
+/** Eticheta de sub titlul unui capitol de deschidere. */
+export function subtitluCapitol(linie: Pick<OpeningLine, 'popularity_pct' | 'tip'>): string {
+  const p = Number(linie.popularity_pct)
+  if (linie.tip === 'practica') {
+    return p < 1 ? 'sub 1% din partidele de la nivelul tău' : `${Math.round(p)}% din partidele de la nivelul tău`
+  }
+  return p < PRAG_RAR ? `${popularitate(p)} · rar la nivelul tău` : popularitate(p)
+}
+
 export interface Capitol {
   /** Id-ul variantei, `capcane`, sau `lectii` la cursurile fundamentale. */
   id: string
@@ -33,6 +50,11 @@ export interface Capitol {
   subtitlu: string
   noduri: PathNode[]
   terminat: boolean
+  /**
+   * Sub ce titlu stă capitolul în cuprins: teoria „ca la carte", ce joacă de
+   * fapt adversarii (`practica`), sau capcanele. Lipsă la cursurile fundamentale.
+   */
+  grupa?: 'teorie' | 'practica' | 'capcane'
 }
 
 /** Ce ştie baza despre planurile şi capcanele unui curs (RPC `course_middlegame`). */
@@ -62,8 +84,9 @@ export function capitoleDeDeschidere(
     return {
       id: linie.id,
       titlu: linie.variation_name,
-      subtitlu: popularitate(linie.popularity_pct),
+      subtitlu: subtitluCapitol(linie),
       terminat: teorieGata,
+      grupa: linie.tip === 'practica' ? 'practica' : 'teorie',
       noduri: [
         {
           id: `${linie.id}-teorie`,
@@ -113,6 +136,7 @@ export function capitoleDeDeschidere(
     capitole.push({
       id: 'capcane',
       titlu: 'Capcane uzuale',
+      grupa: 'capcane',
       subtitlu: `${capcane.length} ${capcane.length === 1 ? 'capcană' : 'capcane'} · din ${variante.join(' şi ')}`,
       terminat: capcane.every(c => parcurse.includes(c.id)),
       noduri: capcane.flatMap(c => [

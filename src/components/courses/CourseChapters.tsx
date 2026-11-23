@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { ChevronDown, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChapterPath } from './ChapterPath'
-import { capitoleDeDeschidere } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, type Capitol } from '@/lib/capitole-curs'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
 import type { OpeningLine } from '@/types'
 
@@ -48,13 +48,19 @@ export function CourseChapters({
 
   if (capitole.length === 0) return null
 
+  // Titlurile de grupă apar doar unde există capitole de practică: un curs care
+  // are numai teorie nu câştigă nimic dintr-un titlu deasupra tuturor capitolelor.
+  const cuGrupe = capitole.some(c => c.grupa === 'practica')
+
   return (
     <div className="space-y-3">
       {capitole.map((cap, i) => {
         const esteDeschis = deschise.has(cap.id)
+        const grupaNoua = cuGrupe && cap.grupa && cap.grupa !== capitole[i - 1]?.grupa
         return (
+          <Fragment key={cap.id}>
+          {grupaNoua && cap.grupa && <TitluGrupa grupa={cap.grupa} prima={i === 0} />}
           <div
-            key={cap.id}
             className="overflow-hidden rounded-2xl border border-[#2A2A2A] bg-[#141414]"
           >
             <button
@@ -86,8 +92,34 @@ export function CourseChapters({
               </div>
             )}
           </div>
+          </Fragment>
         )
       })}
+    </div>
+  )
+}
+
+const GRUPE: Record<NonNullable<Capitol['grupa']>, { titlu: string; text: string }> = {
+  teorie: {
+    titlu: 'Teoria, ca la carte',
+    text: 'Liniile jucate de maeştri. Unele apar rar la nivelul tău — eticheta îţi spune care.',
+  },
+  practica: {
+    titlu: 'Când adversarul nu joacă la carte',
+    text: 'Ce joacă de fapt adversarii de 1000–2000 de pe Chess.com şi cum profiţi de greşelile lor.',
+  },
+  capcane: {
+    titlu: 'Capcane',
+    text: 'Greşelile tipice din deschidere, ale tale şi ale adversarului.',
+  },
+}
+
+function TitluGrupa({ grupa, prima }: { grupa: NonNullable<Capitol['grupa']>; prima: boolean }) {
+  const { titlu, text } = GRUPE[grupa]
+  return (
+    <div className={cn('px-1', !prima && 'pt-4')}>
+      <h3 className="font-display text-sm font-bold uppercase tracking-wider text-[#E2B340]">{titlu}</h3>
+      <p className="mt-0.5 text-xs text-[#6B6B6B]">{text}</p>
     </div>
   )
 }

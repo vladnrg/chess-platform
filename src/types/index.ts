@@ -498,6 +498,11 @@ export interface OpeningLine {
   final_arrows?: { from: string; to: string }[] | null
   /** Câmpuri şi săgeţi desenate pe ecranul unei mutări (migrarea 121). */
   move_marks?: MarcajeMutari | null
+  /**
+   * `teorie` — linia „ca la carte"; `practica` — ce joacă de fapt adversarii de
+   * 1000–2000 când ies din teorie, şi cum îi pedepseşti (migrarea 131).
+   */
+  tip?: 'teorie' | 'practica'
 }
 
 /**

@@ -12,7 +12,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { CourseChapters } from '@/components/courses/CourseChapters'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { useMarcheazaCursul } from '@/hooks/useMarcheazaCursul'
-import { popularitate } from '@/lib/capitole-curs'
+import { subtitluCapitol } from '@/lib/capitole-curs'
 import type { Course, Lesson, UserCourseProgress, OpeningLine } from '@/types'
 import { LEVEL_LABELS, PLAYING_STYLE_LABELS } from '@/types'
 
@@ -116,7 +116,7 @@ export function CourseDetail() {
   // Pașii traseului (noduri): variante pentru deschideri, lecții pentru fundamentale.
   const steps: PathStep[] = hasOpeningLines
     ? (openingLines ?? []).map(l => ({
-        id: l.id, title: l.variation_name, sub: popularitate(l.popularity_pct),
+        id: l.id, title: l.variation_name, sub: subtitluCapitol(l),
         href: `/courses/${slug}/guided/${l.id}`, premium: false,
       }))
     : (lessons ?? []).map(l => ({
