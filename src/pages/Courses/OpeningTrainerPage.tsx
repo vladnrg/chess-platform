@@ -800,7 +800,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             : <Dumbbell className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />}
           <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#E2B340]">
             {parti.length > 1 && `Partea ${parteaCurenta + 1} din ${parti.length} · `}
-            {parti[parteaCurenta].nume} · {isGuided ? 'învățare' : 'exersare'}
+            {parti[parteaCurenta].nume} · {isGuided ? 'învățare' : 'exersare: Pune în practică ce tocmai ai studiat!'}
           </p>
           {!isGuided && !gata && (
             <button
@@ -986,12 +986,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </button>
           )}
 
-          {/* Exersarea: tăcută până la a treia greşeală, apoi Căluţul dă un indiciu. */}
-          {!isGuided && !gata && !priveste && greseliAici < 3 && (
-            <p className="px-1 text-sm leading-relaxed text-[#6B6B6B]">
-              Joacă varianta din memorie. La a treia greșeală pe aceeași mutare, Căluțul savant îți dă un indiciu.
-            </p>
-          )}
+          {/* Exersarea: tăcută până la a treia greşeală, apoi Căluţul dă un indiciu.
+              Fără text de instrucţiuni aici (scos pe 2026-11-23, la cererea
+              utilizatorului): îndemnul stă în antet, lângă „exersare". */}
           {!isGuided && !gata && !priveste && greseliAici >= 3 && (
             <div className="flex items-end gap-3 pt-2">
               <CalutulOmniscient mood="encouraging" size={96} />
