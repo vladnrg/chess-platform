@@ -49,12 +49,16 @@ export function notatie(uci: string[]): string {
   return parti.join(' ')
 }
 
-/** Cele patru formulări date de utilizator, prin rotaţie, ca să nu se repete. */
+/**
+ * Cele patru formulări date de utilizator, prin rotaţie, ca să nu se repete.
+ * Cu numele la genitiv (`nume_in_fraza`): „ne vom concentra pe studiul Apărării
+ * celor doi cai" (forma cerută pe 2026-11-24); fără el, pe titlul capitolului.
+ */
 const FORMULARI = [
-  (t: string) => `ne vom concentra pe capitolul „${t}”`,
-  (t: string) => `ne vom axa pe capitolul „${t}”`,
-  (t: string) => `vom oferi toată atenţia noastră capitolului „${t}”`,
-  (t: string) => `vom intra în capitolul „${t}”`,
+  (g: string | null, t: string) => g ? `ne vom concentra pe studiul ${g}` : `ne vom concentra pe capitolul „${t}”`,
+  (g: string | null, t: string) => g ? `ne vom axa pe studiul ${g}` : `ne vom axa pe capitolul „${t}”`,
+  (g: string | null, t: string) => g ? `vom oferi toată atenţia noastră studiului ${g}` : `vom oferi toată atenţia noastră capitolului „${t}”`,
+  (g: string | null, t: string) => g ? `vom intra în studiul ${g}` : `vom intra în capitolul „${t}”`,
 ]
 
 /**
@@ -69,7 +73,7 @@ const FORMULARI = [
 export function introCapitol({
   linie, toate, nivel, index, bunVenit,
 }: {
-  linie: Pick<OpeningLine, 'id' | 'moves_uci' | 'variation_name' | 'user_color' | 'popularity_pct' | 'grup' | 'popularitate_niveluri'>
+  linie: Pick<OpeningLine, 'id' | 'moves_uci' | 'variation_name' | 'user_color' | 'popularity_pct' | 'grup' | 'popularitate_niveluri' | 'nume_in_fraza'>
   toate: LinieMinima[]
   nivel: Nivel
   /** Locul capitolului în ordinea nivelului tău, de la 0. */
@@ -81,13 +85,14 @@ export function introCapitol({
   const mutari = mutariDefinitorii(linie, toate)
   const p = procentPeNivel(linie, nivel)
   const cat = p < 1 ? 'în mai puţin de 1%' : `în aproximativ ${Math.round(p)}%`
-  const unde = linie.popularitate_niveluri ? 'din partidele de la nivelul tău' : 'din partidele jucătorilor de 1000–2000'
+  const unde = linie.popularitate_niveluri ? 'din partidele disputate la nivelul tău' : 'din partidele jucătorilor de 1000–2000'
   const ultimaEATa = (mutari.length - 1) % 2 === (linie.user_color === 'white' ? 0 : 1)
 
   const desprePopularitate = linie.grup && linie.popularitate_niveluri && ultimaEATa
-    ? `Această variantă apare după mutările ${notatie(mutari)}. La ${linie.grup}, mutarea adversarului de la care porneşte, se ajunge ${cat} ${unde}.`
-    : `Această variantă apare după mutările ${notatie(mutari)} şi se întâmplă ${cat} ${unde}.`
+    ? `Această variantă apare după mutările standard ${notatie(mutari)}. La ${linie.grup}, mutarea adversarului de la care porneşte, se ajunge ${cat} ${unde}.`
+    : `Această variantă apare după mutările standard ${notatie(mutari)} şi are loc ${cat} ${unde}.`
 
-  paragrafe.push(`În cele ce urmează, ${FORMULARI[index % FORMULARI.length](linie.variation_name)}. ${desprePopularitate}`)
+  const formulare = FORMULARI[index % FORMULARI.length](linie.nume_in_fraza?.trim() || null, linie.variation_name)
+  paragrafe.push(`În cele ce urmează, ${formulare}. ${desprePopularitate}`)
   return paragrafe
 }

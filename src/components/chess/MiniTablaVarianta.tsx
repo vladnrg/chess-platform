@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Chessboard } from 'react-chessboard'
 import { Chess } from 'chess.js'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Maximize2, Pause, Play, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pause, Play, X } from 'lucide-react'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { translateNotation } from '@/lib/chess-translations'
 
@@ -65,7 +65,7 @@ export function MiniTablaVarianta({
         onClick={() => setDeschisa(true)}
         aria-label="Măreşte tabla cu mutările capitolului"
         title="Click ca să vezi mutările mai clar"
-        className="group relative float-left mb-2 mr-3 block w-32 overflow-hidden rounded-md border border-[#2A2A2A] transition-colors hover:border-[#E2B340]"
+        className="float-right mb-2 ml-3 block w-40 cursor-zoom-in overflow-hidden rounded-md border border-[#2A2A2A] transition-colors hover:border-[#E2B340]"
       >
         <Chessboard
           options={{
@@ -81,9 +81,6 @@ export function MiniTablaVarianta({
             boardStyle: { borderRadius: 0 },
           }}
         />
-        <span className="absolute bottom-1 right-1 rounded bg-black/70 p-0.5 text-[#E2B340] opacity-80 group-hover:opacity-100">
-          <Maximize2 className="h-3 w-3" />
-        </span>
       </button>
       {deschisa && (
         <FereastraVarianta mutari={mutari} orientare={orientare} titlu={titlu} onInchide={() => setDeschisa(false)} />

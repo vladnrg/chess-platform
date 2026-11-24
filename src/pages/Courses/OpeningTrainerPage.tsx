@@ -1000,8 +1000,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
               exersare, cât priveşti înapoi în timpul jocului, dispare. */}
           {(!priveste || recapitulare) && (balon.length > 0 || inceput) && (
             <div className="space-y-3 rounded-lg border border-[rgba(226,179,64,0.35)] bg-[rgba(226,179,64,0.07)] p-4">
-              {/* `flow-root`: blocul îşi cuprinde mini-tabla aşezată la stânga, iar
-                  textul de după el începe sub ea, nu lângă ea. */}
+              {/* `flow-root`: blocul îşi cuprinde mini-tabla aşezată la dreapta
+                  textului, iar textul de după el începe sub ea, nu lângă ea. */}
               {inceput && (
                 <div className="flow-root space-y-3">
                   <MiniTablaVarianta

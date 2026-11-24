@@ -512,6 +512,11 @@ export interface OpeningLine {
   grup?: string | null
   /** Cât de des joacă adversarul mutarea din `grup`, pe niveluri (migrarea 132). */
   popularitate_niveluri?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
+  /**
+   * Numele capitolului cum stă după „studiul…" în fraza de început, deja la
+   * genitiv: „Apărării celor doi cai" (migrarea 134). Lipsă → „capitolul „X"".
+   */
+  nume_in_fraza?: string | null
 }
 
 /**
