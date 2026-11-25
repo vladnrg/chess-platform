@@ -43,3 +43,6 @@ supabase/.temp/
 # Artefacte test Playwright
 .playwright-mcp/
 .tmp-leagues/
+
+# date intermediare ale uneltelor de variante (2026-11-25)
+scripts/variante/date/
