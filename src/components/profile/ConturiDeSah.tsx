@@ -127,7 +127,7 @@ export function ConturiDeSah() {
           {!legatChesscom && !cod && (
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <Input label="Numele tău pe Chess.com" value={numeCc} onChange={e => setNumeCc(e.target.value)} placeholder="ex: VladPopescu" />
+                <Input label="Numele tău pe Chess.com" value={numeCc} onChange={e => setNumeCc(e.target.value)} placeholder="ex: MagnusCarlsen" />
               </div>
               <Button size="sm" disabled={!numeCc.trim()} onClick={() => setCod(codVerificare())}>Continuă</Button>
             </div>
