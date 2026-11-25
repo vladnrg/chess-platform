@@ -207,7 +207,7 @@ interface TrainerState {
   status: TrainerStatus
   wrongFrom: string | null
   wrongTo: string | null
-  /** Poziţia cu mutarea greşită făcută, arătată o secundă (cerut pe 2026-11-25). */
+  /** Poziţia cu mutarea greşită făcută, arătată 750 ms (cerut pe 2026-11-25). */
   wrongFen: string | null
 }
 
@@ -564,12 +564,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, plyIdx, line, vazut])
 
-  // Mutarea greşită stă o secundă pe tablă, cu semnul roşu, apoi piesa se întoarce.
+  // Mutarea greşită stă 750 ms pe tablă (cerut pe 2026-11-25; întâi fusese o secundă), cu semnul roşu, apoi piesa se întoarce.
   useEffect(() => {
     if (status !== 'wrong') return
     const timer = setTimeout(() => {
       setState(s => s ? { ...s, status: 'user-turn', wrongFrom: null, wrongTo: null, wrongFen: null } : null)
-    }, 1000)
+    }, 750)
     return () => clearTimeout(timer)
   }, [status])
 
@@ -585,7 +585,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       const myMove = from + to
 
       if (myMove !== expected.slice(0, 4)) {
-        // Mutarea greşită se arată o secundă, ca pe Chessly, la învăţare şi la
+        // Mutarea greşită se arată 750 ms, ca pe Chessly, la învăţare şi la
         // exersare. Una ilegală se arată şi ea: piesa e pusă pe câmpul ales.
         const proba = new Chess(state.game.fen())
         let wrongFen: string | null = null
