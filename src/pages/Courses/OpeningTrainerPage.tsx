@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI } from '@/lib/sageti'
 import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
-import { introCapitol, mutariDefinitorii } from '@/lib/intro-capitol'
+import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
@@ -725,7 +725,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           index: indexCapitol,
           bunVenit: indexCapitol === 0 ? curs?.bunVenit : null,
         }),
-        mutari: mutariDefinitorii(liniaCurs, liniiCurs),
+        ...mutariMiniTabla(liniaCurs, liniiCurs),
       }
     : null
 
@@ -1006,6 +1006,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 <div className="flow-root space-y-3">
                   <MiniTablaVarianta
                     mutari={inceput.mutari}
+                    cheie={inceput.cheie}
                     orientare={line.user_color === 'white' ? 'white' : 'black'}
                     titlu={line.variation_name}
                   />

@@ -6,9 +6,19 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pause, Play, X 
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { translateNotation } from '@/lib/chess-translations'
 
-/** Cât stă o mutare pe mini-tablă, şi cât stă poziţia finală înainte de reluare. */
+/**
+ * Cât stă o mutare pe mini-tablă, şi cât stă poziţia finală înainte de reluare:
+ * 5 secunde, cerute ca să ai timp să citeşti poziţia de referinţă.
+ */
 const PAS_MS = 1000
-const PAUZA_FINAL_MS = 2500
+const PAUZA_FINAL_MS = 5000
+
+/**
+ * Violetul mutării cheie (4.d3 la Apărarea celor doi cai). Culoare nefolosită
+ * altundeva pe tablă: auriul e ultima mutare, rozul câmpul ţintit, verdele/
+ * roşul/albastrul controlul, turcoazul şi portocaliul alte marcaje.
+ */
+const VIOLET = '168,85,247'
 
 /** Poziţia după fiecare semi-mutare (index 0 = poziţia de start) şi mutările scrise. */
 function pozitii(mutari: string[]) {
@@ -23,13 +33,17 @@ function pozitii(mutari: string[]) {
   return { fen, san }
 }
 
-/** Câmpurile ultimei mutări, colorate discret, ca în antrenor. */
-function stilUltima(mutari: string[], pas: number) {
+/**
+ * Câmpurile ultimei mutări, colorate discret, ca în antrenor — auriu, sau
+ * violet aprins când ultima mutare e chiar mutarea cheie a capitolului.
+ */
+function stilUltima(mutari: string[], pas: number, cheie: number | null) {
   const u = pas > 0 ? mutari[pas - 1] : null
   if (!u) return {}
+  const [culoare, slab, tare] = pas - 1 === cheie ? [VIOLET, 0.5, 0.75] : ['226,179,64', 0.25, 0.45]
   return {
-    [u.slice(0, 2)]: { backgroundColor: 'rgba(226,179,64,0.25)' },
-    [u.slice(2, 4)]: { backgroundColor: 'rgba(226,179,64,0.45)' },
+    [u.slice(0, 2)]: { backgroundColor: `rgba(${culoare},${slab})` },
+    [u.slice(2, 4)]: { backgroundColor: `rgba(${culoare},${tare})` },
   }
 }
 
@@ -39,9 +53,11 @@ function stilUltima(mutari: string[], pas: number) {
  * deschide mărită, cu mutările scrise şi butoane de derulare.
  */
 export function MiniTablaVarianta({
-  mutari, orientare, titlu,
+  mutari, cheie = null, orientare, titlu,
 }: {
   mutari: string[]
+  /** Indexul mutării cheie din `mutari`, colorată violet; null = niciuna. */
+  cheie?: number | null
   orientare: 'white' | 'black'
   titlu: string
 }) {
@@ -75,7 +91,7 @@ export function MiniTablaVarianta({
             boardOrientation: orientare,
             showNotation: false,
             animationDurationInMs: 300,
-            squareStyles: stilUltima(mutari, pas),
+            squareStyles: stilUltima(mutari, pas, cheie),
             lightSquareStyle,
             darkSquareStyle,
             boardStyle: { borderRadius: 0 },
@@ -83,7 +99,7 @@ export function MiniTablaVarianta({
         />
       </button>
       {deschisa && (
-        <FereastraVarianta mutari={mutari} orientare={orientare} titlu={titlu} onInchide={() => setDeschisa(false)} />
+        <FereastraVarianta mutari={mutari} cheie={cheie} orientare={orientare} titlu={titlu} onInchide={() => setDeschisa(false)} />
       )}
     </>
   )
@@ -97,9 +113,10 @@ export function MiniTablaVarianta({
  * răsfoi în acelaşi timp şi partida din antrenorul de sub fereastră.
  */
 function FereastraVarianta({
-  mutari, orientare, titlu, onInchide,
+  mutari, cheie, orientare, titlu, onInchide,
 }: {
   mutari: string[]
+  cheie: number | null
   orientare: 'white' | 'black'
   titlu: string
   onInchide: () => void
@@ -165,7 +182,7 @@ function FereastraVarianta({
               allowDragging: false,
               boardOrientation: orientare,
               animationDurationInMs: 300,
-              squareStyles: stilUltima(mutari, pas),
+              squareStyles: stilUltima(mutari, pas, cheie),
               lightSquareStyle,
               darkSquareStyle,
               boardStyle: { borderRadius: 0 },
@@ -180,7 +197,11 @@ function FereastraVarianta({
               key={i}
               type="button"
               onClick={() => { setRuleaza(false); setPas(i + 1) }}
-              className={i + 1 === pas ? 'rounded bg-[rgba(226,179,64,0.18)] px-1 font-semibold text-[#E2B340]' : 'rounded px-1 hover:text-[#F0F0F0]'}
+              className={
+                i === cheie
+                  ? `rounded px-1 font-semibold text-[#C084FC] ${i + 1 === pas ? 'bg-[rgba(168,85,247,0.2)]' : 'hover:text-[#D8B4FE]'}`
+                  : i + 1 === pas ? 'rounded bg-[rgba(226,179,64,0.18)] px-1 font-semibold text-[#E2B340]' : 'rounded px-1 hover:text-[#F0F0F0]'
+              }
             >
               {i % 2 === 0 ? `${i / 2 + 1}.` : ''}{s}
             </button>

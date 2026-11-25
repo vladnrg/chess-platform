@@ -36,6 +36,23 @@ export function mutariDefinitorii(linie: LinieMinima, toate: LinieMinima[]): str
   return mutari.slice(0, Math.min(mutari.length, comun + 1))
 }
 
+/**
+ * Ce joacă mini-tabla: mutările definitorii şi, dacă capitolul are o mutare
+ * cheie (`mutare_cheie`, ex. 4.d3 la Apărarea celor doi cai — miezul variantei,
+ * deşi capitolul se desparte de celelalte încă de la 3…Cf6), merge până la ea.
+ * `cheie` = indexul mutării de evidenţiat, sau null.
+ */
+export function mutariMiniTabla(
+  linie: LinieMinima & Pick<OpeningLine, 'mutare_cheie'>,
+  toate: LinieMinima[],
+): { mutari: string[]; cheie: number | null } {
+  const definitorii = mutariDefinitorii(linie, toate)
+  const toateMutarile = linie.moves_uci.split(' ').filter(Boolean)
+  const k = linie.mutare_cheie
+  if (k == null || k < 0 || k >= toateMutarile.length) return { mutari: definitorii, cheie: null }
+  return { mutari: toateMutarile.slice(0, Math.max(definitorii.length, k + 1)), cheie: k }
+}
+
 /** Mutările în notaţia românească, numerotate: „1.e4 e5 2.Cf3 Cc6 3.Nc4 h6". */
 export function notatie(uci: string[]): string {
   const joc = new Chess()
@@ -73,7 +90,7 @@ const FORMULARI = [
 export function introCapitol({
   linie, toate, nivel, index, bunVenit,
 }: {
-  linie: Pick<OpeningLine, 'id' | 'moves_uci' | 'variation_name' | 'user_color' | 'popularity_pct' | 'grup' | 'popularitate_niveluri' | 'nume_in_fraza'>
+  linie: Pick<OpeningLine, 'id' | 'moves_uci' | 'variation_name' | 'user_color' | 'popularity_pct' | 'grup' | 'popularitate_niveluri' | 'nume_in_fraza' | 'intro_extra'>
   toate: LinieMinima[]
   nivel: Nivel
   /** Locul capitolului în ordinea nivelului tău, de la 0. */
@@ -93,6 +110,7 @@ export function introCapitol({
     : `Această variantă apare după mutările standard ${notatie(mutari)} şi are loc ${cat} ${unde}.`
 
   const formulare = FORMULARI[index % FORMULARI.length](linie.nume_in_fraza?.trim() || null, linie.variation_name)
-  paragrafe.push(`În cele ce urmează, ${formulare}. ${desprePopularitate}`)
+  const extra = linie.intro_extra?.trim()
+  paragrafe.push(`În cele ce urmează, ${formulare}. ${desprePopularitate}${extra ? ` ${extra}` : ''}`)
   return paragrafe
 }

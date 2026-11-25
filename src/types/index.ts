@@ -517,6 +517,13 @@ export interface OpeningLine {
    * genitiv: „Apărării celor doi cai" (migrarea 134). Lipsă → „capitolul „X"".
    */
   nume_in_fraza?: string | null
+  /** Text scris de mână, pus după fraza de început a capitolului (migrarea 135). */
+  intro_extra?: string | null
+  /**
+   * Semi-mutarea care e miezul capitolului (index de la 0 în `moves_uci`):
+   * mini-tabla de la început joacă până la ea şi o colorează violet (migrarea 135).
+   */
+  mutare_cheie?: number | null
 }
 
 /**
