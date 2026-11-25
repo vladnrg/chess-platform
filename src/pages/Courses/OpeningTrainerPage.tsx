@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
 import { Chessboard, type PieceDropHandlerArgs, type Arrow } from 'react-chessboard'
@@ -14,6 +14,8 @@ import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
 import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
+import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
+import { salveazaParte, type ParteCapitol, type RezultatCapitol } from '@/lib/rezultat-capitol'
 import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
@@ -205,6 +207,8 @@ interface TrainerState {
   status: TrainerStatus
   wrongFrom: string | null
   wrongTo: string | null
+  /** Poziţia cu mutarea greşită făcută, arătată o secundă (cerut pe 2026-11-25). */
+  wrongFen: string | null
 }
 
 function buildInitialState(line: TrainerLine): TrainerState {
@@ -216,6 +220,7 @@ function buildInitialState(line: TrainerLine): TrainerState {
     status: isUserPly(0, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking',
     wrongFrom: null,
     wrongTo: null,
+    wrongFen: null,
   }
 }
 
@@ -231,7 +236,7 @@ function buildResumedState(line: TrainerLine, plyIdx: number): TrainerState {
   const status: TrainerStatus = target >= moves.length
     ? 'line-done'
     : isUserPly(target, line.user_color, whiteMovesFirst(line)) ? 'user-turn' : 'computer-thinking'
-  return { game, plyIdx: target, partEnd: moves.length, status, wrongFrom: null, wrongTo: null }
+  return { game, plyIdx: target, partEnd: moves.length, status, wrongFrom: null, wrongTo: null, wrongFen: null }
 }
 
 /**
@@ -322,6 +327,21 @@ function indiciu(line: TrainerLine, ply: number, game: Chess): string {
   return `Mută ${piesa ? NUME_PIESA[piesa.type] : 'piesa'} de pe ${mutare.slice(0, 2)}.`
 }
 
+/**
+ * Semnul roşu din colţul piesei mutate greşit, ca pe Chessly (cerut pe
+ * 2026-11-25). Stă peste colţul câmpului, deasupra pieselor vecine.
+ */
+function SemnGresit() {
+  return (
+    <span
+      aria-label="Mutare greşită"
+      className="pointer-events-none absolute -right-[8%] -top-[8%] z-20 flex aspect-square w-[40%] items-center justify-center rounded-full border-2 border-white bg-[#EF4444] shadow-md"
+    >
+      <span className="h-[14%] w-[52%] rounded-full bg-white" />
+    </span>
+  )
+}
+
 interface Props {
   mode: 'guided' | 'practice'
   /** 'opening' = linia de deschidere; 'middlegame' = continuarea de după ea; 'trap' = capcana. */
@@ -336,6 +356,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const isMiddlegame = stage === 'middlegame'
   const isTrap = stage === 'trap'
   const savedDoneRef = useRef(false)
+  const navigate = useNavigate()
+  // „Refă exersările greşite" deschide exersarea cu `?refacere=1`: la capătul
+  // ei revine fereastra de rezultat, nu drumul obişnuit spre partea următoare.
+  const [parametri] = useSearchParams()
+  const refacere = parametri.get('refacere') === '1'
+  /** Când a început exersarea şi dacă a avut vreo greşeală sau „Soluţie". */
+  const inceputRunda = useRef(0)
+  const rundaImperfecta = useRef(false)
+  /** Rezultatul capitolului, setat la capătul unei exersări; închis = fereastra ascunsă. */
+  const [rezultate, setRezultate] = useState<RezultatCapitol | null>(null)
+  const [rezumatInchis, setRezumatInchis] = useState(false)
 
   // Calea către exerciţiu, scrisă o singură dată. Era scrisă în două locuri, iar
   // unul dintre ele uitase capcanele: butonul „Pe cont propriu" de la capătul
@@ -416,6 +447,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     setGreseli({ ply: -1, n: 0 })
     setSolutieLa(null)
     setMeniu(false)
+    setRezultate(null)
+    setRezumatInchis(false)
   }
 
   // Persistă progresul (doar mod ghidat): varianta curentă + eventual finalizarea.
@@ -452,6 +485,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   useEffect(() => {
     if (!line) return
     savedDoneRef.current = false
+    inceputRunda.current = Date.now()
+    rundaImperfecta.current = false
     if (isGuided) {
       const saved = Number(localStorage.getItem(resumeKey(line.id, stage)))
       setState(saved > 0 ? buildResumedState(line, saved) : buildInitialState(line))
@@ -480,6 +515,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     savedDoneRef.current = true
     localStorage.removeItem(resumeKey(line.id, stage))
     void persistProgress(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
+  // La capătul unei exersări: rezultatul părţii se scrie, iar fereastra de
+  // final se poate arăta (vezi `arataRezumat`).
+  useEffect(() => {
+    if (isGuided || isTrap || !lineId || status !== 'line-done') return
+    setRezultate(salveazaParte(lineId, stage as ParteCapitol, {
+      perfect: !rundaImperfecta.current,
+      ms: Date.now() - inceputRunda.current,
+    }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
@@ -518,12 +564,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, plyIdx, line, vazut])
 
-  // Auto-clear wrong feedback after 1.2s in practice mode
+  // Mutarea greşită stă o secundă pe tablă, cu semnul roşu, apoi piesa se întoarce.
   useEffect(() => {
     if (status !== 'wrong') return
     const timer = setTimeout(() => {
-      setState(s => s ? { ...s, status: 'user-turn', wrongFrom: null, wrongTo: null } : null)
-    }, 1200)
+      setState(s => s ? { ...s, status: 'user-turn', wrongFrom: null, wrongTo: null, wrongFen: null } : null)
+    }, 1000)
     return () => clearTimeout(timer)
   }, [status])
 
@@ -539,12 +585,24 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       const myMove = from + to
 
       if (myMove !== expected.slice(0, 4)) {
+        // Mutarea greşită se arată o secundă, ca pe Chessly, la învăţare şi la
+        // exersare. Una ilegală se arată şi ea: piesa e pusă pe câmpul ales.
+        const proba = new Chess(state.game.fen())
+        let wrongFen: string | null = null
+        try {
+          proba.move({ from, to, promotion: 'q' })
+          wrongFen = proba.fen()
+        } catch {
+          const piesa = proba.get(from as Square)
+          if (piesa && proba.remove(from as Square) && proba.put(piesa, to as Square)) wrongFen = proba.fen()
+        }
+        setState(s => s ? { ...s, status: 'wrong', wrongFrom: from, wrongTo: to, wrongFen } : null)
         if (!isGuided) {
-          setState(s => s ? { ...s, status: 'wrong', wrongFrom: from, wrongTo: to } : null)
+          rundaImperfecta.current = true
           const ply = state.plyIdx
           setGreseli(g => ({ ply, n: g.ply === ply ? g.n + 1 : 1 }))
         }
-        return false
+        return wrongFen !== null
       }
 
       const gameCopy = new Chess(state.game.fen())
@@ -563,7 +621,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       }
 
       setState(s => s
-        ? { ...s, game: gameCopy, plyIdx: nextPly, status: nextStatus, wrongFrom: null, wrongTo: null }
+        ? { ...s, game: gameCopy, plyIdx: nextPly, status: nextStatus, wrongFrom: null, wrongTo: null, wrongFen: null }
         : null)
       return true
     },
@@ -576,6 +634,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     setVazut(null)
     setGreseli({ ply: -1, n: 0 })
     setSolutieLa(null)
+    setRezultate(null)
+    setRezumatInchis(false)
+    inceputRunda.current = Date.now()
+    rundaImperfecta.current = false
   }
 
   function alegeRamuraPlan(index: number) {
@@ -672,6 +734,20 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     ? `Capcane uzuale · ${line.variation_name}`
     : indexCapitol >= 0 ? `Capitolul ${indexCapitol + 1} · ${line.variation_name}` : line.variation_name
 
+  // ── Fereastra de final a capitolului ────────────────────────────────────────
+  // După ultima exersare a capitolului — sau după orice exersare refăcută din
+  // fereastră —, cu rezultatul tuturor părţilor exersate.
+  const partiCapitol: ParteCapitol[] = arePlan ? ['opening', 'middlegame'] : ['opening']
+  const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && (refacere || isMiddlegame || !arePlan)
+  const continuaHref = capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
+  const primaGresita = partiCapitol.find(p => rezultate?.[p] && !rezultate[p]!.perfect)
+  const refaGresite = primaGresita
+    ? () => {
+        if (primaGresita === stage) resetLine()
+        else navigate(`/courses/${slug}/${primaGresita === 'middlegame' ? 'middlegame-practice' : 'practice'}/${lineId}?refacere=1`)
+      }
+    : null
+
   /** Unde duce „Continuă" de la capătul variantei. */
   const urmator = isGuided
     ? { eticheta: 'Continuă spre exersare', href: practicePath }
@@ -686,7 +762,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // răspunzi. Textul nou apare odată cu mutarea adversarului, cât piesa lui
   // încă alunecă (cerut pe 2026-11-23: înainte aştepta să se aşeze piesa şi
   // părea întârziat). Până mută el, rămâne textul de dinainte.
-  const plyBalon = state.status === 'user-turn'
+  const plyBalon = state.status === 'user-turn' || state.status === 'wrong'
     ? state.plyIdx
     : ultimaMutareATa(line, state.plyIdx - 1)
   // Recapitularea: cu săgeţile te întorci prin poziţii, iar fiecare îşi arată
@@ -791,10 +867,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       squareStyles[camp] = { ...squareStyles[camp], backgroundColor: CULOARE_CONTROL[fel] }
     }
   }
-  if (state.wrongFrom) squareStyles[state.wrongFrom] = { backgroundColor: 'rgba(251,113,133,0.55)' }
-  if (state.wrongTo) squareStyles[state.wrongTo] = { backgroundColor: 'rgba(251,113,133,0.30)' }
+  // Mutarea greşită se colorează ca orice ultimă mutare; greşeala o spune semnul roşu.
+  if (state.wrongFrom) squareStyles[state.wrongFrom] = { backgroundColor: ULTIMA_MUTARE.de }
+  if (state.wrongTo) squareStyles[state.wrongTo] = { backgroundColor: ULTIMA_MUTARE.la }
 
-  const fenAcum = vedere ? vedere.fen : state.game.fen()
+  const fenAcum = vedere ? vedere.fen : state.status === 'wrong' && state.wrongFen ? state.wrongFen : state.game.fen()
   const elementMeniu = 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[#D0D0D0] transition-colors hover:bg-[#1C1C1C]'
 
   return (
@@ -850,7 +927,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           {!isGuided && !gata && (
             <button
               type="button"
-              onClick={() => setSolutieLa(state.plyIdx)}
+              onClick={() => { rundaImperfecta.current = true; setSolutieLa(state.plyIdx) }}
               disabled={state.status !== 'user-turn' || priveste}
               className="flex items-center gap-1.5 rounded-md border border-[#2A2A2A] px-2.5 py-1 text-sm text-[#A0A0A0] transition-colors hover:text-[#F0F0F0] disabled:opacity-40"
             >
@@ -943,6 +1020,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 allowDragging: !priveste && state.status === 'user-turn',
                 boardOrientation: line.user_color === 'white' ? 'white' : 'black',
                 squareStyles,
+                // Doar cât se vede mutarea greşită: altfel tabla îşi desenează
+                // singură câmpurile. Înlocuitorul face acelaşi lucru, plus semnul.
+                squareRenderer: state.status === 'wrong' && state.wrongTo
+                  ? ({ square, children }) => (
+                      <div style={{ width: '100%', height: '100%', position: 'relative', ...squareStyles[square] }}>
+                        {children}
+                        {square === state.wrongTo && <SemnGresit />}
+                      </div>
+                    )
+                  : undefined,
                 arrows: sageti,
                 arrowOptions: OPTIUNI_SAGETI,
                 boardStyle: { borderRadius: 0 },
@@ -1065,6 +1152,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           )}
         </div>
       </div>
+
+      {arataRezumat && rezultate && (
+        <RezumatCapitol
+          parti={partiCapitol}
+          rezultate={rezultate}
+          continuaHref={continuaHref}
+          onRefa={refaGresite}
+          onInchide={() => setRezumatInchis(true)}
+        />
+      )}
     </div>
   )
 }
