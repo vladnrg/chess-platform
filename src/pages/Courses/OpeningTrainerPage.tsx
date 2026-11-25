@@ -691,7 +691,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         paragrafe: [
           `În varianta asta, ${line.numeVarianta.replace(/^Dacă /, '')}.`
             + (procentRamura != null
-              ? ` La nivelul tău, adversarul face asta în aproximativ ${Math.max(1, Math.round(procentRamura))}% din partidele care ajung în poziţia aceea.`
+              ? ` La nivelul tău, mutarea apare în aproximativ ${Math.max(1, Math.round(procentRamura))}% din partidele care ajung în poziţia aceea.`
               : '')
             + ' Până acolo, mutările sunt cele pe care le ştii.',
         ],
