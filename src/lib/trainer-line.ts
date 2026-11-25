@@ -18,6 +18,10 @@ export type TrainerLine = OpeningLine & {
   nrVariante?: number
   /** Numele ramificaţiei, la variantele 2–4. */
   numeVarianta?: string
+  /** Semi-mutarea la care ramificaţia se desparte de varianta principală. */
+  despartire?: number
+  /** Cât de des alege adversarul mutarea de despărţire, pe niveluri. */
+  popularitateVarianta?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
   /** Din ce variantă răsare capcana. */
   fromVariation?: string
   /** Paragraful de încheiere, arătat la capătul liniei. */
@@ -124,6 +128,8 @@ async function variantaCapitol(lineId: string, index: number): Promise<TrainerLi
     variantaIndex: index,
     nrVariante,
     numeVarianta: ramura.nume,
+    despartire: desp,
+    popularitateVarianta: ramura.popularitate_niveluri ?? null,
   }
 }
 

@@ -626,7 +626,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const cuParametri = (v: number) =>
     `?${!isGuided && refacere.length > 0 ? `refacere=${refacere.join(',')}&` : ''}v=${v}`
   const urmator = variantaUrmatoare !== undefined
-    ? { eticheta: `Continuă: varianta ${pozitieInLista + 2} din ${lista.length}`, href: cuParametri(variantaUrmatoare) }
+    ? { eticheta: `Continuă: varianta ${pozitieInLista + 2}`, href: cuParametri(variantaUrmatoare) }
     : isGuided
     ? { eticheta: 'Continuă spre exersare', href: practicePath }
     : pas < nrPasi - 1 && refacere.length === 0
@@ -664,12 +664,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // capitol din ordinea nivelului tău, ca să nu-l citeşti la fiecare —, o frază
   // despre capitol şi mini-tabla cu mutările lui comune. Doar la studiul
   // deschiderii, cât balonul arată introducerea.
-  const laInceput = stage === 'opening' && isGuided && variantaAici === 0 && indexCapitol >= 0 && (
-    recapitulare
-      ? plyRecapitulare !== null && plyRecapitulare <= primaMutareATa(line)
-      : !gata && plyBalon <= primaMutareATa(line)
-  )
+  const laPrimaMutare = recapitulare
+    ? plyRecapitulare !== null && plyRecapitulare <= primaMutareATa(line)
+    : !gata && plyBalon <= primaMutareATa(line)
+  const laInceput = stage === 'opening' && isGuided && variantaAici === 0 && indexCapitol >= 0 && laPrimaMutare
   const liniaCurs = laInceput ? liniiCurs[indexCapitol] : undefined
+  // Începutul variantelor 2–4 (2026-11-25): ce face adversarul altfel şi cât de
+  // des, cu mini-tabla oprită la mutarea de despărţire, marcată violet. Fără el,
+  // varianta pornea cu panoul gol.
+  const despartire = line.despartire
+  const laInceputRamurii = !isTrap && isGuided && variantaAici > 0 && despartire != null && laPrimaMutare
+  const procentRamura = line.popularitateVarianta?.[nivelDin(profile)]
   const inceput = liniaCurs
     ? {
         paragrafe: introCapitol({
@@ -680,6 +685,18 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           bunVenit: indexCapitol === 0 ? curs?.bunVenit : null,
         }),
         ...mutariMiniTabla(liniaCurs, liniiCurs),
+      }
+    : laInceputRamurii && line.numeVarianta
+    ? {
+        paragrafe: [
+          `În varianta asta, ${line.numeVarianta.replace(/^Dacă /, '')}.`
+            + (procentRamura != null
+              ? ` La nivelul tău, adversarul face asta în aproximativ ${Math.max(1, Math.round(procentRamura))}% din partidele care ajung în poziţia aceea.`
+              : '')
+            + ' Până acolo, mutările sunt cele pe care le ştii.',
+        ],
+        mutari: moves.slice(0, despartire + 1),
+        cheie: despartire,
       }
     : null
 

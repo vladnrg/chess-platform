@@ -24,6 +24,13 @@ interface PathStep {
   premium: boolean
 }
 
+/** „1 capitol", „8 capitole", „31 de variante" — cu „de" de la 20 în sus. */
+function numar(n: number, unu: string, multe: string): string {
+  if (n === 1) return `1 ${unu}`
+  const rest = n % 100
+  return rest === 0 || rest >= 20 ? `${n} de ${multe}` : `${n} ${multe}`
+}
+
 export function CourseDetail() {
   const { slug } = useParams<{ slug: string }>()
   const { user, profile } = useAuth()
@@ -191,7 +198,8 @@ export function CourseDetail() {
           {hasOpeningLines ? (
             <span className="flex items-center gap-1.5">
               <TrendingUp className="h-4 w-4" />
-              {openingLines.length} variante de studiat
+              {/* Capitolele au variante din 2026-11-25; înainte, un capitol era o variantă. */}
+              {numar(openingLines.length, 'capitol', 'capitole')} · {numar(openingLines.reduce((s, l) => s + 1 + (l.variante?.length ?? 0), 0), 'variantă', 'variante')} de studiat
             </span>
           ) : (
             <span className="flex items-center gap-1.5">
@@ -248,7 +256,7 @@ export function CourseDetail() {
         <div>
           <h2 className="mb-1 text-lg font-semibold text-[#F0F0F0]">Conținutul cursului</h2>
           <p className="mb-4 text-xs text-[#6B6B6B]">
-            {doneCount} din {totalSteps} variante parcurse
+            {doneCount} din {numar(totalSteps, 'capitol', 'capitole')} parcurse
           </p>
           <CourseChapters slug={slug} lines={openingLines ?? []} completedIds={completedIds} />
         </div>
