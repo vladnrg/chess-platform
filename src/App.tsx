@@ -32,6 +32,7 @@ const PuzzlesPage = lazyPagina(() => import('@/pages/PuzzlesPage').then(m => ({ 
 const PuzzlePlacement = lazyPagina(() => import('@/pages/PuzzlePlacement').then(m => ({ default: m.PuzzlePlacement })))
 const StatsPage = lazyPagina(() => import('@/pages/StatsPage').then(m => ({ default: m.StatsPage })))
 const ProfilePage = lazyPagina(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
+const LegareLichess = lazyPagina(() => import('@/pages/LegareLichess').then(m => ({ default: m.LegareLichess })))
 const PricingPage = lazyPagina(() => import('@/pages/PricingPage').then(m => ({ default: m.PricingPage })))
 const MatchPage = lazyPagina(() => import('@/pages/MatchPage').then(m => ({ default: m.MatchPage })))
 const LeaderboardPage = lazyPagina(() => import('@/pages/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
@@ -112,6 +113,7 @@ function AppRoutes() {
         <Route path="/puzzles/placement" element={<PuzzlePlacement />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/conturi/lichess" element={<LegareLichess />} />
         <Route path="/clasament" element={<LeaderboardPage />} />
         <Route path="/partida/:matchId" element={<MatchPage />} />
         <Route path="/calendar" element={<CalendarPage />} />

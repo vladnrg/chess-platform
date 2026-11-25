@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js'
 import { supabase } from '@/lib/supabase'
-import type { MarcajeMutari, OpeningLine } from '@/types'
+import type { MarcajeMutari, OpeningLine, PopularitatePeRating } from '@/types'
 
 export type TrainerStage = 'opening' | 'middlegame' | 'trap'
 
@@ -22,6 +22,7 @@ export type TrainerLine = OpeningLine & {
   despartire?: number
   /** Cât de des alege adversarul mutarea de despărţire, pe niveluri. */
   popularitateVarianta?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
+  popularitatePeRatingVarianta?: PopularitatePeRating | null
   /** Din ce variantă răsare capcana. */
   fromVariation?: string
   /** Paragraful de încheiere, arătat la capătul liniei. */
@@ -130,6 +131,7 @@ async function variantaCapitol(lineId: string, index: number): Promise<TrainerLi
     numeVarianta: ramura.nume,
     despartire: desp,
     popularitateVarianta: ramura.popularitate_niveluri ?? null,
+    popularitatePeRatingVarianta: ramura.popularitate_pe_rating ?? null,
   }
 }
 

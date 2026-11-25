@@ -5,6 +5,7 @@ import { SessionTimer } from '@/components/session/SessionTimer'
 import { archetypeFor, pageZoomFor } from '@/lib/navigation'
 import { useAcceptedChallengeRedirect } from '@/hooks/useChallenges'
 import { useMatchWatcher } from '@/hooks/useMatchWatcher'
+import { useActualizeazaRating } from '@/hooks/useActualizeazaRating'
 
 function ChildSessionGuard() {
   const { minutesLeft, showWarning, dismissWarning, isMinor } = useChildSession()
@@ -17,6 +18,8 @@ export function AppLayout() {
 
   // Intră automat în partidă când cineva îţi acceptă provocarea, oriunde ai fi
   useAcceptedChallengeRedirect()
+  // Ratingul conturilor de Chess.com / Lichess, o dată pe zi (2026-11-25).
+  useActualizeazaRating()
   // Închide partidele cu timpul expirat şi anunţă finalurile, oriunde ai fi
   useMatchWatcher()
 

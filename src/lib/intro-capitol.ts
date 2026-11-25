@@ -8,7 +8,7 @@
  */
 import { Chess } from 'chess.js'
 import { translateNotation } from './chess-translations'
-import { procentPeNivel, type Nivel } from './capitole-curs'
+import { procentPeNivel, type Incadrare } from './capitole-curs'
 import type { OpeningLine } from '@/types'
 
 type LinieMinima = Pick<OpeningLine, 'id' | 'moves_uci'>
@@ -88,11 +88,12 @@ const FORMULARI = [
  * „se întâmplă" în 28% din partide.
  */
 export function introCapitol({
-  linie, toate, nivel, index, bunVenit,
+  linie, toate, inc, index, bunVenit,
 }: {
-  linie: Pick<OpeningLine, 'id' | 'moves_uci' | 'variation_name' | 'user_color' | 'popularity_pct' | 'grup' | 'popularitate_niveluri' | 'nume_in_fraza' | 'intro_extra'>
+  linie: Pick<OpeningLine, 'id' | 'moves_uci' | 'variation_name' | 'user_color' | 'popularity_pct' | 'grup' | 'popularitate_niveluri' | 'popularitate_pe_rating' | 'nume_in_fraza' | 'intro_extra'>
   toate: LinieMinima[]
-  nivel: Nivel
+  /** Platforma şi ratingul cursantului (vezi `incadrareDin`). */
+  inc: Incadrare
   /** Locul capitolului în ordinea nivelului tău, de la 0. */
   index: number
   bunVenit?: string | null
@@ -100,12 +101,13 @@ export function introCapitol({
   const paragrafe = (bunVenit ?? '').split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
 
   const mutari = mutariDefinitorii(linie, toate)
-  const p = procentPeNivel(linie, nivel)
+  const p = procentPeNivel(linie, inc)
   const cat = p < 1 ? 'în mai puţin de 1%' : `în aproximativ ${Math.round(p)}%`
-  const unde = linie.popularitate_niveluri ? 'din partidele disputate la nivelul tău' : 'din partidele jucătorilor de 1000–2000'
+  const masurat = linie.popularitate_niveluri || linie.popularitate_pe_rating
+  const unde = masurat ? 'din partidele disputate la nivelul tău' : 'din partidele jucătorilor de 1000–2000'
   const ultimaEATa = (mutari.length - 1) % 2 === (linie.user_color === 'white' ? 0 : 1)
 
-  const desprePopularitate = linie.grup && linie.popularitate_niveluri && ultimaEATa
+  const desprePopularitate = linie.grup && masurat && ultimaEATa
     ? `Această variantă apare după mutările standard ${notatie(mutari)}. La ${linie.grup}, mutarea adversarului de la care porneşte, se ajunge ${cat} ${unde}.`
     : `Această variantă apare după mutările standard ${notatie(mutari)} şi are loc ${cat} ${unde}.`
 

@@ -15,52 +15,98 @@ import type { PathNode } from '@/components/courses/ChapterPath'
 import type { Lesson, OpeningLine, Profile } from '@/types'
 
 /**
- * Nivelul cursantului, pentru procentele şi ordinea capitolelor.
- *
- * Cerut pe 2026-11-23: trei niveluri, nu un singur interval 1000–2000, fiindcă
- * platforma e pentru 400–2300 şi un începător întâlneşte alte mutări decât un
- * avansat. Nivelul vine din testul de plasament (`estimated_elo`); cine nu l-a
- * dat vede nivelul intermediar, cel mai apropiat de majoritate.
+ * Treapta mare a cursantului (400–1000 / 1000–1600 / 1600–2300, pe scara
+ * Chess.com), cerută pe 2026-11-23. Rămâne pentru cursurile încă nemăsurate pe
+ * trepte de rating (`popularitate_niveluri`).
  */
 export type Nivel = 'incepator' | 'intermediar' | 'avansat'
+export type SursaRating = 'chesscom' | 'lichess'
 
-export function nivelDin(profil: Pick<Profile, 'estimated_elo' | 'assessment_completed'> | null | undefined): Nivel {
-  if (!profil?.assessment_completed) return 'intermediar'
-  if (profil.estimated_elo < 1000) return 'incepator'
-  if (profil.estimated_elo < 1600) return 'intermediar'
+/**
+ * Cum e încadrat cursantul pentru procentele din cursuri (cerut pe 2026-11-25):
+ * contul legat — Lichess sau Chess.com, cu ratingul de acolo —, altfel nivelul
+ * din testul de plasament, pe scara Chess.com. Cine n-a dat nici testul e pus
+ * la 1300, în mijlocul treptei intermediare.
+ */
+export interface Incadrare {
+  sursa: SursaRating
+  rating: number
+  nivel: Nivel
+}
+
+type ProfilPentruIncadrare = Pick<Profile, 'estimated_elo' | 'assessment_completed'>
+  & Partial<Pick<Profile, 'sursa_rating' | 'chesscom_rating' | 'lichess_rating'>>
+
+function treaptaMare(ratingChesscom: number): Nivel {
+  if (ratingChesscom < 1000) return 'incepator'
+  if (ratingChesscom < 1600) return 'intermediar'
   return 'avansat'
 }
 
-/** Procentul afişat al unui capitol: al nivelului tău, dacă există măsurat. */
+export function incadrareDin(profil: ProfilPentruIncadrare | null | undefined): Incadrare {
+  if (profil?.sursa_rating === 'lichess' && profil.lichess_rating) {
+    // Treapta mare se foloseşte doar la cursurile încă nemăsurate pe Lichess;
+    // acolo, ratingul de Lichess se coboară cu ~300 spre scara Chess.com.
+    return { sursa: 'lichess', rating: profil.lichess_rating, nivel: treaptaMare(profil.lichess_rating - 300) }
+  }
+  if (profil?.sursa_rating === 'chesscom' && profil.chesscom_rating) {
+    return { sursa: 'chesscom', rating: profil.chesscom_rating, nivel: treaptaMare(profil.chesscom_rating) }
+  }
+  const rating = profil?.assessment_completed ? profil.estimated_elo : 1300
+  return { sursa: 'chesscom', rating, nivel: treaptaMare(rating) }
+}
+
+type CuPopularitate = Pick<OpeningLine, 'popularitate_niveluri' | 'popularitate_pe_rating'>
+
+/** Procentul din treapta de rating în care cade cursantul, dacă e măsurat. */
+export function procentMasurat(linie: Partial<CuPopularitate>, inc: Incadrare): number | undefined {
+  const trepte = linie.popularitate_pe_rating?.[inc.sursa]
+  if (trepte) {
+    const limite = Object.keys(trepte).map(Number).filter(n => !Number.isNaN(n)).sort((a, b) => a - b)
+    if (limite.length > 0) {
+      let aleasa = limite[0]
+      for (const l of limite) if (inc.rating >= l) aleasa = l
+      return Number(trepte[String(aleasa)])
+    }
+  }
+  const peNivel = linie.popularitate_niveluri?.[inc.nivel]
+  return peNivel == null ? undefined : Number(peNivel)
+}
+
+/** Procentul afişat al unui capitol: al treptei tale, dacă există măsurat. */
 export function procentPeNivel(
-  linie: Pick<OpeningLine, 'popularity_pct' | 'popularitate_niveluri'>,
-  nivel: Nivel,
+  linie: Pick<OpeningLine, 'popularity_pct'> & Partial<CuPopularitate>,
+  inc: Incadrare,
 ): number {
-  const peNivel = linie.popularitate_niveluri?.[nivel]
-  return Number(peNivel ?? linie.popularity_pct)
+  return procentMasurat(linie, inc) ?? Number(linie.popularity_pct)
+}
+
+/** Are cursul cifre pe niveluri sau pe trepte? Dacă nu, ordinea rămâne cea de învăţare. */
+function areProcente(l: Partial<CuPopularitate>): boolean {
+  return !!(l.popularitate_niveluri || l.popularitate_pe_rating)
 }
 
 /**
  * Capitolele în ordinea în care le vei întâlni: întâi cele la care adversarul
- * te duce cel mai des, la nivelul tău.
+ * te duce cel mai des, la treapta ta.
  *
  * Se ordonează după mutarea adversarului (`grup`), nu după capitol: Giuoco
  * Piano, Pianissimo şi Gambitul Evans răspund toate la 3…Nc5 şi stau împreună,
- * între ele în ordinea de învăţare (`order_index`). Un curs fără cifre pe
- * niveluri îşi păstrează ordinea de acum. Ordinea e stabilă, deci aplicată de
- * două ori dă acelaşi rezultat.
+ * între ele în ordinea de învăţare (`order_index`). Un curs fără cifre îşi
+ * păstrează ordinea de acum. Ordinea e stabilă, deci aplicată de două ori dă
+ * acelaşi rezultat.
  */
-export function ordoneazaPeNivel<T extends Pick<OpeningLine, 'order_index' | 'grup' | 'popularitate_niveluri'>>(
+export function ordoneazaPeNivel<T extends Pick<OpeningLine, 'order_index' | 'grup'> & Partial<CuPopularitate>>(
   linii: T[],
-  nivel: Nivel,
+  inc: Incadrare,
 ): T[] {
-  if (!linii.some(l => l.popularitate_niveluri)) return linii
+  if (!linii.some(areProcente)) return linii
   const cheie = (l: T) => l.grup ?? `#${l.order_index}`
   const procentGrup = new Map<string, number>()
   const primulInGrup = new Map<string, number>()
   for (const l of linii) {
     const k = cheie(l)
-    const p = Number(l.popularitate_niveluri?.[nivel] ?? -1)
+    const p = procentMasurat(l, inc) ?? -1
     procentGrup.set(k, Math.max(procentGrup.get(k) ?? -1, p))
     primulInGrup.set(k, Math.min(primulInGrup.get(k) ?? Infinity, l.order_index))
   }
@@ -101,14 +147,14 @@ export const PRAG_RAR = 5
  * ca să se vadă că e aceeaşi cifră, nu trei întâmplări diferite.
  */
 export function subtitluCapitol(
-  linie: Pick<OpeningLine, 'popularity_pct' | 'tip' | 'grup' | 'popularitate_niveluri'>,
-  nivel: Nivel = 'intermediar',
+  linie: Pick<OpeningLine, 'popularity_pct' | 'tip' | 'grup' | 'popularitate_niveluri' | 'popularitate_pe_rating'>,
+  inc: Incadrare = incadrareDin(null),
 ): string {
-  const p = procentPeNivel(linie, nivel)
+  const p = procentPeNivel(linie, inc)
   if (linie.tip === 'practica') {
     return p < 1 ? 'sub 1% din partidele de la nivelul tău' : `${Math.round(p)}% din partidele de la nivelul tău`
   }
-  const eticheta = linie.grup && linie.popularitate_niveluri
+  const eticheta = linie.grup && areProcente(linie)
     ? `${linie.grup} · ${p < 1 ? 'sub 1%' : `${Math.round(p)}%`} din partidele de la nivelul tău`
     : popularitate(p)
   return p < PRAG_RAR ? `${eticheta} · rar la nivelul tău` : eticheta
@@ -145,7 +191,7 @@ export function capitoleDeDeschidere(
   linii: OpeningLine[],
   parcurse: string[],
   date: DateDeCurs | undefined,
-  nivel: Nivel = 'intermediar',
+  inc: Incadrare = incadrareDin(null),
   /** Paşii terminaţi şi când (`user_course_progress.noduri_parcurse`, migrarea 139). */
   noduriParcurse: Record<string, string> = {},
 ): Capitol[] {
@@ -156,7 +202,7 @@ export function capitoleDeDeschidere(
     done: gataDinainte || !!noduriParcurse[n.id],
     cand: noduriParcurse[n.id],
   })
-  const capitole: Capitol[] = ordoneazaPeNivel(linii, nivel).map(linie => {
+  const capitole: Capitol[] = ordoneazaPeNivel(linii, inc).map(linie => {
     // Paşii capitolului (cerut pe 2026-11-25, ca la Chessly): variantele 1–2,
     // apoi 3–4 (sau doar 3). Jocul de mijloc nu mai e un pas separat.
     const nrVariante = 1 + (linie.variante?.length ?? 0)
@@ -204,7 +250,7 @@ export function capitoleDeDeschidere(
     return {
       id: linie.id,
       titlu: linie.variation_name,
-      subtitlu: subtitluCapitol(linie, nivel),
+      subtitlu: subtitluCapitol(linie, inc),
       // Terminat = toţi paşii care duc undeva sunt făcuţi (testul încă n-are pagină).
       terminat: noduri.filter(n => n.href).every(n => n.done),
       grupa: linie.tip === 'practica' ? 'practica' : 'teorie',

@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react'
 import { ChevronDown, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChapterPath } from './ChapterPath'
-import { capitoleDeDeschidere, capitolulCurent, etichetaTraseu, nivelDin, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolulCurent, etichetaTraseu, incadrareDin, type Capitol } from '@/lib/capitole-curs'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
 import { useAuth } from '@/hooks/useAuth'
 import type { OpeningLine } from '@/types'
@@ -32,7 +32,7 @@ export function CourseChapters({
   const { profile } = useAuth()
 
   // Ordinea capitolelor depinde de nivelul tău (din testul de plasament).
-  const capitole = capitoleDeDeschidere(slug, lines, completedIds, dinCurs, nivelDin(profile), noduriParcurse ?? {})
+  const capitole = capitoleDeDeschidere(slug, lines, completedIds, dinCurs, incadrareDin(profile), noduriParcurse ?? {})
   const eticheta = etichetaTraseu(capitole)
 
   // Capitolele se ţin deschise câte vrei, nu unul singur. Cine compară două

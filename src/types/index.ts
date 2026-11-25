@@ -23,6 +23,14 @@ export interface Profile {
   city: string | null
   county: string | null
   lichess_username: string | null
+  // Conturile legate (migrarea 140); private, se văd doar în propriul profil.
+  chesscom_username?: string | null
+  chesscom_rating?: number | null
+  lichess_rating?: number | null
+  /** Al cui rating alege procentele din cursuri; `null` = testul de plasament. */
+  sursa_rating?: 'chesscom' | 'lichess' | null
+  rating_ritm?: 'rapid' | 'blitz' | null
+  rating_actualizat_la?: string | null
   created_at: string
   // Conturi de copil (migrarea 003). `is_minor` se calculează în cod din birth_year.
   birth_year: number | null
@@ -518,6 +526,8 @@ export interface OpeningLine {
   grup?: string | null
   /** Cât de des joacă adversarul mutarea din `grup`, pe niveluri (migrarea 132). */
   popularitate_niveluri?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
+  /** La fel, pe trepte de rating şi platforme (migrarea 140); are întâietate. */
+  popularitate_pe_rating?: PopularitatePeRating | null
   /**
    * Numele capitolului cum stă după „studiul…" în fraza de început, deja la
    * genitiv: „Apărării celor doi cai" (migrarea 134). Lipsă → „capitolul „X"".
@@ -554,7 +564,16 @@ export interface VariantaCapitol {
   final_arrows?: { from: string; to: string }[] | null
   /** Cât de des alege adversarul mutarea de despărţire, pe niveluri (Chess.com). */
   popularitate_niveluri?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
+  /** La fel, pe trepte de rating şi platforme (migrarea 140). */
+  popularitate_pe_rating?: PopularitatePeRating | null
 }
+
+/**
+ * Procentele pe trepte de rating, pe platforme (migrarea 140):
+ * `{ chesscom: { "400": 21.3, "700": 24.1 }, lichess: { "1000": … } }`.
+ * Cheia e limita de jos a treptei.
+ */
+export type PopularitatePeRating = Partial<Record<'chesscom' | 'lichess', Record<string, number>>>
 
 /**
  * Ce se desenează pe tablă lângă textul unei mutări, cheia fiind semi-mutarea ta

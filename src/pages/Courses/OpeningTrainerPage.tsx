@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
-import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
+import { incadrareDin, ordoneazaPeNivel, procentMasurat } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
@@ -628,7 +628,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
   // Ordinea capitolelor e a nivelului tău, ca în cuprins: „Capitolul N" şi
   // „Capitolul următor" trebuie să spună acelaşi lucru ca pagina cursului.
-  const liniiCurs = curs ? ordoneazaPeNivel(curs.linii, nivelDin(profile)) : []
+  const liniiCurs = curs ? ordoneazaPeNivel(curs.linii, incadrareDin(profile)) : []
   const indexCapitol = liniiCurs.findIndex(l => l.id === lineId)
   const capitolUrmator = indexCapitol >= 0 ? liniiCurs[indexCapitol + 1] : undefined
   const etichetaCapitol = isTrap
@@ -703,13 +703,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // varianta pornea cu panoul gol.
   const despartire = line.despartire
   const laInceputRamurii = !isTrap && isGuided && variantaAici > 0 && despartire != null && laPrimaMutare
-  const procentRamura = line.popularitateVarianta?.[nivelDin(profile)]
+  const procentRamura = procentMasurat({ popularitate_niveluri: line.popularitateVarianta, popularitate_pe_rating: line.popularitatePeRatingVarianta }, incadrareDin(profile))
   const inceput = liniaCurs
     ? {
         paragrafe: introCapitol({
           linie: liniaCurs,
           toate: liniiCurs,
-          nivel: nivelDin(profile),
+          inc: incadrareDin(profile),
           index: indexCapitol,
           bunVenit: indexCapitol === 0 ? curs?.bunVenit : null,
         }),

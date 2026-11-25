@@ -9,7 +9,7 @@ import { ChapterPath, type PathNode } from '@/components/courses/ChapterPath'
 import { inaltimeaTraseului } from '@/components/courses/geometrie-traseu'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
-import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, nivelDin, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, incadrareDin, type Capitol } from '@/lib/capitole-curs'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
 
 /**
@@ -238,7 +238,7 @@ function CapitolulCursului({
 
   const { data: dinCurs } = useDateDeCurs(linii?.length ? curs.slug : undefined)
   const { profile } = useAuth()
-  const nivel = nivelDin(profile)
+  const nivel = useMemo(() => incadrareDin(profile), [profile])
 
   const capitole = useMemo(() => {
     if (!linii) return []

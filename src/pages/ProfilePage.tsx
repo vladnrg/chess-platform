@@ -7,6 +7,7 @@ import { TitlePicker } from '@/components/profile/TitlePicker'
 import { CosmeticPicker } from '@/components/profile/CosmeticPicker'
 import { SchimbaPoza } from '@/components/profile/SchimbaPoza'
 import { Abonament } from '@/components/profile/Abonament'
+import { ConturiDeSah } from '@/components/profile/ConturiDeSah'
 import { AvatarJucator } from '@/components/ui/AvatarJucator'
 import { getLeagueConfig } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -20,7 +21,6 @@ export function ProfilePage() {
   const [username, setUsername] = useState(profile?.username ?? '')
   const [city, setCity] = useState(profile?.city ?? '')
   const [county, setCounty] = useState(profile?.county ?? '')
-  const [lichessUsername, setLichessUsername] = useState(profile?.lichess_username ?? '')
   const leagueConfig = profile ? getLeagueConfig(profile.current_league) : null
 
   const updateMutation = useMutation({
@@ -28,7 +28,7 @@ export function ProfilePage() {
       if (!user) return
       const { error } = await supabase
         .from('profiles')
-        .update({ username, city: city || null, county: county || null, lichess_username: lichessUsername || null })
+        .update({ username, city: city || null, county: county || null })
         .eq('id', user.id)
       if (error) throw error
       await fetchProfile(user.id)
@@ -91,12 +91,6 @@ export function ProfilePage() {
               placeholder="ex: Cluj"
             />
           </div>
-          <Input
-            label="Username Lichess (opțional)"
-            value={lichessUsername}
-            onChange={e => setLichessUsername(e.target.value)}
-            placeholder="ex: MagnusCarlsen"
-          />
           <div>
             <p className="text-sm text-[#A0A0A0] mb-1">Stil de joc detectat</p>
             <p className="font-semibold text-[#E2B340]">
@@ -108,6 +102,9 @@ export function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Contul de Lichess se leagă de aici (2026-11-25), nu se mai scrie de mână. */}
+      <ConturiDeSah />
 
       <Abonament />
 
