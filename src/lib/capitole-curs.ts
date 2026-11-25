@@ -128,10 +128,8 @@ export interface Capitol {
   grupa?: 'teorie' | 'practica' | 'capcane'
 }
 
-/** Ce ştie baza despre planurile şi capcanele unui curs (RPC `course_middlegame`). */
+/** Ce ştie baza despre capcanele unui curs (RPC `course_middlegame`). */
 export interface DateDeCurs {
-  /** Variantele care chiar au un plan de joc de mijloc scris. */
-  cuPlan: Set<string>
   capcane: {
     id: string
     title: string
@@ -150,7 +148,10 @@ export function capitoleDeDeschidere(
   nivel: Nivel = 'intermediar',
 ): Capitol[] {
   const capitole: Capitol[] = ordoneazaPeNivel(linii, nivel).map(linie => {
-    const arePlan = date?.cuPlan.has(linie.id) ?? false
+    // Paşii capitolului (cerut pe 2026-11-25, ca la Chessly): variantele 1–2,
+    // apoi 3–4 (sau doar 3). Jocul de mijloc nu mai e un pas separat.
+    const nrVariante = 1 + (linie.variante?.length ?? 0)
+    const despre = (de: number, pana: number) => pana > de ? `variantele ${de}–${pana}` : `varianta ${de}`
     const teorieGata = parcurse.includes(linie.id)
 
     return {
@@ -163,27 +164,28 @@ export function capitoleDeDeschidere(
         {
           id: `${linie.id}-teorie`,
           kind: 'lectie',
-          title: 'Teoria, pas cu pas',
+          title: `Studiu: ${despre(1, Math.min(2, nrVariante))}`,
           href: `/courses/${slug}/guided/${linie.id}`,
           done: teorieGata,
         },
         {
           id: `${linie.id}-exersare`,
           kind: 'exercitiu',
-          title: 'Varianta pe cont propriu',
+          title: `Exersare: ${despre(1, Math.min(2, nrVariante))}`,
           href: `/courses/${slug}/practice/${linie.id}`,
         },
-        ...(arePlan ? [
+        // Adresele pasului al doilea au rămas cele vechi ale jocului de mijloc.
+        ...(nrVariante > 2 ? [
           {
             id: `${linie.id}-mijloc`,
             kind: 'lectie' as const,
-            title: 'Planul de joc de mijloc',
+            title: `Studiu: ${despre(3, Math.min(4, nrVariante))}`,
             href: `/courses/${slug}/middlegame/${linie.id}`,
           },
           {
             id: `${linie.id}-mijloc-singur`,
             kind: 'exercitiu' as const,
-            title: 'Jocul de mijloc, singur',
+            title: `Exersare: ${despre(3, Math.min(4, nrVariante))}`,
             href: `/courses/${slug}/middlegame-practice/${linie.id}`,
           },
         ] : []),

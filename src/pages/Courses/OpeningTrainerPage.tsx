@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
 import { Chessboard, type PieceDropHandlerArgs, type Arrow } from 'react-chessboard'
 import type { Square } from 'chess.js'
 import {
-  ChevronLeft, ChevronRight, ChevronDown, ChevronsLeft, ChevronsRight, RotateCcw, CheckCircle2, AlertTriangle,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, CheckCircle2,
   BookOpen, Dumbbell, Lightbulb, MoreHorizontal, Search, LogOut,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -15,8 +15,8 @@ import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
-import { salveazaParte, type ParteCapitol, type RezultatCapitol } from '@/lib/rezultat-capitol'
-import { incarcaLinie, type TrainerLine, type MiddlegamePlan, type PlanBranch } from '@/lib/trainer-line'
+import { salveazaVarianta, type RezultatCapitol } from '@/lib/rezultat-capitol'
+import { incarcaLinie, type TrainerLine } from '@/lib/trainer-line'
 import { useAuth } from '@/hooks/useAuth'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { Button } from '@/components/ui/Button'
@@ -71,128 +71,9 @@ function isUserPly(plyIdx: number, userColor: 'white' | 'black', whiteFirst = tr
   return (userColor === 'white') === whitePly
 }
 
-type PlanBranchView = PlanBranch & { ply?: number }
-
-interface MutarePlan {
-  ply: number
-  uci: string
-  san: string
-  explicatie: string
-  aUserului: boolean
-}
-
-function primaPropozitie(text: string): string {
-  const curat = text.trim()
-  if (!curat) return ''
-  return curat.match(/^.+?[.!?](?:\s|$)/)?.[0].trim() ?? curat
-}
-
-function paginiDescrierePozitie(text: string | null): string[] {
-  const curat = text?.trim()
-  if (!curat) return []
-
-  const dupaMutareaATreia = curat.match(/^(.*?mutarea a treia\.)(?:\s+)(.+)$/i)
-  if (dupaMutareaATreia) return [dupaMutareaATreia[1], dupaMutareaATreia[2]]
-
-  const propozitii = curat
-    .match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g)
-    ?.map(propozitie => propozitie.trim())
-    .filter(Boolean) ?? [curat]
-
-  if (propozitii.length <= 2) return [curat]
-
-  const jumatate = curat.length / 2
-  let limita = 1
-  let celMaiAproape = Number.POSITIVE_INFINITY
-  for (let i = 1; i < propozitii.length; i++) {
-    const lungime = propozitii.slice(0, i).join(' ').length
-    const distanta = Math.abs(jumatate - lungime)
-    if (distanta < celMaiAproape) {
-      celMaiAproape = distanta
-      limita = i
-    }
-  }
-
-  return [
-    propozitii.slice(0, limita).join(' '),
-    propozitii.slice(limita).join(' '),
-  ].filter(Boolean)
-}
-
-function mutariPentruPlan(line: TrainerLine): MutarePlan[] {
-  const game = new Chess(line.start_fen)
-  const whiteFirst = whiteMovesFirst(line)
-  const mutari = line.moves_uci.split(' ').filter(Boolean)
-  const rezultat: MutarePlan[] = []
-
-  for (let i = 0; i < mutari.length; i++) {
-    const uci = mutari[i]
-    try {
-      const mutare = game.move({
-        from: uci.slice(0, 2),
-        to: uci.slice(2, 4),
-        promotion: uci[4] ?? 'q',
-      })
-      rezultat.push({
-        ply: i,
-        uci,
-        san: mutare.san,
-        explicatie: line.move_explanations?.[String(i)]?.trim() ?? '',
-        aUserului: isUserPly(i, line.user_color, whiteFirst),
-      })
-    } catch {
-      break
-    }
-  }
-
-  return rezultat
-}
-
-function planuriDeExecutie(plan: MiddlegamePlan, line: TrainerLine): PlanBranchView[] {
-  const planuriScrise = plan.ideas.flatMap(idea =>
-    (idea.branches ?? []).map(branch => ({
-      ...branch,
-      title: branch.title || idea.title,
-      detail: branch.detail || idea.detail,
-    })),
-  )
-  if (planuriScrise.length > 0) return planuriScrise
-
-  const mutari = mutariPentruPlan(line)
-  const mutarileUserului = mutari.filter(mutare => mutare.aUserului)
-
-  return mutarileUserului.slice(0, 4).map((mutare, i) => {
-    const idee = plan.ideas[i]
-    const adversarInainte = [...mutari]
-      .slice(0, mutare.ply)
-      .reverse()
-      .find(candidat => !candidat.aUserului)
-    const adversarDupa = mutari.find(candidat => candidat.ply > mutare.ply && !candidat.aUserului)
-    const replicaTa = adversarDupa
-      ? mutari.find(candidat => candidat.ply > adversarDupa.ply && candidat.aUserului)
-      : null
-    const explicatieMutare = mutare.explicatie || idee?.detail || ''
-
-    return {
-      ply: mutare.ply,
-      title: idee?.title || primaPropozitie(explicatieMutare) || `Plan cu ${mutare.san}`,
-      trigger: adversarInainte
-        ? `Dacă adversarul a jucat ${adversarInainte.san}`
-        : adversarDupa
-        ? `Dacă adversarul răspunde cu ${adversarDupa.san}`
-        : 'Când poziția îți dă timp să îmbunătățești piesele',
-      move: `Joacă ${mutare.san}`,
-      response: adversarDupa && replicaTa
-        ? `Dacă vine ${adversarDupa.san}, continuă cu ${replicaTa.san}.`
-        : undefined,
-      detail: explicatieMutare || 'Pune piesa pe cel mai activ câmp și păstrează presiunea pe centrul poziției.',
-    }
-  })
-}
-
 // Varianta se joacă dintr-o bucată, ca pe Chessly. Înainte se rupea în trei
 // („primele 5 mutări", „următoarele 5", „spre jocul de mijloc"), cu o pauză şi
-// un buton între ele; părţile de acum sunt deschiderea şi jocul de mijloc.
+// un buton între ele; acum capitolul are paşi de câte două variante (2026-11-25).
 type TrainerStatus =
   | 'user-turn'
   | 'computer-thinking'
@@ -258,7 +139,7 @@ function pozitiaLa(line: TrainerLine, ply: number): { fen: string; de: string | 
   return { fen: game.fen(), de: ultima?.slice(0, 2) ?? null, la: ultima?.slice(2, 4) ?? null }
 }
 
-const resumeKey = (lineId: string, stage: string) => `op-resume:${stage}:${lineId}`
+const resumeKey = (lineId: string, stage: string, varianta: number) => `op-resume:${stage}:${lineId}:${varianta}`
 
 /** Textul împărţit în paragrafe, la rândurile goale. */
 function paragrafe(text: string | null | undefined): string[] {
@@ -344,7 +225,10 @@ function SemnGresit() {
 
 interface Props {
   mode: 'guided' | 'practice'
-  /** 'opening' = linia de deschidere; 'middlegame' = continuarea de după ea; 'trap' = capcana. */
+  /**
+   * 'opening' = primul pas al capitolului (variantele 1–2); 'middlegame' = al
+   * doilea (3–4) — numele vechi a rămas în adrese; 'trap' = capcana.
+   */
   stage?: 'opening' | 'middlegame' | 'trap'
 }
 
@@ -353,14 +237,20 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const { user, profile, fetchProfile } = useAuth()
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const isGuided = mode === 'guided'
-  const isMiddlegame = stage === 'middlegame'
   const isTrap = stage === 'trap'
+  /** Pasul capitolului: 0 = variantele 1–2, 1 = variantele 3–4. */
+  const pas = stage === 'middlegame' ? 1 : 0
   const savedDoneRef = useRef(false)
   const navigate = useNavigate()
-  // „Refă exersările greşite" deschide exersarea cu `?refacere=1`: la capătul
-  // ei revine fereastra de rezultat, nu drumul obişnuit spre partea următoare.
+  // „Refă exersările greşite" deschide exersarea cu `?refacere=1,3` (variantele
+  // greşite): se joacă doar ele, iar la capăt revine fereastra de rezultat.
+  // `?v=` = varianta pe care o joci; lipsă = prima din pas.
   const [parametri] = useSearchParams()
-  const refacere = parametri.get('refacere') === '1'
+  const refacere = (parametri.get('refacere') ?? '').split(',').filter(x => /^\d+$/.test(x)).map(Number)
+  const vCerut = parametri.get('v')
+  const varianta = isTrap ? 0
+    : vCerut !== null && /^\d+$/.test(vCerut) ? Number(vCerut)
+    : refacere.find(i => Math.floor(i / 2) === pas) ?? pas * 2
   /** Când a început exersarea şi dacă a avut vreo greşeală sau „Soluţie". */
   const inceputRunda = useRef(0)
   const rundaImperfecta = useRef(false)
@@ -373,18 +263,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // liniei trimitea id-ul capcanei către ruta deschiderilor, care evident nu-l
   // găsea în `opening_lines` — de acolo „Varianta nu a fost găsită.".
   const practicePath = `/courses/${slug}/${
-    isTrap ? 'trap-practice' : isMiddlegame ? 'middlegame-practice' : 'practice'
+    isTrap ? 'trap-practice' : pas === 1 ? 'middlegame-practice' : 'practice'
   }/${lineId}`
 
   const { data: line, isLoading } = useQuery({
-    queryKey: ['trainer-line', lineId, stage, mode],
-    queryFn: () => incarcaLinie(stage, mode, lineId!),
+    queryKey: ['trainer-line', lineId, stage, mode, varianta],
+    queryFn: () => incarcaLinie(stage, mode, lineId!, varianta),
     enabled: !!lineId,
   })
 
-  // Cursul din care face parte varianta: titlul pentru antet, variantele pentru
-  // „Capitolul N" şi meniu, şi care dintre ele au joc de mijloc — de aici ies
-  // segmentele barei de sus şi unde duce „Continuă".
+  // Cursul din care face parte varianta: titlul pentru antet, capitolele pentru
+  // „Capitolul N", meniu şi „Capitolul următor".
   const { data: curs } = useQuery({
     queryKey: ['trainer-curs', slug],
     enabled: !!slug,
@@ -399,15 +288,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         .select('*')
         .eq('course_id', c.id)
         .order('order_index')
-      const ids = (linii ?? []).map(l => l.id)
-      const { data: planuri } = ids.length > 0
-        ? await supabase.from('middlegame_plans').select('opening_line_id, moves_uci').in('opening_line_id', ids)
-        : { data: [] }
       return {
         titlu: c.title,
         bunVenit: c.bun_venit ?? null,
         linii: linii ?? [],
-        cuPlan: new Set((planuri ?? []).filter(p => p.moves_uci).map(p => p.opening_line_id)),
       }
     },
   })
@@ -421,9 +305,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
    * derularea ar fi însemnat că pierzi ce ai jucat.
    */
   const [vazut, setVazut] = useState<number | null>(null)
-  const [arataRamificari, setArataRamificari] = useState(true)
-  const [ramuraAleasa, setRamuraAleasa] = useState<number | null>(null)
-  const [semnalRamificari, setSemnalRamificari] = useState(0)
   /** Greşelile la mutarea curentă, la exersare. La o semi-mutare nouă se numără de la zero. */
   const [greseli, setGreseli] = useState<{ ply: number; n: number }>({ ply: -1, n: 0 })
   /** La ce semi-mutare ai cerut soluţia. */
@@ -434,16 +315,14 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const latura = useLaturaTablei(randTabla)
 
   /**
-   * Când treci la altă variantă, panoul se întoarce la lista de ramificaţii.
+   * Când treci la altă variantă, greşelile, soluţia şi meniul o iau de la capăt.
    * Se ajustează la desenare, nu într-un efect: altfel prima imagine ar arăta
-   * ramura rămasă de la varianta dinainte, şi abia a doua ar corecta-o.
+   * ce rămăsese de la varianta dinainte, şi abia a doua ar corecta-o.
    */
-  const cheieVarianta = `${lineId}|${stage}|${mode}`
+  const cheieVarianta = `${lineId}|${stage}|${mode}|${varianta}`
   const [variantaVazuta, setVariantaVazuta] = useState(cheieVarianta)
   if (variantaVazuta !== cheieVarianta) {
     setVariantaVazuta(cheieVarianta)
-    setArataRamificari(true)
-    setRamuraAleasa(null)
     setGreseli({ ply: -1, n: 0 })
     setSolutieLa(null)
     setMeniu(false)
@@ -488,7 +367,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     inceputRunda.current = Date.now()
     rundaImperfecta.current = false
     if (isGuided) {
-      const saved = Number(localStorage.getItem(resumeKey(line.id, stage)))
+      const saved = Number(localStorage.getItem(resumeKey(line.id, stage, line.variantaIndex ?? 0)))
       setState(saved > 0 ? buildResumedState(line, saved) : buildInitialState(line))
       void persistProgress(false)
     } else {
@@ -506,15 +385,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // Salvează punctul curent (plyIdx) pentru reluare exactă.
   useEffect(() => {
     if (!isGuided || !line || plyIdx == null || status === 'line-done') return
-    localStorage.setItem(resumeKey(line.id, stage), String(plyIdx))
+    localStorage.setItem(resumeKey(line.id, stage, line.variantaIndex ?? 0), String(plyIdx))
   }, [plyIdx, status, isGuided, line, stage])
 
   // La finalizarea variantei: marchează complet + curăță punctul de reluare.
   useEffect(() => {
     if (!isGuided || !line || state?.status !== 'line-done' || savedDoneRef.current) return
     savedDoneRef.current = true
-    localStorage.removeItem(resumeKey(line.id, stage))
-    void persistProgress(true)
+    localStorage.removeItem(resumeKey(line.id, stage, line.variantaIndex ?? 0))
+    // Pasul e gata abia după ultima lui variantă.
+    const ultimaDinPas = (line.variantaIndex ?? 0) >= Math.min(pas * 2 + 1, (line.nrVariante ?? 1) - 1)
+    void persistProgress(ultimaDinPas)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
@@ -522,7 +403,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // final se poate arăta (vezi `arataRezumat`).
   useEffect(() => {
     if (isGuided || isTrap || !lineId || status !== 'line-done') return
-    setRezultate(salveazaParte(lineId, stage as ParteCapitol, {
+    setRezultate(salveazaVarianta(lineId, line?.variantaIndex ?? 0, {
       perfect: !rundaImperfecta.current,
       ms: Date.now() - inceputRunda.current,
     }))
@@ -640,17 +521,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     rundaImperfecta.current = false
   }
 
-  function alegeRamuraPlan(index: number) {
-    setRamuraAleasa(index)
-    setArataRamificari(false)
-  }
-
-  function revinoLaRamificari() {
-    setArataRamificari(true)
-    setRamuraAleasa(null)
-    setSemnalRamificari(semnal => semnal + 1)
-  }
-
   /**
    * Săgeţile de la tastatură răsfoiesc mutările deja jucate, ca butoanele de
    * navigare: stânga înapoi, dreapta înainte, dar nu mai departe de poziţia din
@@ -700,30 +570,32 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const urmatoarea = moves[state.plyIdx]
   const greseliAici = greseli.ply === state.plyIdx ? greseli.n : 0
 
-  // ── Părţile capitolului ─────────────────────────────────────────────────────
-  // Ca la Chessly: fiecare parte se învaţă, apoi se exersează imediat, iar bara
-  // de sus are câte un segment pentru fiecare dintre ele. La noi un capitol are
-  // două părţi, deschiderea şi jocul de mijloc, deci tot patru segmente.
-  const arePlan = isMiddlegame || (curs?.cuPlan.has(line.id) ?? false)
-  const parti = isTrap
-    ? [{ nume: 'Capcana', invatare: `/courses/${slug}/trap/${lineId}`, exersare: `/courses/${slug}/trap-practice/${lineId}` }]
-    : [
-        { nume: 'Deschiderea', invatare: `/courses/${slug}/guided/${lineId}`, exersare: `/courses/${slug}/practice/${lineId}` },
-        ...(arePlan
-          ? [{ nume: 'Jocul de mijloc', invatare: `/courses/${slug}/middlegame/${lineId}`, exersare: `/courses/${slug}/middlegame-practice/${lineId}` }]
-          : []),
-      ]
-  const parteaCurenta = isMiddlegame ? 1 : 0
-  const segmente = parti.flatMap(p => [
-    { eticheta: `${p.nume}: Studiu`, href: p.invatare },
-    { eticheta: `${p.nume}: Practică pe baza studiului`, href: p.exersare },
-  ])
-  const segmentCurent = parteaCurenta * 2 + (isGuided ? 0 : 1)
+  // ── Paşii capitolului ───────────────────────────────────────────────────────
+  // Ca la Chessly (cerut pe 2026-11-25): variantele se învaţă câte două, apoi se
+  // exersează aceleaşi două; al doilea pas are varianta 3 şi, unde există, 4.
+  // Fiecare pas e o parte cu studiu şi exersare, iar bara de sus are câte un
+  // segment pentru fiecare.
+  const nrVariante = line.nrVariante ?? 1
+  const variantaAici = line.variantaIndex ?? 0
+  const nrPasi = !isTrap && nrVariante > 2 ? 2 : 1
+  const adresa = (p: number, exersare: boolean) => isTrap
+    ? `/courses/${slug}/${exersare ? 'trap-practice' : 'trap'}/${lineId}`
+    : `/courses/${slug}/${p === 0 ? (exersare ? 'practice' : 'guided') : (exersare ? 'middlegame-practice' : 'middlegame')}/${lineId}`
+  /** Variantele pasului ăsta; la refacere, doar cele greşite. */
+  const toateDinPas = [pas * 2, pas * 2 + 1].filter(i => i < nrVariante)
+  const deRefacut = refacere.filter(i => toateDinPas.includes(i))
+  const lista = !isGuided && deRefacut.length > 0 ? deRefacut : toateDinPas
+  const pozitieInLista = Math.max(0, lista.indexOf(variantaAici))
+  const variantaUrmatoare = lista[pozitieInLista + 1] as number | undefined
+  const segmente = Array.from({ length: nrPasi }, (_, p) => [
+    { eticheta: `Partea ${p + 1}: Studiu`, href: adresa(p, false) },
+    { eticheta: `Partea ${p + 1}: Practică pe baza studiului`, href: adresa(p, true) },
+  ]).flat()
+  const segmentCurent = pas * 2 + (isGuided ? 0 : 1)
   const umplere = (i: number) =>
     i < segmentCurent ? 100
       : i > segmentCurent ? 0
-      : gata ? 100
-      : moves.length > 0 ? (state.plyIdx / moves.length) * 100 : 0
+      : ((pozitieInLista + (gata ? 1 : moves.length > 0 ? state.plyIdx / moves.length : 0)) / Math.max(1, lista.length)) * 100
 
   // Ordinea capitolelor e a nivelului tău, ca în cuprins: „Capitolul N" şi
   // „Capitolul următor" trebuie să spună acelaşi lucru ca pagina cursului.
@@ -735,24 +607,30 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     : indexCapitol >= 0 ? `Capitolul ${indexCapitol + 1} · ${line.variation_name}` : line.variation_name
 
   // ── Fereastra de final a capitolului ────────────────────────────────────────
-  // După ultima exersare a capitolului — sau după orice exersare refăcută din
-  // fereastră —, cu rezultatul tuturor părţilor exersate.
-  const partiCapitol: ParteCapitol[] = arePlan ? ['opening', 'middlegame'] : ['opening']
-  const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && (refacere || isMiddlegame || !arePlan)
+  // După ultima variantă exersată a capitolului — sau după orice refacere
+  // pornită din fereastră —, cu rezultatul tuturor variantelor.
+  const variantele = Array.from({ length: nrVariante }, (_, i) => i)
+  const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && variantaUrmatoare === undefined
+    && (refacere.length > 0 || pas === nrPasi - 1)
   const continuaHref = capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
-  const primaGresita = partiCapitol.find(p => rezultate?.[p] && !rezultate[p]!.perfect)
-  const refaGresite = primaGresita
+  const gresite = variantele.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
+  const refaGresite = gresite.length > 0
     ? () => {
-        if (primaGresita === stage) resetLine()
-        else navigate(`/courses/${slug}/${primaGresita === 'middlegame' ? 'middlegame-practice' : 'practice'}/${lineId}?refacere=1`)
+        const pasTinta = Math.floor(gresite[0] / 2)
+        if (pasTinta === pas && gresite[0] === variantaAici) resetLine()
+        navigate(`${adresa(pasTinta, true)}?refacere=${gresite.join(',')}&v=${gresite[0]}`)
       }
     : null
 
   /** Unde duce „Continuă" de la capătul variantei. */
-  const urmator = isGuided
+  const cuParametri = (v: number) =>
+    `?${!isGuided && refacere.length > 0 ? `refacere=${refacere.join(',')}&` : ''}v=${v}`
+  const urmator = variantaUrmatoare !== undefined
+    ? { eticheta: `Continuă: varianta ${pozitieInLista + 2} din ${lista.length}`, href: cuParametri(variantaUrmatoare) }
+    : isGuided
     ? { eticheta: 'Continuă spre exersare', href: practicePath }
-    : !isTrap && !isMiddlegame && arePlan
-    ? { eticheta: 'Continuă: jocul de mijloc', href: `/courses/${slug}/middlegame/${lineId}` }
+    : pas < nrPasi - 1 && refacere.length === 0
+    ? { eticheta: `Continuă: ${nrVariante > 3 ? 'variantele 3–4' : 'varianta 3'}`, href: adresa(pas + 1, false) }
     : !isTrap && capitolUrmator
     ? { eticheta: 'Capitolul următor', href: `/courses/${slug}/guided/${capitolUrmator.id}` }
     : { eticheta: 'Înapoi la curs', href: `/courses/${slug}` }
@@ -786,7 +664,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // capitol din ordinea nivelului tău, ca să nu-l citeşti la fiecare —, o frază
   // despre capitol şi mini-tabla cu mutările lui comune. Doar la studiul
   // deschiderii, cât balonul arată introducerea.
-  const laInceput = stage === 'opening' && isGuided && indexCapitol >= 0 && (
+  const laInceput = stage === 'opening' && isGuided && variantaAici === 0 && indexCapitol >= 0 && (
     recapitulare
       ? plyRecapitulare !== null && plyRecapitulare <= primaMutareATa(line)
       : !gata && plyBalon <= primaMutareATa(line)
@@ -921,8 +799,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             : <Dumbbell className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />}
           <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#E2B340]">
             {/* Numele etapelor, cerute pe 2026-11-23: „Studiu" şi „Practică pe baza studiului". */}
-            {parti.length > 1 && `Partea ${parteaCurenta + 1} din ${parti.length}: `}
-            {parti[parteaCurenta].nume}: {isGuided ? 'Studiu' : 'Practică pe baza studiului'}
+            {/* Pe 2026-11-25 părţile au devenit paşi de câte două variante, ca la Chessly. */}
+            {isTrap && 'Capcana: '}
+            {nrPasi > 1 && `Partea ${pas + 1} din ${nrPasi}: `}
+            {isGuided ? 'Studiu' : 'Practică pe baza studiului'}
+            {lista.length > 1 && ` · Varianta ${pozitieInLista + 1} din ${lista.length}`}
           </p>
           {!isGuided && !gata && (
             <button
@@ -1085,6 +966,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </div>
           )}
 
+          {/* Jocul de mijloc se exersează în Analiză, din poziţia de la capăt
+              (cerut pe 2026-11-25, când jocul de mijloc a ieşit din capitole). */}
+          {gata && !isTrap && !priveste && (
+            <Link
+              to={`/analiza?fen=${encodeURIComponent(fenAcum)}&orientare=${line.user_color === 'black' ? 'negru' : 'alb'}`}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[rgba(45,212,191,0.3)] bg-[rgba(45,212,191,0.08)] px-3 py-2 text-sm font-semibold text-[#2DD4BF] transition-colors hover:bg-[rgba(45,212,191,0.14)]"
+            >
+              <Search className="h-4 w-4" /> Joacă mai departe în Analiză
+            </Link>
+          )}
+
           {/* Balonul de comentariu: al poziţiei privite, în recapitulare; la
               exersare, cât priveşti înapoi în timpul jocului, dispare. */}
           {(!priveste || recapitulare) && (balon.length > 0 || inceput) && (
@@ -1110,17 +1002,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </div>
           )}
 
-          {gata && isMiddlegame && !priveste && (
-            <button
-              type="button"
-              onClick={revinoLaRamificari}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-[rgba(45,212,191,0.3)] bg-[rgba(45,212,191,0.08)] px-3 py-2.5 text-sm font-semibold text-[#2DD4BF] transition-colors hover:bg-[rgba(45,212,191,0.14)]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Înapoi la ramificări
-            </button>
-          )}
-
           {/* Exersarea: tăcută până la a treia greşeală, apoi Căluţul dă un indiciu.
               Fără text de instrucţiuni aici (scos pe 2026-11-23, la cererea
               utilizatorului): îndemnul stă în antet, lângă „exersare". */}
@@ -1133,284 +1014,17 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             </div>
           )}
 
-          {/* Planul variantei — doar la jocul de mijloc, unde există.
-              Deschis din start la lecţie, strâns la exerciţiu: acolo te testezi,
-              iar „c5 e singura ta spargere" citit înainte de mutare nu mai e
-              gândire, e răspuns. Rămâne la un click distanţă dacă te blochezi. */}
-          {isMiddlegame && line.plan && (
-            <PlanulVariantei
-              line={line}
-              plan={line.plan}
-              plyIdx={state.plyIdx}
-              arataRamificari={arataRamificari}
-              ramuraAleasa={ramuraAleasa}
-              semnalRamificari={semnalRamificari}
-              onAlegeRamura={alegeRamuraPlan}
-              onRevinoLaRamificari={revinoLaRamificari}
-              deschisInitial={isGuided}
-            />
-          )}
         </div>
       </div>
 
       {arataRezumat && rezultate && (
         <RezumatCapitol
-          parti={partiCapitol}
+          parti={variantele}
           rezultate={rezultate}
           continuaHref={continuaHref}
           onRefa={refaGresite}
           onInchide={() => setRezumatInchis(true)}
         />
-      )}
-    </div>
-  )
-}
-
-/**
- * Planul variantei, lângă tablă.
- *
- * Structura într-o propoziţie, ideile în ordinea în care se pun în practică şi
- * greşeala care costă cel mai des. Mutările de pe tablă sunt planul ăsta jucat;
- * fără el, rămân o listă de mutări memorate — adică exact ce nu vrem.
- */
-function PlanulVariantei({
-  line,
-  plan,
-  plyIdx,
-  arataRamificari,
-  ramuraAleasa,
-  semnalRamificari,
-  onAlegeRamura,
-  onRevinoLaRamificari,
-  deschisInitial,
-}: {
-  line: TrainerLine
-  plan: MiddlegamePlan
-  plyIdx: number
-  arataRamificari: boolean
-  ramuraAleasa: number | null
-  semnalRamificari: number
-  onAlegeRamura: (index: number) => void
-  onRevinoLaRamificari: () => void
-  deschisInitial: boolean
-}) {
-  const [deschis, setDeschis] = useState(deschisInitial)
-  const [aratAvoid, setAratAvoid] = useState(false)
-  const [paginaDescriere, setPaginaDescriere] = useState(0)
-  const planuri = useMemo(() => planuriDeExecutie(plan, line), [line, plan])
-  const descrieri = useMemo(() => paginiDescrierePozitie(plan.structure), [plan.structure])
-
-  /**
-   * Text nou de descriere înseamnă că se citeşte iar de la prima pagină.
-   * Se ajustează la desenare, nu într-un efect, ca să nu se vadă o clipă
-   * numărul paginii vechi peste textul nou.
-   */
-  const [structuraVazuta, setStructuraVazuta] = useState(plan.structure)
-  if (structuraVazuta !== plan.structure) {
-    setStructuraVazuta(plan.structure)
-    setPaginaDescriere(0)
-  }
-
-  const indexSugerit = planuri.findIndex(planCurent => planCurent.ply != null && planCurent.ply >= plyIdx)
-  const indexActiv = Math.max(
-    0,
-    Math.min(ramuraAleasa ?? (indexSugerit >= 0 ? indexSugerit : planuri.length - 1), planuri.length - 1),
-  )
-  const planActiv = planuri[indexActiv]
-  const descriereActiva = descrieri[paginaDescriere]
-
-  /**
-   * Semnalul creşte când ceri lista de ramificaţii de undeva din afara
-   * panoului. Panoul se deschide singur atunci, ca lista să se vadă fără
-   * încă un clic. Se ajustează la desenare, nu într-un efect.
-   */
-  const [semnalVazut, setSemnalVazut] = useState(semnalRamificari)
-  if (semnalVazut !== semnalRamificari) {
-    setSemnalVazut(semnalRamificari)
-    setDeschis(true)
-  }
-
-  if (!planActiv) return null
-
-  return (
-    <div className="rounded-xl border border-[#2A2A2A] bg-[#141414]">
-      <button
-        onClick={() => setDeschis(d => !d)}
-        aria-expanded={deschis}
-        className="flex w-full items-center justify-between gap-2 p-4 text-left"
-      >
-        <div>
-          <span className="text-xs uppercase tracking-wider text-[#2DD4BF]">Plan de joc</span>
-          <p className="mt-1 text-sm font-semibold text-[#F0F0F0]">
-            {arataRamificari ? 'Ramificări din poziția asta' : planActiv.title}
-          </p>
-        </div>
-        <ChevronDown
-          className={`h-4 w-4 flex-shrink-0 text-[#6B6B6B] transition-transform ${deschis ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      {deschis && (
-        <div className="space-y-4 border-t border-[#2A2A2A] p-4">
-          {descriereActiva && (
-            <div className="rounded-lg border border-[#2A2A2A] bg-[#101010] p-4">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#2DD4BF]">
-                  Descrierea poziției
-                </p>
-                {descrieri.length > 1 && (
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setPaginaDescriere(Math.max(0, paginaDescriere - 1))}
-                      disabled={paginaDescriere === 0}
-                      className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
-                    >
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaginaDescriere(Math.min(descrieri.length - 1, paginaDescriere + 1))}
-                      disabled={paginaDescriere === descrieri.length - 1}
-                      className="flex h-7 w-7 items-center justify-center rounded-md border border-[#2A2A2A] text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
-                    >
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-              <p className="text-sm leading-relaxed text-[#A0A0A0]">
-                {descriereActiva}
-              </p>
-              {descrieri.length > 1 && (
-                <p className="mt-2 text-right text-[11px] text-[#6B6B6B]">
-                  {paginaDescriere + 1} / {descrieri.length}
-                </p>
-              )}
-            </div>
-          )}
-
-          {arataRamificari ? (
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
-                Cele mai comune răspunsuri
-              </p>
-              {planuri.map((ramura, i) => (
-                <button
-                  key={`${ramura.title}-${i}`}
-                  type="button"
-                  onClick={() => onAlegeRamura(i)}
-                  className="w-full rounded-lg border border-[#2A2A2A] bg-[#101010] p-4 text-left transition-colors hover:border-[rgba(45,212,191,0.5)] hover:bg-[#151515]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-[#2DD4BF]">
-                        Variația {i + 1}
-                      </p>
-                      <p className="mt-1 text-base font-semibold leading-snug text-[#F0F0F0]">
-                        {ramura.title}
-                      </p>
-                    </div>
-                    <ChevronRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6B6B6B]" />
-                  </div>
-                  {ramura.trigger && (
-                    <p className="mt-3 text-sm leading-relaxed text-[#A0A0A0]">
-                      {ramura.trigger}
-                    </p>
-                  )}
-                  {ramura.move && (
-                    <p className="mt-2 text-sm leading-relaxed text-[#D0D0D0]">
-                      <span className="font-semibold text-[#E2B340]">Plan: </span>
-                      {ramura.move}
-                    </p>
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-[#2A2A2A] bg-[#101010] p-4">
-              <div className="mb-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B6B6B]">
-                  Variația {indexActiv + 1} din {planuri.length}
-                </p>
-                <p className="mt-1 text-base font-semibold leading-snug text-[#F0F0F0]">{planActiv.title}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={onRevinoLaRamificari}
-                className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#2DD4BF] transition-colors hover:text-[#5EEAD4]"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                Înapoi la ramificări
-              </button>
-
-              <div className="space-y-2.5">
-                {planActiv.trigger && (
-                  <p className="text-sm leading-relaxed text-[#A0A0A0]">
-                    <span className="font-semibold text-[#2DD4BF]">Dacă: </span>
-                    {planActiv.trigger}
-                  </p>
-                )}
-                {planActiv.move && (
-                  <p className="text-sm leading-relaxed text-[#D0D0D0]">
-                    <span className="font-semibold text-[#E2B340]">Joacă: </span>
-                    {planActiv.move}
-                  </p>
-                )}
-                {planActiv.response && (
-                  <p className="text-sm leading-relaxed text-[#A0A0A0]">
-                    <span className="font-semibold text-[#60A5FA]">Apoi: </span>
-                    {planActiv.response}
-                  </p>
-                )}
-              </div>
-
-              <p className="mt-4 text-sm leading-relaxed text-[#A0A0A0]">{planActiv.detail}</p>
-            </div>
-          )}
-
-          {!arataRamificari && planuri.length > 1 && (
-            <div className="flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => onAlegeRamura(Math.max(0, indexActiv - 1))}
-                disabled={indexActiv === 0}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                Variația anterioară
-              </button>
-              <button
-                type="button"
-                onClick={() => onAlegeRamura(Math.min(planuri.length - 1, indexActiv + 1))}
-                disabled={indexActiv === planuri.length - 1}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#2A2A2A] px-3 py-2 text-sm text-[#A0A0A0] transition-colors hover:bg-[#1C1C1C] disabled:cursor-not-allowed disabled:opacity-35"
-              >
-                Variația următoare
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
-
-          {plan.avoid && (
-            <>
-              <button
-                type="button"
-                onClick={() => setAratAvoid(arata => !arata)}
-                className="flex w-full items-center justify-between gap-2 rounded-lg border border-[rgba(251,113,133,0.2)] bg-[rgba(251,113,133,0.04)] px-3 py-2 text-left text-sm font-semibold text-[#FB7185] transition-colors hover:bg-[rgba(251,113,133,0.08)]"
-              >
-                <span>Ce să evit?</span>
-                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              </button>
-              {aratAvoid && (
-                <p className="rounded-lg border border-[rgba(251,113,133,0.2)] bg-[rgba(251,113,133,0.05)] p-3 text-sm leading-relaxed text-[#A0A0A0]">
-                  {plan.avoid}
-                </p>
-              )}
-            </>
-          )}
-        </div>
       )}
     </div>
   )

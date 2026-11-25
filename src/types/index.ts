@@ -524,6 +524,30 @@ export interface OpeningLine {
    * mini-tabla de la început joacă până la ea şi o colorează violet (migrarea 135).
    */
   mutare_cheie?: number | null
+  /**
+   * Variantele 2, 3, 4 ale capitolului (migrarea 137): ramificaţii în care
+   * adversarul face altă mutare frecventă. Varianta 1 e rândul însuşi.
+   */
+  variante?: VariantaCapitol[] | null
+}
+
+/**
+ * O ramificaţie a capitolului, ca „Variation 2 of 2" pe Chessly (cerut pe
+ * 2026-11-25). Se joacă de la prima mutare; până la locul despărţirii are
+ * textele şi marcajele variantei principale, de acolo pe ale ei.
+ */
+export interface VariantaCapitol {
+  /** Ex. „Dacă negrul joacă 7…Ca5". */
+  nume: string
+  /** Toată varianta, de la prima mutare. */
+  moves_uci: string
+  /** Explicaţiile de la locul despărţirii încolo, pe semi-mutări. */
+  move_explanations: Record<string, string>
+  move_marks?: MarcajeMutari | null
+  final_text?: string | null
+  final_arrows?: { from: string; to: string }[] | null
+  /** Cât de des alege adversarul mutarea de despărţire, pe niveluri (Chess.com). */
+  popularitate_niveluri?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
 }
 
 /**

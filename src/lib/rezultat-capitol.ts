@@ -1,13 +1,12 @@
 /**
- * Rezultatul exersărilor unui capitol: pentru fiecare parte (deschiderea,
- * jocul de mijloc), dacă ai jucat-o fără greşeală şi cât ţi-a luat. Din el se
+ * Rezultatul exersărilor unui capitol: pentru fiecare variantă (cheia e
+ * indexul ei, de la 0), dacă ai jucat-o fără greşeală şi cât ţi-a luat. Din el se
  * face fereastra de la finalul capitolului (cerută pe 2026-11-25, după Chessly):
  * câte exersări perfecte, timpul, şi „Refă exersările greşite".
  *
  * Stă în localStorage, nu în baza de date: e rezumatul unei treceri, nu un
- * progres de păstrat. Fiecare exersare terminată îşi suprascrie partea.
+ * progres de păstrat. Fiecare exersare terminată îşi suprascrie varianta.
  */
-export type ParteCapitol = 'opening' | 'middlegame'
 
 export interface RezultatParte {
   /** Fără nicio mutare greşită şi fără „Soluţie". */
@@ -16,7 +15,7 @@ export interface RezultatParte {
   ms: number
 }
 
-export type RezultatCapitol = Partial<Record<ParteCapitol, RezultatParte>>
+export type RezultatCapitol = Record<string, RezultatParte>
 
 const cheie = (lineId: string) => `rezultat-capitol:${lineId}`
 
@@ -29,8 +28,8 @@ export function citesteRezultat(lineId: string): RezultatCapitol {
   }
 }
 
-export function salveazaParte(lineId: string, parte: ParteCapitol, rezultat: RezultatParte): RezultatCapitol {
-  const tot = { ...citesteRezultat(lineId), [parte]: rezultat }
+export function salveazaVarianta(lineId: string, varianta: number, rezultat: RezultatParte): RezultatCapitol {
+  const tot = { ...citesteRezultat(lineId), [String(varianta)]: rezultat }
   try {
     localStorage.setItem(cheie(lineId), JSON.stringify(tot))
   } catch {

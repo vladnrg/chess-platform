@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import type { DateDeCurs } from '@/lib/capitole-curs'
 
 /**
- * Planurile de joc de mijloc şi capcanele unui curs de deschideri.
+ * Capcanele unui curs de deschideri (planurile de joc de mijloc nu mai sunt paşi, din 2026-11-25).
  *
  * Fără ele, traseul ar avea paşi care duc în pagini goale: nu orice variantă
  * are un plan scris, şi nu orice deschidere are capcane.
@@ -18,7 +18,6 @@ export function useDateDeCurs(slug: string | undefined) {
     queryFn: async (): Promise<DateDeCurs> => {
       const { data } = await supabase.rpc('course_middlegame', { p_slug: slug! })
       return {
-        cuPlan: new Set((data?.variations ?? []).filter(v => v.structure).map(v => v.line_id)),
         capcane: (data?.traps ?? []).filter(t => t.opening_line_id),
       }
     },

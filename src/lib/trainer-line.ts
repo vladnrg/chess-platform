@@ -4,27 +4,6 @@ import type { MarcajeMutari, OpeningLine } from '@/types'
 
 export type TrainerStage = 'opening' | 'middlegame' | 'trap'
 
-export interface PlanBranch {
-  title: string
-  trigger?: string
-  move?: string
-  response?: string
-  detail: string
-}
-
-export interface PlanIdea {
-  title: string
-  detail: string
-  branches?: PlanBranch[]
-}
-
-/** Planul din spatele mutărilor: structura, ideile şi greşeala tipică. */
-export interface MiddlegamePlan {
-  structure: string | null
-  ideas: PlanIdea[]
-  avoid: string | null
-}
-
 /**
  * Linia antrenată, oricare ar fi etapa.
  *
@@ -34,8 +13,11 @@ export interface MiddlegamePlan {
 export type TrainerLine = OpeningLine & {
   /** Poziţia de plecare. Lipsă = poziţia iniţială a partidei. */
   start_fen?: string
-  /** Doar la etapa de joc de mijloc. */
-  plan?: MiddlegamePlan
+  /** A câta variantă a capitolului e (0 = cea principală) şi câte are capitolul. */
+  variantaIndex?: number
+  nrVariante?: number
+  /** Numele ramificaţiei, la variantele 2–4. */
+  numeVarianta?: string
   /** Din ce variantă răsare capcana. */
   fromVariation?: string
   /** Paragraful de încheiere, arătat la capătul liniei. */
@@ -65,36 +47,83 @@ async function linieDeschidere(lineId: string): Promise<TrainerLine | null> {
   return (data as OpeningLine | null) ?? null
 }
 
-async function linieJocDeMijloc(lineId: string): Promise<TrainerLine | null> {
-  const opening = await linieDeschidere(lineId)
-  if (!opening) return null
+/** Cheile unui obiect pe semi-mutări, mutate cu `cu` poziţii mai încolo. */
+function decaleaza<T>(obj: Record<string, T> | null | undefined, cu: number): Record<string, T> {
+  const rez: Record<string, T> = {}
+  for (const [k, v] of Object.entries(obj ?? {})) rez[String(Number(k) + cu)] = v
+  return rez
+}
 
+/** Doar cheile (semi-mutările) dinaintea lui `pana`. */
+function panaLa<T>(obj: Record<string, T> | null | undefined, pana: number): Record<string, T> {
+  const rez: Record<string, T> = {}
+  for (const [k, v] of Object.entries(obj ?? {})) if (Number(k) < pana) rez[k] = v
+  return rez
+}
+
+/**
+ * Varianta principală a capitolului: deschiderea şi, lipite la capătul ei,
+ * mutările fostului „joc de mijloc", cu explicaţiile lor.
+ *
+ * Cerut pe 2026-11-25: jocul de mijloc nu mai e o parte separată. Erau doar
+ * câteva mutări în plus, prezentate ca „variaţii" care nu erau variaţii.
+ * Lipirea se face aici, la încărcare, nu în baza de date: `middlegame_plans`
+ * rămâne neatins, deci schimbarea se poate întoarce.
+ */
+async function variantaPrincipala(opening: OpeningLine): Promise<TrainerLine> {
   const { data: plan } = await supabase
     .from('middlegame_plans')
-    .select('moves_uci, move_explanations, structure, ideas, avoid, intro, move_comments, move_hints, final_text, final_arrows, move_marks')
+    .select('moves_uci, move_explanations, move_comments, move_hints, final_text, final_arrows, move_marks')
     .eq('opening_line_id', opening.id)
-    .single()
-  if (!plan?.moves_uci) return null
+    .maybeSingle() // nu orice capitol are continuare
+  if (!plan?.moves_uci) return opening
 
+  const n = opening.moves_uci.split(' ').filter(Boolean).length
   return {
     ...opening,
-    moves_uci: plan.moves_uci,
-    move_explanations: (plan.move_explanations ?? {}) as Record<string, string>,
-    // Textele jocului de mijloc sunt ale lui, nu ale deschiderii din care pleacă.
-    intro: plan.intro ?? null,
-    move_comments: (plan.move_comments ?? null) as Record<string, string> | null,
-    move_hints: (plan.move_hints ?? null) as Record<string, string> | null,
-    final_text: plan.final_text ?? null,
-    final_arrows: (plan.final_arrows ?? null) as { from: string; to: string }[] | null,
-    move_marks: (plan.move_marks ?? null) as MarcajeMutari | null,
-    // Poziţia de la capătul deschiderii, reconstruită — ca să nu ţinem un FEN
-    // duplicat în baza de date.
-    start_fen: fenDupa(opening.moves_uci, opening.moves_uci.split(' ').length),
-    plan: {
-      structure: plan.structure,
-      ideas: plan.ideas ?? [],
-      avoid: plan.avoid,
-    },
+    moves_uci: `${opening.moves_uci} ${plan.moves_uci}`,
+    move_explanations: { ...opening.move_explanations, ...decaleaza(plan.move_explanations as Record<string, string> | null, n) },
+    move_comments: { ...(opening.move_comments ?? {}), ...decaleaza(plan.move_comments as Record<string, string> | null, n) },
+    move_hints: { ...(opening.move_hints ?? {}), ...decaleaza(plan.move_hints as Record<string, string> | null, n) },
+    move_marks: { ...(opening.move_marks ?? {}), ...decaleaza(plan.move_marks as MarcajeMutari | null, n) },
+    // Încheierea e a capătului nou al variantei, adică a fostului joc de mijloc.
+    final_text: plan.final_text ?? opening.final_text ?? null,
+    final_arrows: (plan.final_arrows as { from: string; to: string }[] | null) ?? opening.final_arrows ?? null,
+  }
+}
+
+/**
+ * Varianta `index` a capitolului: 0 = cea principală, 1–3 = ramificaţiile din
+ * `opening_lines.variante`. O ramificaţie se joacă de la prima mutare; până la
+ * locul despărţirii ia textele şi marcajele variantei principale, de acolo
+ * încolo pe ale ei — nimic de după despărţire nu se moşteneşte.
+ */
+async function variantaCapitol(lineId: string, index: number): Promise<TrainerLine | null> {
+  const opening = await linieDeschidere(lineId)
+  if (!opening) return null
+  const ramificatii = opening.variante ?? []
+  const nrVariante = 1 + ramificatii.length
+  const principala = await variantaPrincipala(opening)
+  const ramura = index > 0 ? ramificatii[index - 1] : undefined
+  if (!ramura) return { ...principala, variantaIndex: 0, nrVariante }
+
+  const a = principala.moves_uci.split(' ')
+  const b = ramura.moves_uci.split(' ').filter(Boolean)
+  let desp = 0
+  while (desp < a.length && desp < b.length && a[desp] === b[desp]) desp++
+
+  return {
+    ...principala,
+    moves_uci: b.join(' '),
+    move_explanations: { ...panaLa(principala.move_explanations, desp), ...ramura.move_explanations },
+    move_comments: panaLa(principala.move_comments, desp),
+    move_hints: panaLa(principala.move_hints, desp),
+    move_marks: { ...panaLa(principala.move_marks, desp), ...(ramura.move_marks ?? {}) },
+    final_text: ramura.final_text ?? null,
+    final_arrows: ramura.final_arrows ?? null,
+    variantaIndex: index,
+    nrVariante,
+    numeVarianta: ramura.nume,
   }
 }
 
@@ -147,12 +176,17 @@ async function linieCapcana(trapId: string, mode: 'guided' | 'practice'): Promis
   }
 }
 
+/**
+ * `stage` 'opening' şi 'middlegame' sunt acum primul şi al doilea pas al
+ * capitolului (variantele 1–2 şi 3–4); adresele vechi au rămas, ca să nu se
+ * rupă legăturile salvate. `varianta` = indexul variantei, de la 0.
+ */
 export async function incarcaLinie(
   stage: TrainerStage,
   mode: 'guided' | 'practice',
   id: string,
+  varianta = 0,
 ): Promise<TrainerLine | null> {
-  if (stage === 'middlegame') return linieJocDeMijloc(id)
   if (stage === 'trap') return linieCapcana(id, mode)
-  return linieDeschidere(id)
+  return variantaCapitol(id, varianta)
 }

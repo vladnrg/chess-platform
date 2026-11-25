@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { BookOpen, Clock, RotateCcw, Target, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { formatDurata, type ParteCapitol, type RezultatParte } from '@/lib/rezultat-capitol'
+import { formatDurata, type RezultatCapitol } from '@/lib/rezultat-capitol'
 
 /** Verdele exersărilor perfecte şi gradientul celor greşite (portocaliu → galben). */
 const VERDE = '#6CC24A'
@@ -37,24 +37,24 @@ function Inel({ perfecte, total }: { perfecte: number; total: number }) {
 
 /**
  * Fereastra de la finalul capitolului, după ultima exersare (cerută pe
- * 2026-11-25, după Chessly): câte exersări au ieşit perfecte, câte părţi ai
- * exersat şi cât a durat, apoi „Continuă învăţarea" sau „Refă exersările
+ * 2026-11-25, după Chessly): câte exersări au ieşit perfecte, câte variante
+ * ai exersat şi cât a durat, apoi „Continuă învăţarea" sau „Refă exersările
  * greşite".
  */
 export function RezumatCapitol({
   parti, rezultate, continuaHref, onRefa, onInchide,
 }: {
-  /** Părţile capitolului, în ordine. */
-  parti: ParteCapitol[]
-  rezultate: Partial<Record<ParteCapitol, RezultatParte>>
+  /** Variantele capitolului (indexurile lor), în ordine. */
+  parti: number[]
+  rezultate: RezultatCapitol
   continuaHref: string
   /** Prima parte greşită, sau null dacă toate au fost perfecte. */
   onRefa: (() => void) | null
   onInchide: () => void
 }) {
-  const facute = parti.filter(p => rezultate[p])
-  const perfecte = facute.filter(p => rezultate[p]!.perfect).length
-  const ms = facute.reduce((suma, p) => suma + rezultate[p]!.ms, 0)
+  const facute = parti.filter(p => rezultate[String(p)])
+  const perfecte = facute.filter(p => rezultate[String(p)]!.perfect).length
+  const ms = facute.reduce((suma, p) => suma + rezultate[String(p)]!.ms, 0)
   const toatePerfecte = facute.length > 0 && perfecte === facute.length
 
   useEffect(() => {
@@ -105,7 +105,7 @@ export function RezumatCapitol({
 
         <div className="mt-5 flex justify-center gap-2">
           {([
-            ['Părţi', BookOpen, String(facute.length)],
+            ['Variante', BookOpen, String(facute.length)],
             ['Timp', Clock, formatDurata(ms)],
           ] as const).map(([eticheta, Icoana, valoare]) => (
             <div key={eticheta} className="w-24 overflow-hidden rounded-lg border border-[rgba(108,194,74,0.6)]">
