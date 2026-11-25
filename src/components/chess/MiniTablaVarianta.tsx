@@ -5,6 +5,7 @@ import { Chess } from 'chess.js'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pause, Play, X } from 'lucide-react'
 import { useBoardTheme } from '@/hooks/useBoardTheme'
 import { translateNotation } from '@/lib/chess-translations'
+import { ULTIMA_MUTARE } from '@/lib/sageti'
 
 /**
  * Cât stă o mutare pe mini-tablă, şi cât stă poziţia finală înainte de reluare:
@@ -15,8 +16,8 @@ const PAUZA_FINAL_MS = 5000
 
 /**
  * Violetul mutării cheie (4.d3 la Apărarea celor doi cai). Culoare nefolosită
- * altundeva pe tablă: auriul e ultima mutare, rozul câmpul ţintit, verdele/
- * roşul/albastrul controlul, turcoazul şi portocaliul alte marcaje.
+ * altundeva pe tablă: albastrul deschis e ultima mutare, rozul câmpul ţintit,
+ * verdele/roşul/albastrul închis controlul, turcoazul şi portocaliul alte marcaje.
  */
 const VIOLET = '168,85,247'
 
@@ -34,16 +35,18 @@ function pozitii(mutari: string[]) {
 }
 
 /**
- * Câmpurile ultimei mutări, colorate discret, ca în antrenor — auriu, sau
- * violet aprins când ultima mutare e chiar mutarea cheie a capitolului.
+ * Câmpurile ultimei mutări, ca în antrenor — albastru, sau violet aprins când
+ * ultima mutare e chiar mutarea cheie a capitolului.
  */
 function stilUltima(mutari: string[], pas: number, cheie: number | null) {
   const u = pas > 0 ? mutari[pas - 1] : null
   if (!u) return {}
-  const [culoare, slab, tare] = pas - 1 === cheie ? [VIOLET, 0.5, 0.75] : ['226,179,64', 0.25, 0.45]
+  const [de, la] = pas - 1 === cheie
+    ? [`rgba(${VIOLET},0.5)`, `rgba(${VIOLET},0.75)`]
+    : [ULTIMA_MUTARE.de, ULTIMA_MUTARE.la]
   return {
-    [u.slice(0, 2)]: { backgroundColor: `rgba(${culoare},${slab})` },
-    [u.slice(2, 4)]: { backgroundColor: `rgba(${culoare},${tare})` },
+    [u.slice(0, 2)]: { backgroundColor: de },
+    [u.slice(2, 4)]: { backgroundColor: la },
   }
 }
 

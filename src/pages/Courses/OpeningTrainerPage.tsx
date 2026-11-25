@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
-import { CULORI_SAGETI, OPTIUNI_SAGETI } from '@/lib/sageti'
+import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
 import { nivelDin, ordoneazaPeNivel } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
@@ -754,18 +754,20 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     }
   }
 
+  // Ultima mutare are aceeaşi culoare, albastră, şi la prima trecere, şi când
+  // priveşti înapoi (cerut pe 2026-11-25: înainte era aurie la prima trecere).
   const squareStyles: Record<string, React.CSSProperties> = {}
   if (vedere) {
     // Cât timp priveşti înapoi, se marchează mutarea care a dus la poziţia aceea.
-    if (vedere.de) squareStyles[vedere.de] = { backgroundColor: 'rgba(96,165,250,0.45)' }
-    if (vedere.la) squareStyles[vedere.la] = { backgroundColor: 'rgba(96,165,250,0.30)' }
+    if (vedere.de) squareStyles[vedere.de] = { backgroundColor: ULTIMA_MUTARE.de }
+    if (vedere.la) squareStyles[vedere.la] = { backgroundColor: ULTIMA_MUTARE.la }
   } else {
-    // Ultima mutare jucată, discret: ca să se vadă ce tocmai s-a schimbat pe tablă.
-    // Îndrumarea pentru mutarea ta e săgeata, nu pătratele.
+    // Ultima mutare jucată: ca să se vadă ce tocmai s-a schimbat pe tablă.
+    // Îndrumarea pentru mutarea ta e săgeata, nu câmpurile.
     const ultima = state.plyIdx > 0 ? moves[state.plyIdx - 1] : null
     if (ultima) {
-      squareStyles[ultima.slice(0, 2)] = { backgroundColor: 'rgba(226,179,64,0.18)' }
-      squareStyles[ultima.slice(2, 4)] = { backgroundColor: 'rgba(226,179,64,0.32)' }
+      squareStyles[ultima.slice(0, 2)] = { backgroundColor: ULTIMA_MUTARE.de }
+      squareStyles[ultima.slice(2, 4)] = { backgroundColor: ULTIMA_MUTARE.la }
     }
     // De la a treia greşeală: piesa care trebuie mutată se luminează.
     if (!isGuided && state.status === 'user-turn' && greseliAici >= 3 && urmatoarea) {

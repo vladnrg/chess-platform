@@ -28,3 +28,13 @@ export const CULORI_SAGETI = {
   green: '#6CC24A',
   red: '#EE4B36',
 } as const
+
+/**
+ * Câmpurile ultimei mutări în cursuri (antrenor şi mini-tabla de început):
+ * albastru, şi la prima trecere, şi când priveşti înapoi. Cerut pe 2026-11-25,
+ * pentru omogenitate: înainte, prima trecere le colora auriu.
+ */
+export const ULTIMA_MUTARE = {
+  de: 'rgba(96,165,250,0.45)',
+  la: 'rgba(96,165,250,0.30)',
+} as const
