@@ -10,7 +10,8 @@
 //   node --experimental-strip-types --import ./scripts/verificari/register.mjs scripts/verificari/evaluare-nivel.mjs
 
 import { Chess } from 'chess.js'
-import { TACTICS_QUESTIONS } from '@/pages/Onboarding/assessmentData'
+import { TREPTE_TACTICA } from '@/pages/Onboarding/assessmentData'
+const TACTICS_QUESTIONS = TREPTE_TACTICA.flat()
 import { analizeaza, scrieScor } from './motor.mjs'
 
 const pct = s => s.fel === 'mate' ? (s.scor > 0 ? 10000 - s.scor : -10000 - s.scor) : s.scor

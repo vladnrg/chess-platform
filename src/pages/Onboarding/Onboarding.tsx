@@ -12,13 +12,8 @@ import { getLeagueForXp } from '@/lib/utils'
 import { translateNotation } from '@/lib/chess-translations'
 import { Button } from '@/components/ui/Button'
 import { Progress } from '@/components/ui/Progress'
-import { TACTICS_QUESTIONS, MCQ_QUESTIONS, type AssessmentQuestion, type TacticsQuestion as Tactica } from './assessmentData'
+import { alegeTest, type AssessmentQuestion, type TacticsQuestion as Tactica } from './assessmentData'
 import type { PlayingStyle } from '@/types'
-
-const ALL_QUESTIONS: AssessmentQuestion[] = [
-  ...TACTICS_QUESTIONS,
-  ...MCQ_QUESTIONS.filter(q => q.category === 'style'),
-]
 
 /** Cât costă, din nivelul final, un puzzle la care ai greşit (o singură dată pe puzzle). */
 const PENALIZARE_GRESEALA = 100
@@ -74,14 +69,15 @@ function mutaUci(game: Chess, uci: string) {
   return game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] ?? 'q' })
 }
 
-function computeResults(answers: Record<string, string>, incercari: Record<string, Incercare>) {
+function computeResults(answers: Record<string, string>, incercari: Record<string, Incercare>, intrebari: AssessmentQuestion[]) {
   let puzzleScore = 0
   const styleCounts: Record<string, number> = { offensive: 0, balanced: 0, pragmatic: 0, defensive: 0 }
+  const TACTICS_QUESTIONS = intrebari.filter((q): q is Tactica => q.type === 'tactics')
 
   TACTICS_QUESTIONS.forEach(q => {
     if (answers[q.id] === 'correct') puzzleScore++
   })
-  MCQ_QUESTIONS.filter(q => q.category === 'style').forEach(q => {
+  intrebari.filter(q => q.type === 'mcq' && q.category === 'style').forEach(q => {
     const ans = answers[q.id]
     if (ans && ans in styleCounts) styleCounts[ans]++
   })
@@ -107,6 +103,8 @@ function computeResults(answers: Record<string, string>, incercari: Record<strin
 export function Onboarding() {
   const { user, profile, fetchProfile } = useAuth()
   const navigate = useNavigate()
+  // Întrebările testului, trase la sorţi o singură dată, la deschidere (2026-11-25).
+  const [ALL_QUESTIONS] = useState(alegeTest)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [tacticsState, setTacticsState] = useState<TacticsState | null>(null)
@@ -289,7 +287,7 @@ export function Onboarding() {
   async function handleFinish() {
     if (!user) return
     setSubmitting(true)
-    const { puzzleScore, knowledgeScore, playing_style, estimated_elo } = computeResults(answers, incercari)
+    const { puzzleScore, knowledgeScore, playing_style, estimated_elo } = computeResults(answers, incercari, ALL_QUESTIONS)
     const league = getLeagueForXp(0)
 
     // `onConflict: user_id`: un cont are un singur rând de evaluare. Fără asta,
