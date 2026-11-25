@@ -21,7 +21,7 @@ import { INTERZISE } from './reguli-text.mjs'
 const TABELE = {
   courses: ['title', 'description'],
   lessons: ['title', 'theory_html', 'exercises', 'key_positions'],
-  opening_lines: ['variation_name', 'move_explanations'],
+  opening_lines: ['variation_name', 'move_explanations', 'variante'],
   middlegame_plans: ['structure', 'avoid', 'ideas', 'move_explanations'],
   opening_traps: ['title', 'explanation', 'move_explanations'],
   events: ['title', 'description'],
