@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Chess } from 'chess.js'
 import { Chessboard, type PieceDropHandlerArgs, type Arrow } from 'react-chessboard'
 import type { Square } from 'chess.js'
@@ -396,6 +396,35 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     // Pasul e gata abia după ultima lui variantă.
     const ultimaDinPas = (line.variantaIndex ?? 0) >= Math.min(pas * 2 + 1, (line.nrVariante ?? 1) - 1)
     void persistProgress(ultimaDinPas)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
+  // Pasul de pe traseu e gata după ultima lui variantă: se notează cu data, ca
+  // pagina cursului să ştie ce e deblocat, unde „te afli" şi care e „ultimul
+  // studiu completat" (cerut pe 2026-11-25). Şi refacerea mută data.
+  const clientQuery = useQueryClient()
+  useEffect(() => {
+    if (status !== 'line-done' || !line || !user || !lineId) return
+    const ultimaDinPas = (line.variantaIndex ?? 0) >= Math.min(pas * 2 + 1, (line.nrVariante ?? 1) - 1)
+    if (!ultimaDinPas) return
+    const nodId = isTrap
+      ? `${lineId}-${isGuided ? 'lectie' : 'exercitiu'}`
+      : `${lineId}-${pas === 0 ? (isGuided ? 'teorie' : 'exersare') : (isGuided ? 'mijloc' : 'mijloc-singur')}`
+    void (async () => {
+      const { data } = await supabase
+        .from('user_course_progress')
+        .select('noduri_parcurse')
+        .eq('user_id', user.id).eq('course_id', line.course_id).maybeSingle() // primul pas: încă niciun rând
+      const acum = new Date().toISOString()
+      await supabase.from('user_course_progress').upsert({
+        user_id: user.id,
+        course_id: line.course_id,
+        noduri_parcurse: { ...(data?.noduri_parcurse ?? {}), [nodId]: acum },
+        last_activity_at: acum,
+      })
+      void clientQuery.invalidateQueries({ queryKey: ['course-progress'] })
+      void clientQuery.invalidateQueries({ queryKey: ['barlog-cursuri-incepute'] })
+    })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 

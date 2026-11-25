@@ -429,6 +429,12 @@ export interface UserCourseProgress {
   user_id: string
   course_id: string
   completed_lesson_ids: string[]
+  /**
+   * Paşii de pe traseu terminaţi, cu data (migrarea 139): `{ "<linie>-exersare":
+   * "2026-11-25T…" }`. De aici ies lacătele, „Te afli aici" şi „Ultimul studiu
+   * completat".
+   */
+  noduri_parcurse?: Record<string, string> | null
   last_lesson_id: string | null
   xp_earned: number
   started_at: string

@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react'
 import { ChevronDown, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChapterPath } from './ChapterPath'
-import { capitoleDeDeschidere, nivelDin, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolulCurent, etichetaTraseu, nivelDin, type Capitol } from '@/lib/capitole-curs'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
 import { useAuth } from '@/hooks/useAuth'
 import type { OpeningLine } from '@/types'
@@ -17,12 +17,14 @@ import type { OpeningLine } from '@/types'
  * omul îi face în ordine. Aşezate în traseu, se vede cât ai făcut şi cât mai e.
  */
 export function CourseChapters({
-  slug, lines, completedIds,
+  slug, lines, completedIds, noduriParcurse,
 }: {
   slug: string
   lines: OpeningLine[]
   /** Variantele deja parcurse, din progresul utilizatorului. */
   completedIds: string[]
+  /** Paşii terminaţi şi când (migrarea 139). */
+  noduriParcurse?: Record<string, string> | null
 }) {
   // Ce variante au plan de joc de mijloc şi capcanele deschiderii.
   // Fără asta, am pune pe traseu paşi care duc într-o pagină goală.
@@ -30,7 +32,8 @@ export function CourseChapters({
   const { profile } = useAuth()
 
   // Ordinea capitolelor depinde de nivelul tău (din testul de plasament).
-  const capitole = capitoleDeDeschidere(slug, lines, completedIds, dinCurs, nivelDin(profile))
+  const capitole = capitoleDeDeschidere(slug, lines, completedIds, dinCurs, nivelDin(profile), noduriParcurse ?? {})
+  const eticheta = etichetaTraseu(capitole)
 
   // Capitolele se ţin deschise câte vrei, nu unul singur. Cine compară două
   // variante — şi asta face oricine îşi alege un repertoriu — vrea traseele
@@ -39,7 +42,7 @@ export function CourseChapters({
   // La montare se deschide capitolul la care ai rămas. Calculat o singură dată:
   // dacă s-ar recalcula, ţi-ar închide sub degete ce ai deschis manual.
   const [deschise, setDeschise] = useState<Set<string>>(() => {
-    const primul = capitole.find(c => !c.terminat)?.id ?? capitole[0]?.id
+    const primul = capitole[capitolulCurent(capitole)]?.id
     return new Set(primul ? [primul] : [])
   })
 
@@ -93,7 +96,7 @@ export function CourseChapters({
 
             {esteDeschis && (
               <div className="border-t border-[#2A2A2A] bg-[#0F0F0F]">
-                <ChapterPath nodes={cap.noduri} />
+                <ChapterPath nodes={cap.noduri} eticheta={eticheta} />
               </div>
             )}
           </div>

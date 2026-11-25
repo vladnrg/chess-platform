@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Dumbbell, GraduationCap, Check, Lock } from 'lucide-react'
+import { BookOpen, Dumbbell, GraduationCap, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   FORME, GROSIME, GOL, PADDING, abatere, iesireJos, intrareSus,
@@ -62,6 +62,8 @@ function Legatura({ de, la, dinKind, spreKind }: {
 
 /** Starea unui nod, dedusă o singură dată ca să nu se repete prin randare. */
 function stareaNodului(node: PathNode, esteCurent: boolean, blocat: boolean) {
+  // Un pas fără pagină (testul) rămâne închis, chiar dacă i-a venit rândul.
+  if (!node.href) return 'blocat' as const
   if (node.done) return 'gata' as const
   if (blocat) return 'blocat' as const
   if (esteCurent) return 'curent' as const
@@ -75,7 +77,11 @@ function stareaNodului(node: PathNode, esteCurent: boolean, blocat: boolean) {
  * urmează după el stă cu lacăt. Regula e derivată din `done`, nu ţinută separat
  * — altfel ar exista două adevăruri despre acelaşi lucru.
  */
-export function ChapterPath({ nodes }: { nodes: PathNode[] }) {
+export function ChapterPath({ nodes, eticheta }: {
+  nodes: PathNode[]
+  /** Mesajul de sub un nod („Te afli aici", „Ultimul studiu completat"), vezi `etichetaTraseu`. */
+  eticheta?: { nodId: string; text: string } | null
+}) {
   const idxCurent = nodes.findIndex(n => !n.done)
 
   return (
@@ -108,6 +114,12 @@ export function ChapterPath({ nodes }: { nodes: PathNode[] }) {
               data-nod-curent={esteCurent || undefined}
             >
               <NodTraseu node={node} stare={stare} Icoana={Icoana} />
+              {eticheta?.nodId === node.id && (
+                // Ca pe Chessly: o plăcuţă peste firul de sub nod, nu text sub fiecare.
+                <span className="relative z-10 -mb-3 mt-2 whitespace-nowrap rounded-full bg-[#E2B340] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0A0A0A] shadow-[0_0_18px_rgba(226,179,64,0.45)]">
+                  {eticheta.text}
+                </span>
+              )}
             </div>
           </Fragment>
         )
@@ -127,8 +139,10 @@ function NodTraseu({
 
   // Nodul închis e galben stins, nu gri: ţine de acelaşi drum ca restul, doar
   // că e stânjenit. Griul îl scotea din şir şi îl făcea să pară stricat.
+  // Un pas făcut arată ca unul deschis, fără bifă (cerut pe 2026-11-25, ca pe
+  // Chessly): se vede doar că nu mai are lacăt.
   const culori = {
-    gata:    { fata: '#4ade80', umbra: '#2f9c5a', icoana: '#0A0A0A' },
+    gata:    { fata: '#E2B340', umbra: '#9c7a20', icoana: '#0A0A0A' },
     curent:  { fata: '#E2B340', umbra: '#9c7a20', icoana: '#0A0A0A' },
     deschis: { fata: '#2A2A2A', umbra: '#1A1A1A', icoana: '#A0A0A0' },
     blocat:  { fata: '#54471F', umbra: '#392F14', icoana: '#A08A46' },
@@ -169,9 +183,7 @@ function NodTraseu({
         >
           {/* Icoana se roteşte înapoi, ca ganterele să stea drept în diamant. */}
           <span style={{ transform: forma.rotit ? 'rotate(-45deg)' : undefined }}>
-            {stare === 'gata'
-              ? <Check className={forma.icoana} style={{ color: culori.icoana }} strokeWidth={3} />
-              : <Icoana className={forma.icoana} style={{ color: culori.icoana }} />}
+            <Icoana className={forma.icoana} style={{ color: culori.icoana }} />
           </span>
         </span>
       </span>

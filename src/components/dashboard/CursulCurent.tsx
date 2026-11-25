@@ -121,6 +121,7 @@ export function CursulCurent() {
         key={curs.id}
         curs={curs}
         parcurse={progres.completed_lesson_ids ?? []}
+        noduriParcurse={progres.noduri_parcurse ?? null}
         poateMergeLaCursAnterior={i > 0}
         poateMergeLaCursUrmator={i < inLucru.length - 1}
         onSchimbaCurs={mergiLaCurs}
@@ -203,12 +204,14 @@ function AntetCurs({ curs, cate, pozitie }: {
 function CapitolulCursului({
   curs,
   parcurse,
+  noduriParcurse,
   poateMergeLaCursAnterior,
   poateMergeLaCursUrmator,
   onSchimbaCurs,
 }: {
   curs: Course
   parcurse: string[]
+  noduriParcurse: Record<string, string> | null
   poateMergeLaCursAnterior: boolean
   poateMergeLaCursUrmator: boolean
   onSchimbaCurs: (pas: number) => void
@@ -240,9 +243,9 @@ function CapitolulCursului({
   const capitole = useMemo(() => {
     if (!linii) return []
     return linii.length > 0
-      ? capitoleDeDeschidere(curs.slug, linii, parcurse, dinCurs, nivel)
+      ? capitoleDeDeschidere(curs.slug, linii, parcurse, dinCurs, nivel, noduriParcurse ?? {})
       : capitolDeLectii(curs.slug, lectii ?? [], parcurse)
-  }, [linii, lectii, dinCurs, curs.slug, parcurse, nivel])
+  }, [linii, lectii, dinCurs, curs.slug, parcurse, nivel, noduriParcurse])
 
   // Capitolul curent la montare; de-acolo încolo îl mută utilizatorul.
   const [capitol, setCapitol] = useState<number | null>(null)

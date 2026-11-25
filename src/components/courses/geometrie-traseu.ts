@@ -27,6 +27,8 @@ export interface PathNode {
   /** Unde duce. Lipsă = pasul există, dar încă n-are unde trimite. */
   href?: string
   done?: boolean
+  /** Când a fost terminat pasul (ISO), dacă ştim — pentru „Ultimul studiu completat". */
+  cand?: string
 }
 
 /**

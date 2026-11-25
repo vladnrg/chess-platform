@@ -258,7 +258,7 @@ export function CourseDetail() {
           <p className="mb-4 text-xs text-[#6B6B6B]">
             {doneCount} din {numar(totalSteps, 'capitol', 'capitole')} parcurse
           </p>
-          <CourseChapters slug={slug} lines={openingLines ?? []} completedIds={completedIds} />
+          <CourseChapters slug={slug} lines={openingLines ?? []} completedIds={completedIds} noduriParcurse={progress?.noduri_parcurse} />
         </div>
       ) : steps.length > 0 ? (
         <div className="flex min-h-0 flex-1 flex-col">

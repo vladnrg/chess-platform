@@ -146,7 +146,16 @@ export function capitoleDeDeschidere(
   parcurse: string[],
   date: DateDeCurs | undefined,
   nivel: Nivel = 'intermediar',
+  /** Paşii terminaţi şi când (`user_course_progress.noduri_parcurse`, migrarea 139). */
+  noduriParcurse: Record<string, string> = {},
 ): Capitol[] {
+  // Un pas e făcut dacă e în `noduriParcurse`. Studiul primului pas se mai ştie
+  // şi din `parcurse` (progresul de dinainte de 2026-11-25), fără dată.
+  const nod = <T extends PathNode>(n: T, gataDinainte = false): T => ({
+    ...n,
+    done: gataDinainte || !!noduriParcurse[n.id],
+    cand: noduriParcurse[n.id],
+  })
   const capitole: Capitol[] = ordoneazaPeNivel(linii, nivel).map(linie => {
     // Paşii capitolului (cerut pe 2026-11-25, ca la Chessly): variantele 1–2,
     // apoi 3–4 (sau doar 3). Jocul de mijloc nu mai e un pas separat.
@@ -154,40 +163,33 @@ export function capitoleDeDeschidere(
     const despre = (de: number, pana: number) => pana > de ? `variantele ${de}–${pana}` : `varianta ${de}`
     const teorieGata = parcurse.includes(linie.id)
 
-    return {
-      id: linie.id,
-      titlu: linie.variation_name,
-      subtitlu: subtitluCapitol(linie, nivel),
-      terminat: teorieGata,
-      grupa: linie.tip === 'practica' ? 'practica' : 'teorie',
-      noduri: [
-        {
+    const noduri: PathNode[] = [
+        nod({
           id: `${linie.id}-teorie`,
           kind: 'lectie',
           title: `Studiu: ${despre(1, Math.min(2, nrVariante))}`,
           href: `/courses/${slug}/guided/${linie.id}`,
-          done: teorieGata,
-        },
-        {
+        }, teorieGata),
+        nod({
           id: `${linie.id}-exersare`,
           kind: 'exercitiu',
           title: `Exersare: ${despre(1, Math.min(2, nrVariante))}`,
           href: `/courses/${slug}/practice/${linie.id}`,
-        },
+        }),
         // Adresele pasului al doilea au rămas cele vechi ale jocului de mijloc.
         ...(nrVariante > 2 ? [
-          {
+          nod({
             id: `${linie.id}-mijloc`,
             kind: 'lectie' as const,
             title: `Studiu: ${despre(3, Math.min(4, nrVariante))}`,
             href: `/courses/${slug}/middlegame/${linie.id}`,
-          },
-          {
+          }),
+          nod({
             id: `${linie.id}-mijloc-singur`,
             kind: 'exercitiu' as const,
             title: `Exersare: ${despre(3, Math.min(4, nrVariante))}`,
             href: `/courses/${slug}/middlegame-practice/${linie.id}`,
-          },
+          }),
         ] : []),
         {
           // Fără `href`: nodul există în traseu fiindcă face parte din el, dar
@@ -197,7 +199,16 @@ export function capitoleDeDeschidere(
           kind: 'test',
           title: 'Verificare de capitol',
         },
-      ],
+    ]
+
+    return {
+      id: linie.id,
+      titlu: linie.variation_name,
+      subtitlu: subtitluCapitol(linie, nivel),
+      // Terminat = toţi paşii care duc undeva sunt făcuţi (testul încă n-are pagină).
+      terminat: noduri.filter(n => n.href).every(n => n.done),
+      grupa: linie.tip === 'practica' ? 'practica' : 'teorie',
+      noduri,
     }
   })
 
@@ -214,20 +225,19 @@ export function capitoleDeDeschidere(
       subtitlu: `${capcane.length} ${capcane.length === 1 ? 'capcană' : 'capcane'} · din ${variante.join(' şi ')}`,
       terminat: capcane.every(c => parcurse.includes(c.id)),
       noduri: capcane.flatMap(c => [
-        {
+        nod({
           id: `${c.id}-lectie`,
           kind: 'lectie' as const,
           title: `${c.title} — pas cu pas`,
           href: `/courses/${slug}/trap/${c.id}`,
-          done: parcurse.includes(c.id),
-        },
+        }, parcurse.includes(c.id)),
         // Fără punct de armare n-am de unde porni exerciţiul, deci nodul lipseşte.
-        ...(c.spring_ply != null ? [{
+        ...(c.spring_ply != null ? [nod({
           id: `${c.id}-exercitiu`,
           kind: 'exercitiu' as const,
           title: `${c.title} — pe cont propriu`,
           href: `/courses/${slug}/trap-practice/${c.id}`,
-        }] : []),
+        })] : []),
       ]),
     })
   }
@@ -300,7 +310,38 @@ export function cursTerminat(
  * care îl arată n-ar avea ce pune în loc.
  */
 export function capitolulCurent(capitole: Capitol[]): number {
+  const eticheta = etichetaTraseu(capitole)
+  if (eticheta) {
+    const i = capitole.findIndex(c => c.noduri.some(n => n.id === eticheta.nodId))
+    if (i >= 0) return i
+  }
   if (capitole.length === 0) return -1
   const i = capitole.findIndex(c => !c.terminat)
   return i === -1 ? capitole.length - 1 : i
+}
+
+/**
+ * Mesajul de lângă un nod, ca pe Chessly (cerut pe 2026-11-25): „Te afli aici"
+ * pe pasul la care ai ajuns, iar la un curs terminat „Ultimul studiu completat"
+ * pe pasul terminat cel mai recent — oricare ar fi, dacă te întorci şi refaci
+ * unul mai vechi.
+ *
+ * „Aici" = pasul următor din capitolul la care ai lucrat ultima dată; dacă acela
+ * e gata, primul pas nefăcut din primul capitol neterminat.
+ */
+export function etichetaTraseu(capitole: Capitol[]): { nodId: string; text: string } | null {
+  const toate = capitole.flatMap(c => c.noduri.filter(n => n.href).map(n => ({ n, c })))
+  if (toate.length === 0) return null
+  const ultimul = toate
+    .filter(x => x.n.done && x.n.cand)
+    .sort((a, b) => (b.n.cand! > a.n.cand! ? 1 : -1))[0]
+
+  if (toate.every(x => x.n.done)) {
+    const n = ultimul?.n ?? toate[toate.length - 1].n
+    return { nodId: n.id, text: 'Ultimul studiu completat' }
+  }
+  const urmatorul = (c: Capitol) => c.noduri.find(n => n.href && !n.done)
+  const dinUltimul = ultimul ? urmatorul(ultimul.c) : undefined
+  const aici = dinUltimul ?? capitole.map(urmatorul).find(Boolean)
+  return aici ? { nodId: aici.id, text: 'Te afli aici' } : null
 }
