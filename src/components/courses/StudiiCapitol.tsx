@@ -60,10 +60,10 @@ export function StudiiCapitol({ studii, eticheta, compact = false }: {
 /**
  * Cât loc are harta pe Bârlog şi cât se poate micşora cel mult. Cu nodurile
  * suprapuse (modul compact) şi micşorate cât trebuie, un studiu de 10 variante
- * încape în ~370 de pixeli,
+ * încape în ~300 de pixeli,
  * deci se vede întreg, împreună cu titlurile celorlalte studii.
  */
-const INALTIME = 370
+const INALTIME = 300
 const SCARA_MIN = 0.5
 
 function HartaIncadrata({ noduri, eticheta, blocatTot }: {
