@@ -102,11 +102,11 @@ export function CourseChapters({
                   <div className="space-y-2 p-3">
                     {cap.studii.map((st, s) => (
                       <div key={s}>
-                        <div className="mx-auto flex max-w-md items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-2">
+                        <div className="mx-auto flex max-w-2xl items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-2">
                           <span className="flex-shrink-0 rounded bg-[rgba(226,179,64,0.12)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#E2B340]">
                             Studiul {s + 1}
                           </span>
-                          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#F0F0F0]" title={st.titlu}>
+                          <span className="min-w-0 flex-1 text-sm font-semibold text-[#F0F0F0]">
                             {st.titlu}
                           </span>
                         </div>
