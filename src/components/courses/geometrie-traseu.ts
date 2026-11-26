@@ -105,3 +105,16 @@ export function inaltimeaTraseului(noduri: PathNode[]): number {
   const inaltimeNoduri = noduri.reduce((sumă, n) => sumă + FORME[n.kind].latura, 0)
   return PADDING * 2 + inaltimeNoduri + (noduri.length - 1) * GOL + GROSIME
 }
+
+/**
+ * Modul compact (Bârlogul, cerut pe 2026-11-26, ca la Chessly): nodurile se
+ * suprapun pe verticală cu atât, fără fir între ele, ca un studiu întreg să
+ * încapă din prima, fără derulare.
+ */
+export const SUPRAPUNERE = 30
+
+export function inaltimeaTraseuluiCompact(noduri: PathNode[]): number {
+  if (noduri.length === 0) return 0
+  const inaltimeNoduri = noduri.reduce((sumă, n) => sumă + FORME[n.kind].latura, 0)
+  return PADDING * 2 + inaltimeNoduri - (noduri.length - 1) * SUPRAPUNERE + GROSIME
+}

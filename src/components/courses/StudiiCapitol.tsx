@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BookOpen, CheckCircle2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChapterPath } from './ChapterPath'
-import { inaltimeaTraseului } from './geometrie-traseu'
+import { inaltimeaTraseuluiCompact } from './geometrie-traseu'
 import type { Studiu } from '@/lib/capitole-curs'
 
 /**
@@ -10,8 +10,8 @@ import type { Studiu } from '@/lib/capitole-curs'
  * lui de titlu, uşor de văzut, şi harta lui dedesubt.
  *
  * `compact` (Bârlogul): doar studiul în care eşti stă deschis, celelalte sunt
- * strânse pe un rând şi se deschid la apăsare; harta nu se micşorează sub 70%,
- * iar dacă e mai lungă decât caseta, derulează până la pasul curent.
+ * strânse pe un rând şi se deschid la apăsare; nodurile se suprapun, ca la
+ * Chessly, ca studiul să încapă întreg fără derulare.
  */
 export function StudiiCapitol({ studii, eticheta, compact = false }: {
   studii: Studiu[]
@@ -57,16 +57,20 @@ export function StudiiCapitol({ studii, eticheta, compact = false }: {
   )
 }
 
-/** Cât loc are harta pe Bârlog şi cât se poate micşora cel mult. */
-const INALTIME = 560
-const SCARA_MIN = 0.7
+/**
+ * Cât loc are harta pe Bârlog şi cât se poate micşora cel mult. Cu nodurile
+ * suprapuse (modul compact), un studiu de 10 variante încape în ~420 de pixeli,
+ * deci se vede întreg, împreună cu titlurile celorlalte studii.
+ */
+const INALTIME = 420
+const SCARA_MIN = 0.6
 
 function HartaIncadrata({ noduri, eticheta, blocatTot }: {
   noduri: Studiu['noduri']
   eticheta?: { nodId: string; text: string } | null
   blocatTot: boolean
 }) {
-  const natural = inaltimeaTraseului(noduri)
+  const natural = inaltimeaTraseuluiCompact(noduri)
   const scara = Math.max(SCARA_MIN, Math.min(1, INALTIME / natural))
   const inalt = Math.ceil(natural * scara)
   const cutie = useRef<HTMLDivElement>(null)
@@ -87,7 +91,7 @@ function HartaIncadrata({ noduri, eticheta, blocatTot }: {
           className="absolute inset-x-0 top-0"
           style={{ height: natural, transform: `scale(${scara})`, transformOrigin: 'top center' }}
         >
-          <ChapterPath nodes={noduri} eticheta={eticheta} blocatTot={blocatTot} />
+          <ChapterPath nodes={noduri} eticheta={eticheta} blocatTot={blocatTot} compact />
         </div>
       </div>
     </div>
