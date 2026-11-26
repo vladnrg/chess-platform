@@ -11,9 +11,10 @@ import type { Studiu } from '@/lib/capitole-curs'
  *
  * `compact` (Bârlogul): doar studiul în care eşti stă deschis, celelalte sunt
  * strânse pe un rând şi se deschid la apăsare; nodurile se suprapun, ca la
- * Chessly, ca studiul să încapă întreg fără derulare. Pe ecran lat, studiul
- * deschis ia tot locul rămas până jos (cerut pe 2026-11-26), iar harta lui se
- * măreşte cât să-l umple.
+ * Chessly. Pe ecran lat, harta unui studiu deschis are cât loc rămâne până jos
+ * când e singurul deschis, şi tot atât păstrează când mai deschizi unul: cele
+ * deschise nu-şi împart locul (micşorându-se), ci se derulează unul sub altul
+ * (cerut pe 2026-11-26).
  */
 export function StudiiCapitol({ studii, eticheta, compact = false }: {
   studii: Studiu[]
@@ -24,53 +25,110 @@ export function StudiiCapitol({ studii, eticheta, compact = false }: {
   const blocat = (s: number) => studii.slice(0, s).some(prev => prev.noduri.some(n => n.href && !n.done))
   const curent = Math.max(0, studii.findIndex(st => !terminat(st)))
   const [deschise, setDeschise] = useState<Set<number>>(() => new Set(compact ? [curent] : studii.map((_, s) => s)))
-  const comuta = (s: number) => setDeschise(v => { const n = new Set(v); if (!n.delete(s)) n.add(s); return n })
+  const lista = useRef<HTMLDivElement>(null)
+  const deAdus = useRef<number | null>(null)
+  const locHarta = useLocHarta(lista, compact, studii.length)
 
+  const comuta = (s: number) => {
+    if (!deschise.has(s)) deAdus.current = s
+    setDeschise(v => { const n = new Set(v); if (!n.delete(s)) n.add(s); return n })
+  }
+
+  // Studiul tocmai deschis se aduce sus în listă, ca să se vadă harta lui.
+  // Încercat şi respins: derularea lină (`behavior: 'smooth'`) se oprea din
+  // prima clipă, la deschidere, şi lista rămânea pe loc; la fel `scrollTo` cu
+  // `offsetTop`, ale cărui coordonate ieşeau înmulţite cu mărirea paginii.
+  // Cadrul de aşteptare rămâne: cererea se şterge abia după derulare.
+  useEffect(() => {
+    const l = lista.current
+    const s = deAdus.current
+    if (!l || s === null || locHarta === null) return
+    const cadru = requestAnimationFrame(() => {
+      deAdus.current = null
+      l.querySelector<HTMLElement>(`[data-studiu="${s}"]`)?.scrollIntoView({ block: 'start' })
+    })
+    return () => cancelAnimationFrame(cadru)
+  }, [deschise, locHarta])
+
+  const casete = studii.map((st, s) => {
+    const deschis = deschise.has(s)
+    const gata = terminat(st)
+    return (
+      <div key={s} data-studiu={s} className="flex-shrink-0 overflow-hidden rounded-xl border border-[#E2B340]/30 bg-[#16140F]">
+        <button
+          type="button"
+          onClick={() => comuta(s)}
+          aria-expanded={deschis}
+          data-cap-studiu
+          className="flex w-full items-center gap-2.5 bg-[#E2B340]/[0.12] px-3 py-2 text-left transition-colors hover:bg-[#E2B340]/[0.18]"
+        >
+          <span className="flex flex-shrink-0 items-center gap-1 rounded-md bg-[#E2B340] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#0A0A0A]">
+            <BookOpen className="h-3 w-3" /> Studiul {s + 1}
+          </span>
+          <span className="min-w-0 flex-1 text-sm font-semibold text-[#F0F0F0]">{st.titlu}</span>
+          {gata
+            ? <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#4ade80]" />
+            : <ChevronDown className={cn('h-4 w-4 flex-shrink-0 text-[#A0A0A0] transition-transform', deschis && 'rotate-180')} />}
+        </button>
+        {deschis && (
+          compact
+            ? <HartaIncadrata noduri={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} inaltime={locHarta ?? INALTIME} />
+            : <ChapterPath nodes={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} />
+        )}
+      </div>
+    )
+  })
+
+  if (!compact) return <div className="space-y-2">{casete}</div>
+
+  // Pe ecran lat lista stă aşezată absolut în locul rămas: ce e înăuntru nu
+  // poate lungi caseta, doar se derulează în ea.
   return (
-    <div className={compact ? 'flex flex-col gap-2 lg:min-h-0 lg:flex-1' : 'space-y-2'}>
-      {studii.map((st, s) => {
-        const deschis = deschise.has(s)
-        const gata = terminat(st)
-        return (
-          <div
-            key={s}
-            className={cn(
-              'overflow-hidden rounded-xl border border-[#E2B340]/30 bg-[#16140F]',
-              compact && 'flex flex-shrink-0 flex-col',
-              compact && deschis && 'lg:min-h-0 lg:flex-1 lg:flex-shrink',
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => comuta(s)}
-              aria-expanded={deschis}
-              className="flex w-full flex-shrink-0 items-center gap-2.5 bg-[#E2B340]/[0.12] px-3 py-2 text-left transition-colors hover:bg-[#E2B340]/[0.18]"
-            >
-              <span className="flex flex-shrink-0 items-center gap-1 rounded-md bg-[#E2B340] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#0A0A0A]">
-                <BookOpen className="h-3 w-3" /> Studiul {s + 1}
-              </span>
-              <span className="min-w-0 flex-1 text-sm font-semibold text-[#F0F0F0]">{st.titlu}</span>
-              {gata
-                ? <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#4ade80]" />
-                : <ChevronDown className={cn('h-4 w-4 flex-shrink-0 text-[#A0A0A0] transition-transform', deschis && 'rotate-180')} />}
-            </button>
-            {deschis && (
-              compact
-                ? <HartaIncadrata noduri={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} />
-                : <ChapterPath nodes={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} />
-            )}
-          </div>
-        )
-      })}
+    <div className="lg:relative lg:min-h-[20rem] lg:flex-1">
+      <div ref={lista} className="flex flex-col lg:absolute lg:inset-0 lg:overflow-y-auto" style={{ gap: GOL }}>
+        {casete}
+      </div>
     </div>
   )
+}
+
+/** Spaţiul dintre studii, în pixeli. */
+const GOL = 8
+const REZERVA = 4
+
+/**
+ * Cât loc are harta unui studiu deschis pe ecran lat: înălţimea listei minus
+ * barele de titlu ale tuturor studiilor, spaţiile dintre ele şi chenarele —
+ * adică exact cât ar avea dacă ar fi singurul deschis. `null` pe ecran îngust,
+ * unde harta stă în caseta ei fixă.
+ */
+function useLocHarta(lista: React.RefObject<HTMLDivElement | null>, activ: boolean, cate: number) {
+  const [loc, setLoc] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const l = lista.current
+    if (!activ || !l) return
+    const lat = window.matchMedia('(min-width: 1024px)')
+    const masoara = () => {
+      if (!lat.matches) return setLoc(null)
+      const bare = [...l.querySelectorAll<HTMLElement>('[data-cap-studiu]')].reduce((s, b) => s + b.offsetHeight, 0)
+      // + REZERVA: `offsetHeight` rotunjeşte bara în jos (36,45 → 36), iar fără
+      // cei câţiva pixeli în plus lista ar derula degeaba, cu un singur studiu.
+      setLoc(Math.max(240, l.clientHeight - bare - (cate - 1) * GOL - 2 * cate - REZERVA))
+    }
+    masoara()
+    const ro = new ResizeObserver(masoara)
+    ro.observe(l)
+    lat.addEventListener('change', masoara)
+    return () => { ro.disconnect(); lat.removeEventListener('change', masoara) }
+  }, [lista, activ, cate])
+  return loc
 }
 
 /**
  * Cât loc are harta pe Bârlog. Pe telefon, o casetă fixă de 300 de pixeli (un
  * studiu de 10 variante, cu nodurile suprapuse, încape în ea). Pe ecran lat,
- * caseta ia tot locul rămas până jos, iar harta se măreşte cât s-o umple, până
- * la SCARA_MAX — peste atât nodurile ar arăta umflate.
+ * caseta primeşte locul rămas până jos (`useLocHarta`), iar harta se măreşte
+ * cât s-o umple, până la SCARA_MAX — peste atât nodurile ar arăta umflate.
  */
 const INALTIME = 300
 const SCARA_MIN = 0.5
@@ -78,24 +136,14 @@ const SCARA_MAX = 1.5
 /** Umbra şi lacătul ultimului nod ies cu ~14px sub înălţimea calculată (măsurat). */
 const SUB_ULTIMUL = 16
 
-function HartaIncadrata({ noduri, eticheta, blocatTot }: {
+function HartaIncadrata({ noduri, eticheta, blocatTot, inaltime }: {
   noduri: Studiu['noduri']
   eticheta?: { nodId: string; text: string } | null
   blocatTot: boolean
+  inaltime: number
 }) {
   const cutie = useRef<HTMLDivElement>(null)
-  const [loc, setLoc] = useState(INALTIME)
-
-  // Locul se măsoară, nu se presupune: depinde de ecran şi de câte studii sunt.
-  useLayoutEffect(() => {
-    const c = cutie.current
-    if (!c) return
-    const masoara = () => setLoc(c.clientHeight || INALTIME)
-    masoara()
-    const ro = new ResizeObserver(masoara)
-    ro.observe(c)
-    return () => ro.disconnect()
-  }, [])
+  const loc = inaltime
 
   const natural = inaltimeaTraseuluiCompact(noduri)
   const scara = Math.max(SCARA_MIN, Math.min(SCARA_MAX, loc / (natural + SUB_ULTIMUL)))
@@ -113,9 +161,7 @@ function HartaIncadrata({ noduri, eticheta, blocatTot }: {
   }, [inalt, loc])
 
   return (
-    // Harta stă aşezată absolut în casetă, ca să nu-i poată cere mai mult loc:
-    // altfel caseta creştea după hartă, harta după casetă, şi tot aşa.
-    <div className="relative h-[300px] lg:h-auto lg:min-h-[240px] lg:flex-1">
+    <div className="relative" style={{ height: inaltime }}>
       <div ref={cutie} className="absolute inset-0 overflow-y-auto overflow-x-hidden">
         <div className="relative" style={{ height: inalt, marginTop: sus }}>
           <div
