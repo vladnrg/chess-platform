@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { BookOpen, Dumbbell, GraduationCap, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  FORME, GROSIME, GOL, PADDING, SUPRAPUNERE, abatere, iesireJos, intrareSus,
+  FORME, GROSIME, GOL, PADDING, PAS_LATERAL, PAS_LATERAL_COMPACT, SUPRAPUNERE, abatere, iesireJos, intrareSus,
   type NodeKind, type PathNode,
 } from './geometrie-traseu'
 
@@ -112,7 +112,7 @@ export function ChapterPath({ nodes, eticheta, blocatTot = false, compact = fals
             )}
             <div
               className="flex flex-col items-center"
-              style={{ transform: `translateX(${abatere(i)}px)`, marginTop: compact && i > 0 ? -SUPRAPUNERE : undefined, position: 'relative', zIndex: eticheta?.nodId === node.id ? 50 : i + 1 }}
+              style={{ transform: `translateX(${compact ? (abatere(i) / PAS_LATERAL) * PAS_LATERAL_COMPACT : abatere(i)}px)`, marginTop: compact && i > 0 ? -SUPRAPUNERE : undefined, position: 'relative', zIndex: eticheta?.nodId === node.id ? 50 : i + 1 }}
               // Semnul după care Bârlogul găseşte pasul curent ca să deruleze
               // până la el. Aici, nu în pagina aceea: starea se calculează o
               // singură dată, iar dacă ar recalcula-o altcineva, cele două ar

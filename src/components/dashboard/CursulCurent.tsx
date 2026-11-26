@@ -262,7 +262,9 @@ function CapitolulCursului({
 
   const i = Math.min(Math.max(iCurent, 0), capitole.length - 1)
   const cap = capitole[i]
-  const { deSus, deJos } = vecinii(capitole, i)
+  // Cu studii, ca pe Chessly, caseta arată doar capitolul curent şi studiile
+  // lui, ca totul să încapă fără derulare; la celelalte capitole duce săgeata.
+  const { deSus, deJos } = cap.studii?.length ? { deSus: [], deJos: [] } : vecinii(capitole, i)
 
   return (
     <div className="space-y-2 p-4">
@@ -283,7 +285,22 @@ function CapitolulCursului({
           </button>
         )}
 
-        <div className="min-w-0 flex-1 rounded-xl border border-[#E2B340]/25 bg-[#1A1A1A] px-4 py-2.5 text-center">
+        <div className="relative min-w-0 flex-1 rounded-xl border border-[#E2B340]/25 bg-[#1A1A1A] px-10 py-2.5 text-center">
+          {/* Capitolul anterior / următor, în casetă (când lipsesc rândurile vecinilor). */}
+          {cap.studii?.length ? (
+            <>
+              {i > 0 && (
+                <button onClick={() => setCapitol(i - 1)} aria-label="Capitolul anterior" className="absolute left-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#A0A0A0] transition-colors hover:bg-[#242424] hover:text-[#F0F0F0]">
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+              )}
+              {i < capitole.length - 1 && (
+                <button onClick={() => setCapitol(i + 1)} aria-label="Capitolul următor" className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#A0A0A0] transition-colors hover:bg-[#242424] hover:text-[#F0F0F0]">
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              )}
+            </>
+          ) : null}
           <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#E2B340]">
             Capitolul {i + 1}
             {capitole.length > 1 && ` din ${capitole.length}`}

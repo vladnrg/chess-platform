@@ -111,7 +111,9 @@ export function inaltimeaTraseului(noduri: PathNode[]): number {
  * suprapun pe verticală cu atât, fără fir între ele, ca un studiu întreg să
  * încapă din prima, fără derulare.
  */
-export const SUPRAPUNERE = 30
+export const SUPRAPUNERE = 24
+/** În modul compact, nodurile din lateral se duc mai departe de mijloc, ca să nu acopere cărţile. */
+export const PAS_LATERAL_COMPACT = 76
 
 export function inaltimeaTraseuluiCompact(noduri: PathNode[]): number {
   if (noduri.length === 0) return 0
