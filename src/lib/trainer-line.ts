@@ -129,7 +129,9 @@ async function variantaCapitol(lineId: string, index: number): Promise<TrainerLi
     variantaIndex: index,
     nrVariante,
     numeVarianta: ramura.nume,
-    despartire: desp,
+    // O sub-variantă dintr-un studiu se desparte de linia studiului, nu de cea
+    // principală: introducerea şi mini-tabla pornesc de la abaterea ei (2026-11-26).
+    despartire: ramura.abatere_ply ?? desp,
     popularitateVarianta: ramura.popularitate_niveluri ?? null,
     popularitatePeRatingVarianta: ramura.popularitate_pe_rating ?? null,
   }

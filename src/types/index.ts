@@ -577,6 +577,8 @@ export interface VariantaCapitol {
   popularitate_niveluri?: Record<'incepator' | 'intermediar' | 'avansat', number> | null
   /** La fel, pe trepte de rating şi platforme (migrarea 140). */
   popularitate_pe_rating?: PopularitatePeRating | null
+  /** Semi-mutarea la care adversarul se abate (sub-variantele unui studiu, migrarea 144). Lipsă = despărţirea de linia principală. */
+  abatere_ply?: number
 }
 
 /**
