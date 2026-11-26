@@ -185,6 +185,14 @@ export interface DateDeCurs {
   }[]
 }
 
+/**
+ * Numele etapei unei variante în `noduri_parcurse`. Prima variantă păstrează
+ * numele de dinainte (`-teorie`, `-exersare`), ca progresul vechi să rămână.
+ */
+export function nodVarianta(lineId: string, varianta: number, fel: 'teorie' | 'exersare'): string {
+  return varianta === 0 ? `${lineId}-${fel}` : `${lineId}-${fel}-${varianta}`
+}
+
 /** Capitolele unui curs de deschideri. */
 export function capitoleDeDeschidere(
   slug: string,
@@ -203,40 +211,25 @@ export function capitoleDeDeschidere(
     cand: noduriParcurse[n.id],
   })
   const capitole: Capitol[] = ordoneazaPeNivel(linii, inc).map(linie => {
-    // Paşii capitolului (cerut pe 2026-11-25, ca la Chessly): variantele 1–2,
-    // apoi 3–4 (sau doar 3). Jocul de mijloc nu mai e un pas separat.
+    // Etapele capitolului (cerut pe 2026-11-26): fiecare variantă, pe rând,
+    // studiată şi apoi exersată. Jocul de mijloc nu mai e un pas separat.
     const nrVariante = 1 + (linie.variante?.length ?? 0)
-    const despre = (de: number, pana: number) => pana > de ? `variantele ${de}–${pana}` : `varianta ${de}`
-    const teorieGata = parcurse.includes(linie.id)
 
     const noduri: PathNode[] = [
-        nod({
-          id: `${linie.id}-teorie`,
-          kind: 'lectie',
-          title: `Studiu: ${despre(1, Math.min(2, nrVariante))}`,
-          href: `/courses/${slug}/guided/${linie.id}`,
-        }, teorieGata),
-        nod({
-          id: `${linie.id}-exersare`,
-          kind: 'exercitiu',
-          title: `Exersare: ${despre(1, Math.min(2, nrVariante))}`,
-          href: `/courses/${slug}/practice/${linie.id}`,
-        }),
-        // Adresele pasului al doilea au rămas cele vechi ale jocului de mijloc.
-        ...(nrVariante > 2 ? [
+        ...Array.from({ length: nrVariante }, (_, v) => [
           nod({
-            id: `${linie.id}-mijloc`,
+            id: nodVarianta(linie.id, v, 'teorie'),
             kind: 'lectie' as const,
-            title: `Studiu: ${despre(3, Math.min(4, nrVariante))}`,
-            href: `/courses/${slug}/middlegame/${linie.id}`,
-          }),
+            title: `Studiu: varianta ${v + 1}`,
+            href: `/courses/${slug}/guided/${linie.id}?v=${v}`,
+          }, v === 0 && parcurse.includes(linie.id)),
           nod({
-            id: `${linie.id}-mijloc-singur`,
+            id: nodVarianta(linie.id, v, 'exersare'),
             kind: 'exercitiu' as const,
-            title: `Exersare: ${despre(3, Math.min(4, nrVariante))}`,
-            href: `/courses/${slug}/middlegame-practice/${linie.id}`,
+            title: `Exersare: varianta ${v + 1}`,
+            href: `/courses/${slug}/practice/${linie.id}?v=${v}`,
           }),
-        ] : []),
+        ]).flat(),
         {
           // Fără `href`: nodul există în traseu fiindcă face parte din el, dar
           // întrebările încă nu sunt construite. Mai bine un pas care spune „în

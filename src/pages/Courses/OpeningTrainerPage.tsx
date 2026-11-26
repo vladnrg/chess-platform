@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
-import { incadrareDin, ordoneazaPeNivel, procentMasurat } from '@/lib/capitole-curs'
+import { incadrareDin, nodVarianta, ordoneazaPeNivel, procentMasurat } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
@@ -226,8 +226,9 @@ function SemnGresit() {
 interface Props {
   mode: 'guided' | 'practice'
   /**
-   * 'opening' = primul pas al capitolului (variantele 1–2); 'middlegame' = al
-   * doilea (3–4) — numele vechi a rămas în adrese; 'trap' = capcana.
+   * 'opening' = o variantă a capitolului (`?v=`); 'middlegame' = adresa veche a
+   * pasului cu variantele 3–4, păstrată pentru legăturile vechi (fără `?v=`
+   * deschide varianta 3); 'trap' = capcana.
    */
   stage?: 'opening' | 'middlegame' | 'trap'
 }
@@ -238,19 +239,18 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const { lightSquareStyle, darkSquareStyle } = useBoardTheme()
   const isGuided = mode === 'guided'
   const isTrap = stage === 'trap'
-  /** Pasul capitolului: 0 = variantele 1–2, 1 = variantele 3–4. */
-  const pas = stage === 'middlegame' ? 1 : 0
   const savedDoneRef = useRef(false)
   const navigate = useNavigate()
+  // Fiecare variantă e o etapă de studiu şi una de exersare, pe rând (cerut pe
+  // 2026-11-26; înainte, câte două variante pe etapă). `?v=` = varianta.
   // „Refă exersările greşite" deschide exersarea cu `?refacere=1,3` (variantele
-  // greşite): se joacă doar ele, iar la capăt revine fereastra de rezultat.
-  // `?v=` = varianta pe care o joci; lipsă = prima din pas.
+  // greşite): se joacă doar ele, una după alta, iar la capăt revine fereastra de rezultat.
   const [parametri] = useSearchParams()
   const refacere = (parametri.get('refacere') ?? '').split(',').filter(x => /^\d+$/.test(x)).map(Number)
   const vCerut = parametri.get('v')
   const varianta = isTrap ? 0
     : vCerut !== null && /^\d+$/.test(vCerut) ? Number(vCerut)
-    : refacere.find(i => Math.floor(i / 2) === pas) ?? pas * 2
+    : refacere[0] ?? (stage === 'middlegame' ? 2 : 0)
   /** Când a început exersarea şi dacă a avut vreo greşeală sau „Soluţie". */
   const inceputRunda = useRef(0)
   const rundaImperfecta = useRef(false)
@@ -262,9 +262,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // unul dintre ele uitase capcanele: butonul „Pe cont propriu" de la capătul
   // liniei trimitea id-ul capcanei către ruta deschiderilor, care evident nu-l
   // găsea în `opening_lines` — de acolo „Varianta nu a fost găsită.".
-  const practicePath = `/courses/${slug}/${
-    isTrap ? 'trap-practice' : pas === 1 ? 'middlegame-practice' : 'practice'
-  }/${lineId}`
+  const practicePath = isTrap
+    ? `/courses/${slug}/trap-practice/${lineId}`
+    : `/courses/${slug}/practice/${lineId}?v=${varianta}`
 
   const { data: line, isLoading } = useQuery({
     queryKey: ['trainer-line', lineId, stage, mode, varianta],
@@ -393,23 +393,20 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     if (!isGuided || !line || state?.status !== 'line-done' || savedDoneRef.current) return
     savedDoneRef.current = true
     localStorage.removeItem(resumeKey(line.id, stage, line.variantaIndex ?? 0))
-    // Pasul e gata abia după ultima lui variantă.
-    const ultimaDinPas = (line.variantaIndex ?? 0) >= Math.min(pas * 2 + 1, (line.nrVariante ?? 1) - 1)
-    void persistProgress(ultimaDinPas)
+    // Capitolul e studiat abia după ultima lui variantă.
+    void persistProgress((line.variantaIndex ?? 0) >= (line.nrVariante ?? 1) - 1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
 
-  // Pasul de pe traseu e gata după ultima lui variantă: se notează cu data, ca
-  // pagina cursului să ştie ce e deblocat, unde „te afli" şi care e „ultimul
+  // Etapa de pe traseu (studiul sau exersarea unei variante) se notează cu data,
+  // ca pagina cursului să ştie ce e deblocat, unde „te afli" şi care e „ultimul
   // studiu completat" (cerut pe 2026-11-25). Şi refacerea mută data.
   const clientQuery = useQueryClient()
   useEffect(() => {
     if (status !== 'line-done' || !line || !user || !lineId) return
-    const ultimaDinPas = (line.variantaIndex ?? 0) >= Math.min(pas * 2 + 1, (line.nrVariante ?? 1) - 1)
-    if (!ultimaDinPas) return
     const nodId = isTrap
       ? `${lineId}-${isGuided ? 'lectie' : 'exercitiu'}`
-      : `${lineId}-${pas === 0 ? (isGuided ? 'teorie' : 'exersare') : (isGuided ? 'mijloc' : 'mijloc-singur')}`
+      : nodVarianta(lineId, line.variantaIndex ?? 0, isGuided ? 'teorie' : 'exersare')
     void (async () => {
       const { data } = await supabase
         .from('user_course_progress')
@@ -599,32 +596,27 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const urmatoarea = moves[state.plyIdx]
   const greseliAici = greseli.ply === state.plyIdx ? greseli.n : 0
 
-  // ── Paşii capitolului ───────────────────────────────────────────────────────
-  // Ca la Chessly (cerut pe 2026-11-25): variantele se învaţă câte două, apoi se
-  // exersează aceleaşi două; al doilea pas are varianta 3 şi, unde există, 4.
-  // Fiecare pas e o parte cu studiu şi exersare, iar bara de sus are câte un
-  // segment pentru fiecare.
-  const nrVariante = line.nrVariante ?? 1
+  // ── Etapele capitolului ─────────────────────────────────────────────────────
+  // Variantele se iau pe rând: studiul variantei, apoi exersarea ei (cerut pe
+  // 2026-11-26). Fiecare etapă are segmentul ei în bara de sus.
+  const nrVariante = isTrap ? 1 : line.nrVariante ?? 1
   const variantaAici = line.variantaIndex ?? 0
-  const nrPasi = !isTrap && nrVariante > 2 ? 2 : 1
-  const adresa = (p: number, exersare: boolean) => isTrap
+  const adresa = (v: number, exersare: boolean) => isTrap
     ? `/courses/${slug}/${exersare ? 'trap-practice' : 'trap'}/${lineId}`
-    : `/courses/${slug}/${p === 0 ? (exersare ? 'practice' : 'guided') : (exersare ? 'middlegame-practice' : 'middlegame')}/${lineId}`
-  /** Variantele pasului ăsta; la refacere, doar cele greşite. */
-  const toateDinPas = [pas * 2, pas * 2 + 1].filter(i => i < nrVariante)
-  const deRefacut = refacere.filter(i => toateDinPas.includes(i))
-  const lista = !isGuided && deRefacut.length > 0 ? deRefacut : toateDinPas
-  const pozitieInLista = Math.max(0, lista.indexOf(variantaAici))
-  const variantaUrmatoare = lista[pozitieInLista + 1] as number | undefined
-  const segmente = Array.from({ length: nrPasi }, (_, p) => [
-    { eticheta: `Partea ${p + 1}: Studiu`, href: adresa(p, false) },
-    { eticheta: `Partea ${p + 1}: Practică pe baza studiului`, href: adresa(p, true) },
+    : `/courses/${slug}/${exersare ? 'practice' : 'guided'}/${lineId}?v=${v}`
+  /** La refacere, următoarea variantă greşită de exersat. */
+  const variantaUrmatoare = !isGuided && refacere.includes(variantaAici)
+    ? refacere[refacere.indexOf(variantaAici) + 1] as number | undefined
+    : undefined
+  const segmente = Array.from({ length: nrVariante }, (_, v) => [
+    { eticheta: `Varianta ${v + 1}: Studiu`, href: adresa(v, false) },
+    { eticheta: `Varianta ${v + 1}: Practică pe baza studiului`, href: adresa(v, true) },
   ]).flat()
-  const segmentCurent = pas * 2 + (isGuided ? 0 : 1)
+  const segmentCurent = variantaAici * 2 + (isGuided ? 0 : 1)
   const umplere = (i: number) =>
     i < segmentCurent ? 100
       : i > segmentCurent ? 0
-      : ((pozitieInLista + (gata ? 1 : moves.length > 0 ? state.plyIdx / moves.length : 0)) / Math.max(1, lista.length)) * 100
+      : (gata ? 1 : moves.length > 0 ? state.plyIdx / moves.length : 0) * 100
 
   // Ordinea capitolelor e a nivelului tău, ca în cuprins: „Capitolul N" şi
   // „Capitolul următor" trebuie să spună acelaşi lucru ca pagina cursului.
@@ -640,26 +632,23 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // pornită din fereastră —, cu rezultatul tuturor variantelor.
   const variantele = Array.from({ length: nrVariante }, (_, i) => i)
   const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && variantaUrmatoare === undefined
-    && (refacere.length > 0 || pas === nrPasi - 1)
+    && (refacere.length > 0 || variantaAici === nrVariante - 1)
   const continuaHref = capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
   const gresite = variantele.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
   const refaGresite = gresite.length > 0
     ? () => {
-        const pasTinta = Math.floor(gresite[0] / 2)
-        if (pasTinta === pas && gresite[0] === variantaAici) resetLine()
-        navigate(`${adresa(pasTinta, true)}?refacere=${gresite.join(',')}&v=${gresite[0]}`)
+        if (gresite[0] === variantaAici) resetLine()
+        navigate(`${adresa(gresite[0], true)}&refacere=${gresite.join(',')}`)
       }
     : null
 
   /** Unde duce „Continuă" de la capătul variantei. */
-  const cuParametri = (v: number) =>
-    `?${!isGuided && refacere.length > 0 ? `refacere=${refacere.join(',')}&` : ''}v=${v}`
   const urmator = variantaUrmatoare !== undefined
-    ? { eticheta: `Continuă: varianta ${pozitieInLista + 2}`, href: cuParametri(variantaUrmatoare) }
+    ? { eticheta: `Continuă: exersarea variantei ${variantaUrmatoare + 1}`, href: `${adresa(variantaUrmatoare, true)}&refacere=${refacere.join(',')}` }
     : isGuided
     ? { eticheta: 'Continuă spre exersare', href: practicePath }
-    : pas < nrPasi - 1 && refacere.length === 0
-    ? { eticheta: `Continuă: ${nrVariante > 3 ? 'variantele 3–4' : 'varianta 3'}`, href: adresa(pas + 1, false) }
+    : !isTrap && variantaAici < nrVariante - 1 && refacere.length === 0
+    ? { eticheta: `Continuă: varianta ${variantaAici + 2}`, href: adresa(variantaAici + 1, false) }
     : !isTrap && capitolUrmator
     ? { eticheta: 'Capitolul următor', href: `/courses/${slug}/guided/${capitolUrmator.id}` }
     : { eticheta: 'Înapoi la curs', href: `/courses/${slug}` }
@@ -845,11 +834,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             : <Dumbbell className="h-4 w-4 flex-shrink-0 text-[#E2B340]" />}
           <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#E2B340]">
             {/* Numele etapelor, cerute pe 2026-11-23: „Studiu" şi „Practică pe baza studiului". */}
-            {/* Pe 2026-11-25 părţile au devenit paşi de câte două variante, ca la Chessly. */}
+            {/* Din 2026-11-26, o variantă pe etapă: studiul ei, apoi exersarea ei. */}
             {isTrap && 'Capcana: '}
-            {nrPasi > 1 && `Partea ${pas + 1} din ${nrPasi}: `}
+            {nrVariante > 1 && `Varianta ${variantaAici + 1} din ${nrVariante}: `}
             {isGuided ? 'Studiu' : 'Practică pe baza studiului'}
-            {lista.length > 1 && ` · Varianta ${pozitieInLista + 1} din ${lista.length}`}
           </p>
           {!isGuided && !gata && (
             <button
@@ -881,7 +869,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
                 <Search className="h-4 w-4 text-[#6B6B6B]" /> Analizează poziția
               </Link>
               <button type="button" onClick={() => { resetLine(); setMeniu(false) }} className={elementMeniu}>
-                <RotateCcw className="h-4 w-4 text-[#6B6B6B]" /> Reia de la început
+                <RotateCcw className="h-4 w-4 text-[#6B6B6B]" /> Reia varianta de la început
               </button>
               {!isTrap && liniiCurs.length > 1 && (
                 <>
@@ -1013,8 +1001,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
           )}
 
           {/* Jocul de mijloc se exersează în Analiză, din poziţia de la capăt
-              (cerut pe 2026-11-25, când jocul de mijloc a ieşit din capitole). */}
-          {gata && !isTrap && !priveste && (
+              (cerut pe 2026-11-25, când jocul de mijloc a ieşit din capitole).
+              Doar la exersare: studiul ţine atenţia pe conţinut, iar pentru
+              poziţie există „Analizează poziţia" din meniu (cerut pe 2026-11-26). */}
+          {gata && !isTrap && !isGuided && !priveste && (
             <Link
               to={`/analiza?fen=${encodeURIComponent(fenAcum)}&orientare=${line.user_color === 'black' ? 'negru' : 'alb'}`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-[rgba(45,212,191,0.3)] bg-[rgba(45,212,191,0.08)] px-3 py-2 text-sm font-semibold text-[#2DD4BF] transition-colors hover:bg-[rgba(45,212,191,0.14)]"
