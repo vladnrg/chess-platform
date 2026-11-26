@@ -101,7 +101,9 @@ export function ordoneazaPeNivel<T extends Pick<OpeningLine, 'order_index' | 'gr
   inc: Incadrare,
 ): T[] {
   if (!linii.some(areProcente)) return linii
-  const cheie = (l: T) => l.grup ?? `#${l.order_index}`
+  // Un capitol desprins din altul („3…Nc5, 4…d6", migrarea 145) stă în grupul
+  // capitolului din care vine: cheia e prima mutare din `grup`.
+  const cheie = (l: T) => (l.grup ?? `#${l.order_index}`).split(',')[0].trim()
   const procentGrup = new Map<string, number>()
   const primulInGrup = new Map<string, number>()
   for (const l of linii) {
