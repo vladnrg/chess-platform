@@ -11,6 +11,7 @@ import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
 import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, etichetaTraseu, incadrareDin, type Capitol } from '@/lib/capitole-curs'
 import { StudiiCapitol } from '@/components/courses/StudiiCapitol'
+import { cn } from '@/lib/utils'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
 
 /**
@@ -110,7 +111,7 @@ export function CursulCurent() {
   }
 
   return (
-    <div className="rounded-2xl border border-[#2A2A2A] bg-[#141414]">
+    <div className="flex flex-col rounded-2xl border border-[#2A2A2A] bg-[#141414]">
       <AntetCurs
         curs={curs}
         cate={inLucru.length}
@@ -267,7 +268,7 @@ function CapitolulCursului({
   const { deSus, deJos } = cap.studii?.length ? { deSus: [], deJos: [] } : vecinii(capitole, i)
 
   return (
-    <div className="space-y-2 p-4">
+    <div className={cn('space-y-2 p-4', cap.studii?.length && 'lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:gap-2 lg:space-y-0')}>
       {/* Capitolele din urmă. Apar doar când nu mai e nimic înainte — drumul se
           citeşte în jos, deci ce a trecut stă deasupra. */}
       {deSus.map(v => (

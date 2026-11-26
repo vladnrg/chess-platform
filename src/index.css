@@ -73,8 +73,9 @@
      pixeli măriţi. Scrisul mai mare cere mai mult loc, deci 110rem în loc de 96
      — dar nu tot ecranul: la 1920px rămân 80px de fiecare parte. Fără plafonul
      ăsta, `--app-max` citit în pixeli măriţi dădea exact 1920px şi conţinutul
-     se lipea de margini (măsurat). */
-  --app-max-zoom: 110rem;
+     se lipea de margini (măsurat). 114rem din 2026-11-26: caseta cu studiile de
+     pe Bârlog a cerut puţin mai mult loc în lăţime, ca la Chessly. */
+  --app-max-zoom: 114rem;
 
   /* Latura maximă a unei table de şah, oriunde se antrenează cineva: pagina de
      puzzle-uri, Cuferele cu tactici, testul de plasament, sarcinile de eveniment.
