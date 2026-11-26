@@ -166,6 +166,11 @@ export interface Capitol {
   titlu: string
   subtitlu: string
   noduri: PathNode[]
+  /**
+   * Studiile capitolului, ca la Chessly (cerut pe 2026-11-26): fiecare cu titlul
+   * lui şi traseul lui, care se încheie cu testul. `noduri` = toate, la rând.
+   */
+  studii?: Studiu[]
   terminat: boolean
   /**
    * Sub ce titlu stă capitolul în cuprins: teoria „ca la carte", ce joacă de
@@ -183,6 +188,44 @@ export interface DateDeCurs {
     variation_name: string | null
     spring_ply: number | null
   }[]
+}
+
+export interface Studiu {
+  titlu: string
+  noduri: PathNode[]
+}
+
+/**
+ * Câte variante intră cel mult într-un studiu. „În jur de 10, poate şi mai
+ * mult, după cât de laborios e" (utilizatorul, 2026-11-26); peste, capitolul se
+ * împarte în mai multe studii.
+ */
+const VARIANTE_PE_STUDIU = 10
+
+/**
+ * Variantele setului din care face parte varianta `v`: se parcurg câte două
+ * (studiu, exersare, studiu, exersare); dacă rămâne una fără pereche la capătul
+ * studiului, setul ei o are doar pe ea (cerut pe 2026-11-26).
+ */
+export function variantaleSetului(v: number, nrVariante: number): number[] {
+  const inceputStudiu = Math.floor(v / VARIANTE_PE_STUDIU) * VARIANTE_PE_STUDIU
+  const capatStudiu = Math.min(nrVariante, inceputStudiu + VARIANTE_PE_STUDIU)
+  const prima = inceputStudiu + Math.floor((v - inceputStudiu) / 2) * 2
+  return [prima, prima + 1].filter(i => i < capatStudiu)
+}
+
+/** „Dacă adversarul joacă 5…Nb6" → „5…Nb6"; „…face rocada la mutarea 7" → „rocada la mutarea 7". */
+function abatere(nume: string): string {
+  return nume.replace(/^Dacă adversarul (joacă |face )/, '')
+}
+
+/** Titlul unui studiu, din mutările variantelor lui. */
+function titluStudiu(nume: string[], cuLiniaPrincipala: boolean): string {
+  const lista = (x: string[], si: string) => x.length < 2 ? x.join('') : `${x.slice(0, -1).join(', ')} ${si} ${x[x.length - 1]}`
+  if (cuLiniaPrincipala) {
+    return nume.length === 0 ? 'Linia principală' : `Linia principală şi ${nume.length === 1 ? 'abaterea' : 'abaterile'} ${lista(nume, 'şi')}`
+  }
+  return `Dacă adversarul joacă ${lista(nume, 'sau')}`
 }
 
 /**
@@ -211,39 +254,54 @@ export function capitoleDeDeschidere(
     cand: noduriParcurse[n.id],
   })
   const capitole: Capitol[] = ordoneazaPeNivel(linii, inc).map(linie => {
-    // Etapele capitolului (cerut pe 2026-11-26): fiecare variantă, pe rând,
-    // studiată şi apoi exersată. Jocul de mijloc nu mai e un pas separat.
+    // Etapele capitolului (cerut pe 2026-11-26): capitolul se împarte în studii
+    // (câte cel mult VARIANTE_PE_STUDIU variante), iar în fiecare studiu
+    // variantele se iau pe rând, studiată şi apoi exersată, în seturi de câte
+    // două. Fiecare studiu se încheie cu testul lui.
     const nrVariante = 1 + (linie.variante?.length ?? 0)
+    const nrStudii = Math.ceil(nrVariante / VARIANTE_PE_STUDIU)
 
-    const noduri: PathNode[] = [
-        ...Array.from({ length: nrVariante }, (_, v) => [
-          nod({
-            id: nodVarianta(linie.id, v, 'teorie'),
-            kind: 'lectie' as const,
-            title: `Studiu: varianta ${v + 1}`,
-            href: `/courses/${slug}/guided/${linie.id}?v=${v}`,
-          }, v === 0 && parcurse.includes(linie.id)),
-          nod({
-            id: nodVarianta(linie.id, v, 'exersare'),
-            kind: 'exercitiu' as const,
-            title: `Exersare: varianta ${v + 1}`,
-            href: `/courses/${slug}/practice/${linie.id}?v=${v}`,
-          }),
-        ]).flat(),
-        {
-          // Fără `href`: nodul există în traseu fiindcă face parte din el, dar
-          // întrebările încă nu sunt construite. Mai bine un pas care spune „în
-          // curând" decât un traseu care se termină brusc.
-          id: `${linie.id}-test`,
-          kind: 'test',
-          title: 'Verificare de capitol',
-        },
-    ]
+    const studii: Studiu[] = Array.from({ length: nrStudii }, (_, s) => {
+      const de = s * VARIANTE_PE_STUDIU
+      const variante = Array.from({ length: Math.min(VARIANTE_PE_STUDIU, nrVariante - de) }, (_, i) => de + i)
+      return {
+        titlu: titluStudiu(
+          variante.filter(v => v > 0).map(v => abatere(linie.variante?.[v - 1]?.nume ?? `varianta ${v + 1}`)),
+          s === 0,
+        ),
+        noduri: [
+          ...variante.flatMap(v => [
+            nod({
+              id: nodVarianta(linie.id, v, 'teorie'),
+              kind: 'lectie' as const,
+              title: `Studiu: varianta ${v + 1}`,
+              href: `/courses/${slug}/guided/${linie.id}?v=${v}`,
+            }, v === 0 && parcurse.includes(linie.id)),
+            nod({
+              id: nodVarianta(linie.id, v, 'exersare'),
+              kind: 'exercitiu' as const,
+              title: `Exersare: varianta ${v + 1}`,
+              href: `/courses/${slug}/practice/${linie.id}?v=${v}`,
+            }),
+          ]),
+          {
+            // Fără `href`: nodul există în traseu fiindcă face parte din el, dar
+            // întrebările încă nu sunt construite. Mai bine un pas care spune „în
+            // curând" decât un traseu care se termină brusc.
+            id: s === 0 ? `${linie.id}-test` : `${linie.id}-test-${s}`,
+            kind: 'test' as const,
+            title: nrStudii > 1 ? `Verificare: studiul ${s + 1}` : 'Verificare de capitol',
+          },
+        ],
+      }
+    })
+    const noduri = studii.flatMap(st => st.noduri)
 
     return {
       id: linie.id,
       titlu: linie.variation_name,
       subtitlu: subtitluCapitol(linie, inc),
+      studii,
       // Terminat = toţi paşii care duc undeva sunt făcuţi (testul încă n-are pagină).
       terminat: noduri.filter(n => n.href).every(n => n.done),
       grupa: linie.tip === 'practica' ? 'practica' : 'teorie',

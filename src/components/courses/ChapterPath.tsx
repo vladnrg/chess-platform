@@ -77,18 +77,20 @@ function stareaNodului(node: PathNode, esteCurent: boolean, blocat: boolean) {
  * urmează după el stă cu lacăt. Regula e derivată din `done`, nu ţinută separat
  * — altfel ar exista două adevăruri despre acelaşi lucru.
  */
-export function ChapterPath({ nodes, eticheta }: {
+export function ChapterPath({ nodes, eticheta, blocatTot = false }: {
   nodes: PathNode[]
   /** Mesajul de sub un nod („Te afli aici", „Ultimul studiu completat"), vezi `etichetaTraseu`. */
   eticheta?: { nodId: string; text: string } | null
+  /** Un studiu care aşteaptă să termini studiul de dinainte: tot cu lacăt. */
+  blocatTot?: boolean
 }) {
-  const idxCurent = nodes.findIndex(n => !n.done)
+  const idxCurent = blocatTot ? -1 : nodes.findIndex(n => !n.done)
 
   return (
     <div className="flex flex-col items-center" style={{ paddingBlock: PADDING }}>
       {nodes.map((node, i) => {
         const esteCurent = i === idxCurent
-        const blocat = idxCurent !== -1 && i > idxCurent
+        const blocat = blocatTot ? !node.done : idxCurent !== -1 && i > idxCurent
         const stare = stareaNodului(node, esteCurent, blocat)
         const Icoana = ICOANE[node.kind]
 

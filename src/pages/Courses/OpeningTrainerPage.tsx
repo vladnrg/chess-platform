@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
-import { incadrareDin, nodVarianta, ordoneazaPeNivel, procentMasurat } from '@/lib/capitole-curs'
+import { incadrareDin, nodVarianta, ordoneazaPeNivel, procentMasurat, variantaleSetului } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
@@ -138,6 +138,12 @@ function pozitiaLa(line: TrainerLine, ply: number): { fen: string; de: string | 
   const ultima = tinta > 0 ? moves[tinta - 1] : null
   return { fen: game.fen(), de: ultima?.slice(0, 2) ?? null, la: ultima?.slice(2, 4) ?? null }
 }
+
+/**
+ * Ora curentă, pentru cronometrul exersării. `resetLine` o citeşte doar din
+ * clicuri, dar analiza React nu ştie asta şi refuză `Date.now()` scris direct.
+ */
+const acum = () => Date.now()
 
 const resumeKey = (lineId: string, stage: string, varianta: number) => `op-resume:${stage}:${lineId}:${varianta}`
 
@@ -543,7 +549,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     setSolutieLa(null)
     setRezultate(null)
     setRezumatInchis(false)
-    inceputRunda.current = Date.now()
+    inceputRunda.current = acum()
     rundaImperfecta.current = false
   }
 
@@ -597,10 +603,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const greseliAici = greseli.ply === state.plyIdx ? greseli.n : 0
 
   // ── Etapele capitolului ─────────────────────────────────────────────────────
-  // Variantele se iau pe rând: studiul variantei, apoi exersarea ei (cerut pe
-  // 2026-11-26). Fiecare etapă are segmentul ei în bara de sus.
+  // Variantele se iau în seturi de câte două (cerut pe 2026-11-26): studiul
+  // variantei, exersarea ei, apoi a doua variantă la fel; ultimul set poate avea
+  // una singură. Bara de sus arată doar setul curent: 4 segmente, sau 2.
   const nrVariante = isTrap ? 1 : line.nrVariante ?? 1
   const variantaAici = line.variantaIndex ?? 0
+  const dinSet = isTrap ? [0] : variantaleSetului(variantaAici, nrVariante)
   const adresa = (v: number, exersare: boolean) => isTrap
     ? `/courses/${slug}/${exersare ? 'trap-practice' : 'trap'}/${lineId}`
     : `/courses/${slug}/${exersare ? 'practice' : 'guided'}/${lineId}?v=${v}`
@@ -608,11 +616,11 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const variantaUrmatoare = !isGuided && refacere.includes(variantaAici)
     ? refacere[refacere.indexOf(variantaAici) + 1] as number | undefined
     : undefined
-  const segmente = Array.from({ length: nrVariante }, (_, v) => [
+  const segmente = dinSet.flatMap(v => [
     { eticheta: `Varianta ${v + 1}: Studiu`, href: adresa(v, false) },
     { eticheta: `Varianta ${v + 1}: Practică pe baza studiului`, href: adresa(v, true) },
-  ]).flat()
-  const segmentCurent = variantaAici * 2 + (isGuided ? 0 : 1)
+  ])
+  const segmentCurent = Math.max(0, dinSet.indexOf(variantaAici)) * 2 + (isGuided ? 0 : 1)
   const umplere = (i: number) =>
     i < segmentCurent ? 100
       : i > segmentCurent ? 0
@@ -627,14 +635,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     ? `Capcane uzuale · ${line.variation_name}`
     : indexCapitol >= 0 ? `Capitolul ${indexCapitol + 1} · ${line.variation_name}` : line.variation_name
 
-  // ── Fereastra de final a capitolului ────────────────────────────────────────
-  // După ultima variantă exersată a capitolului — sau după orice refacere
-  // pornită din fereastră —, cu rezultatul tuturor variantelor.
-  const variantele = Array.from({ length: nrVariante }, (_, i) => i)
+  // ── Fereastra de final a setului ────────────────────────────────────────────
+  // După exersarea ultimei variante din set — sau după orice refacere pornită
+  // din fereastră —, cu rezultatul variantelor setului (ca la Chessly).
+  const ultimaDinSet = dinSet[dinSet.length - 1]
   const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && variantaUrmatoare === undefined
-    && (refacere.length > 0 || variantaAici === nrVariante - 1)
-  const continuaHref = capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
-  const gresite = variantele.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
+    && (refacere.length > 0 || variantaAici === ultimaDinSet)
+  const continuaHref = ultimaDinSet < nrVariante - 1
+    ? adresa(ultimaDinSet + 1, false)
+    : capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
+  const gresite = dinSet.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
   const refaGresite = gresite.length > 0
     ? () => {
         if (gresite[0] === variantaAici) resetLine()
@@ -1055,7 +1065,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
       {arataRezumat && rezultate && (
         <RezumatCapitol
-          parti={variantele}
+          parti={dinSet}
           rezultate={rezultate}
           continuaHref={continuaHref}
           onRefa={refaGresite}
