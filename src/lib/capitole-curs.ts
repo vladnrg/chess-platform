@@ -254,6 +254,43 @@ export function variantaleSetului(v: number, studii: StudiuCapitol[]): number[] 
 }
 
 /**
+ * O etapă din harta unui studiu (cerut pe 2026-11-26, ca la Chessly):
+ *  - `set`: o carte — studiul şi exersarea a două variante, pe rând;
+ *  - `recap`: o ganteră după fiecare set — exersările ultimelor cel mult 6
+ *    variante învăţate în studiu;
+ *  - `test`: pălăria de la capătul studiului — exersările tuturor variantelor lui.
+ * `id` e numele etapei în `noduri_parcurse` (după id-ul capitolului).
+ */
+export interface Etapa {
+  tip: 'set' | 'recap' | 'test'
+  studiu: number
+  variante: number[]
+  id: string
+}
+
+const RECAP_MAX = 6
+
+export function etapeCapitol(studii: StudiuCapitol[]): Etapa[] {
+  return studii.flatMap((st, s) => {
+    const v = st.variante
+    const out: Etapa[] = []
+    for (let k = 0; k * 2 < v.length; k++) {
+      out.push({ tip: 'set', studiu: s, variante: v.slice(k * 2, k * 2 + 2), id: `set${s}-${k}` })
+      out.push({ tip: 'recap', studiu: s, variante: v.slice(0, k * 2 + 2).slice(-RECAP_MAX), id: `r${s}-${k}` })
+    }
+    out.push({ tip: 'test', studiu: s, variante: [...v], id: s === 0 ? 'test' : `test-${s}` })
+    return out
+  })
+}
+
+/** Unde duce o etapă: cartea începe cu studiul primei variante; gantera şi pălăria, cu exersările la rând. */
+export function adresaEtapei(slug: string, lineId: string, e: Etapa): string {
+  return e.tip === 'set'
+    ? `/courses/${slug}/guided/${lineId}?v=${e.variante[0]}`
+    : `/courses/${slug}/practice/${lineId}?v=${e.variante[0]}&lista=${e.variante.join(',')}&etapa=${e.id}`
+}
+
+/**
  * Numele etapei unei variante în `noduri_parcurse`. Prima variantă păstrează
  * numele de dinainte (`-teorie`, `-exersare`), ca progresul vechi să rămână.
  */
@@ -280,41 +317,39 @@ export function capitoleDeDeschidere(
   })
   const capitole: Capitol[] = ordoneazaPeNivel(linii, inc).map(linie => {
     // Etapele capitolului (cerut pe 2026-11-26): capitolul se împarte în studii
-    // (din bază, `studii`), iar în fiecare studiu variantele se iau pe rând,
-    // studiată şi apoi exersată, în seturi de câte două. Fiecare studiu se
-    // încheie cu testul lui.
+    // (din bază, `studii`); harta fiecărui studiu are o carte pe set de două
+    // variante, o ganteră după fiecare carte şi pălăria la capăt (vezi `Etapa`).
     const studiiCap = studiiLinie(linie)
-    const nrStudii = studiiCap.length
+    const etape = etapeCapitol(studiiCap)
+    // Cartea e gata când fiecare variantă a setului e studiată şi exersată.
+    const gataVarianta = (v: number) => {
+      const t = noduriParcurse[nodVarianta(linie.id, v, 'teorie')] ?? (v === 0 && parcurse.includes(linie.id) ? '' : undefined)
+      const e = noduriParcurse[nodVarianta(linie.id, v, 'exersare')]
+      return t !== undefined && e !== undefined ? (e > (t || '') ? e : t || e) : null
+    }
+    const numar = (st: StudiuCapitol, vs: number[]) => {
+      const poz = vs.map(v => st.variante.indexOf(v) + 1)
+      return poz.length > 1 ? `variantele ${poz[0]}–${poz[poz.length - 1]}` : `varianta ${poz[0]}`
+    }
 
-    const studii: Studiu[] = studiiCap.map(({ titlu, variante }, s) => {
-      return {
-        titlu,
-        noduri: [
-          ...variante.flatMap((v, k) => [
-            nod({
-              id: nodVarianta(linie.id, v, 'teorie'),
-              kind: 'lectie' as const,
-              title: `Studiu: varianta ${k + 1}`,
-              href: `/courses/${slug}/guided/${linie.id}?v=${v}`,
-            }, v === 0 && parcurse.includes(linie.id)),
-            nod({
-              id: nodVarianta(linie.id, v, 'exersare'),
-              kind: 'exercitiu' as const,
-              title: `Exersare: varianta ${k + 1}`,
-              href: `/courses/${slug}/practice/${linie.id}?v=${v}`,
-            }),
-          ]),
-          {
-            // Fără `href`: nodul există în traseu fiindcă face parte din el, dar
-            // întrebările încă nu sunt construite. Mai bine un pas care spune „în
-            // curând" decât un traseu care se termină brusc.
-            id: s === 0 ? `${linie.id}-test` : `${linie.id}-test-${s}`,
-            kind: 'test' as const,
-            title: nrStudii > 1 ? `Verificare: studiul ${s + 1}` : 'Verificare de capitol',
-          },
-        ],
-      }
-    })
+    const studii: Studiu[] = studiiCap.map((st, s) => ({
+      titlu: st.titlu,
+      noduri: etape.filter(e => e.studiu === s).map(e => {
+        const id = `${linie.id}-${e.id}`
+        const href = adresaEtapei(slug, linie.id, e)
+        if (e.tip === 'set') {
+          const date = e.variante.map(gataVarianta)
+          const gata = date.every(d => d !== null)
+          return { id, kind: 'lectie' as const, title: `Studiu: ${numar(st, e.variante)}`, href, done: gata, cand: gata ? date.filter(Boolean).sort().at(-1) || undefined : undefined }
+        }
+        return nod({
+          id,
+          kind: e.tip === 'recap' ? 'exercitiu' as const : 'test' as const,
+          title: e.tip === 'recap' ? `Recapitulare: ${numar(st, e.variante)}` : 'Verificare: tot studiul',
+          href,
+        })
+      }),
+    }))
     const noduri = studii.flatMap(st => st.noduri)
 
     return {
@@ -322,7 +357,7 @@ export function capitoleDeDeschidere(
       titlu: linie.variation_name,
       subtitlu: subtitluCapitol(linie, inc),
       studii,
-      // Terminat = toţi paşii care duc undeva sunt făcuţi (testul încă n-are pagină).
+      // Terminat = toate etapele făcute, inclusiv verificările de la capătul studiilor.
       terminat: noduri.filter(n => n.href).every(n => n.done),
       grupa: linie.tip === 'practica' ? 'practica' : 'teorie',
       noduri,

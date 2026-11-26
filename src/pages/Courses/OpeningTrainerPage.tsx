@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
-import { incadrareDin, nodVarianta, ordineVariante, ordoneazaPeNivel, procentMasurat, studiiLinie, variantaleSetului } from '@/lib/capitole-curs'
+import { adresaEtapei, etapeCapitol, incadrareDin, nodVarianta, ordoneazaPeNivel, procentMasurat, studiiLinie, variantaleSetului } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
@@ -253,6 +253,10 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // greşite): se joacă doar ele, una după alta, iar la capăt revine fereastra de rezultat.
   const [parametri] = useSearchParams()
   const refacere = (parametri.get('refacere') ?? '').split(',').filter(x => /^\d+$/.test(x)).map(Number)
+  // Gantera şi pălăria din harta studiului (cerut pe 2026-11-26): exersări la
+  // rând, `?lista=0,1,2&etapa=r0-1`; la capăt se notează etapa şi vine fereastra.
+  const lista = mode === 'practice' ? (parametri.get('lista') ?? '').split(',').filter(x => /^\d+$/.test(x)).map(Number) : []
+  const etapaParam = parametri.get('etapa')
   const vCerut = parametri.get('v')
   const varianta = isTrap ? 0
     : vCerut !== null && /^\d+$/.test(vCerut) ? Number(vCerut)
@@ -410,9 +414,12 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const clientQuery = useQueryClient()
   useEffect(() => {
     if (status !== 'line-done' || !line || !user || !lineId) return
+    const v = line.variantaIndex ?? 0
     const nodId = isTrap
       ? `${lineId}-${isGuided ? 'lectie' : 'exercitiu'}`
-      : nodVarianta(lineId, line.variantaIndex ?? 0, isGuided ? 'teorie' : 'exersare')
+      : nodVarianta(lineId, v, isGuided ? 'teorie' : 'exersare')
+    // Gantera sau pălăria e gata după ultima exersare din lista ei.
+    const nodEtapa = !isTrap && lista.length > 0 && etapaParam && v === lista[lista.length - 1] ? `${lineId}-${etapaParam}` : null
     void (async () => {
       const { data } = await supabase
         .from('user_course_progress')
@@ -422,7 +429,7 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
       await supabase.from('user_course_progress').upsert({
         user_id: user.id,
         course_id: line.course_id,
-        noduri_parcurse: { ...(data?.noduri_parcurse ?? {}), [nodId]: acum },
+        noduri_parcurse: { ...(data?.noduri_parcurse ?? {}), [nodId]: acum, ...(nodEtapa ? { [nodEtapa]: acum } : {}) },
         last_activity_at: acum,
       })
       void clientQuery.invalidateQueries({ queryKey: ['course-progress'] })
@@ -606,53 +613,72 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // Variantele se iau în seturi de câte două (cerut pe 2026-11-26): studiul
   // variantei, exersarea ei, apoi a doua variantă la fel; ultimul set poate avea
   // una singură. Bara de sus arată doar setul curent: 4 segmente, sau 2.
-  const nrVariante = isTrap ? 1 : line.nrVariante ?? 1
-  const variantaAici = line.variantaIndex ?? 0
-  // Studiile capitolului (din bază, migrarea 143); până vine cursul, unul singur, în ordine.
-  const linieCurs = curs?.linii.find(l => l.id === lineId)
-  const studiiCap = linieCurs ? studiiLinie(linieCurs) : [{ titlu: '', variante: Array.from({ length: nrVariante }, (_, i) => i) }]
-  const ordine = ordineVariante(studiiCap)
-  const indexStudiu = Math.max(0, studiiCap.findIndex(st => st.variante.includes(variantaAici)))
-  const studiulAici = studiiCap[indexStudiu]
-  /** Următoarea variantă de parcurs după `v`, în ordinea studiilor. */
-  const dupa = (v: number) => ordine[ordine.indexOf(v) + 1] as number | undefined
-  const dinSet = isTrap ? [0] : variantaleSetului(variantaAici, studiiCap)
-  const adresa = (v: number, exersare: boolean) => isTrap
-    ? `/courses/${slug}/${exersare ? 'trap-practice' : 'trap'}/${lineId}`
-    : `/courses/${slug}/${exersare ? 'practice' : 'guided'}/${lineId}?v=${v}`
-  /** La refacere, următoarea variantă greşită de exersat. */
-  const variantaUrmatoare = !isGuided && refacere.includes(variantaAici)
-    ? refacere[refacere.indexOf(variantaAici) + 1] as number | undefined
-    : undefined
-  const segmente = dinSet.flatMap(v => [
-    { eticheta: `Varianta ${studiulAici.variante.indexOf(v) + 1}: Studiu`, href: adresa(v, false) },
-    { eticheta: `Varianta ${studiulAici.variante.indexOf(v) + 1}: Practică pe baza studiului`, href: adresa(v, true) },
-  ])
-  const segmentCurent = Math.max(0, dinSet.indexOf(variantaAici)) * 2 + (isGuided ? 0 : 1)
-  const umplere = (i: number) =>
-    i < segmentCurent ? 100
-      : i > segmentCurent ? 0
-      : (gata ? 1 : moves.length > 0 ? state.plyIdx / moves.length : 0) * 100
-
   // Ordinea capitolelor e a nivelului tău, ca în cuprins: „Capitolul N" şi
   // „Capitolul următor" trebuie să spună acelaşi lucru ca pagina cursului.
   const liniiCurs = curs ? ordoneazaPeNivel(curs.linii, incadrareDin(profile)) : []
   const indexCapitol = liniiCurs.findIndex(l => l.id === lineId)
   const capitolUrmator = indexCapitol >= 0 ? liniiCurs[indexCapitol + 1] : undefined
+  const nrVariante = isTrap ? 1 : line.nrVariante ?? 1
+  const variantaAici = line.variantaIndex ?? 0
+  // Studiile capitolului (din bază, migrarea 143); până vine cursul, unul singur, în ordine.
+  const linieCurs = curs?.linii.find(l => l.id === lineId)
+  const studiiCap = linieCurs ? studiiLinie(linieCurs) : [{ titlu: '', variante: Array.from({ length: nrVariante }, (_, i) => i) }]
+  const etape = etapeCapitol(studiiCap)
+  const indexStudiu = Math.max(0, studiiCap.findIndex(st => st.variante.includes(variantaAici)))
+  const studiulAici = studiiCap[indexStudiu]
+  const nrInStudiu = (v: number) => studiulAici.variante.indexOf(v) + 1
+  const dinSet = isTrap ? [0] : variantaleSetului(variantaAici, studiiCap)
+  const adresa = (v: number, exersare: boolean) => isTrap
+    ? `/courses/${slug}/${exersare ? 'trap-practice' : 'trap'}/${lineId}`
+    : `/courses/${slug}/${exersare ? 'practice' : 'guided'}/${lineId}?v=${v}`
+  // Etapa din hartă în care eşti: gantera/pălăria din adresă, altfel cartea variantei.
+  const inLista = !isTrap && lista.length > 0 && lista.includes(variantaAici)
+  const etapaAici = inLista
+    ? etape.find(e => e.id === etapaParam)
+    : etape.find(e => e.tip === 'set' && e.variante.includes(variantaAici))
+  const etapaUrmatoare = etapaAici ? etape[etape.indexOf(etapaAici) + 1] : undefined
+  const dupaEtapa = etapaUrmatoare
+    ? { href: adresaEtapei(slug!, lineId!, etapaUrmatoare), eticheta: etapaUrmatoare.tip === 'recap' ? 'Continuă: recapitularea' : etapaUrmatoare.tip === 'test' ? 'Continuă: verificarea studiului' : etapaUrmatoare.studiu !== etapaAici?.studiu ? `Continuă: studiul ${etapaUrmatoare.studiu + 1}` : `Continuă: varianta ${nrInStudiu(etapaUrmatoare.variante[0])}` }
+    : capitolUrmatorLink()
+  const cuLista = (v: number) => `${adresa(v, true)}&lista=${lista.join(',')}&etapa=${etapaParam ?? ''}`
+  /** La refacere sau într-o listă de exersări, următoarea de jucat. */
+  const variantaUrmatoare = !isGuided && refacere.includes(variantaAici)
+    ? refacere[refacere.indexOf(variantaAici) + 1] as number | undefined
+    : inLista ? lista[lista.indexOf(variantaAici) + 1] as number | undefined
+    : undefined
+  const segmente = inLista
+    ? lista.map(v => ({ eticheta: `Exersare: varianta ${nrInStudiu(v)}`, href: cuLista(v) }))
+    : dinSet.flatMap(v => [
+        { eticheta: `Varianta ${nrInStudiu(v)}: Studiu`, href: adresa(v, false) },
+        { eticheta: `Varianta ${nrInStudiu(v)}: Practică pe baza studiului`, href: adresa(v, true) },
+      ])
+  const segmentCurent = inLista
+    ? lista.indexOf(variantaAici)
+    : Math.max(0, dinSet.indexOf(variantaAici)) * 2 + (isGuided ? 0 : 1)
+  const umplere = (i: number) =>
+    i < segmentCurent ? 100
+      : i > segmentCurent ? 0
+      : (gata ? 1 : moves.length > 0 ? state.plyIdx / moves.length : 0) * 100
+
+  function capitolUrmatorLink() {
+    return capitolUrmator
+      ? { eticheta: 'Capitolul următor', href: `/courses/${slug}/guided/${capitolUrmator.id}` }
+      : { eticheta: 'Înapoi la curs', href: `/courses/${slug}` }
+  }
   const etichetaCapitol = isTrap
     ? `Capcane uzuale · ${line.variation_name}`
     : indexCapitol >= 0 ? `Capitolul ${indexCapitol + 1} · ${line.variation_name}` : line.variation_name
 
-  // ── Fereastra de final a setului ────────────────────────────────────────────
-  // După exersarea ultimei variante din set — sau după orice refacere pornită
-  // din fereastră —, cu rezultatul variantelor setului (ca la Chessly).
-  const ultimaDinSet = dinSet[dinSet.length - 1]
+  // ── Fereastra de final ──────────────────────────────────────────────────────
+  // La capătul unei cărţi (după exersarea ultimei variante din set), al unei
+  // gantere sau al pălăriei — ori după o refacere pornită din fereastră —, cu
+  // rezultatul variantelor de acolo (ca la Chessly).
+  const partiRezumat = inLista ? lista : dinSet
+  const ultimaDinParti = partiRezumat[partiRezumat.length - 1]
   const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && variantaUrmatoare === undefined
-    && (refacere.length > 0 || variantaAici === ultimaDinSet)
-  const continuaHref = dupa(ultimaDinSet) !== undefined
-    ? adresa(dupa(ultimaDinSet)!, false)
-    : capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
-  const gresite = dinSet.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
+    && (refacere.length > 0 || variantaAici === ultimaDinParti)
+  const continuaHref = dupaEtapa.href
+  const gresite = partiRezumat.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
   const refaGresite = gresite.length > 0
     ? () => {
         if (gresite[0] === variantaAici) resetLine()
@@ -662,19 +688,13 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
   /** Unde duce „Continuă" de la capătul variantei. */
   const urmator = variantaUrmatoare !== undefined
-    ? { eticheta: `Continuă: exersarea variantei ${studiulAici.variante.indexOf(variantaUrmatoare) + 1}`, href: `${adresa(variantaUrmatoare, true)}&refacere=${refacere.join(',')}` }
+    ? { eticheta: `Continuă: exersarea variantei ${nrInStudiu(variantaUrmatoare)}`, href: refacere.length > 0 ? `${adresa(variantaUrmatoare, true)}&refacere=${refacere.join(',')}` : cuLista(variantaUrmatoare) }
     : isGuided
     ? { eticheta: 'Continuă spre exersare', href: practicePath }
-    : !isTrap && dupa(variantaAici) !== undefined && refacere.length === 0
-    ? {
-        eticheta: studiulAici.variante.includes(dupa(variantaAici)!)
-          ? `Continuă: varianta ${studiulAici.variante.indexOf(dupa(variantaAici)!) + 1}`
-          : `Continuă: studiul ${indexStudiu + 2}`,
-        href: adresa(dupa(variantaAici)!, false),
-      }
-    : !isTrap && capitolUrmator
-    ? { eticheta: 'Capitolul următor', href: `/courses/${slug}/guided/${capitolUrmator.id}` }
-    : { eticheta: 'Înapoi la curs', href: `/courses/${slug}` }
+    : !isTrap && !inLista && refacere.length === 0 && variantaAici !== dinSet[dinSet.length - 1]
+    ? { eticheta: `Continuă: varianta ${nrInStudiu(dinSet[dinSet.indexOf(variantaAici) + 1])}`, href: adresa(dinSet[dinSet.indexOf(variantaAici) + 1], false) }
+    : isTrap ? capitolUrmatorLink()
+    : dupaEtapa
 
   // ── Balonul ─────────────────────────────────────────────────────────────────
   // Textul stă pe mutarea TA: înaintea ei spune ce a jucat adversarul şi ce
@@ -860,8 +880,9 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             {/* Din 2026-11-26, o variantă pe etapă: studiul ei, apoi exersarea ei. */}
             {isTrap && 'Capcana: '}
             {studiiCap.length > 1 && `Studiul ${indexStudiu + 1} · `}
-            {studiulAici.variante.length > 1 && `Varianta ${studiulAici.variante.indexOf(variantaAici) + 1} din ${studiulAici.variante.length}: `}
-            {isGuided ? 'Studiu' : 'Practică pe baza studiului'}
+            {inLista
+              ? `${etapaAici?.tip === 'test' ? 'Verificarea studiului' : 'Recapitulare'} · Exersarea ${lista.indexOf(variantaAici) + 1} din ${lista.length}`
+              : <>{studiulAici.variante.length > 1 && `Varianta ${nrInStudiu(variantaAici)} din ${studiulAici.variante.length}: `}{isGuided ? 'Studiu' : 'Practică pe baza studiului'}</>}
           </p>
           {!isGuided && !gata && (
             <button
