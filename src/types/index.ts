@@ -545,6 +545,17 @@ export interface OpeningLine {
    * adversarul face altă mutare frecventă. Varianta 1 e rândul însuşi.
    */
   variante?: VariantaCapitol[] | null
+  /**
+   * Studiile capitolului (migrarea 143, cerut pe 2026-11-26): titlul şi
+   * variantele fiecăruia, în ordinea în care se parcurg. Indexul 0 = rândul
+   * însuşi (linia principală), k = `variante[k - 1]`. Lipsă = calculate.
+   */
+  studii?: StudiuCapitol[] | null
+}
+
+export interface StudiuCapitol {
+  titlu: string
+  variante: number[]
 }
 
 /**

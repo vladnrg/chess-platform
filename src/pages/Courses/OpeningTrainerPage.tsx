@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { CULORI_SAGETI, OPTIUNI_SAGETI, ULTIMA_MUTARE } from '@/lib/sageti'
-import { incadrareDin, nodVarianta, ordoneazaPeNivel, procentMasurat, variantaleSetului } from '@/lib/capitole-curs'
+import { incadrareDin, nodVarianta, ordineVariante, ordoneazaPeNivel, procentMasurat, studiiLinie, variantaleSetului } from '@/lib/capitole-curs'
 import { introCapitol, mutariMiniTabla } from '@/lib/intro-capitol'
 import { MiniTablaVarianta } from '@/components/chess/MiniTablaVarianta'
 import { RezumatCapitol } from '@/components/courses/RezumatCapitol'
@@ -608,7 +608,15 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   // una singură. Bara de sus arată doar setul curent: 4 segmente, sau 2.
   const nrVariante = isTrap ? 1 : line.nrVariante ?? 1
   const variantaAici = line.variantaIndex ?? 0
-  const dinSet = isTrap ? [0] : variantaleSetului(variantaAici, nrVariante)
+  // Studiile capitolului (din bază, migrarea 143); până vine cursul, unul singur, în ordine.
+  const linieCurs = curs?.linii.find(l => l.id === lineId)
+  const studiiCap = linieCurs ? studiiLinie(linieCurs) : [{ titlu: '', variante: Array.from({ length: nrVariante }, (_, i) => i) }]
+  const ordine = ordineVariante(studiiCap)
+  const indexStudiu = Math.max(0, studiiCap.findIndex(st => st.variante.includes(variantaAici)))
+  const studiulAici = studiiCap[indexStudiu]
+  /** Următoarea variantă de parcurs după `v`, în ordinea studiilor. */
+  const dupa = (v: number) => ordine[ordine.indexOf(v) + 1] as number | undefined
+  const dinSet = isTrap ? [0] : variantaleSetului(variantaAici, studiiCap)
   const adresa = (v: number, exersare: boolean) => isTrap
     ? `/courses/${slug}/${exersare ? 'trap-practice' : 'trap'}/${lineId}`
     : `/courses/${slug}/${exersare ? 'practice' : 'guided'}/${lineId}?v=${v}`
@@ -617,8 +625,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
     ? refacere[refacere.indexOf(variantaAici) + 1] as number | undefined
     : undefined
   const segmente = dinSet.flatMap(v => [
-    { eticheta: `Varianta ${v + 1}: Studiu`, href: adresa(v, false) },
-    { eticheta: `Varianta ${v + 1}: Practică pe baza studiului`, href: adresa(v, true) },
+    { eticheta: `Varianta ${studiulAici.variante.indexOf(v) + 1}: Studiu`, href: adresa(v, false) },
+    { eticheta: `Varianta ${studiulAici.variante.indexOf(v) + 1}: Practică pe baza studiului`, href: adresa(v, true) },
   ])
   const segmentCurent = Math.max(0, dinSet.indexOf(variantaAici)) * 2 + (isGuided ? 0 : 1)
   const umplere = (i: number) =>
@@ -641,8 +649,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
   const ultimaDinSet = dinSet[dinSet.length - 1]
   const arataRezumat = gata && !isGuided && !isTrap && !rezumatInchis && variantaUrmatoare === undefined
     && (refacere.length > 0 || variantaAici === ultimaDinSet)
-  const continuaHref = ultimaDinSet < nrVariante - 1
-    ? adresa(ultimaDinSet + 1, false)
+  const continuaHref = dupa(ultimaDinSet) !== undefined
+    ? adresa(dupa(ultimaDinSet)!, false)
     : capitolUrmator ? `/courses/${slug}/guided/${capitolUrmator.id}` : `/courses/${slug}`
   const gresite = dinSet.filter(i => rezultate?.[String(i)] && !rezultate[String(i)].perfect)
   const refaGresite = gresite.length > 0
@@ -654,11 +662,16 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
 
   /** Unde duce „Continuă" de la capătul variantei. */
   const urmator = variantaUrmatoare !== undefined
-    ? { eticheta: `Continuă: exersarea variantei ${variantaUrmatoare + 1}`, href: `${adresa(variantaUrmatoare, true)}&refacere=${refacere.join(',')}` }
+    ? { eticheta: `Continuă: exersarea variantei ${studiulAici.variante.indexOf(variantaUrmatoare) + 1}`, href: `${adresa(variantaUrmatoare, true)}&refacere=${refacere.join(',')}` }
     : isGuided
     ? { eticheta: 'Continuă spre exersare', href: practicePath }
-    : !isTrap && variantaAici < nrVariante - 1 && refacere.length === 0
-    ? { eticheta: `Continuă: varianta ${variantaAici + 2}`, href: adresa(variantaAici + 1, false) }
+    : !isTrap && dupa(variantaAici) !== undefined && refacere.length === 0
+    ? {
+        eticheta: studiulAici.variante.includes(dupa(variantaAici)!)
+          ? `Continuă: varianta ${studiulAici.variante.indexOf(dupa(variantaAici)!) + 1}`
+          : `Continuă: studiul ${indexStudiu + 2}`,
+        href: adresa(dupa(variantaAici)!, false),
+      }
     : !isTrap && capitolUrmator
     ? { eticheta: 'Capitolul următor', href: `/courses/${slug}/guided/${capitolUrmator.id}` }
     : { eticheta: 'Înapoi la curs', href: `/courses/${slug}` }
@@ -846,7 +859,8 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             {/* Numele etapelor, cerute pe 2026-11-23: „Studiu" şi „Practică pe baza studiului". */}
             {/* Din 2026-11-26, o variantă pe etapă: studiul ei, apoi exersarea ei. */}
             {isTrap && 'Capcana: '}
-            {nrVariante > 1 && `Varianta ${variantaAici + 1} din ${nrVariante}: `}
+            {studiiCap.length > 1 && `Studiul ${indexStudiu + 1} · `}
+            {studiulAici.variante.length > 1 && `Varianta ${studiulAici.variante.indexOf(variantaAici) + 1} din ${studiulAici.variante.length}: `}
             {isGuided ? 'Studiu' : 'Practică pe baza studiului'}
           </p>
           {!isGuided && !gata && (

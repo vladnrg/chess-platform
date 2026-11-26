@@ -12,7 +12,7 @@
  *   - fundamentale  — un singur capitol, cu lecţiile lui în ordine.
  */
 import type { PathNode } from '@/components/courses/ChapterPath'
-import type { Lesson, OpeningLine, Profile } from '@/types'
+import type { Lesson, OpeningLine, Profile, StudiuCapitol } from '@/types'
 
 /**
  * Treapta mare a cursantului (400–1000 / 1000–1600 / 1600–2300, pe scara
@@ -202,30 +202,53 @@ export interface Studiu {
  */
 const VARIANTE_PE_STUDIU = 10
 
-/**
- * Variantele setului din care face parte varianta `v`: se parcurg câte două
- * (studiu, exersare, studiu, exersare); dacă rămâne una fără pereche la capătul
- * studiului, setul ei o are doar pe ea (cerut pe 2026-11-26).
- */
-export function variantaleSetului(v: number, nrVariante: number): number[] {
-  const inceputStudiu = Math.floor(v / VARIANTE_PE_STUDIU) * VARIANTE_PE_STUDIU
-  const capatStudiu = Math.min(nrVariante, inceputStudiu + VARIANTE_PE_STUDIU)
-  const prima = inceputStudiu + Math.floor((v - inceputStudiu) / 2) * 2
-  return [prima, prima + 1].filter(i => i < capatStudiu)
-}
-
 /** „Dacă adversarul joacă 5…Nb6" → „5…Nb6"; „…face rocada la mutarea 7" → „rocada la mutarea 7". */
 function abatere(nume: string): string {
   return nume.replace(/^Dacă adversarul (joacă |face )/, '')
 }
 
-/** Titlul unui studiu, din mutările variantelor lui. */
+/** Titlul unui studiu calculat, din mutările variantelor lui. */
 function titluStudiu(nume: string[], cuLiniaPrincipala: boolean): string {
   const lista = (x: string[], si: string) => x.length < 2 ? x.join('') : `${x.slice(0, -1).join(', ')} ${si} ${x[x.length - 1]}`
   if (cuLiniaPrincipala) {
     return nume.length === 0 ? 'Linia principală' : `Linia principală şi ${nume.length === 1 ? 'abaterea' : 'abaterile'} ${lista(nume, 'şi')}`
   }
   return `Dacă adversarul joacă ${lista(nume, 'sau')}`
+}
+
+/**
+ * Studiile unui capitol: cele scrise în bază (`studii`, migrarea 143), dacă
+ * sunt valide, altfel calculate — câte cel mult VARIANTE_PE_STUDIU variante, în
+ * ordinea lor.
+ */
+export function studiiLinie(linie: Pick<OpeningLine, 'variante' | 'studii'>): StudiuCapitol[] {
+  const nrVariante = 1 + (linie.variante?.length ?? 0)
+  const scrise = linie.studii?.filter(s => s.variante?.length && s.variante.every(v => Number.isInteger(v) && v >= 0 && v < nrVariante))
+  if (scrise && scrise.length > 0) return scrise
+  return Array.from({ length: Math.ceil(nrVariante / VARIANTE_PE_STUDIU) }, (_, s) => {
+    const variante = Array.from({ length: Math.min(VARIANTE_PE_STUDIU, nrVariante - s * VARIANTE_PE_STUDIU) }, (_, i) => s * VARIANTE_PE_STUDIU + i)
+    return {
+      titlu: titluStudiu(variante.filter(v => v > 0).map(v => abatere(linie.variante?.[v - 1]?.nume ?? `varianta ${v + 1}`)), s === 0),
+      variante,
+    }
+  })
+}
+
+/** Toate variantele capitolului, în ordinea în care se parcurg (studiu după studiu). */
+export function ordineVariante(studii: StudiuCapitol[]): number[] {
+  return studii.flatMap(s => s.variante)
+}
+
+/**
+ * Variantele setului din care face parte varianta `v`: în studiul ei, se
+ * parcurg câte două (studiu, exersare, studiu, exersare); dacă rămâne una fără
+ * pereche la capătul studiului, setul ei o are doar pe ea (cerut pe 2026-11-26).
+ */
+export function variantaleSetului(v: number, studii: StudiuCapitol[]): number[] {
+  const st = studii.find(s => s.variante.includes(v))
+  if (!st) return [v]
+  const poz = Math.floor(st.variante.indexOf(v) / 2) * 2
+  return st.variante.slice(poz, poz + 2)
 }
 
 /**
@@ -255,32 +278,27 @@ export function capitoleDeDeschidere(
   })
   const capitole: Capitol[] = ordoneazaPeNivel(linii, inc).map(linie => {
     // Etapele capitolului (cerut pe 2026-11-26): capitolul se împarte în studii
-    // (câte cel mult VARIANTE_PE_STUDIU variante), iar în fiecare studiu
-    // variantele se iau pe rând, studiată şi apoi exersată, în seturi de câte
-    // două. Fiecare studiu se încheie cu testul lui.
-    const nrVariante = 1 + (linie.variante?.length ?? 0)
-    const nrStudii = Math.ceil(nrVariante / VARIANTE_PE_STUDIU)
+    // (din bază, `studii`), iar în fiecare studiu variantele se iau pe rând,
+    // studiată şi apoi exersată, în seturi de câte două. Fiecare studiu se
+    // încheie cu testul lui.
+    const studiiCap = studiiLinie(linie)
+    const nrStudii = studiiCap.length
 
-    const studii: Studiu[] = Array.from({ length: nrStudii }, (_, s) => {
-      const de = s * VARIANTE_PE_STUDIU
-      const variante = Array.from({ length: Math.min(VARIANTE_PE_STUDIU, nrVariante - de) }, (_, i) => de + i)
+    const studii: Studiu[] = studiiCap.map(({ titlu, variante }, s) => {
       return {
-        titlu: titluStudiu(
-          variante.filter(v => v > 0).map(v => abatere(linie.variante?.[v - 1]?.nume ?? `varianta ${v + 1}`)),
-          s === 0,
-        ),
+        titlu,
         noduri: [
-          ...variante.flatMap(v => [
+          ...variante.flatMap((v, k) => [
             nod({
               id: nodVarianta(linie.id, v, 'teorie'),
               kind: 'lectie' as const,
-              title: `Studiu: varianta ${v + 1}`,
+              title: `Studiu: varianta ${k + 1}`,
               href: `/courses/${slug}/guided/${linie.id}?v=${v}`,
             }, v === 0 && parcurse.includes(linie.id)),
             nod({
               id: nodVarianta(linie.id, v, 'exersare'),
               kind: 'exercitiu' as const,
-              title: `Exersare: varianta ${v + 1}`,
+              title: `Exersare: varianta ${k + 1}`,
               href: `/courses/${slug}/practice/${linie.id}?v=${v}`,
             }),
           ]),
