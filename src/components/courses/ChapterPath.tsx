@@ -64,8 +64,10 @@ function Legatura({ de, la, dinKind, spreKind }: {
 function stareaNodului(node: PathNode, esteCurent: boolean, blocat: boolean) {
   // Un pas fără pagină (testul) rămâne închis, chiar dacă i-a venit rândul.
   if (!node.href) return 'blocat' as const
-  if (node.done) return 'gata' as const
+  // Ordinea e strictă (cerut pe 2026-11-26): ce vine după pasul curent stă cu
+  // lacăt chiar dacă figurează ca făcut — gantera nu se deschide înaintea cărţii.
   if (blocat) return 'blocat' as const
+  if (node.done) return 'gata' as const
   if (esteCurent) return 'curent' as const
   return 'deschis' as const
 }

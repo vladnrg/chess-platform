@@ -1032,7 +1032,19 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
             )}
           </div>
 
-          {gata && (
+          {/* Rezultatul setului, al ganterei sau al pălăriei stă în pagină, lângă
+              tablă, nu peste ea pe fundal negru (cerut pe 2026-11-26). */}
+          {arataRezumat && rezultate && (
+            <RezumatCapitol
+              parti={partiRezumat}
+              rezultate={rezultate}
+              continuaHref={continuaHref}
+              onRefa={refaGresite}
+              onInchide={() => setRezumatInchis(true)}
+            />
+          )}
+
+          {gata && !(arataRezumat && rezultate) && (
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" onClick={resetLine}>
                 <RotateCcw className="h-3.5 w-3.5" /> {isGuided ? 'Refă studiul' : 'Refă exersarea'}
@@ -1098,15 +1110,6 @@ export function OpeningTrainerPage({ mode, stage = 'opening' }: Props) {
         </div>
       </div>
 
-      {arataRezumat && rezultate && (
-        <RezumatCapitol
-          parti={dinSet}
-          rezultate={rezultate}
-          continuaHref={continuaHref}
-          onRefa={refaGresite}
-          onInchide={() => setRezumatInchis(true)}
-        />
-      )}
     </div>
   )
 }

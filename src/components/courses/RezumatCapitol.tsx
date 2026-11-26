@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { BookOpen, Clock, RotateCcw, Target, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -41,6 +40,17 @@ function Inel({ perfecte, total }: { perfecte: number; total: number }) {
  * ai exersat şi cât a durat, apoi „Continuă învăţarea" sau „Refă exersările
  * greşite".
  */
+/**
+ * Mesajul ferestrei, după câte exersări au ieşit perfecte (textele cerute pe
+ * 2026-11-26): toate; peste 75%; 50–75%; sub 50%.
+ */
+function mesajRezultat(rata: number): { titlu: string; text: string } {
+  if (rata >= 1) return { titlu: 'Bravo!', text: 'Eşti deja un maestru al variantelor studiate.' }
+  if (rata > 0.75) return { titlu: 'Pare că stăpâneşti bine variantele, dar încă nu la perfecţie.', text: 'Sau poate că doar ţi-a alunecat mouse-ul...' }
+  if (rata >= 0.5) return { titlu: 'Nu e rău!', text: 'Ai rezolvat corect peste jumătate din variante. Ţine-o tot aşa!' }
+  return { titlu: 'Sigur poţi mai bine de atât.', text: 'Parcurge din nou studiile pentru o rată de succes mai mare.' }
+}
+
 export function RezumatCapitol({
   parti, rezultate, continuaHref, onRefa, onInchide,
 }: {
@@ -55,7 +65,7 @@ export function RezumatCapitol({
   const facute = parti.filter(p => rezultate[String(p)])
   const perfecte = facute.filter(p => rezultate[String(p)]!.perfect).length
   const ms = facute.reduce((suma, p) => suma + rezultate[String(p)]!.ms, 0)
-  const toatePerfecte = facute.length > 0 && perfecte === facute.length
+  const mesaj = mesajRezultat(facute.length > 0 ? perfecte / facute.length : 0)
 
   useEffect(() => {
     function laTasta(e: KeyboardEvent) {
@@ -65,13 +75,11 @@ export function RezumatCapitol({
     return () => window.removeEventListener('keydown', laTasta)
   }, [onInchide])
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+  return (
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Rezultatul capitolului"
-        className="relative w-full max-w-sm rounded-2xl border border-[#2A2A2A] bg-[#161616] px-6 pb-6 pt-8 text-center shadow-2xl"
+        role="region"
+        aria-label="Rezultatul exersărilor"
+        className="relative w-full rounded-2xl border border-[#2A2A2A] bg-[#161616] px-6 pb-6 pt-8 text-center"
       >
         <button
           type="button"
@@ -94,14 +102,8 @@ export function RezumatCapitol({
           </div>
         </div>
 
-        <h2 className="mt-5 font-display text-xl font-semibold text-[#F0F0F0]">
-          {toatePerfecte ? 'Perfect!' : 'Bravo!'}
-        </h2>
-        <p className="mt-1 text-sm text-[#A0A0A0]">
-          {toatePerfecte
-            ? 'Ai jucat tot capitolul fără nicio greşeală.'
-            : 'Eşti cu un pas mai aproape de stăpânirea capitolului!'}
-        </p>
+        <h2 className="mt-5 font-display text-xl font-semibold text-[#F0F0F0]">{mesaj.titlu}</h2>
+        <p className="mt-1 text-sm text-[#A0A0A0]">{mesaj.text}</p>
 
         <div className="mt-5 flex justify-center gap-2">
           {([
@@ -132,7 +134,5 @@ export function RezumatCapitol({
           )}
         </div>
       </div>
-    </div>,
-    document.body,
   )
 }
