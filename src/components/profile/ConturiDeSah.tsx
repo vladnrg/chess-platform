@@ -135,10 +135,27 @@ export function ConturiDeSah() {
 
           {!legatChesscom && cod && (
             <div className="space-y-3 text-sm text-[#A0A0A0]">
-              <p>
-                Ca să știm că e contul tău: deschide profilul de pe Chess.com (Setări → Profil), pune codul de mai jos în
-                câmpul <span className="text-[#F0F0F0]">„Locație"</span> și salvează. După verificare îl poți șterge.
-              </p>
+              {/* Paşii, ceruţi mai pe larg pe 2026-11-26. */}
+              <p>Ca să știm că e contul tău:</p>
+              <ol className="list-decimal space-y-1.5 pl-5">
+                <li>Copiază codul de mai jos.</li>
+                <li>
+                  Pe Chess.com, deschide setările contului, la{' '}
+                  <a
+                    href="https://www.chess.com/settings/profile"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#E2B340] hover:underline"
+                  >
+                    Setări → Profil
+                  </a>.
+                </li>
+                <li>
+                  Adaugă codul în câmpul <span className="text-[#F0F0F0]">„Locație"</span> din detaliile profilului tău
+                  și apasă <span className="text-[#F0F0F0]">„Salvează"</span>.
+                </li>
+                <li>Revino aici și apasă „Am pus codul, verifică". După verificare, poți șterge codul din profil.</li>
+              </ol>
               <button
                 type="button"
                 onClick={() => { void navigator.clipboard.writeText(cod); toast.success('Cod copiat.') }}
