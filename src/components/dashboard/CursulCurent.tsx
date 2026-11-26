@@ -9,7 +9,8 @@ import { ChapterPath, type PathNode } from '@/components/courses/ChapterPath'
 import { inaltimeaTraseului } from '@/components/courses/geometrie-traseu'
 import { PozaCursului } from '@/components/ui/PozaCursului'
 import { Spinner } from '@/components/ui/Spinner'
-import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, incadrareDin, type Capitol } from '@/lib/capitole-curs'
+import { capitoleDeDeschidere, capitolDeLectii, capitolulCurent, cursTerminat, etichetaTraseu, incadrareDin, type Capitol } from '@/lib/capitole-curs'
+import { StudiiCapitol } from '@/components/courses/StudiiCapitol'
 import type { Course, Lesson, OpeningLine, UserCourseProgress } from '@/types'
 
 /**
@@ -305,7 +306,11 @@ function CapitolulCursului({
         )}
       </div>
 
-      <TraseuIncadrat noduri={cap.noduri} />
+      {/* Cu studii (ca la Chessly): titlul fiecăruia vizibil, doar cel curent
+          deschis, cu harta la mărime aproape normală (cerut pe 2026-11-26). */}
+      {cap.studii && cap.studii.length > 0
+        ? <StudiiCapitol key={cap.id} studii={cap.studii} eticheta={etichetaTraseu(capitole)} compact />
+        : <TraseuIncadrat noduri={cap.noduri} />}
 
       {/* Ce urmează. Casetele astea nu-s decor: fără ele, capitolul curent pare
           tot ce există, iar drumul se termină la marginea traseului. */}

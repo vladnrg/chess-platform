@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import { ChevronDown, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChapterPath } from './ChapterPath'
+import { StudiiCapitol } from './StudiiCapitol'
 import { capitoleDeDeschidere, capitolulCurent, etichetaTraseu, incadrareDin, type Capitol } from '@/lib/capitole-curs'
 import { useDateDeCurs } from '@/hooks/useDateDeCurs'
 import { useAuth } from '@/hooks/useAuth'
@@ -97,26 +98,10 @@ export function CourseChapters({
             {esteDeschis && (
               <div className="border-t border-[#2A2A2A] bg-[#0F0F0F]">
                 {cap.studii && cap.studii.length > 0 ? (
-                  // Ca la Chessly (cerut pe 2026-11-26): fiecare studiu cu titlul
-                  // lui deasupra traseului; capitolul creşte cu câte studii are.
-                  <div className="space-y-2 p-3">
-                    {cap.studii.map((st, s) => (
-                      <div key={s}>
-                        <div className="mx-auto flex max-w-2xl items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#141414] px-3 py-2">
-                          <span className="flex-shrink-0 rounded bg-[rgba(226,179,64,0.12)] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#E2B340]">
-                            Studiul {s + 1}
-                          </span>
-                          <span className="min-w-0 flex-1 text-sm font-semibold text-[#F0F0F0]">
-                            {st.titlu}
-                          </span>
-                        </div>
-                        <ChapterPath
-                          nodes={st.noduri}
-                          eticheta={eticheta}
-                          blocatTot={cap.studii!.slice(0, s).some(prev => prev.noduri.some(n => n.href && !n.done))}
-                        />
-                      </div>
-                    ))}
+                  // Ca la Chessly (cerut pe 2026-11-26): fiecare studiu cu bara
+                  // lui de titlu şi harta lui; capitolul creşte cu câte studii are.
+                  <div className="p-3">
+                    <StudiiCapitol studii={cap.studii} eticheta={eticheta} />
                   </div>
                 ) : (
                   <ChapterPath nodes={cap.noduri} eticheta={eticheta} />
