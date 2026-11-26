@@ -26,29 +26,16 @@ export function StudiiCapitol({ studii, eticheta, compact = false }: {
   const curent = Math.max(0, studii.findIndex(st => !terminat(st)))
   const [deschise, setDeschise] = useState<Set<number>>(() => new Set(compact ? [curent] : studii.map((_, s) => s)))
   const lista = useRef<HTMLDivElement>(null)
-  const deAdus = useRef<number | null>(null)
   const locHarta = useLocHarta(lista, compact, studii.length)
+  // Toate hărţile la aceeaşi mărime, cea care încape pentru cel mai lung studiu
+  // (de obicei primul): un studiu mai scurt nu-şi umflă nodurile ca să umple
+  // caseta (cerut pe 2026-11-26).
+  const naturalMaxim = Math.max(0, ...studii.map(st => inaltimeaTraseuluiCompact(st.noduri)))
 
-  const comuta = (s: number) => {
-    if (!deschise.has(s)) deAdus.current = s
-    setDeschise(v => { const n = new Set(v); if (!n.delete(s)) n.add(s); return n })
-  }
-
-  // Studiul tocmai deschis se aduce sus în listă, ca să se vadă harta lui.
-  // Încercat şi respins: derularea lină (`behavior: 'smooth'`) se oprea din
-  // prima clipă, la deschidere, şi lista rămânea pe loc; la fel `scrollTo` cu
-  // `offsetTop`, ale cărui coordonate ieşeau înmulţite cu mărirea paginii.
-  // Cadrul de aşteptare rămâne: cererea se şterge abia după derulare.
-  useEffect(() => {
-    const l = lista.current
-    const s = deAdus.current
-    if (!l || s === null || locHarta === null) return
-    const cadru = requestAnimationFrame(() => {
-      deAdus.current = null
-      l.querySelector<HTMLElement>(`[data-studiu="${s}"]`)?.scrollIntoView({ block: 'start' })
-    })
-    return () => cancelAnimationFrame(cadru)
-  }, [deschise, locHarta])
+  // Fără derulare automată la deschidere: studiul se desface în jos, pe loc,
+  // iar derularea o face omul (cerut pe 2026-11-26, după ce saltul la studiul
+  // deschis s-a dovedit deranjant).
+  const comuta = (s: number) => setDeschise(v => { const n = new Set(v); if (!n.delete(s)) n.add(s); return n })
 
   const casete = studii.map((st, s) => {
     const deschis = deschise.has(s)
@@ -72,7 +59,7 @@ export function StudiiCapitol({ studii, eticheta, compact = false }: {
         </button>
         {deschis && (
           compact
-            ? <HartaIncadrata noduri={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} inaltime={locHarta ?? INALTIME} />
+            ? <HartaIncadrata noduri={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} inaltime={locHarta ?? INALTIME} naturalMaxim={naturalMaxim} />
             : <ChapterPath nodes={st.noduri} eticheta={eticheta} blocatTot={blocat(s)} />
         )}
       </div>
@@ -136,17 +123,19 @@ const SCARA_MAX = 1.5
 /** Umbra şi lacătul ultimului nod ies cu ~14px sub înălţimea calculată (măsurat). */
 const SUB_ULTIMUL = 16
 
-function HartaIncadrata({ noduri, eticheta, blocatTot, inaltime }: {
+function HartaIncadrata({ noduri, eticheta, blocatTot, inaltime, naturalMaxim }: {
   noduri: Studiu['noduri']
   eticheta?: { nodId: string; text: string } | null
   blocatTot: boolean
   inaltime: number
+  /** Înălţimea naturală a celui mai lung studiu din capitol: dă scara comună. */
+  naturalMaxim: number
 }) {
   const cutie = useRef<HTMLDivElement>(null)
   const loc = inaltime
 
   const natural = inaltimeaTraseuluiCompact(noduri)
-  const scara = Math.max(SCARA_MIN, Math.min(SCARA_MAX, loc / (natural + SUB_ULTIMUL)))
+  const scara = Math.max(SCARA_MIN, Math.min(SCARA_MAX, loc / (Math.max(natural, naturalMaxim) + SUB_ULTIMUL)))
   const inalt = Math.ceil(natural * scara)
   // Când harta a ajuns la mărimea maximă şi tot rămâne loc, stă la mijloc.
   const sus = Math.max(0, Math.floor((loc - inalt - SUB_ULTIMUL * scara) / 2))
